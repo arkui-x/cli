@@ -1,0 +1,14 @@
+apply plugin: 'com.huawei.ohos.hap'
+ohos {
+    compileSdkVersion 7
+    defaultConfig {
+        compatibleSdkVersion 7
+    }
+    entryModules "entry"
+}
+
+dependencies {
+    entryImplementation project(':entry')
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.har'])
+    testCompile 'junit:junit:4.13'
+}
