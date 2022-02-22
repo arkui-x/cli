@@ -102,7 +102,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
           if (module !== 'entry') {
             module = module + '-entry';
           }
-          if (file === `${module}-debug-signed.${fileType}`) {
+          if (file === `${module}-debug-standard-signed.${fileType}`) {
             filePathList.push(path.join(buildDir, file));
             return true;
           }

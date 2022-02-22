@@ -70,12 +70,12 @@ function parseCommander() {
             inquirer.prompt([{
               name: 'version',
               type: 'input',
-              message: 'Please enter the ACE version (1: ACE 1.0, 2: ACE 2.0):',
+              message: 'Please enter the ACE version (1: 类web范式, 2: 声明式范式):',
               validate(val) {
                 if (val === '1' || val === '2') {
                   return true;
                 } else {
-                  return 'ACE version must be an integer: 1 or 2.';
+                  return 'ArkUI version must be an integer: 1 or 2.';
                 }
               }
             }]).then(answers => {

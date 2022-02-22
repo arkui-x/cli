@@ -59,7 +59,7 @@ function readConfig() {
 
 function writeLocalProperties() {
   const filePath = path.join(projectDir, '/ohos/local.properties');
-  const content = `hwsdk.dir=${harmonySdkDir}\nnodejs.dir=${nodejsDir}`;
+  const content = `sdk.dir=${harmonySdkDir}\nnodejs.dir=${nodejsDir}`;
   return createLocalProperties(filePath, content);
 }
 
@@ -100,9 +100,17 @@ function getModuleList(settingPath) {
 function copyJStoOhos(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
-    const src = path.join(projectDir, 'source', module);
-    const dist = path.join(projectDir, 'ohos', module, '/src/main/js');
-    isContinue = isContinue && copy(src, dist);
+    const manifestPath = path.join(projectDir, '/source', module, '/src/main/ets/manifest.json');
+    const manifestObj = JSON.parse(fs.readFileSync(manifestPath));
+    const uiSyntax = manifestObj.js[0].mode.syntax;
+    const src = path.join(projectDir, 'source', module, '/src/main/ets');
+    if (uiSyntax === 'ets') {
+      const dist = path.join(projectDir, 'ohos', module, '/src/main/ets');
+      isContinue = isContinue && copy(src, dist);
+    } else {
+      const dist = path.join(projectDir, 'ohos', module, '/src/main/js');
+      isContinue = isContinue && copy(src, dist);
+    }
   });
   return isContinue;
 }
@@ -110,7 +118,7 @@ function copyJStoOhos(moduleList) {
 function copyBundletoAndroid(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
-    const src = path.join(projectDir, '/ohos', module, 'build/intermediates/res/debug/rich/assets/js');
+    const src = path.join(projectDir, '/ohos', module, 'build/intermediates/js/debug/normal/rich/assets/js');
     let dist;
     if (module === 'entry') {
       dist = path.join(projectDir, '/android/app/src/main/assets/js');
@@ -132,13 +140,13 @@ function copyHaptoOutput() {
 function syncManifest(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
-    const manifestPath = path.join(projectDir, '/source', module, 'manifest.json');
+    const manifestPath = path.join(projectDir, '/source', module, '/src/main/ets/manifest.json');
     const configPath = path.join(projectDir, '/ohos', module, 'src/main/config.json');
     try {
       const manifestObj = JSON.parse(fs.readFileSync(manifestPath));
       const configObj = JSON.parse(fs.readFileSync(configPath));
       configObj.app.bundleName = manifestObj.appID;
-      configObj.module.abilities[0].label = manifestObj.appName;
+//    configObj.module.abilities[0].label = manifestObj.appName;
       configObj.app.version.name = manifestObj.versionName;
       configObj.app.version.code = manifestObj.versionCode;
       configObj.app.apiVersion.compatible = manifestObj.minPlatformVersion;
@@ -161,7 +169,7 @@ function syncBundleName(moduleList) {
     if (module === 'entry') {
       moduleNameAndroid = 'app';
     }
-    const manifestPath = path.join(projectDir, '/source', moduleNameOhos, 'manifest.json');
+    const manifestPath = path.join(projectDir, '/source', moduleNameOhos, '/src/main/ets/manifest.json');
     const gradlePath = path.join(projectDir, '/android', moduleNameAndroid, 'build.gradle');
     try {
       const manifestObj = JSON.parse(fs.readFileSync(manifestPath));
@@ -202,7 +210,7 @@ function runGradle(fileType, moduleList) {
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk') {
     moduleList.forEach(module => {
-      cmd.push(`./gradlew :${module}:compileDebugJsWithNode`);
+      cmd.push(`./gradlew :${module}:compileDebugEtsWithNode`);
     });
     gradleMessage = 'Start compiling jsBundle...';
   }
