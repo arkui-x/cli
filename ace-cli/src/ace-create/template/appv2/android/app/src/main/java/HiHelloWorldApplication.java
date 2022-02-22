@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.example.hello;
+package packageName;
 
 import android.util.Log;
 
@@ -28,6 +28,6 @@ public class HiHelloWorldApplication extends AceApplication {
     public void onCreate() {
         Log.e(LOG_TAG, "HiHelloWorldApplication");
         super.onCreate();
-        Log.e(LOG_TAG, "HiHelloWorldApplication onCreate");
+        Log.e(LOG_TAG, "HiHelloWorldApplication is onCreate");
     }
 }
