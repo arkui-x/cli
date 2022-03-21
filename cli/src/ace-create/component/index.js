@@ -128,7 +128,7 @@ function createComponent() {
     console.error(`Please go to your ${path.join('projectName', 'source', 'ModuleName')} and create component again.`);
     return false;
   }
-  let templateDir = path.join(__dirname, '../../ace-create/template');
+  let templateDir = path.join(__dirname, '../../../templates');
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }
