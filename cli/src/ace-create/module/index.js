@@ -273,7 +273,7 @@ function createModule() {
   }
   projectDir = path.join(process.cwd(), '..');
 
-  let templateDir = path.join(__dirname, '../../ace-create/template');
+  let templateDir = path.join(__dirname, '../../../templates');
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }
