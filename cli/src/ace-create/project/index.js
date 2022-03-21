@@ -71,7 +71,7 @@ function findTemplate(template, projectPath, packages, project, version) {
     copy(pathTemplate, projectPath);
     replaceProjectInfo(projectPath, packages, project);
   } else {
-    pathTemplate = path.join(__dirname, '../template', template);
+    pathTemplate = path.join(__dirname, '../../../templates', template);
     if (fs.existsSync(pathTemplate)) {
       copy(pathTemplate, projectPath);
       replaceProjectInfo(projectPath, packages, project);
