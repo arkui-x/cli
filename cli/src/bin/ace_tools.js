@@ -102,26 +102,27 @@ function parseCommander() {
   });
 
   program.command('config')
-    .option('--harmonyos-sdk [harmonyosSdk]', 'harmonyos-sdk path')
-    .option('--android-sdk [androidSdk]', 'android-sdk path')
-    .option('--build-dir [buildDir]', 'build-dir path')
-    .option('--nodejs-dir [nodejsDir]', 'nodejs-dir path')
-    .option('--java-sdk [javaSdk]', 'java-sdk path')
-    .description(`--harmonyos-sdk [harmonyosSdk]
-                  --android-sdk   [androidSdk]
-                  --build-dir     [buildDir]
-                  --nodejs-dir    [nodejsDir]
-                  --java-sdk      [javaSdk]`)
+    .option('--openharmony-sdk [OpenHarmony Sdk]', 'openharmony-sdk path')
+    .option('--android-sdk [Android Sdk]', 'android-sdk path')
+    .option('--build-dir [Build Dir]', 'build-dir path')
+    .option('--nodejs-dir [Nodejs Dir]', 'nodejs-dir path')
+    .option('--java-sdk [Java Sdk]', 'java-sdk path')
+    .description(`
+        --openharmony-sdk [OpenHarmony SDK]
+        --android-sdk   [Android Sdk]
+        --build-dir     [Build Dir]
+        --nodejs-dir    [Nodejs Dir]
+        --java-sdk      [Java Sdk]`)
     .action(cmd => {
-      if (cmd.harmonyosSdk || cmd.androidSdk || cmd.buildDir ||
+      if (cmd.openharmonySdk || cmd.androidSdk || cmd.buildDir ||
         cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease) {
-        setConfig({'harmonyos-sdk': cmd.harmonyosSdk,
+        setConfig({'openharmony-sdk': cmd.openharmonySdk,
           'android-sdk': cmd.androidSdk,
           'build-dir': cmd.buildDir,
           'nodejs-dir': cmd.nodejsDir,
           'java-sdk': cmd.javaSdk});
       } else {
-        console.log('Please user ace config with options : ' + cmd._description);
+        console.log('Please user ace config with options :' + cmd._description);
       }
     });
 

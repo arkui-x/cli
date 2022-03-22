@@ -15,16 +15,18 @@
 
 class Info {
   constructor() {
-    this.noHarmonyos = `HarmonyOS SDK is not installed`;
+    this.noOpenHarmonySdk = `OpenHarmony SDK is not installed`;
     this.noAndroidSdk = `Android SDK is not installed if you want to develop Android APP`;
     this.noNodejs = `Node.js Runtime Environment is not found`;
     this.noJavaSdk = `Java SDK is not found`;
-    this.noDevEco = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com/`;
-    this.harmonyosTitle = `HarmonyOS toolchains - develop for HarmonyOS devices`;
+    this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com/`;
+    this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio/`;
+    this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices`;
     this.androidTitle = `Android toolchains - develop for Android devices`;
-    this.devEcoTitle = `DevEco Studio`;
-    this.harmonyosLiences = `All HarmonyOS licenses accepted`;
-    this.androidLiences = `All Android licenses accepted`;
+    this.devEcoStudioTitle = `DevEco Studio`;
+    this.androidStudioTitle = `Android Studio`;
+    this.openHarmonyLicenses = `All OpenHarmony licenses accepted`;
+    this.androidLicenses = `All Android licenses accepted`;
   }
 
   hasSdk(sdkDir) {
@@ -39,12 +41,16 @@ class Info {
     return `Java Sdk at ${javaSdkDir}`;
   }
 
-  hasDevEco(devEcoStudioDir) {
+  hasDevEcoStudio(devEcoStudioDir) {
     return `DevEco Studio at ${devEcoStudioDir}`;
   }
 
-  harmonyosSdkInfo(harmonyosSdkDir) {
-    return harmonyosSdkDir ? this.hasSdk(harmonyosSdkDir) : this.noHarmonyos;
+  hasAndroidStudio(androidStudioDir) {
+    return `Android Studio at ${androidStudioDir}`;
+  }
+
+  openHarmonySdkInfo(openHarmonySdkDir) {
+    return openHarmonySdkDir ? this.hasSdk(openHarmonySdkDir) : this.noOpenHarmonySdk;
   }
 
   androidSdkInfo(androidSdkDir) {
@@ -59,8 +65,12 @@ class Info {
     return javaSdkDir ? this.hasJavaSdk(javaSdkDir) : this.noJavaSdk;
   }
 
-  devEcoInfo(devEcoStudioDir) {
-    return devEcoStudioDir ? this.hasDevEco(devEcoStudioDir) : this.noDevEco;
+  devEcoStudioInfo(devEcoStudioDir) {
+    return devEcoStudioDir ? this.hasDevEcoStudio(devEcoStudioDir) : this.noDevEcoStudio;
+  }
+
+  androidStudioInfo(androidStudioDir) {
+    return androidStudioDir ? this.hasAndroidStudio(androidStudioDir) : this.noAndroidStudio;
   }
 }
 

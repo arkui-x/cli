@@ -14,9 +14,10 @@
  */
 
 const {
-  harmonyOSSdkDir,
+  openHarmonySdkDir,
   nodejsDir,
   devEcoStudioDir,
+  androidStudioDir,
   androidSdkDir
 } = require('./configs');
 const checkJavaSdk = require('./checkJavaSdk');
@@ -35,19 +36,22 @@ const javaSdkDir = checkJavaSdk();
 function check() {
   let errorTimes = 0;
 
-  requirementTitle(info.harmonyosTitle, harmonyOSSdkDir && nodejsDir && javaSdkDir);
-  requirementInfo(info.harmonyosSdkInfo(harmonyOSSdkDir), harmonyOSSdkDir);
+  requirementTitle(info.openHarmonyTitle, openHarmonySdkDir && nodejsDir && javaSdkDir);
+  requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
   requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
   requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
 
   optionTitle(info.androidTitle, androidSdkDir);
   optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
 
-  optionTitle(info.devEcoTitle, devEcoStudioDir);
-  optionInfo(info.devEcoInfo(devEcoStudioDir), devEcoStudioDir);
+  optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
+  optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
 
-  if (harmonyOSSdkDir) {
-    setConfig({'harmonyos-sdk': harmonyOSSdkDir});
+  optionTitle(info.androidStudioTitle, androidStudioDir);
+  optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
+
+  if (openHarmonySdkDir) {
+    setConfig({'openharmony-sdk': openHarmonySdkDir});
   } else {
     errorTimes += 1;
   }
@@ -74,7 +78,11 @@ function check() {
     errorTimes += 1;
   }
 
-  if (harmonyOSSdkDir || androidSdkDir) {
+  if (!androidStudioDir) {
+    errorTimes += 1;
+  }
+
+  if (openHarmonySdkDir || androidSdkDir) {
     const validDevice = devices();
     if (validDevice.all.length === 0 || validDevice.unavailable.length > 0) {
       errorTimes += 1;

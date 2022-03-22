@@ -83,18 +83,35 @@ function findTemplate(template, projectPath, packages, project, version) {
 
 function replaceProjectInfo(projectPath, packages, project) {
   if (!packages) {
-    packages = 'com.huawei.test';
+    packages = 'com.example.arkuicross';
   }
   const packageArray = packages.split('.');
   const files = [];
   const replaceInfos = [];
   const strs = [];
-  files.push(path.join(projectPath, 'source/entry/src/main/ets/manifest.json'));
-  replaceInfos.push('appIDValue');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'source/entry/src/main/ets/manifest.json'));
-  replaceInfos.push('appNameValue');
-  strs.push(project);
+
+  let manifestPath = path.join(projectPath, 'source/entry/src/main/ets/manifest.json')
+
+  if (fs.existsSync(manifestPath)) {
+    files.push(path.join(projectPath, 'source/entry/src/main/ets/manifest.json'));
+    replaceInfos.push('appIDValue');
+    strs.push(packages);
+  } else {
+    files.push(path.join(projectPath, 'source/entry/src/main/js/manifest.json'));
+    replaceInfos.push('appIDValue');
+    strs.push(packages);
+  }
+
+  if (fs.existsSync(manifestPath)) {
+    files.push(path.join(projectPath, 'source/entry/src/main/ets/manifest.json'));
+    replaceInfos.push('appNameValue');
+    strs.push(project);
+  } else {
+    files.push(path.join(projectPath, 'source/entry/src/main/js/manifest.json'));
+    replaceInfos.push('appNameValue');
+    strs.push(project);
+  }
+
   files.push(path.join(projectPath, 'android/settings.gradle'));
   replaceInfos.push('appName');
   strs.push(project);
@@ -122,48 +139,24 @@ function replaceProjectInfo(projectPath, packages, project) {
   files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
   replaceInfos.push('appNameValue');
   strs.push(project);
-  // files.push(path.join(projectPath, 'ohos/entry/src/ohosTest/config.json'));
-  // replaceInfos.push('packageInfo');
-  // strs.push(packages);
-  // files.push(path.join(projectPath, 'ohos/entry/src/ohosTest/config.json'));
-  // replaceInfos.push('bundleNameValue');
-  // strs.push(packages);
   files.push(path.join(projectPath, 'ohos/entry/src/main/resources/base/element/string.json'));
   replaceInfos.push('appName');
   strs.push(project);
-
-  const hiHelloWorldActivityPath = path.join(projectPath, 'android/app/src/main/java/HiHelloWorldActivity.java');
-  const hiHelloWorldApplicationPath = path.join(projectPath, 'android/app/src/main/java/HiHelloWorldApplication.java');
-
-  // const mainAbilityPath = path.join(projectPath, 'ohos/entry/src/main/java/MainAbility.java');
-  // const myApplicationPath = path.join(projectPath, 'ohos/entry/src/main/java/MyApplication.java');
-
-  const exampleInstrumentedTestPath = path.join(projectPath, 'android/app/src/androidTest/java/ExampleInstrumentedTest.java');
-
-  const exampleUnitTestPath = path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java');
-
-  files.push(hiHelloWorldActivityPath);
+  files.push(path.join(projectPath, 'android/app/src/main/java/HiHelloWorldActivity.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  files.push(hiHelloWorldApplicationPath);
+  files.push(path.join(projectPath, 'android/app/src/main/java/HiHelloWorldApplication.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  // files.push(mainAbilityPath);
-  // replaceInfos.push('package packageName');
-  // strs.push('package ' + packages);
-  // files.push(myApplicationPath);
-  // replaceInfos.push('package packageName');
-  // strs.push('package ' + packages);
-  files.push(exampleInstrumentedTestPath);
+  files.push(path.join(projectPath, 'android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  files.push(exampleUnitTestPath);
+  files.push(path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
   replaceInfo(files, replaceInfos, strs);
 
   const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
-  // const hosJavaPath = path.join(projectPath, 'ohos/entry/src/main/java');
   const testAospJavaPath = path.join(projectPath, 'android/app/src/test/java');
   const androidTestAospJavaPath = path.join(projectPath, 'android/app/src/androidTest/java');
   const packagePaths = [aospJavaPath, testAospJavaPath, androidTestAospJavaPath];

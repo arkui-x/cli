@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-package com.example.hello;
+package packageName;
 
 import android.util.Log;
 

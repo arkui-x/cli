@@ -18,11 +18,11 @@ const Sdk = require('./Sdk');
 const Ide = require('./Ide');
 const checkNodejs = require('./checkNodejs');
 
-const harmonyOSSdk = new Sdk(
-  'HarmonyOS',
-  ['Huawei', 'HarmonyOS'],
-  'HarmonyOS_HOME',
-  'HarmonyOS_SDK_ROOT',
+const openHarmonySdk = new Sdk(
+  'OpenHarmony',
+  ['OpenHarmony', 'Huawei'],
+  'OpenHarmony_HOME',
+  'OpenHarmony',
   'toolchains'
 );
 
@@ -35,22 +35,33 @@ const devEcoStudio = new Ide(
   'devecostudio'
 );
 
+const androidStudio = new Ide(
+  'Android Studio',
+  [`/opt/android-studio`, `${homeDir}/android-studio`],
+  [],
+  [`C:\\Program Files\\Android\\Android Studio`,
+    `D:\\Program Files\\Android\\Android Studio`],
+  'androidstudio'
+);
+
 const androidSdk = new Sdk(
   'Android',
   ['Android'],
   'ANDROID_HOME',
-  'ANDROID_SDK_ROOT',
+  'Android',
   'platform-tools'
 );
 
-const harmonyOSSdkDir = harmonyOSSdk.locateSdk();
+const openHarmonySdkDir = openHarmonySdk.locateSdk();
 const nodejsDir = checkNodejs();
 const devEcoStudioDir = devEcoStudio.locateIde();
+const androidStudioDir = androidStudio.locateIde();
 const androidSdkDir = androidSdk.locateSdk();
 
 module.exports = {
-  harmonyOSSdkDir,
+  openHarmonySdkDir,
   nodejsDir,
   devEcoStudioDir,
+  androidStudioDir,
   androidSdkDir
 };
