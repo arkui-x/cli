@@ -84,14 +84,14 @@ function buildAPK(moduleList, buildAll) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
   if (buildAll) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleDebug`);
+    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
   } else {
     moduleList.forEach(moduleName => {
       cmds.push(`cd ${androidDir} && ./gradlew :${moduleName}:assembleDebug`);
     });
   }
   let gradleMessage = 'Build apk successful.';
-  let isBuildSucess = true;
+  let isBuildSuccess = true;
   console.log('Start building apk...');
   cmds.forEach(cmd => {
     if (platform === Platform.Windows) {
@@ -101,11 +101,11 @@ function buildAPK(moduleList, buildAll) {
       exec(cmd);
     } catch (error) {
       gradleMessage = 'Build apk failed.';
-      isBuildSucess = false;
+      isBuildSuccess = false;
     }
   });
   console.log(gradleMessage);
-  return isBuildSucess;
+  return isBuildSuccess;
 }
 
 function packager(moduleListInput) {

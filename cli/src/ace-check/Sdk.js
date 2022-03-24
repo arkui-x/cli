@@ -28,16 +28,16 @@ const environment = process.env;
 class Sdk {
   constructor(
     type,
-    defaultDir,
-    kOSHome,
-    kOSSdkRoot,
+    defaultSdkDir,
+    kSdkHome,
+    kSdkRoot,
     toolchainsName
   ) {
     this.type = type;
     this.stdType = this.type.toLowerCase();
-    this.defaultDir = defaultDir;
-    this.kOSHome = kOSHome;
-    this.kOSSdkRoot = kOSSdkRoot;
+    this.defaultSdkDir = defaultSdkDir;
+    this.kSdkHome = kSdkHome;
+    this.kSdkRoot = kSdkRoot;
     this.toolchainsName = toolchainsName;
   }
 
@@ -46,27 +46,27 @@ class Sdk {
     const config = this.checkConfig();
     if (config) {
       sdkHomeDir = config;
-    } else if (this.kOSHome in environment) {
-      sdkHomeDir = environment[this.kOSHome].replace(';', '');
-    } else if (this.kOSSdkRoot in environment) {
-      sdkHomeDir = environment[this.kOSSdkRoot].replace(';', '');
+    } else if (this.kSdkHome in environment) {
+      sdkHomeDir = environment[this.kSdkHome].replace(';', '');
+    } else if (this.kSdkRoot in environment) {
+      sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
     } else if (platform === Platform.Linux) {
-      for (const i in this.defaultDir) {
-        const defaultPath = path.join(homeDir, this.defaultDir[i], 'Sdk');
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, this.defaultSdkDir[i], 'Sdk');
         if (fs.existsSync(defaultPath)) {
           sdkHomeDir = defaultPath;
         }
       }
     } else if (platform === Platform.MacOS) {
-      for (const i in this.defaultDir) {
-        const defaultPath = path.join(homeDir, 'Library', this.defaultDir[i], 'sdk');
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i], 'sdk');
         if (fs.existsSync(defaultPath)) {
           sdkHomeDir = defaultPath;
         }
       }
     } else if (platform === Platform.Windows) {
-      for (const i in this.defaultDir) {
-        const defaultPath = path.join(homeDir, 'AppData', 'Local', this.defaultDir[i], 'Sdk');
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, 'AppData', 'Local', this.defaultSdkDir[i], 'Sdk');
         if (fs.existsSync(defaultPath)) {
           sdkHomeDir = defaultPath;
         }

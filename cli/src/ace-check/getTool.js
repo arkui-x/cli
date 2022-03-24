@@ -15,14 +15,14 @@
 
 const path = require('path');
 
-const { harmonyOSSdkDir, androidSdkDir } = require('../ace-check/configs');
+const { openHarmonySdkDir, androidSdkDir } = require('../ace-check/configs');
 
 function getTool() {
   let toolPath;
-  if (harmonyOSSdkDir) {
-    // toolPath = {'hdc': path.join(harmonyOSSdkDir, 'toolchains', 'hdc')};
+  if (openHarmonySdkDir) {
+    // toolPath = {'hdc': path.join(openHarmonySdkDir, 'toolchains', 'hdc')};
     toolPath = {'adb': path.join(androidSdkDir, 'platform-tools', 'adb')};
-  } else if (!harmonyOSSdkDir && androidSdkDir) {
+  } else if (!openHarmonySdkDir && androidSdkDir) {
     toolPath = {'adb': path.join(androidSdkDir, 'platform-tools', 'adb')};
   }
   return toolPath;
