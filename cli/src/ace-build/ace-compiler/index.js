@@ -28,14 +28,15 @@ const {
 const { copy } = require('../../ace-create/project');
 
 let projectDir;
-let harmonySdkDir;
+let openHarmonySdkDir;
 let nodejsDir;
+let uiSyntax;
 
 function readConfig() {
   try {
     if (config) {
-      if (Object.prototype.hasOwnProperty.call(config, 'harmonyos-sdk')) {
-        harmonySdkDir = config['harmonyos-sdk'];
+      if (Object.prototype.hasOwnProperty.call(config, 'openharmony-sdk')) {
+        openHarmonySdkDir = config['openharmony-sdk'];
       }
       if (Object.prototype.hasOwnProperty.call(config, 'nodejs-dir')) {
         nodejsDir = config['nodejs-dir'];
@@ -46,7 +47,7 @@ function readConfig() {
         }
       }
     }
-    if (!harmonySdkDir || !nodejsDir) {
+    if (!openHarmonySdkDir || !nodejsDir) {
       console.error(`Please check harmonySdk and nodejs in your environment.`);
       return false;
     }
@@ -59,7 +60,7 @@ function readConfig() {
 
 function writeLocalProperties() {
   const filePath = path.join(projectDir, '/ohos/local.properties');
-  const content = `sdk.dir=${harmonySdkDir}\nnodejs.dir=${nodejsDir}`;
+  const content = `sdk.dir=${openHarmonySdkDir}\nnodejs.dir=${nodejsDir}`;
   return createLocalProperties(filePath, content);
 }
 
@@ -101,15 +102,16 @@ function copyJStoOhos(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
     const manifestPath = path.join(projectDir, '/source', module, '/src/main/ets/manifest.json');
-    const manifestObj = JSON.parse(fs.readFileSync(manifestPath));
-    const uiSyntax = manifestObj.js[0].mode.syntax;
-    const src = path.join(projectDir, 'source', module, '/src/main/ets');
-    if (uiSyntax === 'ets') {
+    if (fs.existsSync(manifestPath)) {
+      const src = path.join(projectDir, 'source', module, '/src/main/ets');
       const dist = path.join(projectDir, 'ohos', module, '/src/main/ets');
       isContinue = isContinue && copy(src, dist);
+      uiSyntax = 'ets';
     } else {
+      const src = path.join(projectDir, 'source', module, '/src/main/js');
       const dist = path.join(projectDir, 'ohos', module, '/src/main/js');
       isContinue = isContinue && copy(src, dist);
+      uiSyntax = 'hml';
     }
   });
   return isContinue;
@@ -140,13 +142,16 @@ function copyHaptoOutput() {
 function syncManifest(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
-    const manifestPath = path.join(projectDir, '/source', module, '/src/main/ets/manifest.json');
+    let manifestPath = path.join(projectDir, '/source', module, '/src/main/ets/manifest.json');
+    if (!fs.existsSync(manifestPath)) {
+      manifestPath = path.join(projectDir, '/source', module, '/src/main/js/manifest.json');
+    }
+
     const configPath = path.join(projectDir, '/ohos', module, 'src/main/config.json');
     try {
       const manifestObj = JSON.parse(fs.readFileSync(manifestPath));
       const configObj = JSON.parse(fs.readFileSync(configPath));
       configObj.app.bundleName = manifestObj.appID;
-//    configObj.module.abilities[0].label = manifestObj.appName;
       configObj.app.version.name = manifestObj.versionName;
       configObj.app.version.code = manifestObj.versionCode;
       configObj.app.apiVersion.compatible = manifestObj.minPlatformVersion;
@@ -169,7 +174,12 @@ function syncBundleName(moduleList) {
     if (module === 'entry') {
       moduleNameAndroid = 'app';
     }
-    const manifestPath = path.join(projectDir, '/source', moduleNameOhos, '/src/main/ets/manifest.json');
+
+    let manifestPath = path.join(projectDir, '/source', moduleNameOhos, '/src/main/ets/manifest.json');
+    if (!fs.existsSync(manifestPath)) {
+      manifestPath = path.join(projectDir, '/source', moduleNameOhos, '/src/main/js/manifest.json');
+    }
+
     const gradlePath = path.join(projectDir, '/android', moduleNameAndroid, 'build.gradle');
     try {
       const manifestObj = JSON.parse(fs.readFileSync(manifestPath));
@@ -210,7 +220,11 @@ function runGradle(fileType, moduleList) {
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk') {
     moduleList.forEach(module => {
-      cmd.push(`./gradlew :${module}:compileDebugEtsWithNode`);
+      if (uiSyntax === 'ets') {
+        cmd.push(`./gradlew :${module}:compileDebugEtsWithNode`);
+      } else {
+        cmd.push(`./gradlew :${module}:compileDebugJsWithNode`);
+      }
     });
     gradleMessage = 'Start compiling jsBundle...';
   }
