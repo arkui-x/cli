@@ -62,20 +62,22 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/jni/arm64-v8a/libace_napi.so" desc="来源于代码仓foundation/ace/napi"/>
                 <filteritem type="filepath" name="cli/templates/app/android/gradle/wrapper/gradle-wrapper.jar" desc="Android工程模版自带的打包工具"/>
                 <filteritem type="filepath" name="cli/templates/app/ohos/gradle/wrapper/gradle-wrapper.jar" desc="OpenHarmony工程模版自带的打包工具"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/libs/ace_android_adapter.jar" desc="来源于代码仓foundation/ace/ace_engine/adapter/android"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/jni/arm64-v8a/libace_android.so" desc="来源于代码仓foundation/ace/ace_engine和foundation/ace/ace_engine/adapter/android"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/jni/arm64-v8a/libace_napi_quickjs.so" desc="来源于代码仓foundation/ace/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/jni/arm64-v8a/libace_napi.so" desc="来源于代码仓foundation/ace/napi"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/gradle/wrapper/gradle-wrapper.jar" desc="Android工程模版自带的打包工具"/>
-                <filteritem type="filepath" name="cli/templates/app2/ohos/gradle/wrapper/gradle-wrapper.jar" desc="OpenHarmony工程模版自带的打包工具"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/libs/ace_android_adapter.jar" desc="来源于代码仓foundation/ace/ace_engine/adapter/android"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/jni/arm64-v8a/libace_android.so" desc="来源于代码仓foundation/ace/ace_engine和foundation/ace/ace_engine/adapter/android"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/jni/arm64-v8a/libace_napi_quickjs.so" desc="来源于代码仓foundation/ace/ace_engine"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/jni/arm64-v8a/libace_napi.so" desc="来源于代码仓foundation/ace/napi"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/gradle/wrapper/gradle-wrapper.jar" desc="Android工程模版自带的打包工具"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ohos/gradle/wrapper/gradle-wrapper.jar" desc="OpenHarmony工程模版自带的打包工具"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Copyright文件头校验策略的过滤条件" >
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/layout/activity_main.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加版权头"/>
@@ -85,39 +87,49 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/app/ohos/gradlew" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/ohos/gradlew.bat" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/com/example/helloworld/HiHelloWorldActivity.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/com/example/helloworld/HiHelloWorldApplication.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/androidTest/java/com/example/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/test/java/com/example/ExampleUnitTest.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values-night/themes.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/gradlew" desc="Android工程编译入口脚本，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/ohos/gradlew" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/ohos/gradlew.bat" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/java/com/example/helloworld/HiHelloWorldActivity.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/java/com/example/helloworld/HiHelloWorldApplication.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/androidTest/java/com/example/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/test/java/com/example/ExampleUnitTest.java" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/main/java/FeatureActivity.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/source/entry/src/main/js/MainAbility/app.js" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/source/entry/src/main/js/MainAbility/pages/index/index.js" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/HiHelloWorldActivity.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/HiHelloWorldApplication.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/layout/activity_main.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values-night/themes.xml" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/gradlew" desc="Android工程编译入口脚本，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ohos/gradlew" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ohos/gradlew.bat" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/java/HiHelloWorldActivity.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/java/HiHelloWorldApplication.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/.eslintrc" desc="webpack编译配置文件，无需添加版权头"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="License文件头校验策略的过滤条件" >
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/layout/activity_main.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加License头"/>
@@ -125,27 +137,35 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/app/android/gradlew" desc="Android工程编译入口脚本，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/com/example/helloworld/HiHelloWorldActivity.java" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/com/example/helloworld/HiHelloWorldApplication.java" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/androidTest/java/com/example/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app/android/app/src/test/java/com/example/ExampleUnitTest.java" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/res/values-night/themes.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/gradlew" desc="Android工程编译入口脚本，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/java/com/example/helloworld/HiHelloWorldActivity.java" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/main/java/com/example/helloworld/HiHelloWorldApplication.java" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/androidTest/java/com/example/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/app2/android/app/src/test/java/com/example/ExampleUnitTest.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/main/java/FeatureActivity.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/module_android/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/source/entry/src/main/js/MainAbility/app.js" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/source/entry/src/main/js/MainAbility/pages/index/index.js" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/HiHelloWorldActivity.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/HiHelloWorldApplication.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/layout/activity_main.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/values-night/themes.xml" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/gradlew" desc="Android工程编译入口脚本，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/java/HiHelloWorldActivity.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/java/HiHelloWorldApplication.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/.eslintrc" desc="webpack编译配置文件，无需添加License头"/>
             </filefilter>
         </filefilterlist>
