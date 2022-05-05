@@ -24,7 +24,7 @@ ace config [arguments]
 
 | 参数          | 说明                |
 | ------------- | ------------------- |
-| --harmony-sdk | OpenHarmony SDK路径 |
+| --openharmony-sdk | OpenHarmony SDK路径 |
 | --android-sdk | Android SDK路径     |
 | --nodejs-dir  | nodejs 路径         |
 | --buid-dir    | 编译输出的路径      |
@@ -38,9 +38,9 @@ ace config [arguments]
 需要检查的项：
 
 1. NodeJS（必选）
-2. Harmony SDK and License（必选）
-3. Android SDK and License（可选，如未安装无法编译 apk）
-4. DevEco Studio（必选，目前只能通过 IDE 来安装 Harmony SDK）
+2. OpenHarmony SDK and License（必选）
+3. Android SDK and License（必选）
+4. DevEco Studio（可选）
 5. Android Studio（可选）
 6. 设备是否连接（可选，如未连接，不能执行 install, launch, log, run）
 
@@ -136,7 +136,7 @@ Please input package name: com.example.${projectName}:
 
 ```
 
-Please enter the ACE version (1: ACE 1.0, 2: ACE 2.0):
+Please enter the ACE version (1: 类Web范式, 2: 声明式范式):
 
 ```
 

@@ -12,13 +12,13 @@
 
    命令行运行 `java -version` 查看本地Java版本。如不存在，请自行下载安装新的稳定版本，同时配置相关环境变量：[JDK下载地址](https://www.oracle.com/java/technologies/javase-downloads.html)
 
-3. Harmony SDK
+3. OpenHarmony SDK
 
-   编译 hap 需要，目前Harmony SDK 只支持通过 DevEco 安装获得。如不存在，请自行下载安装对应版本：[DevEco Studio下载地址](https://developer.harmonyos.com/cn/develop/deveco-studio#download)
+   编译 hap 需要，OpenHarmony SDK 支持通过安装DevEco Studio获得，也可通过SDK Manager获得。[DevEco Studio及SDK Manager下载地址](https://developer.harmonyos.com/cn/develop/deveco-studio)
 
 4. Android SDK
 
-   编译 apk 需要，Android SDK 支持多种方式获得：下载安装 Android Studio 自动获得、仅下载 SDK Manager 安装获得。请自行选择下载Android Studio 或 	SDK tools package：[Android Studio 及 SDK Manager下载地址](https://developer.android.com/studio)
+   编译 apk 需要，Android SDK 支持通过安装Android Studio获得、也可通过SDK Manager获得。[Android Studio及SDK Manager下载地址](https://developer.android.com/studio)
 
 ## 依赖安装
 
@@ -32,9 +32,9 @@ npm install . -g
 
 安装所需依赖包。
 
-*注：如果命令报错，可能需要多次卸载并执行*
+*注：如遇到全局安装失败，可先执行npm install，再执行npm install . -g*
 
-2. 如果获得了打包后的 ace_tools.js 文件和 ace 脚本文件，需要配置 ace 到环境变量：在 Path 中添加 ace 脚本的解压目录。
+2. 如果获得了打包后的 ace_tools.js 文件和 ace 脚本文件，可配置ace脚本到环境变量，使能ACE Tools命令行工具。
 
 ## 创建应用
 

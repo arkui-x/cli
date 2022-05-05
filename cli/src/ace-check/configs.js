@@ -20,7 +20,7 @@ const checkNodejs = require('./checkNodejs');
 
 const openHarmonySdk = new Sdk(
   'OpenHarmony',
-  ['OpenHarmony', 'Huawei'],
+  ['OpenHarmony'],
   'OpenHarmony_HOME',
   'OpenHarmony',
   'toolchains'
