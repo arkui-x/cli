@@ -3,7 +3,7 @@
   "appName": "appNameValue",
   "versionName": "1.0.0",
   "versionCode": 1000000,
-  "minPlatformVersion": 7,
+  "minPlatformVersion": 8,
   "js": [
     {
       "mode": {

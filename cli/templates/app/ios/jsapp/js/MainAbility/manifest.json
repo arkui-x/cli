@@ -1,0 +1,21 @@
+{
+    "appID": "com.example.acedocs",
+    "appName": "$string:entry_MainAbility",
+    "versionName": "1.0.0",
+    "versionCode": 1000000,
+    "minPlatformVersion": 7,
+    "pages": [
+        "pages/index/index"
+    ],
+    "deviceType": [
+        "phone"
+    ],
+    "mode": {
+        "syntax": "hml",
+        "type": "pageAbility"
+    },
+    "window": {
+        "autoDesignWidth": false,
+        "designWidth": 720
+    }
+}

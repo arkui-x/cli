@@ -74,43 +74,33 @@ function findTemplate(template, projectPath, packages, project, version) {
     pathTemplate = path.join(__dirname, '../../../templates', template);
     if (fs.existsSync(pathTemplate)) {
       copy(pathTemplate, projectPath);
-      replaceProjectInfo(projectPath, packages, project);
+      replaceProjectInfo(projectPath, packages, project, template);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceProjectInfo(projectPath, packages, project) {
+function replaceProjectInfo(projectPath, packages, project, template) {
   if (!packages) {
     packages = 'com.example.arkuicross';
+  }
+  let jsName = 'ets';
+  if (template === 'app') {
+    jsName = 'js';
   }
   const packageArray = packages.split('.');
   const files = [];
   const replaceInfos = [];
   const strs = [];
 
-  let manifestPath = path.join(projectPath, 'source/entry/src/main/ets/manifest.json')
+  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/manifest.json'));
+  replaceInfos.push('appIDValue');
+  strs.push(packages);
 
-  if (fs.existsSync(manifestPath)) {
-    files.push(path.join(projectPath, 'source/entry/src/main/ets/manifest.json'));
-    replaceInfos.push('appIDValue');
-    strs.push(packages);
-  } else {
-    files.push(path.join(projectPath, 'source/entry/src/main/js/manifest.json'));
-    replaceInfos.push('appIDValue');
-    strs.push(packages);
-  }
-
-  if (fs.existsSync(manifestPath)) {
-    files.push(path.join(projectPath, 'source/entry/src/main/ets/manifest.json'));
-    replaceInfos.push('appNameValue');
-    strs.push(project);
-  } else {
-    files.push(path.join(projectPath, 'source/entry/src/main/js/manifest.json'));
-    replaceInfos.push('appNameValue');
-    strs.push(project);
-  }
+  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/manifest.json'));
+  replaceInfos.push('appNameValue');
+  strs.push(project);
 
   files.push(path.join(projectPath, 'android/settings.gradle'));
   replaceInfos.push('appName');
@@ -154,6 +144,15 @@ function replaceProjectInfo(projectPath, packages, project) {
   files.push(path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
+
+  if (jsName === 'ets') {
+    files.push(path.join(projectPath, 'ios/etsapp.xcodeproj/project.pbxproj'));
+  } else {
+    files.push(path.join(projectPath, 'ios/jsapp.xcodeproj/project.pbxproj'));
+  }
+  replaceInfos.push('bundleIdentifier');
+  strs.push(packages);
+
   replaceInfo(files, replaceInfos, strs);
 
   const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
@@ -188,7 +187,7 @@ function createPackageFile(packagePaths, packageArray) {
 
 function replaceInfo(files, repalceInfos, strs) {
   files.forEach((filePath, index) => {
-    fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replace(repalceInfos[index], strs[index]));
+    fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replaceAll(repalceInfos[index], strs[index]));
   });
 }
 
