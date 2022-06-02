@@ -133,6 +133,22 @@ function copyBundletoAndroid(moduleList) {
   return isContinue;
 }
 
+function copyBundletoiOS(moduleList) {
+  let isContinue = true;
+  moduleList.forEach(module => {
+    const src = path.join(projectDir, '/ohos', module, 'build/intermediates/js/debug/normal/rich/assets/js');
+    let dist;
+    if (module === 'entry') {
+      dist = path.join(projectDir, '/ios/etsapp/js');
+    } else {
+      dist = path.join(projectDir, '/ios', module, 'js');
+    }
+    fs.mkdirSync(dist, { recursive: true });
+    isContinue = isContinue && copy(src, dist);
+  });
+  return isContinue;
+}
+
 function copyHaptoOutput() {
   const src = path.join(projectDir, '/ohos/build/outputs/hap/debug');
   const filePath = copyToBuildDir(src);
@@ -154,7 +170,6 @@ function syncManifest(moduleList) {
       configObj.app.bundleName = manifestObj.appID;
       configObj.app.version.name = manifestObj.versionName;
       configObj.app.version.code = manifestObj.versionCode;
-      configObj.app.apiVersion.compatible = manifestObj.minPlatformVersion;
       configObj.module.js = manifestObj.js;
       fs.writeFileSync(configPath, JSON.stringify(configObj, '', '  '));
       isContinue = isContinue && true;
@@ -218,7 +233,7 @@ function runGradle(fileType, moduleList) {
       cmd.push(`./gradlew :${module}:assembleDebug`);
     });
     gradleMessage = 'Start building hap...';
-  } else if (fileType === 'apk') {
+  } else if (fileType === 'apk' || fileType === 'app') {
     moduleList.forEach(module => {
       if (uiSyntax === 'ets') {
         cmd.push(`./gradlew :${module}:compileDebugEtsWithNode`);
@@ -289,12 +304,15 @@ function compiler(fileType, moduleListInput) {
       && syncManifest(moduleListAll)
       && runGradle(fileType, moduleListSpecified)
       && copyBundletoAndroid(moduleListSpecified)
+      && copyBundletoiOS(moduleListSpecified)
       && syncBundleName(moduleListAll)) {
     if (fileType === 'hap') {
       console.log(`Build hap successfully.`);
       copyHaptoOutput();
       return true;
     } else if (fileType === 'apk') {
+      return true;
+    } else if (fileType === 'app') {
       return true;
     }
   }

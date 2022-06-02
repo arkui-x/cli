@@ -1,0 +1,21 @@
+{
+    "appID": "com.example.helloworld",
+    "appName": "$string:entry_MainAbility",
+    "versionName": "1.0.0",
+    "versionCode": 1,
+    "minPlatformVersion": 8,
+    "pages": [
+        "pages/index/index"
+    ],
+    "deviceType": [
+        "phone"
+    ],
+    "mode": {
+        "syntax": "ets",
+        "type": "pageAbility"
+    },
+    "window": {
+        "autoDesignWidth": false,
+        "designWidth": 720
+    }
+}
