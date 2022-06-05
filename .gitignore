@@ -1,2 +1,3 @@
 .vscode/
 cli/node_modules/
+cli/package-lock.json
