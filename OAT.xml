@@ -62,14 +62,24 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/jni/arm64-v8a/libace_napi.so" desc="来源于代码仓foundation/ace/napi"/>
                 <filteritem type="filepath" name="cli/templates/app/android/gradle/wrapper/gradle-wrapper.jar" desc="Android工程模版自带的打包工具"/>
                 <filteritem type="filepath" name="cli/templates/app/ohos/gradle/wrapper/gradle-wrapper.jar" desc="OpenHarmony工程模版自带的打包工具"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/.*.xcuserstate" desc="iOS工程固定配置文件"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/libace_ios" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/ios"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/libace_ios" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/ios"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/libs/ace_android_adapter.jar" desc="来源于代码仓foundation/ace/ace_engine/adapter/android"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/jni/arm64-v8a/libace_android.so" desc="来源于代码仓foundation/ace/ace_engine和foundation/ace/ace_engine/adapter/android"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/jni/arm64-v8a/libace_napi_quickjs.so" desc="来源于代码仓foundation/ace/ace_engine"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/jni/arm64-v8a/libace_napi.so" desc="来源于代码仓foundation/ace/napi"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/gradle/wrapper/gradle-wrapper.jar" desc="Android工程模版自带的打包工具"/>
                 <filteritem type="filepath" name="cli/templates/appv2/ohos/gradle/wrapper/gradle-wrapper.jar" desc="OpenHarmony工程模版自带的打包工具"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/.*.xcuserstate" desc="iOS工程固定配置文件"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/libace_ios" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/ios"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/libace_ios" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/ios"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Copyright文件头校验策略的过滤条件" >
+                <filteritem type="filepath" name="cli/templates/app/ios/.*.js" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
@@ -97,6 +107,10 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/HiHelloWorldApplication.java" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/.*.js" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
@@ -122,6 +136,12 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/.eslintrc" desc="webpack编译配置文件，无需添加版权头"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="License文件头校验策略的过滤条件" >
+                <filteritem type="filepath" name="cli/templates/app/ios/.*.js" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/LICENSE" desc="keep the flutter src license"/>
+                <filteritem type="filepath" name="cli/templates/app/ios/jsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/LICENSE" desc="keep the flutter src license"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
@@ -147,6 +167,12 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/main/java/HiHelloWorldApplication.java" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/app/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/.*.js" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-arm64/libace_ios.framework/LICENSE" desc="keep the flutter src license"/>
+                <filteritem type="filepath" name="cli/templates/appv2/ios/etsapp/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/LICENSE" desc="keep the flutter src license"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/pages/index/index.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/assets/js/MainAbility/app.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/appv2/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加License头"/>

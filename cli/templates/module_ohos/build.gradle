@@ -1,8 +1,8 @@
 apply plugin: 'com.huawei.ohos.hap'
 ohos {
-    compileSdkVersion 7
+    compileSdkVersion 8
     defaultConfig {
-        compatibleSdkVersion 7
+        compatibleSdkVersion 8
     }
     entryModules "entry"
 }

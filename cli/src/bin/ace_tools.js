@@ -134,8 +134,10 @@ function parseCommander() {
         compiler('hap', cmd.target);
       } else if (fileType === 'apk') {
         build('apk', cmd.target);
+      } else if (fileType === 'app') {
+        build('app', cmd.target);
       } else {
-        console.log(`Please use ace build with subcommand : hap or apk.`);
+        console.log(`Please use ace build with subcommand : hap, apk or app.`);
       }
     });
 
