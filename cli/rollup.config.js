@@ -19,9 +19,10 @@ import babel from 'rollup-plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
 import shebang from 'rollup-plugin-preserve-shebang';
+
 const path = require('path');
 const fs = require('fs');
-const templatePath = path.join(__dirname, 'src/ace-create/template');
+const templatePath = path.join(__dirname, 'templates');
 const distPath = path.join(__dirname, 'dist/template');
 
 if (!fs.existsSync(path.join(__dirname, 'dist'))) {
@@ -31,9 +32,9 @@ if (!fs.existsSync(distPath)) {
   fs.mkdirSync(distPath);
 }
 
-fs.writeFileSync(path.join(__dirname, 'dist/ace'), fs.readFileSync(path.join(__dirname, 'src/bin/ace')));
-fs.writeFileSync(path.join(__dirname, 'dist/ace.cmd'), fs.readFileSync(path.join(__dirname, 'src/bin/ace.cmd')));
-fs.writeFileSync(path.join(__dirname, 'dist/ace.ps1'), fs.readFileSync(path.join(__dirname, 'src/bin/ace.ps1')));
+fs.writeFileSync(path.join(__dirname, 'dist/ace'), fs.readFileSync(path.join(__dirname, 'src/bin/ace')), {mode:0o755});
+fs.writeFileSync(path.join(__dirname, 'dist/ace.cmd'), fs.readFileSync(path.join(__dirname, 'src/bin/ace.cmd')),{mode:0o755});
+fs.writeFileSync(path.join(__dirname, 'dist/ace.ps1'), fs.readFileSync(path.join(__dirname, 'src/bin/ace.ps1')),{mode:0o755});
 copy(templatePath, distPath);
 
 function copy(src, dst) {
