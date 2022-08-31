@@ -6,31 +6,75 @@
 
 1. NodeJS
 
-   命令行运行 `node -v` 查看本地nodejs版本。如不存在，请自行下载安装新的稳定版本：[NodeJS下载地址](https://nodejs.org/en/download/)。
+   命令行运行 `node -v` 查看本地nodejs版本。如不存在，请自行下载安装新的稳定版本：[NodeJS下载地址](https://nodejs.org/en/download/)。建议下载15.0以上版本。
 
 2. Java
 
-   命令行运行 `java -version` 查看本地Java版本。如不存在，请自行下载安装新的稳定版本，同时配置相关环境变量：[JDK下载地址](https://www.oracle.com/java/technologies/javase-downloads.html)
+   命令行运行 `java -version` 查看本地Java版本。如不存在，请自行下载安装新的稳定版本，同时配置相关环境变量：[JDK下载地址](https://repo.huaweicloud.com/openjdk/)。建议下载JDK11.0.2以上版本。
 
 3. OpenHarmony SDK
 
    编译 hap 需要，OpenHarmony SDK 支持通过安装DevEco Studio获得，也可通过SDK Manager获得。[DevEco Studio及SDK Manager下载地址](https://developer.harmonyos.com/cn/develop/deveco-studio)
 
+   **SDK Manager下载SDK推荐配置路径及方式：**
+
+   [Linux]
+   ```
+   // 配置环境变量
+   export OpenHarmony_HOME=/home/usrername/path-to-ohsdk
+   export PATH=${OpenHarmony_HOME}/toolchains/versioncode:${PATH}
+   ```
+
+   [Mac]
+   ```
+   // 配置环境变量
+   export OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
+   export PATH=$OpenHarmony_HOME/toolchains/versioncode:$PATH
+   ```
+
+   [Windows]
+   ```
+   // 配置环境变量
+   set OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
+   set PATH=%PATH%;%OpenHarmony_HOME%/toolchains/versioncode
+   ```
+
 4. Android SDK
 
    编译 apk 需要，Android SDK 支持通过安装Android Studio获得、也可通过SDK Manager获得。[Android Studio及SDK Manager下载地址](https://developer.android.com/studio)
+
+   **SDK Manager下载SDK推荐配置路径及方式：**
+
+   [Linux]
+   ```
+   // 配置环境变量
+   export ANDROID_HOME=/home/usrername/path-to-android-sdk
+   export PATH=${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/build-tools/28.0.3:${ANDROID_HOME}/platform-tools:${PATH}
+   ```
+
+   [Mac]
+   ```
+   // 配置环境变量
+   export ANDROID_HOME=/Users/usrername/path-to-android-sdk
+   export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/build-tools/28.0.3:$ANDROID_HOME/platform-tools:$PATH
+   ```
+
+   [Windows]
+   ```
+   // 配置环境变量
+   set ANDROID_HOME=/home/usrername/path-to-android-sdk
+   set PATH=%PATH%;%ANDROID_HOME%/tools;%ANDROID_HOME%/tools/bin;%ANDROID_HOME%/build-tools/28.0.3;%ANDROID_HOME%/platform-tools
+   ```
 
 ## 依赖安装
 
 有两种方式可以运行框架，分别需要安装相关依赖：
 
-1. 如果获得了项目的源码，则可以在项目根目录下执行
+1. 如果获得了项目的源码，则可以在项目根目录执行安装命令，安装cli依赖包。
 
 ```
 npm install . -g
 ```
-
-安装所需依赖包。
 
 *注：如遇到全局安装失败，可先执行npm install，再执行npm install . -g*
 
@@ -38,7 +82,7 @@ npm install . -g
 
 ## 创建应用
 
-接下来从零开始，通过命令行工具完成项目创建，编译打包，安装调试。
+接下来从零开始，通过命令行工具完成项目创建和编译打包。
 
 首先进入项目的根目录
 
@@ -54,7 +98,7 @@ ace check
 
 执行 `ace check` 命令可以检查上述的本地开发环境。对于必选项，需要检查通过，否则无法继续接下来的操作。
 
-*注：该命令已经集成在工程创建中，可跳过。建议执行。*
+*注：开发环境检查主要针对SDK和IDE的默认安装和下载路径；如果通过SDK Manager下载SDK，会检查默认环境变量：ANDROID_HOME和OpenHarmony_HOME是否配置。*
 
 2. ### 检查设备连接
 
@@ -66,15 +110,13 @@ ace devices
 
 *注：该命令已经集成在 ` ace check` 中，可跳过。*
 
-3. ### 配置 ace 设置
+3. ### 开发环境路径配置
 
 ```
 ace config
 ```
 
-检查当前是否有设备连接，以便后续应用的安装、启动等操作正确执行。
-
-*注：该命令已经集成在上述 `ace check` 中，可跳过。*
+如果开发者没有按照IDE和SDK默认路径进行安装和下载，可通过此命令进行自定义路径配置。
 
 4. ### 创建project
 
@@ -83,7 +125,7 @@ ace config
 ```
 ace create project
 ? Please enter the project name: demo
-? Please enter the packages (com.example.demo):
+? Please enter the packages (com.example.demo):com.example.demo
 ? Please enter the ACE version (1: 类Web范式, 2: 声明式范式): 2
 ```
 
@@ -139,26 +181,3 @@ cd demo
 
    *注：多个Module可分别加在 --target 参数后，逗号分开，生成多个apk。*
 
-## 应用安装
-
-经过上一步的编译之后，已经成功生成了hap包或者apk包。以安装 ‘module1’ 生成的 hap 为例：
-
-```
-cd demo
-ace install hap --target module1 --device [devideID]
-```
-
-将 hap 成功安装到 deviceID 对应的设备上。若不通过 --target 指定，则默认安装所有 module。
-
-*注：对 deviceID 号不清楚，可通过连接手机后使用 ` ace devices` 查看。*
-
-## 应用卸载
-
-对于已经安装在设备上的应用，可以将其卸载。以卸载上一步安装在设备 deviceID 上的 ‘module1’ 的 hap 为例：
-
-```
-cd demo
-ace uninstall hap --target module1 --device [devideID]
-```
-
-有多个 hap 或 apk，若不通过 --target 指定，则默认每个 hap/apk 都卸载。

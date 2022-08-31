@@ -94,7 +94,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
     let buildDir;
     moduleList.forEach(module => {
       if (fileType === 'hap') {
-        buildDir = path.join(projectDir, 'ohos', module, 'build/outputs/hap/debug');
+        buildDir = path.join(projectDir, 'ohos', module, 'build/default/outputs/default');
         const fileList = fs.readdirSync(buildDir).filter(function(file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
         });
@@ -102,7 +102,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
           if (module !== 'entry') {
             module = module + '-entry';
           }
-          if (file === `${module}-debug-standard-signed.${fileType}`) {
+          if (file === `${module}-default-signed.${fileType}`) {
             filePathList.push(path.join(buildDir, file));
             return true;
           }

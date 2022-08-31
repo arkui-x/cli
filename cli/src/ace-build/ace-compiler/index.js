@@ -120,7 +120,7 @@ function copyJStoOhos(moduleList) {
 function copyBundletoAndroid(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
-    const src = path.join(projectDir, '/ohos', module, 'build/intermediates/js/debug/normal/rich/assets/js');
+    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/assets/default/js');
     let dist;
     if (module === 'entry') {
       dist = path.join(projectDir, '/android/app/src/main/assets/js');
@@ -136,7 +136,7 @@ function copyBundletoAndroid(moduleList) {
 function copyBundletoiOS(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
-    const src = path.join(projectDir, '/ohos', module, 'build/intermediates/js/debug/normal/rich/assets/js');
+    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/assets/default/js');
     let dist;
     if (module === 'entry') {
       dist = path.join(projectDir, '/ios/etsapp/js');
@@ -225,20 +225,21 @@ function runGradle(fileType, moduleList) {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmd = [`cd ${ohosDir}`];
   if (platform !== Platform.Windows) {
-    cmd.push(`chmod 755 gradlew`);
+    //cmd.push(`chmod 755 gradlew`);
   }
+  cmd.push(`npm install`);
   let gradleMessage;
   if (fileType === 'hap' || !fileType) {
     moduleList.forEach(module => {
-      cmd.push(`./gradlew :${module}:assembleDebug`);
+      cmd.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js --mode module assembleHap`);
     });
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app') {
     moduleList.forEach(module => {
       if (uiSyntax === 'ets') {
-        cmd.push(`./gradlew :${module}:compileDebugEtsWithNode`);
+        cmd.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileETS`);
       } else {
-        cmd.push(`./gradlew :${module}:compileDebugJsWithNode`);
+        cmd.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileJS`);
       }
     });
     gradleMessage = 'Start compiling jsBundle...';
@@ -313,7 +314,7 @@ function compiler(fileType, moduleListInput) {
     } else if (fileType === 'apk') {
       return true;
     } else if (fileType === 'app') {
-      return true;
+      return false;
     }
   }
   console.error(`Compile failed.`);

@@ -1,12 +1,16 @@
 {
   "string": [
     {
-      "name": "entry_MainAbility",
-      "value": "appName"
+      "name": "entry_desc",
+      "value": "description"
     },
     {
-      "name": "description_mainability",
-      "value": "ETS_Empty Ability"
+      "name": "MainAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "MainAbility_label",
+      "value": "appName"
     }
   ]
 }

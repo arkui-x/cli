@@ -187,7 +187,7 @@ function createPackageFile(packagePaths, packageArray) {
 
 function replaceInfo(files, repalceInfos, strs) {
   files.forEach((filePath, index) => {
-    fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replaceAll(repalceInfos[index], strs[index]));
+    fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replace(repalceInfos[index], strs[index]));
   });
 }
 

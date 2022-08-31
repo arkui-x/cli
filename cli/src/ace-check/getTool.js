@@ -22,7 +22,7 @@ function getTool() {
   if (androidSdkDir) {
     toolPath = {'adb': path.join(androidSdkDir, 'platform-tools', 'adb')};
   } else if (openHarmonySdkDir) {
-    toolPath = {'hdc': path.join(openHarmonySdkDir, 'toolchains', 'hdc_std')};
+    toolPath = {'hdc': path.join(openHarmonySdkDir, 'toolchains', '3.1.6.5', 'hdc_std')};
   }
   return toolPath;
 }
