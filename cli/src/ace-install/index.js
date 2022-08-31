@@ -17,85 +17,21 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 
-const { getTool } = require('../ace-check/getTool');
-const checkDevices = require('../ace-check/checkDevices');
-
-function validDevices(device) {
-  const devices = checkDevices(true) || [];
-  if (devices.length === 0) {
-    console.error('Error: no connected device.');
-    return false;
-  }
-  const allDevices = checkDevices() || [];
-  if (!device && allDevices.length > 1) {
-    console.error(`Error: more than one device/emulator, use 'ace install --device <deviceId>'.`);
-    return false;
-  }
-  if (device && devices.indexOf(`${device}\tdevice`) === -1) {
-    console.error(`Error: device ${device} not found.`);
-    return false;
-  }
-  return true;
-}
-
-function getModuleList(settingPath) {
-  const moduleList = [];
-  try {
-    if (fs.existsSync(settingPath)) {
-      let settingStr = fs.readFileSync(settingPath).toString().trim();
-      if (settingStr === 'include') {
-        console.error(`There is no modules in project.`);
-        return [];
-      }
-      settingStr = settingStr.split(`'`);
-      if (settingStr.length % 2 === 0) {
-        console.error(`Please check ${settingPath}.`);
-        return [];
-      } else {
-        for (let index = 1; index < settingStr.length - 1; index++) {
-          const moduleItem = settingStr[index].trim();
-          if (moduleItem === '') {
-            console.error(`Please check ${settingPath}.`);
-            return [];
-          } else if (moduleItem === ',') {
-            continue;
-          } else {
-            moduleList.push(moduleItem.slice(1, settingStr[index].length));
-          }
-        }
-        return moduleList;
-      }
-    }
-  } catch (error) {
-    console.error(`Please check ${settingPath}.`);
-    return [];
-  }
-}
-
-function filterModuleByJson(projectDir, moduleList) {
-  try {
-    moduleList.forEach(module => {
-      const jsonPath = path.join(projectDir, 'ohos', module, 'src/main/config.json');
-      const jsonObj = JSON.parse(fs.readFileSync(jsonPath));
-      if (jsonObj.module.distro.deliveryWithInstall === false) {
-        moduleList.pop(module);
-      }
-    });
-    return moduleList;
-  } catch (error) {
-    console.error('Please check deliveryWithInstall in config.json.');
-    return [];
-  }
-}
-
+const { getToolByType } = require('../ace-check/getTool');
+const { isProjectRootDir, validDevices } = require('../util');
 function checkInstallFile(projectDir, fileType, moduleList) {
   try {
     const filePathList = [];
     let buildDir;
-    moduleList.forEach(module => {
-      if (fileType === 'hap') {
+    //ohos will install all module hap
+    if (fileType === 'hap') {
+      moduleList.forEach(module => {
+        if (!moduleList || moduleList.length == 0) {
+          console.error('Please input target name.');
+          return false;
+        }
         buildDir = path.join(projectDir, 'ohos', module, 'build/default/outputs/default');
-        const fileList = fs.readdirSync(buildDir).filter(function(file) {
+        const fileList = fs.readdirSync(buildDir).filter(function (file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
         });
         fileList.forEach(file => {
@@ -107,22 +43,23 @@ function checkInstallFile(projectDir, fileType, moduleList) {
             return true;
           }
         });
-      } else if (fileType === 'apk') {
-        if (module === 'entry') {
-          module = 'app';
-        }
-        buildDir = path.join(projectDir, 'android', module, 'build/outputs/apk/debug');
-        const fileList = fs.readdirSync(buildDir).filter(function(file) {
-          return path.extname(file).toLowerCase() === `.${fileType}`;
-        });
-        fileList.forEach(file => {
-          if (file === `${module}-debug.${fileType}`) {
-            filePathList.push(path.join(buildDir, file));
-            return true;
-          }
-        });
+      });
+    }
+    //android and ios only have one apk or app
+    if (fileType === 'apk' || fileType === 'app') {
+      buildDir = fileType == "apk" ? path.join(projectDir, 'android', 'build/outputs/apk/') :
+        path.join(projectDir, 'ios', 'build/outputs/app/');
+      const fileList = fs.readdirSync(buildDir).filter(function (file) {
+        return path.extname(file).toLowerCase() === `.${fileType}`;
+      });
+      if (fileList && fileList.length > 1) {
+        console.error(`Found more than 1 ${fileType} in ${buildDir}.Please inspect.`);
+        return false;
       }
-    });
+      fileList.forEach(file => {
+        filePathList.push(path.join(buildDir, file));
+      });
+    }
     return filePathList;
   } catch (error) {
     console.error(`Please check install file.`);
@@ -130,63 +67,28 @@ function checkInstallFile(projectDir, fileType, moduleList) {
   }
 }
 
-function isProjectRootDir(currentDir) {
-  const ohosGradlePath = path.join(currentDir, 'ohos/settings.gradle');
-  const androidGradlePath = path.join(currentDir, 'android/settings.gradle');
-  try {
-    fs.accessSync(ohosGradlePath);
-    fs.accessSync(androidGradlePath);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
 function install(fileType, device, moduleListInput) {
   if (!isProjectRootDir(process.cwd())) {
-    console.error('Please go to the root directory of project.');
     return false;
   }
   const projectDir = process.cwd();
-  const settingPath = path.join(projectDir, 'ohos/settings.gradle');
-  let moduleList = getModuleList(settingPath);
-  if (!moduleList || moduleList.length === 0) {
-    console.error('There is no module in project.');
-    return false;
-  }
 
-  moduleList = filterModuleByJson(projectDir, moduleList);
-
-  if (!moduleList || moduleList.length === 0) {
-    console.error('There is no module in project.');
-    return false;
-  }
-  if (moduleListInput && moduleListInput !== true) {
-    const inputModules = moduleListInput.split(' ');
-    for (let i = 0; i < inputModules.length; i++) {
-      if (inputModules[i] === 'app') {
-        inputModules[i] = 'entry';
-      }
-      if (!moduleList.includes(inputModules[i])) {
-        console.error('Please input correct module name.');
-        return false;
-      }
-    }
-    moduleList = inputModules;
-  }
-  const filePathList = checkInstallFile(projectDir, fileType, moduleList);
+  const filePathList = checkInstallFile(projectDir, fileType, moduleListInput);
   if (!filePathList || filePathList.length === 0) {
     console.error('There is no file to install');
     return false;
   }
-  const toolObj = getTool();
+  const toolObj = getToolByType(fileType);
+  if (toolObj == null || toolObj == undefined) {
+    console.error('There are not install tool, please check');
+    return false;
+  }
   if (validDevices(device) && toolObj) {
     let commands = [];
     let cmdPath;
     let cmdInstallOption;
     let cmdPushOption;
     let deviceOption;
-
     if ('hdc' in toolObj) {
       cmdPath = toolObj['hdc'];
       cmdPushOption = 'file send';
@@ -205,8 +107,17 @@ function install(fileType, device, moduleListInput) {
       } else {
         deviceOption = '';
       }
+    } else if ('ios-deploy' in toolObj) {
+      cmdPath = toolObj['ios-deploy'];
+      cmdPushOption = 'push';
+      cmdInstallOption = '--no-wifi';
+      if (device) {
+        deviceOption = `--id ${device}`;
+      } else {
+        deviceOption = '';
+      }
     } else {
-      console.error('Internal error with hdc and adb checking');
+      console.error('Internal error with hdc/adb/ios-deploy checking');
       return false;
     }
 
@@ -254,8 +165,25 @@ function install(fileType, device, moduleListInput) {
         console.error(errorMessage);
         return false;
       }
+    } else if (fileType === 'app') {
+      try {
+        for (let index = 0; index < filePathList.length; index++) {
+          const filePath = filePathList[index];
+          const cmdInstall = `${cmdPath} ${deviceOption} --bundle ${filePath} ${cmdInstallOption}`;
+          const result = exec(`${cmdInstall}`).toString().trim();
+          if (result.includes('Failure')) {
+            console.error(result);
+            console.error(errorMessage);
+            return false;
+          }
+        }
+        console.log(successMessage);
+        return true;
+      } catch (error) {
+        console.error(errorMessage);
+        return false;
+      }
     }
   }
 }
-
 module.exports = install;

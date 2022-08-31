@@ -17,34 +17,14 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 
-const { getTool } = require('../ace-check/getTool');
-const checkDevices = require('../ace-check/checkDevices');
-
+const { getToolByType } = require('../ace-check/getTool');
+const { isProjectRootDir, validDevices, getCurrentProjectVersion } = require('../util');
 let bundleName;
 let packageName;
 let ohosclassName;
 let androidclassName;
 let className;
 let cmdOption;
-
-function validDevices(device) {
-  const devices = checkDevices(true) || [];
-  if (devices.length === 0) {
-    console.error('Error: no connected device.');
-    return false;
-  }
-  const allDevices = checkDevices() || [];
-  if (!device && allDevices.length > 1) {
-    console.error(`Error: more than one device/emulator, use 'ace launch --device <deviceId>'.`);
-    return false;
-  }
-  if (device && devices.indexOf(`${device}\tdevice`) === -1) {
-    console.error(`Error: device ${device} not found.`);
-    return false;
-  }
-  return true;
-}
-
 function getNames(projectDir, fileType, moduleName) {
   moduleName = moduleName || 'entry';
   if (fileType === 'hap') {
@@ -99,32 +79,32 @@ function getNames(projectDir, fileType, moduleName) {
       console.error('Read androidManifest.xml failed.\n' + err);
       return false;
     }
-  }
-}
-
-function isProjectRootDir(currentDir) {
-  const ohosGradlePath = path.join(currentDir, 'ohos/settings.gradle');
-  const androidGradlePath = path.join(currentDir, 'android/settings.gradle');
-  try {
-    fs.accessSync(ohosGradlePath);
-    fs.accessSync(androidGradlePath);
+  } else if (fileType === 'app') {
+    let version = getCurrentProjectVersion(projectDir);
+    if (version == "") {
+      console.log("project is not exists");
+      return false;
+    }
+    let appName = version == "app" ? "jsapp.app" : "etsapp.app";
+    bundleName = path.join(projectDir, '/ios/build/outputs/app/', appName);
     return true;
-  } catch (error) {
-    return false;
   }
 }
 
 function launch(fileType, device, moduleName) {
   if (!isProjectRootDir(process.cwd())) {
-    console.error('Please go to the root directory of project.');
     return false;
   }
   const projectDir = process.cwd();
-  const toolObj = getTool();
+  const toolObj = getToolByType(fileType);
+  if (toolObj == null || toolObj == undefined) {
+    console.error('There are not install tool, please check');
+    return false;
+  }
   if (validDevices(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
     let cmdPath;
     let deviceOption;
-
+    const cmdLaunch = '';
     if ('hdc' in toolObj) {
       cmdPath = toolObj['hdc'];
       if (device) {
@@ -132,6 +112,7 @@ function launch(fileType, device, moduleName) {
       } else {
         deviceOption = '';
       }
+      cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
     } else if ('adb' in toolObj) {
       cmdPath = toolObj['adb'];
       if (device) {
@@ -139,11 +120,19 @@ function launch(fileType, device, moduleName) {
       } else {
         deviceOption = '';
       }
+      cmdLaunch = `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+    } else if ('ios-deploy' in toolObj) {
+      cmdPath = toolObj['adb'];
+      if (device) {
+        deviceOption = `--id ${device}`;
+      } else {
+        deviceOption = '';
+      }
+      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${bundleName} --no-wifi --justlaunch`;
     } else {
       console.error('Internal error with hdc and adb checking.');
       return false;
     }
-    const cmdLaunch = `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
 
     try {
       exec(`${cmdLaunch}`);

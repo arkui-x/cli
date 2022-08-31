@@ -61,7 +61,7 @@ function createProject(projectPath, template, packages, project, version) {
 }
 
 function findTemplate(template, projectPath, packages, project, version) {
-  if (template === '' || version === '1') {
+  if (version === '' || version === '1') {
     template = 'app';
   } else if (version === '2') {
     template = 'appv2';
@@ -94,11 +94,11 @@ function replaceProjectInfo(projectPath, packages, project, template) {
   const replaceInfos = [];
   const strs = [];
 
-  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/manifest.json'));
+  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
   replaceInfos.push('appIDValue');
   strs.push(packages);
 
-  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/manifest.json'));
+  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
   replaceInfos.push('appNameValue');
   strs.push(project);
 
@@ -129,13 +129,16 @@ function replaceProjectInfo(projectPath, packages, project, template) {
   files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
   replaceInfos.push('appNameValue');
   strs.push(project);
+  files.push(path.join(projectPath, 'ohos/entry/src/ohosTest/config.json'));
+  replaceInfos.push('bundleNameValue');
+  strs.push(packages);
   files.push(path.join(projectPath, 'ohos/entry/src/main/resources/base/element/string.json'));
   replaceInfos.push('appName');
   strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/java/HiHelloWorldActivity.java'));
+  files.push(path.join(projectPath, 'android/app/src/main/java/EntryMainAbility.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/main/java/HiHelloWorldApplication.java'));
+  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
   files.push(path.join(projectPath, 'android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
@@ -187,7 +190,7 @@ function createPackageFile(packagePaths, packageArray) {
 
 function replaceInfo(files, repalceInfos, strs) {
   files.forEach((filePath, index) => {
-    fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replace(repalceInfos[index], strs[index]));
+    fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replaceAll(repalceInfos[index], strs[index]));
   });
 }
 

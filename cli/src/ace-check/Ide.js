@@ -75,7 +75,7 @@ class Ide {
   checkConfig() {
     try {
       const config = getConfig();
-      return config[`${this.stdType}-dir`];
+      return config[`${this.stdType}-path`];
     } catch (err) {
       // ignore
     }

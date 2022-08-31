@@ -14,34 +14,60 @@
  */
 
 const checkDevices = require('../ace-check/checkDevices');
-const { getTool } = require('../ace-check/getTool');
-
+const { getTools } = require('../ace-check/getTool');
+const { Platform, platform } = require('../ace-check/platform');
 function devices() {
-  if (!getTool()) {
-    console.info(`No such debug tool (hdc/adb) in sdk.`);
-    return;
+  if (getTools().length == 0) {
+    console.info(`No such debug tools (hdc/adb/ios-deploy).`);
+    return {
+      'all': [],
+      'available': [],
+      'unavailable': []
+    };
   }
-  const device = checkDevices() || [];
+  let hdcTitle = "[×] hdc is not installed";
+  let adbTitle = "[×] adb is not installed";
+  let iosDeployTitle = "[×] adb is not installed";
+  for (let i = 0; i < getTools().length; i++) {
+    if (getTools()[i]["hdc"]) {
+      hdcTitle = "[√] hdc installed";
+    }
+    if (getTools()[i]["adb"]) {
+      adbTitle = "[√] adb installed";
+    }
+    if (getTools()[i]["ios-deploy"]) {
+      iosDeployTitle = "[√] ios-deploy installed";
+    }  
+  }
+  if(platform != Platform.MacOS) {
+    iosdeployTitle = "";
+  }
+  let toolMsg = hdcTitle + " " + adbTitle + " " + iosDeployTitle;
+  console.log(`Tools info :\t` + toolMsg);
+  const devices = checkDevices() || [];
   let availableDevices = [];
   let unavailableDevices = [];
-  if (device.length === 0) {
+  if (devices.length === 0) {
     console.log(`[!] No connected device`);
   } else {
-    availableDevices = device.filter(item => item.indexOf('device') !== -1);
-    unavailableDevices = device.filter(item => item.indexOf('unauthorized') !== -1 ||
-      item.indexOf('offline') !== -1);
+    for (let i = 0; i < devices.length; i++) {
+      let device = devices[i];
+      if (device.indexOf('unauthorized') !== -1 ||
+        device.indexOf('offline') !== -1) {
+        unavailableDevices.push(device);
+      } else {
+        availableDevices.push(device);
+      }
+    }
     if (availableDevices.length > 0) {
-      console.log(`[√] Connected device (${availableDevices.length} available)
-  • ${availableDevices.join('\r\n  • ')}`
-      );
+      console.log(`[√] Connected device (${availableDevices.length} available)\r\n  • ${availableDevices.join('\r\n  • ')}`);
     }
     if (unavailableDevices.length > 0) {
-      console.log(`[!] Connected device (${unavailableDevices.length} unavailable)
-  ! ${unavailableDevices.join('\r\n  ! ')}`);
+      console.log(`[!] Connected device (${unavailableDevices.length} unavailable)'\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
     }
   }
   return {
-    'all': device,
+    'all': devices,
     'available': availableDevices,
     'unavailable': unavailableDevices
   };

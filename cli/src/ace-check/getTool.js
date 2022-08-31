@@ -13,20 +13,63 @@
  * limitations under the License.
  */
 
+const fs = require('fs');
 const path = require('path');
-
-const { openHarmonySdkDir, androidSdkDir } = require('../ace-check/configs');
-
-function getTool() {
-  let toolPath;
+const { Platform, platform } = require('./platform');
+const { openHarmonySdkDir, androidSdkDir, deployVersion } = require('../ace-check/configs');
+function getTools() {
+  let toolPaths = [];
+  let hdcPath = "";
   if (androidSdkDir) {
-    toolPath = {'adb': path.join(androidSdkDir, 'platform-tools', 'adb')};
-  } else if (openHarmonySdkDir) {
-    toolPath = {'hdc': path.join(openHarmonySdkDir, 'toolchains', '3.1.6.5', 'hdc_std')};
+    toolPaths.push({ 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') });
+  }
+  if (openHarmonySdkDir) {
+    try {
+      const toolchains_path = path.join(openHarmonySdkDir, "toolchains");
+      const fileArr = fs.readdirSync(toolchains_path);
+      if (fileArr.length > 0) {
+        fileArr.forEach(item => {
+          if (item.substring(0, 1) != ".") {
+            hdcPath = path.join(toolchains_path, item);
+          }
+        })
+      }
+      toolPaths.push({ 'hdc': path.join(hdcPath, 'hdc_std') });
+    } catch (err) {
+      // ignore
+    }
+  }
+  if ((platform === Platform.MacOS) && deployVersion) {
+    toolPaths.push({ 'ios-deploy': 'ios-deploy' });
+  }
+  return toolPaths;
+}
+function getToolByType(fileType) {
+  let toolPath;
+  if (fileType == 'hap' && openHarmonySdkDir) {
+    try {
+      const toolchains_path = path.join(openHarmonySdkDir, "toolchains");
+      const fileaArr = fs.readdirSync(toolchains_path);
+      if (fileaArr.length > 0) {
+        fileaArr.forEach(item => {
+          if (item.substring(0, 1) != ".") {
+            hdcPath = path.join(toolchains_path, item);
+          }
+        })
+      }
+      toolPaths.push({ 'hdc': path.join(hdcPath, 'hdc_std') });
+    } catch (err) {
+      // ignore
+    }
+  }
+  if (fileType == 'apk' && androidSdkDir) {
+    toolPath = { 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') };
+  }
+  if (fileType == 'app' && (platform === Platform.MacOS)) {
+    toolPath = { 'ios-deploy': 'ios-deploy' };
   }
   return toolPath;
 }
-
 function getGivenTool(toolObj) {
   let tool;
   toolObj = toolObj || [];
@@ -39,6 +82,7 @@ function getGivenTool(toolObj) {
 }
 
 module.exports = {
-  getTool,
-  getGivenTool
+  getTools,
+  getGivenTool,
+  getToolByType
 };

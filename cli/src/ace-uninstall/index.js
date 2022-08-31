@@ -13,143 +13,29 @@
  * limitations under the License.
  */
 
-const fs = require('fs');
-const path = require('path');
+// const fs = require('fs');
+// const path = require('path');
 const exec = require('child_process').execSync;
-const lodash = require('lodash');
+// const lodash = require('lodash');
 
-const { getTool } = require('../ace-check/getTool');
-const checkDevices = require('../ace-check/checkDevices');
-
-function validDevices(device) {
-  const devices = checkDevices(true) || [];
-  if (devices.length === 0) {
-    console.error('Error: no connected device.');
+const { getToolByType } = require('../ace-check/getTool');
+const { validDevices } = require('../util');
+function uninstall(fileType, device, bundle) {
+  const toolObj = getToolByType(fileType);
+  if (toolObj == null || toolObj == undefined) {
+    console.error('There are not install tool, please check');
     return false;
   }
-  const allDevices = checkDevices() || [];
-  if (!device && allDevices.length > 1) {
-    console.error(`Error: more than one device/emulator, use 'ace uninstall --device <deviceId>'.`);
-    return false;
-  }
-  if (device && devices.indexOf(`${device}\tdevice`) === -1) {
-    console.error(`Error: device ${device} not found.`);
-    return false;
-  }
-  return true;
-}
-
-function getModuleList(settingPath) {
-  const moduleList = [];
-  try {
-    if (fs.existsSync(settingPath)) {
-      let settingStr = fs.readFileSync(settingPath).toString().trim();
-      if (settingStr === 'include') {
-        console.error(`There is no modules in project.`);
-        return [];
-      }
-      settingStr = settingStr.split(`'`);
-      if (settingStr.length % 2 === 0) {
-        console.error(`Please check ${settingPath}.`);
-        return [];
-      } else {
-        for (let index = 1; index < settingStr.length - 1; index++) {
-          const moduleItem = settingStr[index].trim();
-          if (moduleItem === '') {
-            console.error(`Please check ${settingPath}.`);
-            return [];
-          } else if (moduleItem === ',') {
-            continue;
-          } else {
-            moduleList.push(moduleItem.slice(1, settingStr[index].length));
-          }
-        }
-        return moduleList;
-      }
-    }
-  } catch (error) {
-    console.error(`Please check ${settingPath}.`);
-    return [];
-  }
-}
-
-function getBundleName(projectDir, moduleList) {
-  const manifestPathList = [];
-  moduleList.forEach(module => {
-    manifestPathList.push(path.join(projectDir, '/source', module, 'manifest.json'));
-  });
-  const bundleNameList = [];
-  try {
-    manifestPathList.forEach(manifestPath => {
-      if (fs.existsSync(manifestPath)) {
-        const bundleName = JSON.parse(fs.readFileSync(manifestPath)).appID;
-        if (!bundleName) {
-          console.error(`Please check appID in ${manifestPath}.`);
-          return false;
-        }
-        bundleNameList.push(bundleName);
-      }
-    });
-    return lodash.uniqWith(bundleNameList);
-  } catch (error) {
-    console.error(`Please check appID in manifest.json.`);
-    return false;
-  }
-}
-
-function isProjectRootDir(currentDir) {
-  const ohosGradlePath = path.join(currentDir, 'ohos/settings.gradle');
-  const androidGradlePath = path.join(currentDir, 'android/settings.gradle');
-  try {
-    fs.accessSync(ohosGradlePath);
-    fs.accessSync(androidGradlePath);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function uninstall(fileType, device, moduleListInput) {
-  if (!isProjectRootDir(process.cwd())) {
-    console.error('Please go to the root directory of project.');
-    return false;
-  }
-  const projectDir = process.cwd();
-  const settingPath = path.join(projectDir, 'ohos/settings.gradle');
-  let moduleList = getModuleList(settingPath);
-  if (!moduleList) {
-    console.error('There is no module in project.');
-    return false;
-  }
-  if (moduleListInput) {
-    const inputModules = moduleListInput.split(' ');
-    for (let i = 0; i < inputModules.length; i++) {
-      if (inputModules[i] === 'app') {
-        inputModules[i] = 'entry';
-      }
-      if (!moduleList.includes(inputModules[i])) {
-        console.error('Please input correct module name.');
-        return false;
-      }
-    }
-    moduleList = inputModules;
-  }
-  const bundleNameList = getBundleName(projectDir, moduleList);
-  if (!bundleNameList) {
-    console.error('There is no file to install');
-    return false;
-  }
-  const toolObj = getTool();
   if (toolObj && validDevices(device)) {
     let cmdPath;
     let cmdUninstallOption;
     let deviceOption;
     let commands = [];
-    const cmdStopOption = 'shell am force-stop';
-
+    let cmdStopOption = '';
     if ('hdc' in toolObj) {
       cmdPath = toolObj['hdc'];
       cmdUninstallOption = 'app uninstall';
+      cmdStopOption = 'shell aa force-stop';
       if (device) {
         deviceOption = `-t ${device}`;
       } else {
@@ -158,8 +44,17 @@ function uninstall(fileType, device, moduleListInput) {
     } else if ('adb' in toolObj) {
       cmdPath = toolObj['adb'];
       cmdUninstallOption = 'uninstall';
+      cmdStopOption = 'shell am force-stop';
       if (device) {
         deviceOption = `-s ${device}`;
+      } else {
+        deviceOption = '';
+      }
+    } else if ('ios-deploy' in toolObj) {
+      cmdPath = toolObj['ios-deploy'];
+      cmdUninstallOption =  '--uninstall_only --bundle_id';
+      if (device) {
+        deviceOption = `--id ${device}`;
       } else {
         deviceOption = '';
       }
@@ -167,13 +62,14 @@ function uninstall(fileType, device, moduleListInput) {
       console.error('Internal error with hdc and adb checking');
       return false;
     }
-
-    bundleNameList.forEach(bundleName => {
-      const cmdStop = `${cmdPath} ${deviceOption} ${cmdStopOption} ${bundleName}`;
-      const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundleName}`;
+    const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
+    if(fileType == "app") {
+      commands.push(`${cmdUninstall}`);
+    } else {
+      //TODO 结束进程指令有必要？ ohos和android指令一致 现在ohos用了aa 需要测试？
+      const cmdStop = `${cmdPath} ${deviceOption} ${cmdStopOption} ${bundle}`;
       commands.push(`${cmdStop} && ${cmdUninstall}`);
-    });
-    commands = commands.join(' && ');
+    }
     try {
       exec(`${commands}`);
       console.log(`Uninstall ${fileType.toUpperCase()} successfully.`);

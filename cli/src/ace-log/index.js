@@ -17,13 +17,14 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, execSync } = require('child_process');
 
-const { getTool, getGivenTool } = require('../ace-check/getTool');
-const checkDevices = require('../ace-check/checkDevices');
+const { getToolByType, getGivenTool } = require('../ace-check/getTool');
 
-const toolObj = getTool();
+const { validDevices } = require('../util');
+
+//TODO IOS日志打印不是ios-deploy，getGivenTool也需要修改，为了删除getTool先暂时这样修改
+const toolObj = getToolByType("hap");
 const givenTool = getGivenTool(toolObj);
-
-function log(device) {
+function log(fileType, device) {
   if (!validTool()) {
     return;
   }
@@ -59,27 +60,27 @@ function log(device) {
   });
 }
 
-function validDevices(device) {
-  const devices = checkDevices(true) || [];
-  if (devices.length === 0) {
-    console.error('Error: no connected device.');
-    return false;
-  }
-  const allDevices = checkDevices() || [];
-  if (!device && allDevices.length > 1) {
-    console.error(`Error: more than one device/emulator, use 'ace log --device <deviceId>'.`);
-    return false;
-  }
-  if (device && devices.indexOf(`${device}\tdevice`) === -1) {
-    console.error(`Error: device ${device} not found.`);
-    return false;
-  }
-  return true;
-}
+// function validDevices(device) {
+//   const devices = checkDevices(true) || [];
+//   if (devices.length === 0) {
+//     console.error('Error: no connected device.');
+//     return false;
+//   }
+//   const allDevices = checkDevices() || [];
+//   if (!device && allDevices.length > 1) {
+//     console.error(`Error: more than one device/emulator, use 'ace log --device <deviceId>'.`);
+//     return false;
+//   }
+//   if (device && devices.indexOf(`${device}\tdevice`) === -1) {
+//     console.error(`Error: device ${device} not found.`);
+//     return false;
+//   }
+//   return true;
+// }
 
 function validTool() {
   if (!toolObj) {
-    console.error('Error: no such debug tool (hdc/adb) in sdk.');
+    console.error('No such debug tools (hdc/adb/ios-deploy).');
     return false;
   }
   return true;

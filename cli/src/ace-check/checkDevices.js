@@ -15,36 +15,45 @@
 
 const process = require('child_process');
 
-const { getTool } = require('./getTool');
+const { getTools } = require('./getTool');
 
-function checkDevices(valid) {
+function checkDevices() {
   let deviceCommand;
-  const toolObj = getTool() || [];
-  if ('hdc' in toolObj) {
-    deviceCommand = `${toolObj['hdc']} list targets`;
-  } else if ('adb' in toolObj) {
-    deviceCommand = `${toolObj['adb']} devices`;
-  }
-  try {
-    const commandOutput = process.execSync(deviceCommand).toString();
-    if (valid) {
-      return getValidDevices(commandOutput);
-    } else {
-      return getDevices(commandOutput);
+  let devicesOutputs = [];
+  let title = "";
+  const toolObj = getTools() || [];
+  for (let i = 0; i < toolObj.length; i++) {
+    if ('hdc' in toolObj[i]) {
+      title = "Openharmony Device\t";
+      deviceCommand = `${toolObj[i]['hdc']} list targets`;
+    } else if ('adb' in toolObj[i]) {
+      title = "Android Device\t";
+      deviceCommand = `${toolObj[i]['adb']} devices`;
+    } else if ('ios-deploy' in toolObj[i]) {
+      title = "iOS Device\t";
+      deviceCommand = `${toolObj[i]['ios-deploy']} -c`;
     }
-  } catch (err) {
-    // ignore
-  }
-}
 
-function getValidDevices(out) {
-  const DEVICE_REG = /.+device(?!s).*/g;
-  return out.match(DEVICE_REG);
+    try {
+      const commandOutput = process.execSync(deviceCommand).toString();
+      let devices = getDevices(commandOutput);
+      devices.forEach(item => {
+        devicesOutputs.push(title + item);
+      });
+    } catch (err) {
+      // ignore
+    }
+  }
+  return devicesOutputs;
 }
 
 function getDevices(out) {
-  const DEVICE_REG = /.+(device(?!s)|unauthorized|offline).*/g;
-  return out.match(DEVICE_REG);
+  let splitArr = out.split(/[\r\n]+/);
+  splitArr = splitArr.filter(item => {
+    return item != "List of devices attached" && item != "" && item != "[Empty]"
+      && item != "Waiting up to 5 seconds for iOS devices to be connected";
+  });
+  return splitArr;
 }
 
 module.exports = checkDevices;
