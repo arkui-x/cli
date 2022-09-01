@@ -19,14 +19,14 @@ const exec = require('child_process').execSync;
 // const lodash = require('lodash');
 
 const { getToolByType } = require('../ace-check/getTool');
-const { validDevices } = require('../util');
+const { validInputDevice } = require('../util');
 function uninstall(fileType, device, bundle) {
   const toolObj = getToolByType(fileType);
-  if (toolObj == null || toolObj == undefined) {
+  if (!toolObj) {
     console.error('There are not install tool, please check');
     return false;
   }
-  if (toolObj && validDevices(device)) {
+  if (validInputDevice(device)) {
     let cmdPath;
     let cmdUninstallOption;
     let deviceOption;
@@ -71,13 +71,20 @@ function uninstall(fileType, device, bundle) {
       commands.push(`${cmdStop} && ${cmdUninstall}`);
     }
     try {
-      exec(`${commands}`);
+      const result = exec(`${commands}`).toString().trim();
+      if ((result.includes('Fail')) || (result.includes('failed'))) {
+        console.error(result);
+        console.error(`Uninstall ${fileType.toUpperCase()} failed.` + error);
+        return false;
+      }
       console.log(`Uninstall ${fileType.toUpperCase()} successfully.`);
       return true;
     } catch (error) {
-      console.error(`Uninstall ${fileType.toUpperCase()} failed.` + error);
+      console.error(`Uninstall ${fileType.toUpperCase()} failed.`);
       return false;
     }
+  } else {
+    return false;
   }
 }
 

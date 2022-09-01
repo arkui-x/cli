@@ -87,17 +87,9 @@ function buildAPK(cmd) {
 }
 
 function packager(target, cmd) {
-  let moduleListInput = cmd.target;
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  let buildAll = true;
-  let moduleList;
-  if (moduleListInput && moduleListInput !== true) {
-    moduleList = moduleListInput.split(' ');
-    buildAll = false;
-  }
-
   if (target == "apk") {
     if (getAndroidSdkDir() && writeLocalProperties()) {
       if (buildAPK(cmd)) {

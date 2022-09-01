@@ -31,7 +31,7 @@ function checkDevices() {
       deviceCommand = `${toolObj[i]['adb']} devices`;
     } else if ('ios-deploy' in toolObj[i]) {
       title = "iOS Device\t";
-      deviceCommand = `${toolObj[i]['ios-deploy']} -c`;
+      deviceCommand = `${toolObj[i]['ios-deploy']} -c -t 1`;
     }
 
     try {
@@ -51,7 +51,7 @@ function getDevices(out) {
   let splitArr = out.split(/[\r\n]+/);
   splitArr = splitArr.filter(item => {
     return item != "List of devices attached" && item != "" && item != "[Empty]"
-      && item != "Waiting up to 5 seconds for iOS devices to be connected";
+      && item.indexOf("device to be connected") == -1;
   });
   return splitArr;
 }

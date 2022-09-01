@@ -99,8 +99,8 @@ function check() {
   }
 
   if (openHarmonySdkDir || androidSdkDir || deployVersion) {
-    const validDevice = devices();
-    if (validDevice.all.length === 0 || validDevice.unavailable.length > 0) {
+    const validDevice = devices(true);
+    if (validDevice.all.length === 0) {
       errorTimes += 1;
     }
   } else {

@@ -19,22 +19,24 @@ const { Platform, platform } = require('./platform');
 const { openHarmonySdkDir, androidSdkDir, deployVersion } = require('../ace-check/configs');
 function getTools() {
   let toolPaths = [];
-  let hdcPath = "";
   if (androidSdkDir) {
     toolPaths.push({ 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') });
   }
   if (openHarmonySdkDir) {
     try {
-      const toolchains_path = path.join(openHarmonySdkDir, "toolchains");
-      const fileArr = fs.readdirSync(toolchains_path);
+      const toolchainsPath = path.join(openHarmonySdkDir, "toolchains");
+      const fileArr = fs.readdirSync(toolchainsPath);
+      let hdcPath;
       if (fileArr.length > 0) {
         fileArr.forEach(item => {
           if (item.substring(0, 1) != ".") {
-            hdcPath = path.join(toolchains_path, item);
+            hdcPath = ({ 'hdc': path.join(toolchainsPath, item, 'hdc_std') });
           }
         })
+        if (hdcPath) {
+          toolPaths.push(hdcPath);
+        }
       }
-      toolPaths.push({ 'hdc': path.join(hdcPath, 'hdc_std') });
     } catch (err) {
       // ignore
     }
@@ -44,20 +46,19 @@ function getTools() {
   }
   return toolPaths;
 }
-function getToolByType(fileType) {
+function getToolByType(fileType, isLogTool) {
   let toolPath;
   if (fileType == 'hap' && openHarmonySdkDir) {
     try {
-      const toolchains_path = path.join(openHarmonySdkDir, "toolchains");
-      const fileaArr = fs.readdirSync(toolchains_path);
+      const toolchainsPath = path.join(openHarmonySdkDir, "toolchains");
+      const fileaArr = fs.readdirSync(toolchainsPath);
       if (fileaArr.length > 0) {
         fileaArr.forEach(item => {
           if (item.substring(0, 1) != ".") {
-            hdcPath = path.join(toolchains_path, item);
+            toolPath = ({ 'hdc': path.join(toolchainsPath, item, 'hdc_std') });
           }
         })
       }
-      toolPaths.push({ 'hdc': path.join(hdcPath, 'hdc_std') });
     } catch (err) {
       // ignore
     }
@@ -66,23 +67,16 @@ function getToolByType(fileType) {
     toolPath = { 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') };
   }
   if (fileType == 'app' && (platform === Platform.MacOS)) {
-    toolPath = { 'ios-deploy': 'ios-deploy' };
+    if (!isLogTool) {
+      toolPath = { 'ios-deploy': 'ios-deploy' };
+    } else {
+      toolPath = { 'idevicesyslog': 'idevicesyslog' };
+    }
   }
   return toolPath;
-}
-function getGivenTool(toolObj) {
-  let tool;
-  toolObj = toolObj || [];
-  if ('hdc' in toolObj) {
-    tool = toolObj['hdc'];
-  } else if ('adb' in toolObj) {
-    tool = toolObj['adb'];
-  }
-  return tool;
 }
 
 module.exports = {
   getTools,
-  getGivenTool,
   getToolByType
 };

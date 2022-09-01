@@ -29,6 +29,7 @@ const uninstall = require('../ace-uninstall');
 const log = require('../ace-log');
 const launch = require('../ace-launch');
 const run = require('../ace-run');
+const clean = require('../ace-clean');
 const inquirer = require('inquirer');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
@@ -98,7 +99,7 @@ function parseCommander() {
   });
 
   program.command('devices').description('list the connected devices.').action(() => {
-    devices();
+    devices(true);
   });
 
   program.command('config')
@@ -118,15 +119,17 @@ function parseCommander() {
         --nodejs-dir    [Nodejs Dir]
         --java-sdk      [Java Sdk]`)
     .action(cmd => {
-      if (cmd.openharmonySdk || cmd.androidSdk ||cmd.devecoStudioPath || cmd.androidStudioPath || cmd.buildDir ||
+      if (cmd.openharmonySdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath || cmd.buildDir ||
         cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease) {
-        setConfig({'openharmony-sdk': cmd.openharmonySdk,
+        setConfig({
+          'openharmony-sdk': cmd.openharmonySdk,
           'android-sdk': cmd.androidSdk,
-          'deveco-studio-path':cmd.devecoStudioPath,
-          'android-studio-path':cmd.androidStudioPath,
+          'deveco-studio-path': cmd.devecoStudioPath,
+          'android-studio-path': cmd.androidStudioPath,
           'build-dir': cmd.buildDir,
           'nodejs-dir': cmd.nodejsDir,
-          'java-sdk': cmd.javaSdk});
+          'java-sdk': cmd.javaSdk
+        });
       } else {
         console.log('Please user ace config with options :' + cmd._description);
       }
@@ -140,10 +143,8 @@ function parseCommander() {
     .action((fileType, cmd) => {
       if (fileType === 'hap' || typeof fileType === 'undefined') {
         compiler('hap', cmd);
-      } else if (fileType === 'apk') {
-        build('apk', cmd);
-      } else if (fileType === 'app') {
-        build('app', cmd);
+      } else if ((fileType === 'apk') || (fileType === 'app')) {
+        build(fileType, cmd);
       } else {
         console.log(`Please use ace build with subcommand : hap, apk or app.`);
       }
@@ -157,6 +158,7 @@ function parseCommander() {
       if (fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
         console.log(`Please use ace install with subcommand : hap or apk or app.`);
       } else {
+        cmd.target = cmd.target || 'entry';
         install(fileType, cmd.parent.device, cmd.target);
       }
     });
@@ -180,12 +182,9 @@ function parseCommander() {
     .option('--target [moduleName]', 'name of module to be installed')
     .action((fileType, cmd) => {
       fileType = fileType || 'hap';
-      if (fileType === 'hap') {
+      if (fileType === 'hap' || fileType === 'apk' || fileType === 'app') {
         cmd.target = cmd.target || 'entry';
-        run(fileType, cmd.parent.device, cmd.target);
-      } else if (fileType === 'apk') {
-        cmd.target = cmd.target || 'app';
-        run(fileType, cmd.parent.device, cmd.target);
+        run(fileType, cmd.parent.device, cmd);
       } else {
         console.log(`Please use ace run with subcommand : hap or apk.`);
       }
@@ -197,18 +196,27 @@ function parseCommander() {
     .action((fileType, cmd) => {
       fileType = fileType || 'hap';
       cmd.target = cmd.target || 'entry';
-      if (fileType !== 'hap' && fileType !== 'apk') {
+      if (fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
         console.log(`Please use ace launch with subcommand : hap or apk.`);
       } else {
         launch(fileType, cmd.parent.device, cmd.target);
       }
     });
 
-  program.command('log')
+  program.command('log [fileType]')
     .description('show debug log')
-    .action((cmd) => {
-      log(cmd.parent.device);
+    .action((fileType, cmd) => {
+      if (fileType === 'hap' || typeof fileType === 'undefined') {
+        log('hap', cmd.parent.device);
+      } else if ((fileType === 'apk') || (fileType === 'app')) {
+        log(fileType, cmd.parent.device);
+      } else {
+        console.log(`Please use ace build with subcommand : hap, apk or app.`);
+      }
     });
 
+    program.command('clean').description('clean project').action(() => {
+      clean();
+    });
   program.parse(process.argv);
 }

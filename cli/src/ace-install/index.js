@@ -18,7 +18,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validDevices } = require('../util');
+const { isProjectRootDir, validInputDevice } = require('../util');
 function checkInstallFile(projectDir, fileType, moduleList) {
   try {
     const filePathList = [];
@@ -79,11 +79,11 @@ function install(fileType, device, moduleListInput) {
     return false;
   }
   const toolObj = getToolByType(fileType);
-  if (toolObj == null || toolObj == undefined) {
-    console.error('There are not install tool, please check');
+  if (!toolObj) {
+    console.error('There is no install tool, please check');
     return false;
   }
-  if (validDevices(device) && toolObj) {
+  if (validInputDevice(device)) {
     let commands = [];
     let cmdPath;
     let cmdInstallOption;
@@ -92,7 +92,7 @@ function install(fileType, device, moduleListInput) {
     if ('hdc' in toolObj) {
       cmdPath = toolObj['hdc'];
       cmdPushOption = 'file send';
-      cmdInstallOption = 'app install';
+      cmdInstallOption = 'install -r';
       if (device) {
         deviceOption = `-t ${device}`;
       } else {
@@ -124,23 +124,19 @@ function install(fileType, device, moduleListInput) {
     const errorMessage = `Install ${fileType.toUpperCase()} failed.`;
     const successMessage = `Install ${fileType.toUpperCase()} successfully.`;
     if (fileType === 'hap') {
-      const id = Math.floor(new Date().getTime() * Math.random()).toString(32);
-      filePathList.forEach(filePath => {
-        const cmdPush = `${cmdPath} ${deviceOption} ${cmdPushOption} ${filePath} /sdcard/${id}/${path.basename(filePath)}`;
-        commands.push(cmdPush);
-      });
-      commands = commands.join(' && ');
       try {
-        exec(`${commands}`);
-        const cmdInstall = `${cmdPath} ${deviceOption} shell bm install -p /sdcard/${id}`;
-        const result = exec(`${cmdInstall}`).toString().trim();
-        if (result.includes('Failure')) {
-          console.error(result);
-          console.error(errorMessage);
-          return false;
+        for (let index = 0; index < filePathList.length; index++) {
+          const filePath = filePathList[index];
+          const cmdPush = `${cmdPath} ${deviceOption} ${cmdInstallOption} ${filePath}`;
+          commands.push(cmdPush);
+          commands = commands.join(' && ');
+          const result = exec(`${commands}`).toString().trim();
+          if (result.includes('failed')) {
+            console.error(result);
+            console.error(errorMessage);
+            return false;
+          }
         }
-        const cmdRemove = `${cmdPath} shell rm -rf /sdcard/${id}`;
-        exec(`${cmdRemove}`);
         console.log(successMessage);
         return true;
       } catch (error) {

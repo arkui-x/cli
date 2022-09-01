@@ -26,7 +26,7 @@ const {
   copyToBuildDir
 } = require('../ace-build');
 const { copy } = require('../../ace-create/project');
-const { isProjectRootDir, getModuleList, getCurrentProjectVersion } = require('../../util');
+const { isProjectRootDir, getModuleList } = require('../../util');
 let projectDir;
 let openHarmonySdkDir;
 let nodejsDir;
@@ -78,10 +78,14 @@ function copySourceToOhos(moduleList) {
     uiSyntax = fs.existsSync(manifestPath) ? 'ets' : 'js';
     const src = path.join(projectDir, 'source', module, '/src/main/' + uiSyntax);
     const dist = path.join(projectDir, 'ohos', module, '/src/main/' + uiSyntax);
+    fs.mkdirSync(src, { recursive: true });
+    fs.mkdirSync(dist, { recursive: true });
     isContinue = isContinue && copy(src, dist);
     //copy resources
     const resourcesSrc = path.join(projectDir, 'source', module, '/src/main/resources');
     const resourcesDist = path.join(projectDir, 'ohos', module, '/src/main/resources');
+    fs.mkdirSync(resourcesSrc, { recursive: true });
+    fs.mkdirSync(resourcesDist, { recursive: true });
     isContinue = isContinue && copy(resourcesSrc, resourcesDist);
   });
   return isContinue;
@@ -186,9 +190,6 @@ function syncBundleName(moduleList) {
 function runGradle(fileType) {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmd = [`cd ${ohosDir}`];
-  if (platform !== Platform.Windows) {
-    cmd.push(`chmod 755 gradlew`);
-  }
   cmd.push(`npm install`);
   let gradleMessage;
   if (fileType === 'hap' || !fileType) {

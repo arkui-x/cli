@@ -18,7 +18,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validDevices, getCurrentProjectVersion } = require('../util');
+const { isProjectRootDir, validInputDevice, getCurrentProjectVersion } = require('../util');
 let bundleName;
 let packageName;
 let ohosclassName;
@@ -101,10 +101,10 @@ function launch(fileType, device, moduleName) {
     console.error('There are not install tool, please check');
     return false;
   }
-  if (validDevices(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
+  if (validInputDevice(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
     let cmdPath;
     let deviceOption;
-    const cmdLaunch = '';
+    let cmdLaunch = '';
     if ('hdc' in toolObj) {
       cmdPath = toolObj['hdc'];
       if (device) {
@@ -122,7 +122,7 @@ function launch(fileType, device, moduleName) {
       }
       cmdLaunch = `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
     } else if ('ios-deploy' in toolObj) {
-      cmdPath = toolObj['adb'];
+      cmdPath = toolObj['ios-deploy'];
       if (device) {
         deviceOption = `--id ${device}`;
       } else {

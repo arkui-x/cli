@@ -18,7 +18,7 @@ const build = require('../ace-build');
 const install = require('../ace-install');
 const launch = require('../ace-launch');
 const log = require('../ace-log');
-const { isProjectRootDir, validDevices } = require('../util');
+const { isProjectRootDir, validInputDevice } = require('../util');
 // function checkCurrentDir(projectDir) {
 //   const ohosGradlePath = path.join(projectDir, 'ohos/settings.gradle');
 //   const androidGradlePath = path.join(projectDir, 'android/settings.gradle');
@@ -54,20 +54,25 @@ const { isProjectRootDir, validDevices } = require('../util');
 //   }
 //   console.error('Run failed.');
 // }
-function run(fileType, device, target) {
+function run(fileType, device, cmd) {
   const projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  if(validDevices(device)) {
+  if (!validInputDevice(device)) {
     return false;
   }
   if (fileType === 'hap') {
-    compiler(fileType, target);
+    compiler(fileType, cmd);
   } else {
-    build(fileType, target);
+    build(fileType, cmd);
   }
-  if (install(fileType, device, target) && launch(fileType, device, target)) {
+  let installFlag = true;
+  //ios launch command contain install
+  if (fileType != "app") {
+    installFlag = install(fileType, device, cmd.target);
+  }
+  if (installFlag && launch(fileType, device, cmd.target)) {
     log(fileType, device);
     console.log('Run successful.');
     return;

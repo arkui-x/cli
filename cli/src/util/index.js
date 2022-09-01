@@ -65,7 +65,7 @@ function getCurrentProjectVersion(projDir) {
   return templateVer;
 }
 
-function validDevices(device) {
+function validInputDevice(device) {
   const devicesArr = devices();
   if (!device) {
     if ((devicesArr.available.length == 1)) {
@@ -87,9 +87,20 @@ function validDevices(device) {
     return false;
   }
 }
+
+function getManifestPath(projectDir) {
+  let version = getCurrentProjectVersion(projectDir);
+  if (version == "") {
+    console.log("project is not exists");
+    return false;
+  }
+  version = version == "app" ? "js" : "ets";
+  return path.join(projectDir, 'source/entry/src/main', version, 'MainAbility/manifest.json');
+}
 module.exports = {
   isProjectRootDir,
   getModuleList,
   getCurrentProjectVersion,
-  validDevices
+  validInputDevice,
+  getManifestPath
 };
