@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,13 +23,13 @@ function checkDevices() {
   const toolObj = getTools() || [];
   for (let i = 0; i < toolObj.length; i++) {
     if ('hdc' in toolObj[i]) {
-      title = "Openharmony Device\t";
+      title = "Openharmony Devices\t";
       deviceCommand = `${toolObj[i]['hdc']} list targets`;
     } else if ('adb' in toolObj[i]) {
-      title = "Android Device\t";
+      title = "Android Devices\t";
       deviceCommand = `${toolObj[i]['adb']} devices`;
     } else if ('ios-deploy' in toolObj[i]) {
-      title = "iOS Device\t";
+      title = "iOS Devices\t";
       deviceCommand = `${toolObj[i]['ios-deploy']} -c -t 1`;
     }
 

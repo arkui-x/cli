@@ -38,7 +38,6 @@ function getTools() {
         }
       }
     } catch (err) {
-      // ignore
     }
   }
   if ((platform === Platform.MacOS) && deployVersion) {
@@ -60,7 +59,6 @@ function getToolByType(fileType, isLogTool) {
         })
       }
     } catch (err) {
-      // ignore
     }
   }
   if (fileType == 'apk' && androidSdkDir) {

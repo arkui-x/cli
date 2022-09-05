@@ -1,327 +1,183 @@
-# ArkUI跨平台应用构建命令行工具
+# 快速指南
 
-ACE Command Tools，是一套为 ACE 开发者提供的命令行工具，包括开发环境检查，新建项目，编译打包，安装调试。
+## 环境安装
 
+在使用命令行工具创建工程之前，请先检查本地开发环境：
 
+1. NodeJS
 
-## ACE命令行介绍
+   命令行运行 `node -v` 查看本地nodejs版本。如不存在，请自行下载安装新的稳定版本：[NodeJS下载地址](https://nodejs.org/en/download/)。建议下载15.0以上版本。
 
-### ace config
+2. Java
 
-配置 ace 的设置，包括鸿蒙 sdk 路径，安卓sdk路径、nodejs 路径、编译输出的路径等，若需要去掉一个设置，将其值设置为空即可。 
+   命令行运行 `java -version` 查看本地Java版本。如不存在，请自行下载安装新的稳定版本，同时配置相关环境变量：[JDK下载地址](https://www.oracle.com/java/technologies/javase-downloads.html)
 
-设置的项为全局统一，暂不支持不同的项目配置不同的值。
+3. OpenHarmony SDK
 
-语法：
+   编译 hap 需要，OpenHarmony SDK 支持通过安装DevEco Studio获得，也可通过SDK Manager获得。[DevEco Studio及SDK Manager下载地址](https://developer.harmonyos.com/cn/develop/deveco-studio)
+
+   **SDK Manager下载SDK推荐配置路径及方式：**
+
+   [Linux]
+   ```
+   // 配置环境变量
+   export OpenHarmony_HOME=/home/usrername/path-to-ohsdk
+   export PATH=${OpenHarmony_HOME}/toolchains/versioncode:${PATH}
+   ```
+
+   [Mac]
+   ```
+   // 配置环境变量
+   export OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
+   export PATH=$OpenHarmony_HOME/toolchains/versioncode:$PATH
+   ```
+
+   [Windows]
+   ```
+   // 配置环境变量
+   set OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
+   set PATH=%PATH%;%OpenHarmony_HOME%/toolchains/versioncode
+   ```
+
+4. Android SDK
+
+   编译 apk 需要，Android SDK 支持通过安装Android Studio获得、也可通过SDK Manager获得。[Android Studio及SDK Manager下载地址](https://developer.android.com/studio)
+
+   **SDK Manager下载SDK推荐配置路径及方式：**
+
+   [Linux]
+   ```
+   // 配置环境变量
+   export ANDROID_HOME=/home/usrername/path-to-android-sdk
+   export PATH=${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/build-tools/28.0.3:${ANDROID_HOME}/platform-tools:${PATH}
+   ```
+
+   [Mac]
+   ```
+   // 配置环境变量
+   export ANDROID_HOME=/Users/usrername/path-to-android-sdk
+   export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/build-tools/28.0.3:$ANDROID_HOME/platform-tools:$PATH
+   ```
+
+   [Windows]
+   ```
+   // 配置环境变量
+   set ANDROID_HOME=/home/usrername/path-to-android-sdk
+   set PATH=%PATH%;%ANDROID_HOME%/tools;%ANDROID_HOME%/tools/bin;%ANDROID_HOME%/build-tools/28.0.3;%ANDROID_HOME%/platform-tools
+   ```
+
+## 依赖安装
+
+有两种方式可以运行框架，分别需要安装相关依赖：
+
+1. 如果获得了项目的源码，则可以在项目根目录执行安装命令，安装cli依赖包。
 
 ```
-
-ace config [options]
-
+npm install . -g
 ```
 
-| 参数          | 说明                |
-| ------------- | ------------------- |
-| --openharmony-sdk | OpenHarmony SDK路径 |
-| --android-sdk | Android SDK路径     |
-| --nodejs-dir  | nodejs 路径         |
-| --buid-dir    | 编译输出的路径      |
-| --deveco-studio-path | DevEco Studio安装路径（可选参数） |
-| --android-studio-path | Android Studio安装路径（可选参数） |
-| --java-sdk | JDK路径 |
+*注：如遇到全局安装失败，可先执行npm install，再执行npm install . -g*
 
-### ace check
+2. 如果获得了打包后的 ace_tools.js 文件和 ace 脚本文件，可配置ace脚本到环境变量，使能ACE Tools命令行工具。
 
-检查 ace 应用需要依赖的库和工具链。
+## 创建应用
 
-需要检查的项：
+接下来从零开始，通过命令行工具完成项目创建和编译打包。
 
-| 检查内容         | 说明                         | 必选项 | Windows | Linux | Mac  |
-| ---------------- | ---------------------------- | ------ | ------- | ----- | ---- |
-| NodeJS           | nodejs 路径                  | 是     | 是      | 是    | 是   |
-| OpenHarmony SDK  | OpenHarmony SDK路径          | 是     | 是      | 是    | 是   |
-| Android SDK      | Android SDK路径              | 是     | 是      | 是    | 是   |
-| DevEco Studio    | DevEco Studio安装路径        | 否     | 是      | 否    | 是   |
-| Android Studio   | Android Studio安装路径       | 否     | 是      | 是    | 是   |
-| 连接设备         | 当前连接的所有设备           | 否     | 是      | 是    | 是   |
-| xcode            | 当前xcode的版本号            | 是     | 否      | 否    | 是   |
-| libimobiledevice | 当前libimobiledevice的版本号 | 是     | 否      | 否    | 是   |
-| ios-deploy       | 当前ios-deploy的版本号       | 是     | 否      | 否    | 是   |
-
-语法：
+首先进入项目的根目录
 
 ```
+cd ..
+cd ace_tools/
+```
+1. ### 检查开发环境
 
+```
 ace check
-
 ```
 
-无参数
+执行 `ace check` 命令可以检查上述的本地开发环境。对于必选项，需要检查通过，否则无法继续接下来的操作。
 
+*注：开发环境检查主要针对SDK和IDE的默认安装和下载路径；如果通过SDK Manager下载SDK，会检查默认环境变量：ANDROID_HOME和OpenHarmony_HOME是否配置。*
 
-
-### ace devices
-
-列出当前所有连接的设备，Windows和Linux平台上可以查询到当前连接的安卓和鸿蒙设备；
-
-Mac平台上可以查询到当前连接的安卓，鸿蒙和ios设备。
-
-
-
-语法：
+2. ### 检查设备连接
 
 ```
-
 ace devices
-
 ```
 
-无参数
+获得当前连接的设备devices 及 deviceID。后续命令的参数需要加 deviceID，可随时执行查看。
 
-### ace create project
+*注：该命令已经集成在 ` ace check` 中，可跳过。*
 
-创建一个新的ace应用工程。
-
-
-
-1. 如果在一个已经存在的 ace 工程中执行，则会修复这个功能，将缺失的文件补齐。
-
-2. 如果项目已存在，需要警告开发者，并询问是否删除当前项目。
-
-
-
-创建过程中，需要开发者依次填写工程名称和包名称，其中包名称自动生成，开发者可回车确认。
-
-包名默认为com.example.工程名；项目版本如果开发者不输入，点击回车默认为类Web范式。
-
-
-
-语法：
+3. ### 开发环境路径配置
 
 ```
-
-ace create project <project name>
-
+ace config
 ```
 
-删除已有项目提示：
+如果开发者没有按照IDE和SDK默认路径进行安装和下载，可通过此命令进行自定义路径配置。
+
+4. ### 创建project
+
+以创建一个 ‘demo’  项目为例：
 
 ```
-
-The project already exists. Do you want to delete the directory (Y / N):
-
+ace create project
+? Please enter the project name: demo
+? Please enter the packages (com.example.demo):com.example.demo
+? Please enter the ACE version (1: 类Web范式, 2: 声明式范式): 2
 ```
 
-删除已有项目成功和失败:
+执行 `ace create project` 命令（project 可省略），接着输入项目名 demo ，包名直接回车默认即可。输入“2”代表创建ArkUI声明式应用项目。
+
+一个名为 ‘demo’ 的项目就创建成功了。
+
+## 编写代码
+
+在上述工程创建完成后，便可以修改源码以用于开发调试。
+
+## 项目编译
+
+开始对 'demo' 项目进行编译。编译分为hap 和 apk：
 
 ```
-
-Delete directory successfully, creating new project...:
-
-Failed to create project, project directory already exists!
-
+cd demo
 ```
 
-提示输入工程名称：
+1. 编译hap，默认编译所有Module
 
-```
+   ```
+   ace build hap
+   ```
 
-Please input project name:
+   每个Module生成一个hap应用文件，默认路径为 demo/ohos/entry/build/outputs/hap/debug/。
 
-```
+2. 编译hap，只编译指定的Module
 
-提示输入包名:
+   ```
+   ace build hap --target moduleName
+   ```
 
-```
+   最终会生成一个hap应用文件。默认路径为 demo/ohos/moduleName/build/outputs/hap/debug/。
 
-Please input package name: com.example.${projectName}:
+   *注：多个Module可分别加在 --target 参数后，逗号分开。*
 
-```
+3. 编译apk，默认编译Module为app的模块
 
-提示输入项目版本：
+   ```
+   ace build apk
+   ```
 
-```
+   最终生成Module为app的apk应用文件，默认路径为：demo/android/app/build/outputs/bundle/debug/。
 
-Please enter the ACE version (1: 类Web范式, 2: 声明式范式):
+4. 编译apk，编译指定的Module
 
-```
+   ```
+   ace build apk --target moduleName
+   ```
 
-创建完成:
+   最终会生成一个apk应用文件。默认路径为：demo/android/moduleName/build/outputs/debug/
 
-```
+   *注：多个Module可分别加在 --target 参数后，逗号分开，生成多个apk。*
 
-Project created successfully! Target directory：${projectName}
-
-```
-
-注：packageName不能重复，并且创建hap与apk不能通用一个packageName。
-
-### ace create module
-
-新建ace应用模块(Module)
-
-
-
-需要在新建的ace应用工程的source文件下执行，提示输入module名称：
-
-```
-
-Please input module name:
-
-```
-
-如果此module name已存在，会提示开发者${module name} already exists.，开发者修改名称后，回车确认，可以成功新建出ace应用模块(Module)。
-
-### ace build
-
-构建ace应用安装包。
-
-语法：
-
-```
-
-ace build [options] [fileType]
-
-```
-
-在Windows和Linux平台上只能构建出Hap和Apk，在Mac平台上能构建出Hap、Apk和App。
-
-- options
-
-| 参数                  | 说明                                     |
-| --------------------- | ---------------------------------------- |
-| --target [moduleName] | 指定目标模块名进行构建                   |
-| -r --release          | 构建应用程序的类型为release(默认为Debug) |
-| --nosign              | 构建出未签名的应用程序                   |
-| -h, --help            | 显示帮助信息                             |
-
-- fileType
-
-| 参数 | 说明                  |
-| ---- | --------------------- |
-| hap  | 生成鸿蒙应用 hap 包。 |
-| apk  | 生成安卓应用 apk 包。 |
-| app  | 生成iOS应用 app 包。  |
-
-### ace install
-
-将 ace 应用安装到连接的设备上。
-
-
-
-语法：
-
-```
-
-ace install <subcommand>
-
-```
-
-
-
-| 子命令 | 说明                       |
-| ------ | -------------------------- |
-| hap    | 安装鸿蒙应用 hap 包。 默认 |
-| apk    | 安装安卓应用 apk 包。      |
-| app    | 安装iOS应用 app 包。       |
-
-### ace launch
-
-在设备上运行 ace 应用。
-
-语法：
-
-```
-
-ace launch [arguments] <subcommand>
-
-```
-
-
-
-| 参数    | 说明                                                         |
-| ------- | ------------------------------------------------------------ |
-| --entry | 指定启动的入口文件，若是 hap，默认入口文件为 config.json 中配置的，若是 apk，默认入口文件是 Manifest.json 中配置的。 |
-
-
-
-| 子命令 | 说明                       |
-| ------ | -------------------------- |
-| hap    | 启动鸿蒙应用 hap 包。 默认 |
-| apk    | 启动安卓应用 apk 包。      |
-
-### ace log
-
-滚动展示正在运行的 ace 应用的 log。
-
-默认只输出 ace 进程的 log。
-
-
-
-语法：
-
-```
-
-ace log
-
-```
-
-无参数
-
-
-
-### ace run
-
-编译并在设备上运行 ace 应用。
-
-
-
-ace run 是 ace devices, ace build, ace install, ace launch 和 ace log 的合集。
-
-ace run 先检查设备是否连接，确定设备类型。
-
-在Windows和Linux平台上只可以编译并运行Hap和Apk，在iOS平台上可以编译并运行Hap、Apk和App。
-
-语法：
-
-```
-
-ace run [fileType]
-
-```
-
-
-
-| 子命令 | 说明                             |
-| ------ | -------------------------------- |
-| hap    | 编译并运行鸿蒙应用 hap 包。 默认 |
-| apk    | 编译并运行安卓应用 apk 包。      |
-| app    | 编译并运行iOS应用 app 包。       |
-
-### ace help
-
-ace 命令行工具帮助。
-
-
-
-语法：
-
-```
-
-ace help <subcommand>
-
-```
-
-
-
-| 子命令  | 说明                                                         |
-| ------- | ------------------------------------------------------------ |
-| devices | 列出所有连接的设备。                                         |
-| check   | 检查 ace 应用需要依赖的库和工具链。                          |
-| config  | 包括鸿蒙 sdk 路径，安卓sdk路径、nodejs 路径、编译输出的路径等。 |
-| create  | 创建一个新的ace应用或者模块(Module)。                        |
-| build   | 构建跨平台应用安装包。                                       |
-| install | 将 ace 应用安装到连接的设备上。                              |
-| launch  | 在设备上运行 ace 应用。                                      |
-| log     | 滚动展示正在运行的 ace 应用的 log。                          |
-| run     | 编译并在设备上运行 ace 应用。                                |
