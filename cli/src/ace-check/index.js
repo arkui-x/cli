@@ -58,45 +58,31 @@ function check() {
     requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion);
     requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion);
     requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
+    errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }
 
   if (openHarmonySdkDir) {
     setConfig({ 'openharmony-sdk': openHarmonySdkDir });
-  } else {
-    errorTimes += 1;
   }
 
   if (nodejsDir) {
     setConfig({ 'nodejs-dir': nodejsDir });
-  } else {
-    errorTimes += 1;
   }
 
   if (javaSdkDir) {
     setConfig({ 'java-sdk': javaSdkDir });
-  } else {
-    errorTimes += 1;
   }
 
   if (androidSdkDir) {
     setConfig({ 'android-sdk': androidSdkDir });
-  } else {
-    errorTimes += 1;
   }
 
-  if (!devEcoStudioDir) {
-    errorTimes += 1;
-  }
-
-  if (!androidStudioDir) {
-    errorTimes += 1;
-  }
-
-  if (platform === Platform.MacOS) {
-    if (!xCodeVersion || !iDeviceVersion || !deployVersion) {
-      errorTimes += 1;
-    }
-  }
+  errorTimes = !openHarmonySdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !nodejsDir ? errorTimes++ : errorTimes;
+  errorTimes = !javaSdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !androidSdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !devEcoStudioDir ? errorTimes++ : errorTimes;
+  errorTimes = !androidStudioDir ? errorTimes++ : errorTimes;
 
   if (openHarmonySdkDir || androidSdkDir || deployVersion) {
     const validDevice = devices(true);
@@ -107,7 +93,10 @@ function check() {
     console.log(`[!] No debug tool`);
     errorTimes += 1;
   }
+  printCheckInfo(errorTimes);
+}
 
+function printCheckInfo(errorTimes) {
   if (errorTimes === 1) {
     console.log(`
   ! Ace-check found issues in 1 category.`);

@@ -16,7 +16,6 @@
 const process = require('child_process');
 
 const { getTools } = require('./getTool');
-
 function checkDevices() {
   let deviceCommand;
   let devicesOutputs = [];

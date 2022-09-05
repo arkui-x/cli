@@ -28,106 +28,108 @@ let cmdOption;
 function getNames(projectDir, fileType, moduleName) {
   moduleName = moduleName || 'entry';
   if (fileType === 'hap') {
-    try {
-      const ohosJsonPath = path.join(projectDir, '/ohos', moduleName, 'src/main/config.json');
-      if (fs.existsSync(ohosJsonPath)) {
-        const ohosJson = JSON.parse(fs.readFileSync(ohosJsonPath));
-        bundleName = ohosJson.app.bundleName;
-        packageName = ohosJson.module.package;
-        ohosclassName = ohosJson.module.abilities[0].name;
-        if (!bundleName || !packageName || !ohosclassName) {
-          console.error(`Please check bundleName, packageName and className in ${ohosJsonPath}.`);
-          return false;
-        }
-        cmdOption = ``;
-        className = ohosclassName + 'ShellActivity';
-        return true;
-      }
-      console.error(`Please check ${ohosJsonPath}.`);
-      return false;
-    } catch (err) {
-      console.error('Read config.json failed.\n' + err);
-      return false;
-    }
+    return getNamesHaps(projectDir, moduleName);
   } else if (fileType === 'apk') {
-    try {
-      const androidXmlPath = path.join(projectDir, '/android', moduleName === 'entry' ? 'app' : moduleName, 'src/main/AndroidManifest.xml');
-      const manifestPath = path.join(projectDir, '/source', moduleName === 'app' ? 'entry' : moduleName, 'manifest.json');
-      if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
-        let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
-        xmldata = xmldata.trim().split('\n');
-        xmldata.forEach(element => {
-          if (element.indexOf(`package="`) !== -1) {
-            packageName = element.split('"')[1];
-          }
-          if (element.indexOf('<activity') !== -1) {
-            androidclassName = element.split('"')[1];
-          }
-        });
-        bundleName = JSON.parse(fs.readFileSync(manifestPath)).appID;
-        if (!bundleName || !packageName || !androidclassName) {
-          console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
-          return false;
-        }
-        cmdOption = ' -a android.intent.action.MAIN -c android.intent.category.LAUNCHER';
-        className = androidclassName;
-        return true;
-      }
-      console.error(`Please check ${androidXmlPath}.`);
-      return false;
-    } catch (err) {
-      console.error('Read androidManifest.xml failed.\n' + err);
-      return false;
-    }
+    return getNamesApk(projectDir, moduleName);
   } else if (fileType === 'app') {
-    let version = getCurrentProjectVersion(projectDir);
-    if (version == "") {
-      console.log("project is not exists");
-      return false;
+    return getNamesApp(projectDir);
+  }
+}
+
+function getNamesApp(projectDir) {
+  let version = getCurrentProjectVersion(projectDir);
+  if (version == "") {
+    console.log("project is not exists");
+    return false;
+  }
+  let appName = version == "app" ? "jsapp.app" : "etsapp.app";
+  bundleName = path.join(projectDir, '/ios/build/outputs/app/', appName);
+  return true;
+}
+
+function getNamesHaps(projectDir, moduleName) {
+  try {
+    const ohosJsonPath = path.join(projectDir, '/ohos', moduleName, 'src/main/config.json');
+    if (fs.existsSync(ohosJsonPath)) {
+      const ohosJson = JSON.parse(fs.readFileSync(ohosJsonPath));
+      bundleName = ohosJson.app.bundleName;
+      packageName = ohosJson.module.package;
+      ohosclassName = ohosJson.module.abilities[0].name;
+      if (!bundleName || !packageName || !ohosclassName) {
+        console.error(`Please check bundleName, packageName and className in ${ohosJsonPath}.`);
+        return false;
+      }
+      cmdOption = ``;
+      className = ohosclassName;
+      return true;
     }
-    let appName = version == "app" ? "jsapp.app" : "etsapp.app";
-    bundleName = path.join(projectDir, '/ios/build/outputs/app/', appName);
-    return true;
+    console.error(`Please check ${ohosJsonPath}.`);
+    return false;
+  } catch (err) {
+    console.error('Read config.json failed.\n' + err);
+    return false;
+  }
+}
+
+function getNamesApk(projectDir, moduleName) {
+  try {
+    const androidXmlPath =
+      path.join(projectDir, '/android', moduleName === 'entry' ? 'app' : moduleName, 'src/main/AndroidManifest.xml');
+    const manifestPath =
+      path.join(projectDir, '/source', moduleName === 'app' ? 'entry' : moduleName, 'manifest.json');
+    if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
+      let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
+      xmldata = xmldata.trim().split('\n');
+      xmldata.forEach(element => {
+        if (element.indexOf(`package="`) !== -1) {
+          packageName = element.split('"')[1];
+        }
+        if (element.indexOf('<activity') !== -1) {
+          androidclassName = element.split('"')[1];
+        }
+      });
+      bundleName = JSON.parse(fs.readFileSync(manifestPath)).appID;
+      if (!bundleName || !packageName || !androidclassName) {
+        console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
+        return false;
+      }
+      cmdOption = ' -a android.intent.action.MAIN -c android.intent.category.LAUNCHER';
+      className = androidclassName;
+      return true;
+    }
+    console.error(`Please check ${androidXmlPath}.`);
+    return false;
+  } catch (err) {
+    console.error('Read androidManifest.xml failed.\n' + err);
+    return false;
   }
 }
 
 function launch(fileType, device, moduleName) {
-  if (!isProjectRootDir(process.cwd())) {
+  const projectDir = process.cwd();
+  if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  const projectDir = process.cwd();
   const toolObj = getToolByType(fileType);
   if (toolObj == null || toolObj == undefined) {
     console.error('There are not install tool, please check');
     return false;
   }
   if (validInputDevice(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
-    let cmdPath;
-    let deviceOption;
     let cmdLaunch = '';
     if ('hdc' in toolObj) {
-      cmdPath = toolObj['hdc'];
-      if (device) {
-        deviceOption = `-t ${device}`;
-      } else {
-        deviceOption = '';
-      }
-      cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+      let cmdPath = toolObj['hdc'];
+      let deviceOption = device ? `-t ${device}` : '';
+      cmdLaunch =
+        `${cmdPath} ${deviceOption} shell aa start -a ${packageName}${className} -b ${bundleName}`;
     } else if ('adb' in toolObj) {
-      cmdPath = toolObj['adb'];
-      if (device) {
-        deviceOption = `-s ${device}`;
-      } else {
-        deviceOption = '';
-      }
-      cmdLaunch = `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+      let cmdPath = toolObj['adb'];
+      let deviceOption = device ? `-s ${device}` : '';
+      cmdLaunch =
+        `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
     } else if ('ios-deploy' in toolObj) {
-      cmdPath = toolObj['ios-deploy'];
-      if (device) {
-        deviceOption = `--id ${device}`;
-      } else {
-        deviceOption = '';
-      }
+      let cmdPath = toolObj['ios-deploy'];
+      let deviceOption = device ? `--id ${device}` : '';
       cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${bundleName} --no-wifi --justlaunch`;
     } else {
       console.error('Internal error with hdc and adb checking.');

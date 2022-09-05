@@ -135,7 +135,7 @@ function replaceProjectInfo(projectPath, packages, project, template) {
   files.push(path.join(projectPath, 'ohos/entry/src/main/resources/base/element/string.json'));
   replaceInfos.push('appName');
   strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/java/EntryMainAbility.java'));
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
   files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
@@ -164,7 +164,6 @@ function replaceProjectInfo(projectPath, packages, project, template) {
   const packagePaths = [aospJavaPath, testAospJavaPath, androidTestAospJavaPath];
   createPackageFile(packagePaths, packageArray);
 }
-
 function createPackageFile(packagePaths, packageArray) {
   packagePaths.forEach(packagePath => {
     const files = fs.readdirSync(packagePath);
@@ -187,7 +186,6 @@ function createPackageFile(packagePaths, packageArray) {
     });
   });
 }
-
 function replaceInfo(files, repalceInfos, strs) {
   files.forEach((filePath, index) => {
     fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replaceAll(repalceInfos[index], strs[index]));
@@ -209,7 +207,6 @@ function rmdir(filePath) {
     fs.rmdirSync(filePath);
   }
 }
-
 function copy(src, dst) {
   const paths = fs.readdirSync(src);
   paths.forEach(function(newpath) {

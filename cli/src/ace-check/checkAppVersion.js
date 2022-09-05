@@ -16,13 +16,12 @@
 const process = require('child_process');
 const { Platform, platform } = require('./platform');
 
-
 function checkXcodeVersion() {
     try {
         if (platform === Platform.MacOS) {
             return process.execSync(`xcodebuild  -version`).toString().replace(/\n/g, '');
         }
-        return;
+        return "";
     } catch (err) {
         // ignore
     }
@@ -32,7 +31,7 @@ function checkIdeviceVersion() {
         if (platform === Platform.MacOS) {
             return process.execSync(`idevicesyslog -v`).toString().replace(/\n/g, '');
         }
-        return;
+        return "";
     } catch (err) {
         // ignore
     }
@@ -42,7 +41,7 @@ function checkDeployVersion() {
         if (platform === Platform.MacOS) {
             return process.execSync(`ios-deploy -V`).toString().replace(/\n/g, '');
         }
-        return;
+        return "";
     } catch (err) {
         // ignore
     }

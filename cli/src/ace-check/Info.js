@@ -77,15 +77,15 @@ class Info {
     return androidStudioDir ? this.hasAndroidStudio(androidStudioDir) : this.noAndroidStudio;
   }
   iosXcodeVersionInfo(xCodeVersion) {
-    return xCodeVersion ? xCodeVersion : this.noXcodeVersion; 
+    return xCodeVersion ? xCodeVersion : this.noXcodeVersion;
   }
   
   iosIdeviceVersionInfo(iDeviceVersion) {
-    return iDeviceVersion ? iDeviceVersion : this.noIdeviceVersion; 
+    return iDeviceVersion ? iDeviceVersion : this.noIdeviceVersion;
   }
 
   iosDeployVersionInfo(deployVersion) {
-    return deployVersion ? deployVersion : this.noDeployVersion; 
+    return deployVersion ? deployVersion : this.noDeployVersion;
   }
 }
 

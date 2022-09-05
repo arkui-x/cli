@@ -47,7 +47,6 @@ function readConfig() {
           symbol = '/';
         }
         let symbolIndex = nodejsDir.lastIndexOf(symbol);
-        //TODO 待验证,只有最后一位是\的时候才截取掉
         if (symbolIndex != -1 && symbolIndex == (nodejsDir.length - 1)) {
           nodejsDir = nodejsDir.slice(0, symbolIndex);
         }
@@ -98,9 +97,9 @@ function copyBundleToAndroidAndIOS(moduleList) {
     const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/assets/default/js/MainAbility');
     let distAndroid;
     let distIOS;
-    const destClassName = module.slice(0, 1).toUpperCase() + module.slice(1) + 'MainAbility';
-    distAndroid = path.join(projectDir, '/android/app/src/main/assets/js', destClassName + 'Activity');
-    distIOS = path.join(projectDir, '/ios/js', destClassName + 'Controller');
+    const destClassName = module.toLowerCase();
+    distAndroid = path.join(projectDir, '/android/app/src/main/assets/js', destClassName + '_MainAbility');
+    distIOS = path.join(projectDir, '/ios/js', destClassName + '_MainAbility');
     fs.mkdirSync(distAndroid, { recursive: true });
     fs.mkdirSync(distIOS, { recursive: true });
     isContinue = isContinue && copy(src, distAndroid) && copy(src, distIOS);
@@ -116,7 +115,7 @@ function copyBundleToAndroidAndIOS(moduleList) {
 }
 
 function copyHaptoOutput() {
-  const src = path.join(projectDir, '/ohos/build/outputs/hap/debug');
+  const src = path.join(projectDir, '/ohos/entry/build/default/outputs/default');
   const filePath = copyToBuildDir(src);
   console.log(`filepath: ${filePath}`);
 }
@@ -218,16 +217,11 @@ function runGradle(fileType) {
 }
 
 function compiler(fileType, cmd) {
-  //TODO ohos编译需要增加release和debug模式，如何实现？
   let moduleListInput = cmd.target;
-  let mode = 'debug';
-  if (cmd.release) {
-    mode = 'release'
-  }
-  if (!isProjectRootDir(process.cwd())) {
+  projectDir = process.cwd();
+  if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  projectDir = process.cwd();
 
   const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
   const moduleListAll = getModuleList(settingPath);

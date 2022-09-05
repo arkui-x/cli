@@ -19,41 +19,7 @@ const install = require('../ace-install');
 const launch = require('../ace-launch');
 const log = require('../ace-log');
 const { isProjectRootDir, validInputDevice } = require('../util');
-// function checkCurrentDir(projectDir) {
-//   const ohosGradlePath = path.join(projectDir, 'ohos/settings.gradle');
-//   const androidGradlePath = path.join(projectDir, 'android/settings.gradle');
-//   try {
-//     fs.accessSync(ohosGradlePath);
-//     fs.accessSync(androidGradlePath);
-//     return true;
-//   } catch (error) {
-//     return false;
-//   }
-// }
 
-// function run(fileType, devices, target) {
-//   const projectDir = process.cwd();
-//   if (!checkCurrentDir(projectDir)) {
-//     console.error(`Please go to your projectDir and run again.`);
-//     return false;
-//   }
-//   const devicesList = checkDevices() || [];
-//   if (devicesList.length === 0) {
-//     console.error('No connected device.');
-//     return false;
-//   }
-//   if (fileType === 'hap') {
-//     compiler(fileType, target);
-//   } else if (fileType === 'apk') {
-//     build(fileType, target);
-//   }
-//   if (install(fileType, devices, target) && launch(fileType, devices, target)) {
-//     log(devices);
-//     console.log('Run successful.');
-//     return;
-//   }
-//   console.error('Run failed.');
-// }
 function run(fileType, device, cmd) {
   const projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {

@@ -91,6 +91,31 @@ function createInOhos(moduleName, templateDir) {
   }
 }
 
+function checkActivityNameExist(fileNames, checkActivityName) {
+  let existFlag = false;
+  fileNames.forEach(function(fileName) {
+    if (fileName == checkActivityName) {
+      existFlag = true;
+    }
+  });
+  return existFlag;
+}
+
+function getNextAndroidActivityName(srcPath) {
+  const startIndex = 2;
+  const defaultName = 'MainActivity';
+  const suffix = '.java';
+  const fileNames = fs.readdirSync(srcPath);
+  let index = startIndex;
+  let activityName = defaultName + String(index) + suffix;
+
+  while (checkActivityNameExist(fileNames, activityName)) {
+    index++;
+    activityName = defaultName + String(index) + suffix;
+  }
+  return defaultName + String(index);
+}
+
 function createInAndroid(moduleName, templateDir, appVer) {
   const packageName = getPackageName(appVer);
   const packageArray = packageName.split('.');
@@ -105,8 +130,6 @@ function createInAndroid(moduleName, templateDir, appVer) {
   };
   try {
     const templateFileName = 'FeatureActivity.java'
-    const destClassName = moduleName.slice(0, 1).toUpperCase() + moduleName.slice(1) + 'MainAbility';
-    const destFileName = destClassName + '.java';
     packagePaths.forEach(packagePath => {
       let dest = packagePath;
       packageArray.forEach(package => {
@@ -117,6 +140,8 @@ function createInAndroid(moduleName, templateDir, appVer) {
         return false;
       }
       const srcFile = path.join(dest, templateFileName);
+      const destClassName = getNextAndroidActivityName(dest);
+      const destFileName = destClassName + '.java';
       const destFile = path.join(dest, destFileName);
       fs.writeFileSync(destFile, fs.readFileSync(srcFile));
       fs.unlinkSync(srcFile);
@@ -127,25 +152,14 @@ function createInAndroid(moduleName, templateDir, appVer) {
     console.error('Error occurs when create in android');
     return false;
   }
-
-  // const dist = path.join(projectDir, `android/${moduleName}/`);
-
-  // try {
-  //   fs.mkdirSync(dist, { recursive: true });
-  //   return copy(src, dist);
-  // } catch (error) {
-  //   console.error('Error occurs when create in android');
-  //   return false;
-  // }
 }
 
 function replaceInOhos(moduleName, appName, packageName, bundleName, version) {
   const stringJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/resources/base/element/string.json');
   fs.writeFileSync(stringJsonPath,
-    fs.readFileSync(stringJsonPath).toString().replace('appName', appName));
+  fs.readFileSync(stringJsonPath).toString().replace('appName', appName));
   const moduleJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/config.json');
   const moduleJsonObj = JSON.parse(fs.readFileSync(moduleJsonPath));
-  //TODO: ".huawei.com" to delete
   moduleJsonObj.app.bundleName = bundleName + '.huawei.com';
   moduleJsonObj.module.package = packageName;
   moduleJsonObj.module.distro.moduleName = moduleName;

@@ -28,7 +28,12 @@ function setConfig(configs, isPrint) {
       deleteInfo.push(key);
     } else {
       if (configs[key]) {
-        configContent[key] = configs[key];
+        let configPath = path.resolve(configs[key]);
+        if (!fs.existsSync(configPath)) {
+          console.error(`Config "${key}" path: "${configs[key]}" not exist.`);
+          return;
+        }
+        configContent[key] = configPath;
         setInfo[key] = configs[key];
       }
     }

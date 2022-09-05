@@ -26,15 +26,14 @@ function log(fileType, device) {
   if (!validTool(toolObj)) {
     return;
   }
-
   if (!validInputDevice(device)) {
     return;
   }
   if (!validManifestPath()) {
     return;
   }
-  const pid = getPid(device, fileType);
-  if (!validPid(pid)) {
+  const pid = getPidorPName(device, fileType);
+  if (!validPidorPName(pid)) {
     return;
   }
 
@@ -84,7 +83,7 @@ function validManifestPath() {
   return true;
 }
 
-function validPid(pid) {
+function validPidorPName(pid) {
   if (pid === undefined) {
     console.error(`Error: no such application bundle (${getBundleName()}) in the device.`);
     return false;
@@ -92,7 +91,7 @@ function validPid(pid) {
   return true;
 }
 
-function getPid(device, fileType) {
+function getPidorPName(device, fileType) {
   let hilog;
   const bundleName = getBundleName();
   if (!bundleName) {
@@ -142,7 +141,6 @@ function getBundleName() {
     // ignore
   }
 }
-//TODO 进程名字段需要确认
 function getPName() {
   return "etsapp";
 }

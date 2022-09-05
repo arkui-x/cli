@@ -79,7 +79,7 @@ function validInputDevice(device) {
     }
   } else {
     for (let i = 0; i < devicesArr.available.length; i++) {
-      if (devicesArr[i].indexOf(`${device}`) != -1) {
+      if (devicesArr.available[i].indexOf(`${device}`) != -1) {
         return true;
       }
     }
