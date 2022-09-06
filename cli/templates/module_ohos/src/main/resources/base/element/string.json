@@ -5,8 +5,8 @@
       "value": "appName"
     },
     {
-      "name": "mainability_description",
-      "value": "JS_Phone_Empty Feature Ability"
+      "name": "MainAbility_desc",
+      "value": "description"
     }
   ]
 }

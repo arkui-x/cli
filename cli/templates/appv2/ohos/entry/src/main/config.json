@@ -11,8 +11,7 @@
   "module": {
     "mainAbility": ".MainAbility",
     "deviceType": [
-      "default",
-      "tablet"
+      "default"
     ],
     "abilities": [
       {
@@ -34,7 +33,7 @@
         "icon": "$media:icon",
         "description": "$string:MainAbility_desc",
         "formsEnabled": false,
-        "label": "$string:MainAbility_label",
+        "label": "$string:app_name",
         "type": "page",
         "launchType": "standard"
       }

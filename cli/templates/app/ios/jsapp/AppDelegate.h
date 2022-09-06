@@ -14,10 +14,11 @@
  */
 
 #import <UIKit/UIKit.h>
-#ifndef ETSAPP_IOS_ETSAPP_APPDELEGATE_H
-#define ETSAPP_IOS_ETSAPP_APPDELEGATE_H
+#ifndef JSAPP_IOS_JSAPP_APPDELEGATE_H
+#define JSAPP_IOS_JSAPP_APPDELEGATE_H
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 
 @end
-#endif /* ETSAPP_IOS_ETSAPP_APPDELEGATE_H */
+#endif /* JSAPP_IOS_JSAPP_APPDELEGATE_H */
+
