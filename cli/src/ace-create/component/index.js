@@ -132,7 +132,7 @@ function createComponent() {
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }
-  const manifestPath = path.join(projectDir, 'manifest.json');
+  const manifestPath = path.join(projectDir, '/MainAbility/manifest.json');
   let manifestFile;
   try {
     manifestFile = JSON.parse(fs.readFileSync(manifestPath));

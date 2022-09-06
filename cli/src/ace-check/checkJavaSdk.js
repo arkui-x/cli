@@ -23,27 +23,28 @@ const { getConfig } = require('../ace-config');
 function checkJavaSdk() {
   let javaSdkPath;
   const environment = process.env;
-  if (devEcoStudioDir) {
-    if (platform === Platform.Linux || platform === Platform.Windows) {
-      if (/bin$/.test(devEcoStudioDir)) {
-        javaSdkPath = path.join(devEcoStudioDir, '..', 'jbr');
-      } else {
-        javaSdkPath = path.join(devEcoStudioDir, 'jbr');
-      }
-    } else if (platform === Platform.MacOS) {
-      if (/bin$/.test(devEcoStudioDir)) {
-        javaSdkPath = path.join(devEcoStudioDir, '..', 'Contents', 'jdk', 'Contents', 'Home');
-      } else {
-        javaSdkPath = path.join(devEcoStudioDir, 'Contents', 'jdk', 'Contents', 'Home');
-      }
-    }
+  const config = getConfig();
+
+  if (config && config['java-sdk']) {
+    javaSdkPath = config['java-sdk'];
   } else if ('JAVA_HOME' in environment) {
     javaSdkPath = environment['JAVA_HOME'].replace(';', '');
   } else {
-    const config = getConfig();
-    if (config && config['java-sdk']) {
-      javaSdkPath = config['java-sdk'];
-    }
+    if (devEcoStudioDir) {
+      if (platform === Platform.Linux || platform === Platform.Windows) {
+        if (/bin$/.test(devEcoStudioDir)) {
+          javaSdkPath = path.join(devEcoStudioDir, '..', 'jbr');
+        } else {
+          javaSdkPath = path.join(devEcoStudioDir, 'jbr');
+        }
+      } else if (platform === Platform.MacOS) {
+        if (/bin$/.test(devEcoStudioDir)) {
+          javaSdkPath = path.join(devEcoStudioDir, '..', 'Contents', 'jdk', 'Contents', 'Home');
+        } else {
+          javaSdkPath = path.join(devEcoStudioDir, 'Contents', 'jdk', 'Contents', 'Home');
+        }
+      }
+    } 
   }
 
   if (validSdk(javaSdkPath)) {

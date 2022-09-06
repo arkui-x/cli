@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,10 @@ const {
   nodejsDir,
   devEcoStudioDir,
   androidStudioDir,
-  androidSdkDir
+  androidSdkDir,
+  xCodeVersion,
+  iDeviceVersion,
+  deployVersion
 } = require('./configs');
 const checkJavaSdk = require('./checkJavaSdk');
 const { setConfig } = require('../ace-config');
@@ -32,6 +35,7 @@ const {
 } = require('./util');
 
 const javaSdkDir = checkJavaSdk();
+const { Platform, platform } = require('./platform');
 
 function check() {
   let errorTimes = 0;
@@ -43,55 +47,56 @@ function check() {
 
   optionTitle(info.androidTitle, androidSdkDir);
   optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
-
-  optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
-  optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
-
+  if (platform != Platform.Linux) {
+    optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
+    optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
+  }
   optionTitle(info.androidStudioTitle, androidStudioDir);
   optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
+  if (platform === Platform.MacOS) {
+    requirementTitle(info.iosXcodeTitle, xCodeVersion && iDeviceVersion && deployVersion);
+    requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion);
+    requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion);
+    requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
+    errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
+  }
 
   if (openHarmonySdkDir) {
-    setConfig({'openharmony-sdk': openHarmonySdkDir});
-  } else {
-    errorTimes += 1;
+    setConfig({ 'openharmony-sdk': openHarmonySdkDir });
   }
 
   if (nodejsDir) {
-    setConfig({'nodejs-dir': nodejsDir});
-  } else {
-    errorTimes += 1;
+    setConfig({ 'nodejs-dir': nodejsDir });
   }
 
   if (javaSdkDir) {
-    setConfig({'java-sdk': javaSdkDir});
-  } else {
-    errorTimes += 1;
+    setConfig({ 'java-sdk': javaSdkDir });
   }
 
   if (androidSdkDir) {
-    setConfig({'android-sdk': androidSdkDir});
-  } else {
-    errorTimes += 1;
+    setConfig({ 'android-sdk': androidSdkDir });
   }
 
-  if (!devEcoStudioDir) {
-    errorTimes += 1;
-  }
+  errorTimes = !openHarmonySdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !nodejsDir ? errorTimes++ : errorTimes;
+  errorTimes = !javaSdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !androidSdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !devEcoStudioDir ? errorTimes++ : errorTimes;
+  errorTimes = !androidStudioDir ? errorTimes++ : errorTimes;
 
-  if (!androidStudioDir) {
-    errorTimes += 1;
-  }
-
-  if (openHarmonySdkDir || androidSdkDir) {
-    const validDevice = devices();
-    if (validDevice.all.length === 0 || validDevice.unavailable.length > 0) {
+  if (openHarmonySdkDir || androidSdkDir || deployVersion) {
+    const validDevice = devices(true);
+    if (validDevice.all.length === 0) {
       errorTimes += 1;
     }
   } else {
     console.log(`[!] No debug tool`);
     errorTimes += 1;
   }
+  printCheckInfo(errorTimes);
+}
 
+function printCheckInfo(errorTimes) {
   if (errorTimes === 1) {
     console.log(`
   ! Ace-check found issues in 1 category.`);

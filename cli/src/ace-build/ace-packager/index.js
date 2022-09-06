@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,21 +25,9 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-
+const { isProjectRootDir, getCurrentProjectVersion } = require('../../util');
 const projectDir = process.cwd();
 let androidOSSdkDir;
-
-function isProjectRootDir(currentDir) {
-  const ohosGradlePath = path.join(currentDir, 'ohos/settings.gradle');
-  const androidGradlePath = path.join(currentDir, 'android/settings.gradle');
-  try {
-    fs.accessSync(ohosGradlePath);
-    fs.accessSync(androidGradlePath);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
 
 function getAndroidSdkDir() {
   if (config) {
@@ -62,33 +50,23 @@ function writeLocalProperties() {
   return createLocalProperties(filePath, content);
 }
 
-function copyAPKToOutput(moduleList, buildAll) {
-  let src;
-  let filePath;
-  if (buildAll) {
-    src = path.join(projectDir, `/android/app/build/outputs/bundle/debug/`);
-    filePath = copyToBuildDir(src);
-  } else {
-    moduleList.forEach(moduleName => {
-      const src = path.join(projectDir, `/android/${moduleName}/build/outputs/apk/debug/`);
-      filePath = copyToBuildDir(src);
-    });
-  }
+function copyToOutput(fileType) {
+  let type = fileType == "apk" ? "android" : "ios";
+  let src = path.join(projectDir, `/${type}/build/outputs/${fileType}/`);
+  let filePath = copyToBuildDir(src);
   console.log(`filepath: ${filePath}`);
 }
 
-function buildAPK(moduleList, buildAll) {
+function buildAPK(cmd) {
   const cmds = [];
   const androidDir = path.join(projectDir, 'android');
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
-  if (buildAll) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
+  if (cmd.release) {
+    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
   } else {
-    moduleList.forEach(moduleName => {
-      cmds.push(`cd ${androidDir} && ./gradlew :${moduleName}:assembleDebug`);
-    });
+    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
   }
   let gradleMessage = 'Build apk successful.';
   let isBuildSuccess = true;
@@ -108,24 +86,57 @@ function buildAPK(moduleList, buildAll) {
   return isBuildSuccess;
 }
 
-function packager(moduleListInput) {
+function packager(target, cmd) {
   if (!isProjectRootDir(projectDir)) {
-    console.error('Please go to the root directory of project.');
     return false;
   }
-  let buildAll = true;
-  let moduleList;
-  if (moduleListInput && moduleListInput !== true) {
-    moduleList = moduleListInput.split(' ');
-    buildAll = false;
-  }
-  if (getAndroidSdkDir() && writeLocalProperties()) {
-    if (buildAPK(moduleList, buildAll)) {
-      copyAPKToOutput(moduleList, buildAll);
+  if (target == "apk") {
+    if (getAndroidSdkDir() && writeLocalProperties()) {
+      if (buildAPK(cmd)) {
+        copyToOutput(target);
+        return true;
+      }
+    }
+  } else if (target == "app") {
+    if (buildAPP(cmd)) {
+      copyToOutput(target);
       return true;
     }
   }
   return false;
 }
-
+function buildAPP(cmd) {
+  const cmds = [];
+  let mode = 'debug';
+  if (cmd.release) {
+    mode = 'release';
+  }
+  let currentDir = process.cwd();
+  let version = getCurrentProjectVersion(currentDir);
+  if (version == "") {
+    console.log("project is not exists");
+    return false;
+  }
+  version = version == "app" ? "js" : "ets";
+  let projectDir = path.join(currentDir,'ios' , version + 'app.xcodeproj');
+  let exportPath = path.join(currentDir,'ios' ,'build/outputs/app/');
+  let signCmd = "";
+  if (cmd.nosign) {
+    signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
+  }
+  cmds.push(`xcodebuild  -project ${projectDir} -sdk iphoneos -configuration "${mode}" clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`);
+  let message = 'Build app successful.';
+  let isBuildSuccess = true;
+  console.log('Start building app...');
+  cmds.forEach(cmd => {
+    try {
+      exec(cmd);
+    } catch (error) {
+      message = 'Build app failed.';
+      isBuildSuccess = false;
+    }
+  });
+  console.log(message);
+  return isBuildSuccess;
+}
 module.exports = packager;
