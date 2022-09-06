@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,34 +14,54 @@
  */
 
 const checkDevices = require('../ace-check/checkDevices');
-const { getTool } = require('../ace-check/getTool');
-
-function devices() {
-  if (!getTool()) {
-    console.info(`No such debug tool (hdc/adb) in sdk.`);
-    return;
+const { getTools } = require('../ace-check/getTool');
+const { Platform, platform } = require('../ace-check/platform');
+function devices(logFlag) {
+  let tools = getTools();
+  if (tools.length == 0) {
+    console.info(`No such debug tools (hdc/adb/ios-deploy).`);
+    return {
+      'all': [],
+      'available': [],
+      'unavailable': []
+    };
   }
-  const device = checkDevices() || [];
-  let availableDevices = [];
-  let unavailableDevices = [];
-  if (device.length === 0) {
+  if (logFlag) {
+    let [hdcTitle,adbTitle,iosDeployTitle] =
+        ["[×] hdc is not installed","[×] adb is not installed","[×] ios-deploy is not installed"];
+    for (let i = 0; i < tools.length; i++) {
+        hdcTitle = tools[i]["hdc"] ? "[√] hdc installed" : hdcTitle;
+        adbTitle = tools[i]["adb"] ? "[√] adb installed" : adbTitle;
+        iosDeployTitle = tools[i]["ios-deploy"] ? "[√] ios-deploy installed" : iosDeployTitle;
+    }
+    iosDeployTitle = (platform != Platform.MacOS) ? "" : iosDeployTitle;
+    let toolMsg = hdcTitle + " " + adbTitle + " " + iosDeployTitle;
+    console.log('Tools info :' + toolMsg);
+  }
+  const devices = checkDevices() || [];
+  let [availableDevices, unavailableDevices] = [[], []];
+  if (devices.length === 0) {
     console.log(`[!] No connected device`);
   } else {
-    availableDevices = device.filter(item => item.indexOf('device') !== -1);
-    unavailableDevices = device.filter(item => item.indexOf('unauthorized') !== -1 ||
-      item.indexOf('offline') !== -1);
-    if (availableDevices.length > 0) {
-      console.log(`[√] Connected device (${availableDevices.length} available)
-  • ${availableDevices.join('\r\n  • ')}`
-      );
+    for (let i = 0; i < devices.length; i++) {
+      let device = devices[i];
+      if (device.indexOf('unauthorized') !== -1 || device.indexOf('offline') !== -1) {
+        unavailableDevices.push(device);
+      } else {
+        availableDevices.push(device);
+      }
     }
-    if (unavailableDevices.length > 0) {
-      console.log(`[!] Connected device (${unavailableDevices.length} unavailable)
-  ! ${unavailableDevices.join('\r\n  ! ')}`);
+    if (availableDevices.length > 0 && logFlag) {
+      let len = availableDevices.length;
+      console.log(`[√] Connected device (${len} available)\r\n  • ${availableDevices.join('\r\n  • ')}`);
+    }
+    if (unavailableDevices.length > 0 && logFlag) {
+      let len = unavailableDevices.length;
+      console.log(`[!] Connected device (${len} unavailable)'\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
     }
   }
   return {
-    'all': device,
+    'all': devices,
     'available': availableDevices,
     'unavailable': unavailableDevices
   };

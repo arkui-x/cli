@@ -3,80 +3,92 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		502FDFC02846396D00955443 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 502FDFBF2846396D00955443 /* AppDelegate.m */; };
-		502FDFC92846396D00955443 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 502FDFC72846396D00955443 /* Main.storyboard */; };
-		502FDFCB2846396F00955443 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 502FDFCA2846396F00955443 /* Assets.xcassets */; };
-		502FDFCE2846396F00955443 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 502FDFCC2846396F00955443 /* LaunchScreen.storyboard */; };
-		502FDFD12846396F00955443 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 502FDFD02846396F00955443 /* main.m */; };
-		502FDFD92846662600955443 /* libace_ios.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 502FDFD82846662600955443 /* libace_ios.xcframework */; };
-		502FDFDD2846679B00955443 /* js in Resources */ = {isa = PBXBuildFile; fileRef = 502FDFDC2846679B00955443 /* js */; };
+		DF9C1B5E28B9FC3A005DCF58 /* libace_ios.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */; };
+		DF9C1B5F28B9FC3A005DCF58 /* libace_ios.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		DF9C1B6128B9FC4B005DCF58 /* js in Resources */ = {isa = PBXBuildFile; fileRef = DF9C1B6028B9FC4B005DCF58 /* js */; };
+		F0AF1AD227D3684F008C55DD /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0AF1AD127D3684F008C55DD /* AppDelegate.mm */; };
+		F0AF1ADD27D36856008C55DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0AF1ADC27D36856008C55DD /* Assets.xcassets */; };
+		F0AF1AE027D36856008C55DD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F0AF1ADE27D36856008C55DD /* LaunchScreen.storyboard */; };
+		F0AF1AE327D36856008C55DD /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = F0AF1AE227D36856008C55DD /* main.m */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		BB8712F427D450E2000E4763 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				DF9C1B5F28B9FC3A005DCF58 /* libace_ios.xcframework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		502FDFBB2846396D00955443 /* etsapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = etsapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		502FDFBE2846396D00955443 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		502FDFBF2846396D00955443 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		502FDFC82846396D00955443 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		502FDFCA2846396F00955443 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		502FDFCD2846396F00955443 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		502FDFCF2846396F00955443 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		502FDFD02846396F00955443 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		502FDFD82846662600955443 /* libace_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libace_ios.xcframework; path = etsapp/libace_ios.xcframework; sourceTree = "<group>"; };
-		502FDFDC2846679B00955443 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = js; sourceTree = "<group>"; };
+		DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libace_ios.xcframework; path = frameworks/libace_ios.xcframework; sourceTree = "<group>"; };
+		DF9C1B6028B9FC4B005DCF58 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = js; sourceTree = "<group>"; };
+		F0AF1ACD27D3684F008C55DD /* etsapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = etsapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F0AF1AD027D3684F008C55DD /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		F0AF1AD127D3684F008C55DD /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
+		F0AF1ADC27D36856008C55DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F0AF1ADF27D36856008C55DD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		F0AF1AE127D36856008C55DD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F0AF1AE227D36856008C55DD /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		502FDFB82846396D00955443 /* Frameworks */ = {
+		F0AF1ACA27D3684F008C55DD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				502FDFD92846662600955443 /* libace_ios.xcframework in Frameworks */,
+				DF9C1B5E28B9FC3A005DCF58 /* libace_ios.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		502FDFB22846396D00955443 = {
+		F0AF1AC427D3684F008C55DD = {
 			isa = PBXGroup;
 			children = (
-				502FDFBD2846396D00955443 /* etsapp */,
-				502FDFBC2846396D00955443 /* Products */,
-				502FDFD72846662500955443 /* Frameworks */,
+				DF9C1B6028B9FC4B005DCF58 /* js */,
+				F0AF1ACF27D3684F008C55DD /* etsapp */,
+				F0AF1ACE27D3684F008C55DD /* Products */,
+				F0AF1AEB27D36948008C55DD /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
-		502FDFBC2846396D00955443 /* Products */ = {
+		F0AF1ACE27D3684F008C55DD /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				502FDFBB2846396D00955443 /* etsapp.app */,
+				F0AF1ACD27D3684F008C55DD /* etsapp.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		502FDFBD2846396D00955443 /* etsapp */ = {
+		F0AF1ACF27D3684F008C55DD /* etsapp */ = {
 			isa = PBXGroup;
 			children = (
-				502FDFDC2846679B00955443 /* js */,
-				502FDFBE2846396D00955443 /* AppDelegate.h */,
-				502FDFBF2846396D00955443 /* AppDelegate.m */,
-				502FDFC72846396D00955443 /* Main.storyboard */,
-				502FDFCA2846396F00955443 /* Assets.xcassets */,
-				502FDFCC2846396F00955443 /* LaunchScreen.storyboard */,
-				502FDFCF2846396F00955443 /* Info.plist */,
-				502FDFD02846396F00955443 /* main.m */,
+				F0AF1AD027D3684F008C55DD /* AppDelegate.h */,
+				F0AF1AD127D3684F008C55DD /* AppDelegate.mm */,
+				F0AF1ADC27D36856008C55DD /* Assets.xcassets */,
+				F0AF1ADE27D36856008C55DD /* LaunchScreen.storyboard */,
+				F0AF1AE127D36856008C55DD /* Info.plist */,
+				F0AF1AE227D36856008C55DD /* main.m */,
 			);
 			path = etsapp;
 			sourceTree = "<group>";
 		};
-		502FDFD72846662500955443 /* Frameworks */ = {
+		F0AF1AEB27D36948008C55DD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				502FDFD82846662600955443 /* libace_ios.xcframework */,
+				DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -84,13 +96,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		502FDFBA2846396D00955443 /* etsapp */ = {
+		F0AF1ACC27D3684F008C55DD /* etsapp */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 502FDFD42846396F00955443 /* Build configuration list for PBXNativeTarget "etsapp" */;
+			buildConfigurationList = F0AF1AE627D36856008C55DD /* Build configuration list for PBXNativeTarget "etsapp" */;
 			buildPhases = (
-				502FDFB72846396D00955443 /* Sources */,
-				502FDFB82846396D00955443 /* Frameworks */,
-				502FDFB92846396D00955443 /* Resources */,
+				F0AF1AC927D3684F008C55DD /* Sources */,
+				F0AF1ACA27D3684F008C55DD /* Frameworks */,
+				F0AF1ACB27D3684F008C55DD /* Resources */,
+				BB8712F427D450E2000E4763 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -98,80 +111,70 @@
 			);
 			name = etsapp;
 			productName = etsapp;
-			productReference = 502FDFBB2846396D00955443 /* etsapp.app */;
+			productReference = F0AF1ACD27D3684F008C55DD /* etsapp.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		502FDFB32846396D00955443 /* Project object */ = {
+		F0AF1AC527D3684F008C55DD /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1320;
+				LastUpgradeCheck = 1300;
 				TargetAttributes = {
-					502FDFBA2846396D00955443 = {
-						CreatedOnToolsVersion = 13.2.1;
+					F0AF1ACC27D3684F008C55DD = {
+						CreatedOnToolsVersion = 13.0;
 					};
 				};
 			};
-			buildConfigurationList = 502FDFB62846396D00955443 /* Build configuration list for PBXProject "etsapp" */;
-			compatibilityVersion = "Xcode 13.0";
+			buildConfigurationList = F0AF1AC827D3684F008C55DD /* Build configuration list for PBXProject "etsapp" */;
+			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
 			);
-			mainGroup = 502FDFB22846396D00955443;
-			productRefGroup = 502FDFBC2846396D00955443 /* Products */;
+			mainGroup = F0AF1AC427D3684F008C55DD;
+			productRefGroup = F0AF1ACE27D3684F008C55DD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				502FDFBA2846396D00955443 /* etsapp */,
+				F0AF1ACC27D3684F008C55DD /* etsapp */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		502FDFB92846396D00955443 /* Resources */ = {
+		F0AF1ACB27D3684F008C55DD /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				502FDFCE2846396F00955443 /* LaunchScreen.storyboard in Resources */,
-				502FDFCB2846396F00955443 /* Assets.xcassets in Resources */,
-				502FDFC92846396D00955443 /* Main.storyboard in Resources */,
-				502FDFDD2846679B00955443 /* js in Resources */,
+				F0AF1AE027D36856008C55DD /* LaunchScreen.storyboard in Resources */,
+				DF9C1B6128B9FC4B005DCF58 /* js in Resources */,
+				F0AF1ADD27D36856008C55DD /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		502FDFB72846396D00955443 /* Sources */ = {
+		F0AF1AC927D3684F008C55DD /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				502FDFC02846396D00955443 /* AppDelegate.m in Sources */,
-				502FDFD12846396F00955443 /* main.m in Sources */,
+				F0AF1AD227D3684F008C55DD /* AppDelegate.mm in Sources */,
+				F0AF1AE327D36856008C55DD /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		502FDFC72846396D00955443 /* Main.storyboard */ = {
+		F0AF1ADE27D36856008C55DD /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
-				502FDFC82846396D00955443 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-		502FDFCC2846396F00955443 /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				502FDFCD2846396F00955443 /* Base */,
+				F0AF1ADF27D36856008C55DD /* Base */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -179,7 +182,7 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		502FDFD22846396F00955443 /* Debug */ = {
+		F0AF1AE427D36856008C55DD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -230,7 +233,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -238,7 +241,7 @@
 			};
 			name = Debug;
 		};
-		502FDFD32846396F00955443 /* Release */ = {
+		F0AF1AE527D36856008C55DD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -283,7 +286,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -291,21 +294,24 @@
 			};
 			name = Release;
 		};
-		502FDFD52846396F00955443 /* Debug */ = {
+		F0AF1AE727D36856008C55DD /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: ";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5NF8396LJX;
+				DEVELOPMENT_TEAM = MCN34247SC;
+				ENABLE_BITCODE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = etsapp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -313,26 +319,30 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bundleIdentifier;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "shiseido sc adhoc";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		502FDFD62846396F00955443 /* Release */ = {
+		F0AF1AE827D36856008C55DD /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_IDENTITY = "iPhone Distribution: ";
+				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 5NF8396LJX;
+				DEVELOPMENT_TEAM = MCN34247SC;
+				ENABLE_BITCODE = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = etsapp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -340,6 +350,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = bundleIdentifier;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "shiseido sc adhoc";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -348,25 +359,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		502FDFB62846396D00955443 /* Build configuration list for PBXProject "etsapp" */ = {
+		F0AF1AC827D3684F008C55DD /* Build configuration list for PBXProject "etsapp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				502FDFD22846396F00955443 /* Debug */,
-				502FDFD32846396F00955443 /* Release */,
+				F0AF1AE427D36856008C55DD /* Debug */,
+				F0AF1AE527D36856008C55DD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		502FDFD42846396F00955443 /* Build configuration list for PBXNativeTarget "etsapp" */ = {
+		F0AF1AE627D36856008C55DD /* Build configuration list for PBXNativeTarget "etsapp" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				502FDFD52846396F00955443 /* Debug */,
-				502FDFD62846396F00955443 /* Release */,
+				F0AF1AE727D36856008C55DD /* Debug */,
+				F0AF1AE827D36856008C55DD /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 502FDFB32846396D00955443 /* Project object */;
+	rootObject = F0AF1AC527D3684F008C55DD /* Project object */;
 }

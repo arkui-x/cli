@@ -27,6 +27,10 @@ class Info {
     this.androidStudioTitle = `Android Studio`;
     this.openHarmonyLicenses = `All OpenHarmony licenses accepted`;
     this.androidLicenses = `All Android licenses accepted`;
+    this.iosXcodeTitle = `iOS toolchains - develop for iOS devices`;
+    this.noXcodeVersion = 'xcodebuild not installed. To install, run: xcode-select --install';
+    this.noIdeviceVersion = 'libimobiledevice not installed. To install, run: brew install libimobiledevice';
+    this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
   }
 
   hasSdk(sdkDir) {
@@ -71,6 +75,17 @@ class Info {
 
   androidStudioInfo(androidStudioDir) {
     return androidStudioDir ? this.hasAndroidStudio(androidStudioDir) : this.noAndroidStudio;
+  }
+  iosXcodeVersionInfo(xCodeVersion) {
+    return xCodeVersion ? xCodeVersion : this.noXcodeVersion;
+  }
+  
+  iosIdeviceVersionInfo(iDeviceVersion) {
+    return iDeviceVersion ? iDeviceVersion : this.noIdeviceVersion;
+  }
+
+  iosDeployVersionInfo(deployVersion) {
+    return deployVersion ? deployVersion : this.noDeployVersion;
   }
 }
 
