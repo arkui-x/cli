@@ -145,7 +145,8 @@ function createInAndroid(moduleName, templateDir, appVer) {
       const destFile = path.join(dest, destFileName);
       fs.writeFileSync(destFile, fs.readFileSync(srcFile));
       fs.unlinkSync(srcFile);
-      fs.writeFileSync(destFile, fs.readFileSync(destFile).toString().replaceAll('FeatureActivity', destClassName));
+      fs.writeFileSync(destFile, 
+        fs.readFileSync(destFile).toString().replace(new RegExp('FeatureActivity', 'g'), destClassName));
     });
     return true;
   } catch (error) {
