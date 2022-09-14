@@ -1,6 +1,0 @@
-framework module libace_ios {
-  umbrella header "Ace.h"
-
-  export *
-  module * { export * }
-}

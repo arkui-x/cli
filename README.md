@@ -72,9 +72,9 @@
 
 1. 如果获得了项目的源码，则可以在项目根目录执行安装命令，安装cli依赖包。
 
-```
-npm install . -g
-```
+   ```
+   npm install . -g
+   ```
 
 *注：如遇到全局安装失败，可先执行npm install，再执行npm install . -g*
 
@@ -86,15 +86,16 @@ npm install . -g
 
 首先进入项目的根目录
 
-```
+   ```
 cd ..
 cd ace_tools/
-```
+   ```
+
 1. ### 检查开发环境
 
-```
-ace check
-```
+   ```
+   ace check
+   ```
 
 执行 `ace check` 命令可以检查上述的本地开发环境。对于必选项，需要检查通过，否则无法继续接下来的操作。
 
@@ -102,9 +103,9 @@ ace check
 
 2. ### 检查设备连接
 
-```
-ace devices
-```
+   ```
+   ace devices
+   ```
 
 获得当前连接的设备devices 及 deviceID。后续命令的参数需要加 deviceID，可随时执行查看。
 
@@ -112,22 +113,22 @@ ace devices
 
 3. ### 开发环境路径配置
 
-```
-ace config
-```
+   ```
+   ace config
+   ```
 
 如果开发者没有按照IDE和SDK默认路径进行安装和下载，可通过此命令进行自定义路径配置。
 
 4. ### 创建project
 
-以创建一个 ‘demo’  项目为例：
+   以创建一个 ‘demo’  项目为例：
 
-```
-ace create project
-? Please enter the project name: demo
-? Please enter the packages (com.example.demo):com.example.demo
-? Please enter the ACE version (1: 类Web范式, 2: 声明式范式): 2
-```
+   ```
+   ace create project
+   ? Please enter the project name: demo
+   ? Please enter the packages (com.example.demo):com.example.demo
+   ? Please enter the ACE version (1: 类Web范式, 2: 声明式范式): 2
+   ```
 
 执行 `ace create project` 命令（project 可省略），接着输入项目名 demo ，包名直接回车默认即可。输入“2”代表创建ArkUI声明式应用项目。
 
@@ -139,11 +140,11 @@ ace create project
 
 ## 项目编译
 
-开始对 'demo' 项目进行编译。编译分为hap 和 apk：
+开始对 'demo' 项目进行编译。编译分为hap 、apk和app：
 
-```
+   ```
 cd demo
-```
+   ```
 
 1. 编译hap，默认编译所有Module
 
@@ -179,5 +180,199 @@ cd demo
 
    最终会生成一个apk应用文件。默认路径为：demo/android/moduleName/build/outputs/debug/
 
-   *注：多个Module可分别加在 --target 参数后，逗号分开，生成多个apk。*
+5. 编译app，默认编译Module为app的模块
+
+   ```
+   ace build app
+   ```
+
+最终生成Module为app的app应用文件，默认路径为：demo/ios/build/outputs/app/
+
+6. 编译app，编译指定的Module
+
+   ```
+   ace build app --target moduleName
+   ```
+
+最终会生成一个app应用文件。默认路径为：demo/ios/moduleName/build/outputs/app/
+
+## 应用安装和卸载
+
+开始对编译出的应用包进行安装，先进入到demo工程目录下
+
+   ```
+cd demo
+   ```
+
+1. 安装hap应用安装包
+
+   ```
+   ace install hap
+   ```
+
+2. 安装hap应用到指定的设备上
+
+   ```
+   ace install hap -d[deviceId]
+   ```
+
+3. 安装apk应用安装包
+
+   ```
+   ace install apk
+   ```
+
+4. 安装apk应用安装包到指定的设备上
+
+   ```
+   ace install apk -d[deviceId]
+   ```
+
+5. 安装app应用安装包
+
+   ```
+   ace install app
+   ```
+
+6. 安装app应用安装包到指定的设备上
+
+   ```
+   ace install app -d[deviceId] 
+   ```
+
+7. 卸载hap应用安装包
+
+   ```
+   ace uninstall hap -bundle[bundleName]
+   ```
+
+8. 卸载指定设备上的hap应用安装包
+
+   ```
+   ace uninstall hap -bundle[bundleName] -d[deviceId]
+   ```
+
+9. 卸载apk应用安装包
+
+   ```
+   ace uninstall apk -bundle[bundleName]
+   ```
+
+10. 卸载指定设备上的apk应用安装包
+
+    ```
+    ace uninstall apk -bundle[bundleName] -d[deviceId]
+    ```
+
+11. 卸载app应用安装包
+
+    ```
+    ace uninstall app -bundle[bundleName]
+    ```
+
+12. 卸载指定设备上的app应用安装包
+
+    ```
+    ace uninstall app -bundle[bundleName] -d[deviceId]
+    ```
+
+## 运行应用
+
+1. 运行hap应用
+
+   ```
+   ace run hap
+   ```
+
+2. 在指定的设备上运行hap应用
+
+   ```
+   ace run hap -d[deviceId]
+   ```
+
+3. 运行apk应用
+
+   ```
+   ace run apk
+   ```
+
+4. 在指定的设备上运行apk应用
+
+   ```
+   ace run apk -d[deviceId] 
+   ```
+
+5. 运行app应用
+
+   ```
+   ace run app
+   ```
+
+6. 在指定的设备上运行app应用
+
+   ```
+   ace run app -d[deviceId]
+   ```
+
+## 清理编译结果
+
+清除所有编译结果(hap、apk、app)
+
+  ```
+ace clean
+  ```
+
+## 输出日志文件
+
+滚动输出正在运行的应用日志信息
+
+1. 输出hap应用日志
+
+  ```
+ace log hap
+  ```
+
+2. 输出指定的设备上运行hap应用日志
+
+  ```
+ace log hap -d[deviceId]
+  ```
+
+3. 输出apk应用日志
+
+  ```
+ace log apk
+  ```
+
+4. 输出指定的设备上运行apk应用日志
+
+  ```
+ace log apk -d[deviceId]
+  ```
+
+5. 输出app应用日志
+
+  ```
+ace log app
+  ```
+
+6. 输出指定的设备上运行app应用日志
+
+  ```
+ace log app -d[deviceId] 
+  ```
+
+## 帮助工具
+
+展示可以支持的命令信息
+
+  ```
+ace help
+  ```
+
+支持单个指令支持查询
+
+```
+ace build --help
+```
 
