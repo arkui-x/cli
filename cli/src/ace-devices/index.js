@@ -27,12 +27,12 @@ function devices(logFlag) {
     };
   }
   if (logFlag) {
-    let [hdcTitle,adbTitle,iosDeployTitle] =
-        ["[×] hdc is not installed","[×] adb is not installed","[×] ios-deploy is not installed"];
+    let [hdcTitle, adbTitle, iosDeployTitle] =
+      ["[×] hdc is not installed", "[×] adb is not installed", "[×] ios-deploy is not installed"];
     for (let i = 0; i < tools.length; i++) {
-        hdcTitle = tools[i]["hdc"] ? "[√] hdc installed" : hdcTitle;
-        adbTitle = tools[i]["adb"] ? "[√] adb installed" : adbTitle;
-        iosDeployTitle = tools[i]["ios-deploy"] ? "[√] ios-deploy installed" : iosDeployTitle;
+      hdcTitle = tools[i]["hdc"] ? "[√] hdc installed" : hdcTitle;
+      adbTitle = tools[i]["adb"] ? "[√] adb installed" : adbTitle;
+      iosDeployTitle = tools[i]["ios-deploy"] ? "[√] ios-deploy installed" : iosDeployTitle;
     }
     iosDeployTitle = (platform != Platform.MacOS) ? "" : iosDeployTitle;
     let toolMsg = hdcTitle + " " + adbTitle + " " + iosDeployTitle;

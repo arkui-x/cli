@@ -44,7 +44,7 @@ function checkJavaSdk() {
           javaSdkPath = path.join(devEcoStudioDir, 'Contents', 'jdk', 'Contents', 'Home');
         }
       }
-    } 
+    }
   }
 
   if (validSdk(javaSdkPath)) {

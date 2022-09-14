@@ -17,7 +17,7 @@ const { homeDir } = require('./platform');
 const Sdk = require('./Sdk');
 const Ide = require('./Ide');
 const checkNodejs = require('./checkNodejs');
-const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion} = require('./checkAppVersion');
+const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion } = require('./checkAppVersion');
 
 const openHarmonySdk = new Sdk(
   'OpenHarmony',

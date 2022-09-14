@@ -14,7 +14,6 @@
  */
 
 const process = require('child_process');
-
 const { getTools } = require('./getTool');
 function checkDevices() {
   let deviceCommand;
@@ -50,7 +49,7 @@ function getDevices(out) {
   let splitArr = out.split(/[\r\n]+/);
   splitArr = splitArr.filter(item => {
     return item != "List of devices attached" && item != "" && item != "[Empty]"
-      && item.indexOf("device to be connected") == -1;
+      && item.indexOf("device to be connected") == -1 && item.indexOf("Not support std mode") == -1;
   });
   return splitArr;
 }

@@ -40,16 +40,6 @@ function readConfig() {
       }
       if (Object.prototype.hasOwnProperty.call(config, 'nodejs-dir')) {
         nodejsDir = config['nodejs-dir'];
-        let symbol;
-        if (platform === Platform.Windows) {
-          symbol = '\\';
-        } else {
-          symbol = '/';
-        }
-        let symbolIndex = nodejsDir.lastIndexOf(symbol);
-        if (symbolIndex != -1 && symbolIndex == (nodejsDir.length - 1)) {
-          nodejsDir = nodejsDir.slice(0, symbolIndex);
-        }
       }
     }
     if (!openHarmonySdkDir || !nodejsDir) {
@@ -186,29 +176,38 @@ function syncBundleName(moduleList) {
   return isContinue;
 }
 
-function runGradle(fileType) {
+function runGradle(fileType, cmd, moduleList) {
   const ohosDir = path.join(projectDir, '/ohos');
-  let cmd = [`cd ${ohosDir}`];
-  cmd.push(`npm install`);
+  let cmds = [`cd ${ohosDir}`];
+  cmds.push(`npm install`);
   let gradleMessage;
   if (fileType === 'hap' || !fileType) {
-    cmd.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js --mode module assembleHap`);
+    let moduleStr = "";
+    if (moduleList) {
+      moduleStr = "-p module=" + moduleList.join(",");
+    }
+    if (cmd.release) {
+      const debugStr = "debuggable=false";
+      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js ${debugStr} --mode module ${moduleStr} assembleHap`);
+    } else {
+      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js --mode module ${moduleStr} assembleHap`);
+    }
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app') {
     if (uiSyntax === 'ets') {
-      cmd.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileETS`);
+      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileETS`);
     } else {
-      cmd.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileJS`);
+      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileJS`);
     }
     gradleMessage = 'Start compiling jsBundle...';
   }
-  cmd = cmd.join(' && ');
+  cmds = cmds.join(' && ');
   if (platform === Platform.Windows) {
-    cmd = cmd.replace(/\//g, '\\');
+    cmds = cmds.replace(/\//g, '\\');
   }
   try {
     console.log(`${gradleMessage}`);
-    exec(cmd);
+    exec(cmds);
     return true;
   } catch (error) {
     console.error('Run gradle tasks failed.');
@@ -222,7 +221,6 @@ function compiler(fileType, cmd) {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-
   const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
   const moduleListAll = getModuleList(settingPath);
   if ((moduleListAll == null) || (moduleListAll.length === 0)) {
@@ -248,7 +246,7 @@ function compiler(fileType, cmd) {
     && writeLocalProperties()
     && copySourceToOhos(moduleListAll)
     && syncManifest(moduleListAll)
-    && runGradle(fileType)
+    && runGradle(fileType, cmd, moduleListSpecified)
     && copyBundleToAndroidAndIOS(moduleListSpecified)
     && syncBundleName(moduleListAll)) {
     if (fileType === 'hap') {

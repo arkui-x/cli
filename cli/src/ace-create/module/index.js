@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy } = require('../project');
-const { getModuleList, getCurrentProjectVersion } = require('../../util');
+const { getModuleList, getCurrentProjectVersion, getManifestPath } = require('../../util');
 
 let projectDir;
 
@@ -58,12 +58,11 @@ function checkModuleName(moduleList, moduleName) {
 
 function createInSource(moduleName, templateDir, appVer) {
   let src;
-  const version = appVer == "app" ? "js" : "ets";
   const dest = path.join(projectDir, 'source', moduleName);
-  if (appVer == 'app') {
-    src = path.join(templateDir, 'app/source/entry');
+  if (appVer == 'js') {
+    src = path.join(templateDir, 'js_fa/source/entry');
   } else {
-    src = path.join(templateDir, 'appv2/source/entry');
+    src = path.join(templateDir, 'ets_fa/source/entry');
   }
   try {
     fs.mkdirSync(dest, { recursive: true });
@@ -75,13 +74,8 @@ function createInSource(moduleName, templateDir, appVer) {
 }
 
 function createInOhos(moduleName, templateDir) {
-  let src;
   const dest = path.join(projectDir, `ohos/${moduleName}/`);
-  if (moduleName === 'entry') {
-    src = path.join(templateDir, 'app/ohos/entry');
-  } else {
-    src = path.join(templateDir, 'module_ohos');
-  }
+  let src = path.join(templateDir, 'ohos_fa/entry');
   try {
     fs.mkdirSync(dest, { recursive: true });
     return copy(src, dest);
@@ -93,7 +87,7 @@ function createInOhos(moduleName, templateDir) {
 
 function checkActivityNameExist(fileNames, checkActivityName) {
   let existFlag = false;
-  fileNames.forEach(function(fileName) {
+  fileNames.forEach((fileName) => {
     if (fileName == checkActivityName) {
       existFlag = true;
     }
@@ -119,53 +113,66 @@ function getNextAndroidActivityName(srcPath) {
 function createInAndroid(moduleName, templateDir, appVer) {
   const packageName = getPackageName(appVer);
   const packageArray = packageName.split('.');
-  const packagePaths = [
-    path.join(projectDir, 'android/app/src/main/java')
-  ];
-  let src;
-  if (moduleName === 'entry') {
-    src = path.join(templateDir, 'app/android/app');
-  } else {
-    src = path.join(templateDir, 'module_android/src/main/java');
-  };
+  let aceVersion = appVer == "js" ? "VERSION_JS" : "VERSION_ETS";
+  let src = path.join(templateDir, 'android/app/src/main/java');
   try {
-    const templateFileName = 'FeatureActivity.java'
-    packagePaths.forEach(packagePath => {
-      let dest = packagePath;
-      packageArray.forEach(package => {
-        dest = path.join(dest, package);
-      });
-      fs.mkdirSync(dest, { recursive: true });
-      if (!copy(src, dest)) {
-        return false;
-      }
-      const srcFile = path.join(dest, templateFileName);
-      const destClassName = getNextAndroidActivityName(dest);
-      const destFileName = destClassName + '.java';
-      const destFile = path.join(dest, destFileName);
-      fs.writeFileSync(destFile, fs.readFileSync(srcFile));
-      fs.unlinkSync(srcFile);
-      fs.writeFileSync(destFile, 
-        fs.readFileSync(destFile).toString().replace(new RegExp('FeatureActivity', 'g'), destClassName));
+    const templateFileName = 'MainActivity.java'
+    let dest = path.join(projectDir, 'android/app/src/main/java');
+    packageArray.forEach(pkg => {
+      dest = path.join(dest, pkg);
     });
+    const srcFile = path.join(src, templateFileName);
+    const destClassName = getNextAndroidActivityName(dest);
+    const destFileName = destClassName + '.java';
+    const destFilePath = path.join(dest, destFileName);
+    fs.writeFileSync(destFilePath, fs.readFileSync(srcFile));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('MainActivity', 'g'), destClassName));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
+        moduleName.toLowerCase() + '_MainAbility'));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ACE_VERSION', 'g'), aceVersion));
+    let createActivityXmlInfo =
+      '    <activity \n' +
+      '            android:name=".' + destClassName + '"\n' +
+      '        android:exported="false" />\n    ';
+    let curManifestXmlInfo =
+      fs.readFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml')).toString();
+    let insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
+    let updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
+      createActivityXmlInfo +
+      curManifestXmlInfo.slice(insertIndex);
+    fs.writeFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+
     return true;
   } catch (error) {
-    console.error('Error occurs when create in android');
+    console.error('Error occurs when create in android', error);
     return false;
   }
 }
 
-function replaceInOhos(moduleName, appName, packageName, bundleName, version) {
+function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
   const stringJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/resources/base/element/string.json');
   fs.writeFileSync(stringJsonPath,
-  fs.readFileSync(stringJsonPath).toString().replace('appName', appName));
-  const moduleJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/config.json');
-  const moduleJsonObj = JSON.parse(fs.readFileSync(moduleJsonPath));
-  moduleJsonObj.app.bundleName = bundleName + '.huawei.com';
-  moduleJsonObj.module.package = packageName;
-  moduleJsonObj.module.distro.moduleName = moduleName;
-  moduleJsonObj.module.abilities[0].srcLanguage = version;
-  fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJsonObj, '', '  '));
+    fs.readFileSync(stringJsonPath).toString().replace('appName', appName));
+  const configJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/config.json');
+  const configJsonObj = JSON.parse(fs.readFileSync(configJsonPath));
+  configJsonObj.app.bundleName = bundleName;
+  configJsonObj.module.package = packageName;
+  configJsonObj.module.name = '.MyApplication';
+  configJsonObj.module.distro.moduleName = moduleName;
+  configJsonObj.module.abilities[0].srcLanguage = appVer;
+  delete (configJsonObj.module.abilities[0]['skills']);
+  if (moduleName == 'entry') {
+    configJsonObj.module.distro.moduleType = 'entry';
+  } else {
+    configJsonObj.module.distro.moduleType = 'feature';
+  }
+  if (appVer == 'js') {
+    delete (configJsonObj.module.js[0]['mode']);
+  }
+  fs.writeFileSync(configJsonPath, JSON.stringify(configJsonObj, '', '  '));
   if (moduleName === 'entry') {
     const testJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/ohosTest/config.json');
     const testJsonObj = JSON.parse(fs.readFileSync(testJsonPath));
@@ -178,8 +185,7 @@ function replaceInOhos(moduleName, appName, packageName, bundleName, version) {
 
 function getPackageName(appVer) {
   try {
-    const version = appVer == "app" ? "js" : "ets";
-    const manifestPath = path.join(projectDir, 'source/entry/src/main', version, 'MainAbility/manifest.json');
+    const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
     return manifestJsonObj.appID;
   } catch (error) {
@@ -190,8 +196,7 @@ function getPackageName(appVer) {
 
 function getAppNameForModule(appVer) {
   try {
-    const version = appVer == "app" ? "js" : "ets";
-    const manifestPath = path.join(projectDir, 'source/entry/src/main', version, 'MainAbility/manifest.json');
+    const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
     return manifestJsonObj.appName;
   } catch (error) {
@@ -207,19 +212,18 @@ function replaceProjectInfo(moduleName, appVer) {
     if (appName == '') {
       return false;
     }
-    const bundleName = 'com.example.' + appName.toLowerCase();
-    const version = appVer == "app" ? "js" : "ets";
-    const jsonPath = path.join(projectDir, 'source', moduleName, 'src/main', version, 'MainAbility/manifest.json');
+    const bundleName = JSON.parse(fs.readFileSync(getManifestPath(projectDir))).appID;
+    const jsonPath = path.join(projectDir, 'source', moduleName, 'src/main', appVer, 'MainAbility/manifest.json');
     const jsonObj = JSON.parse(fs.readFileSync(jsonPath));
-    jsonObj.appID = bundleName + ".huawei.com";
+    jsonObj.appID = bundleName;
     jsonObj.appName = appName;
     fs.writeFileSync(jsonPath, JSON.stringify(jsonObj, '', '  '));
-    replaceInOhos(moduleName, appName, packageName, bundleName, version);
+    replaceInOhos(moduleName, appName, packageName, bundleName, appVer);
     const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
 
     if (fs.existsSync(settingPath)) {
       let buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
-      moduleInfo = {
+      let moduleInfo = {
         "name": moduleName,
         "srcPath": "./" + moduleName,
         "targets": [
@@ -254,9 +258,9 @@ function createModule() {
     console.log("project is not exists");
     return false;
   }
-  let templateDir = path.join(__dirname, '../../../templates');
+  let templateDir = path.join(__dirname, 'template');
   if (!fs.existsSync(templateDir)) {
-    templateDir = path.join(__dirname, 'template');
+    templateDir = path.join(__dirname, '../../../templates');
   }
   const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
   const moduleList = getModuleList(settingPath);

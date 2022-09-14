@@ -57,9 +57,9 @@ function getCurrentProjectVersion(projDir) {
   const paths = fs.readdirSync(checkDir);
   paths.forEach(childDir => {
     if (childDir == 'ets') {
-      templateVer = 'appv2';
+      templateVer = 'ets';
     } else if (childDir == 'js') {
-      templateVer = 'app';
+      templateVer = 'js';
     }
   });
   return templateVer;
@@ -94,7 +94,6 @@ function getManifestPath(projectDir) {
     console.log("project is not exists");
     return false;
   }
-  version = version == "app" ? "js" : "ets";
   return path.join(projectDir, 'source/entry/src/main', version, 'MainAbility/manifest.json');
 }
 module.exports = {
