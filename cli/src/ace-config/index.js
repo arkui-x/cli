@@ -16,7 +16,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const configPath = process.env.APPDATA ? path.join(process.env.APPDATA, '.aceconfig') : path.join(os.homedir(), '.aceconfig');
+const configPath = process.env.APPDATA ? path.join(process.env.APPDATA, '.aceconfig')
+  : path.join(os.homedir(), '.aceconfig');
 
 function setConfig(configs, isPrint) {
   const configContent = getConfig();

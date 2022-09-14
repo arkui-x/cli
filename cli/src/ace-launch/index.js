@@ -25,12 +25,13 @@ let ohosclassName;
 let androidclassName;
 let className;
 let cmdOption;
+let appPackagePath;
 function getNames(projectDir, fileType, moduleName) {
   moduleName = moduleName || 'entry';
   if (fileType === 'hap') {
     return getNamesHaps(projectDir, moduleName);
   } else if (fileType === 'apk') {
-    return getNamesApk(projectDir, moduleName);
+    return getNamesApk(projectDir);
   } else if (fileType === 'app') {
     return getNamesApp(projectDir);
   }
@@ -42,8 +43,8 @@ function getNamesApp(projectDir) {
     console.log("project is not exists");
     return false;
   }
-  let appName = version == "app" ? "jsapp.app" : "etsapp.app";
-  bundleName = path.join(projectDir, '/ios/build/outputs/app/', appName);
+  let appName = version == "js" ? "jsapp.app" : "etsapp.app";
+  appPackagePath = path.join(projectDir, '/ios/build/outputs/app/', appName);
   return true;
 }
 
@@ -71,12 +72,13 @@ function getNamesHaps(projectDir, moduleName) {
   }
 }
 
-function getNamesApk(projectDir, moduleName) {
+function getNamesApk(projectDir) {
   try {
     const androidXmlPath =
-      path.join(projectDir, '/android', moduleName === 'entry' ? 'app' : moduleName, 'src/main/AndroidManifest.xml');
+      path.join(projectDir, '/android/app/src/main/AndroidManifest.xml');
     const manifestPath =
-      path.join(projectDir, '/source', moduleName === 'app' ? 'entry' : moduleName, 'manifest.json');
+      path.join(projectDir, '/source/entry/src/main',
+        getCurrentProjectVersion(projectDir), 'MainAbility/manifest.json');
     if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
       let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
       xmldata = xmldata.trim().split('\n');
@@ -84,7 +86,7 @@ function getNamesApk(projectDir, moduleName) {
         if (element.indexOf(`package="`) !== -1) {
           packageName = element.split('"')[1];
         }
-        if (element.indexOf('<activity') !== -1) {
+        if (element.indexOf('<activity android:name') !== -1) {
           androidclassName = element.split('"')[1];
         }
       });
@@ -130,7 +132,7 @@ function launch(fileType, device, moduleName) {
     } else if ('ios-deploy' in toolObj) {
       let cmdPath = toolObj['ios-deploy'];
       let deviceOption = device ? `--id ${device}` : '';
-      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${bundleName} --no-wifi --justlaunch`;
+      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} --no-wifi --justlaunch`;
     } else {
       console.error('Internal error with hdc and adb checking.');
       return false;

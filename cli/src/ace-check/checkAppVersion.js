@@ -19,7 +19,7 @@ const { Platform, platform } = require('./platform');
 function checkXcodeVersion() {
     try {
         if (platform === Platform.MacOS) {
-            return process.execSync(`xcodebuild  -version`).toString().replace(/\n/g, '');
+            return process.execSync(`xcodebuild  -version`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
         }
         return "";
     } catch (err) {
@@ -28,7 +28,7 @@ function checkXcodeVersion() {
 function checkIdeviceVersion() {
     try {
         if (platform === Platform.MacOS) {
-            return process.execSync(`idevicesyslog -v`).toString().replace(/\n/g, '');
+            return process.execSync(`idevicesyslog -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
         }
         return "";
     } catch (err) {
@@ -37,7 +37,7 @@ function checkIdeviceVersion() {
 function checkDeployVersion() {
     try {
         if (platform === Platform.MacOS) {
-            return process.execSync(`ios-deploy -V`).toString().replace(/\n/g, '');
+            return process.execSync(`ios-deploy -V`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
         }
         return "";
     } catch (err) {

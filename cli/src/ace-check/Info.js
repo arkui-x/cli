@@ -19,8 +19,8 @@ class Info {
     this.noAndroidSdk = `Android SDK is not installed if you want to develop Android APP`;
     this.noNodejs = `Node.js Runtime Environment is not found`;
     this.noJavaSdk = `Java SDK is not found`;
-    this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com/`;
-    this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio/`;
+    this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com`;
+    this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio`;
     this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices`;
     this.androidTitle = `Android toolchains - develop for Android devices`;
     this.devEcoStudioTitle = `DevEco Studio`;
@@ -79,7 +79,7 @@ class Info {
   iosXcodeVersionInfo(xCodeVersion) {
     return xCodeVersion ? xCodeVersion : this.noXcodeVersion;
   }
-  
+
   iosIdeviceVersionInfo(iDeviceVersion) {
     return iDeviceVersion ? iDeviceVersion : this.noIdeviceVersion;
   }

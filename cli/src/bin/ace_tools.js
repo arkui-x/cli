@@ -57,7 +57,6 @@ function parseCommander() {
         }]).then(answers => {
           const initInfo = {};
           initInfo.platform = '';
-          initInfo.template = 'app';
           initInfo.project = answers.project;
           inquirer.prompt([{
             name: 'packages',
@@ -67,7 +66,8 @@ function parseCommander() {
               return true;
             }
           }]).then(answers => {
-            initInfo.packages = answers.packages ? answers.packages.toLowerCase() : 'com.example.' + initInfo.project.toLowerCase();
+            initInfo.packages = answers.packages ? answers.packages.toLowerCase()
+              : 'com.example.' + initInfo.project.toLowerCase();
             inquirer.prompt([{
               name: 'version',
               type: 'input',
@@ -119,7 +119,8 @@ function parseCommander() {
         --nodejs-dir    [Nodejs Dir]
         --java-sdk      [Java Sdk]`)
     .action(cmd => {
-      if (cmd.openharmonySdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath || cmd.buildDir ||
+      if (cmd.openharmonySdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath
+        || cmd.buildDir ||
         cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease) {
         setConfig({
           'openharmony-sdk': cmd.openharmonySdk,
@@ -215,8 +216,8 @@ function parseCommander() {
       }
     });
 
-    program.command('clean').description('clean project').action(() => {
-      clean();
-    });
+  program.command('clean').description('clean project').action(() => {
+    clean();
+  });
   program.parse(process.argv);
 }

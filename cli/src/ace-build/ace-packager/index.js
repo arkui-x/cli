@@ -117,14 +117,15 @@ function buildAPP(cmd) {
     console.log("project is not exists");
     return false;
   }
-  version = version == "app" ? "js" : "ets";
-  let projectDir = path.join(currentDir,'ios' , version + 'app.xcodeproj');
-  let exportPath = path.join(currentDir,'ios' ,'build/outputs/app/');
+  let projectDir = path.join(currentDir, 'ios', version + 'app.xcodeproj');
+  let exportPath = path.join(currentDir, 'ios', 'build/outputs/app/');
   let signCmd = "";
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
   }
-  cmds.push(`xcodebuild  -project ${projectDir} -sdk iphoneos -configuration "${mode}" clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`);
+  let cmdStr = `xcodebuild -project ${projectDir} -sdk iphoneos -configuration "${mode}" `
+    + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
+  cmds.push(cmdStr);
   let message = 'Build app successful.';
   let isBuildSuccess = true;
   console.log('Start building app...');

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -23,14 +23,13 @@ function checkInstallFile(projectDir, fileType, moduleList) {
   try {
     const filePathList = [];
     let buildDir;
+    if (!moduleList || moduleList.length == 0) {
+      console.error('Please input target name.');
+      return false;
+    }
     //ohos will install all module hap
     if (fileType === 'hap') {
-      moduleList = ["entry"];
       moduleList.forEach(module => {
-        if (!moduleList || moduleList.length == 0) {
-          console.error('Please input target name.');
-          return false;
-        }
         buildDir = path.join(projectDir, 'ohos', module, 'build/default/outputs/default');
         const fileList = fs.readdirSync(buildDir).filter(function (file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
@@ -41,16 +40,15 @@ function checkInstallFile(projectDir, fileType, moduleList) {
           }
           if (file === `${module}-default-signed.${fileType}`) {
             filePathList.push(path.join(buildDir, file));
-            return true;
           }
         });
       });
     }
     //android and ios only have one apk or app
     if (fileType === 'apk' || fileType === 'app') {
-      buildDir = fileType == "apk" ? path.join(projectDir, 'android', 'app/build/outputs/apk/debug/'):
+      buildDir = fileType == "apk" ? path.join(projectDir, 'android', 'app/build/outputs/apk/debug/') :
         path.join(projectDir, 'ios', 'build/outputs/app/');
-      const fileList = fs.readdirSync(buildDir).filter(function (file) {
+      const fileList = fs.readdirSync(buildDir).filter(file => {
         return path.extname(file).toLowerCase() === `.${fileType}`;
       });
       if (fileList && fileList.length > 1) {
@@ -73,6 +71,7 @@ function install(fileType, device, moduleListInput) {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
+  moduleListInput = moduleListInput.split(' ');
   const filePathList = checkInstallFile(projectDir, fileType, moduleListInput);
   if (!filePathList || filePathList.length === 0) {
     console.error('There is no file to install');
@@ -91,7 +90,7 @@ function install(fileType, device, moduleListInput) {
     } else if (fileType == 'apk') {
       successFlag = installApk(toolObj, filePathList, device);
     } else if (fileType == 'app') {
-      successFlag = installApp(toolObj, device);
+      successFlag = installApp(toolObj, filePathList, device);
     }
     if (successFlag) {
       console.log(`Install ${fileType.toUpperCase()} successfully.`);
@@ -100,6 +99,7 @@ function install(fileType, device, moduleListInput) {
     }
     return successFlag;
   }
+  return false;
 }
 function installHap(toolObj, filePathList, device) {
   let cmdPath;

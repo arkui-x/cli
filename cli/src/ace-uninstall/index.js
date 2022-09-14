@@ -48,8 +48,8 @@ function uninstallApp(toolObj, device, bundle) {
   let deviceOption;
   if ('ios-deploy' in toolObj) {
     cmdPath = toolObj['ios-deploy'];
-    cmdUninstallOption =  '--uninstall_only --bundle_id';
-    deviceOption = device ? `--id ${device}`: '';
+    cmdUninstallOption = '--uninstall_only --bundle_id';
+    deviceOption = device ? `--id ${device}` : '';
   } else {
     console.error('Internal error with ios-deploy checking');
     return false;
@@ -70,19 +70,16 @@ function uninstallApk(toolObj, device, bundle) {
   let cmdUninstallOption;
   let deviceOption;
   let commands = [];
-  let cmdStopOption = '';
   if ('adb' in toolObj) {
     cmdPath = toolObj['adb'];
     cmdUninstallOption = 'uninstall';
-    cmdStopOption = 'shell am force-stop';
     deviceOption = device ? `-s ${device}`: '';
   } else {
     console.error('Internal error with adb checking');
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
-  const cmdStop = `${cmdPath} ${deviceOption} ${cmdStopOption} ${bundle}`;
-  commands.push(`${cmdStop} && ${cmdUninstall}`);
+  commands.push(`${cmdUninstall}`);
   try {
     const result = exec(`${commands}`).toString().trim();
     if ((result.includes('Fail')) || (result.includes('failed'))) {
@@ -99,19 +96,16 @@ function uninstallHap(toolObj, device, bundle) {
   let cmdUninstallOption;
   let deviceOption;
   let commands = [];
-  let cmdStopOption = '';
   if ('hdc' in toolObj) {
     cmdPath = toolObj['hdc'];
     cmdUninstallOption = 'app uninstall';
-    cmdStopOption = 'shell aa force-stop';
     deviceOption = device? `-t ${device}` : '';
   } else {
     console.error('Internal error with adb checking');
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
-  const cmdStop = `${cmdPath} ${deviceOption} ${cmdStopOption} ${bundle}`;
-  commands.push(`${cmdStop} && ${cmdUninstall}`);
+  commands.push(`${cmdUninstall}`);
   try {
     const result = exec(`${commands}`).toString().trim();
     if ((result.includes('Fail')) || (result.includes('failed'))) {

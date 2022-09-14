@@ -180,11 +180,13 @@ Please input module name:
 
 ```
 
-ace build [options] [fileType]
+ace build [fileType] [options]
 
 ```
 
-在Windows和Linux平台上只能构建出Hap和Apk，在Mac平台上能构建出Hap、Apk和App。
+在Windows和Linux平台上支持构建Hap或Apk，在Mac平台上支持构建Hap、Apk或App。
+
+注：在DevEco Studio中打开要编译的工程文件，手动配置签名文件路径，再执行ace build即可构建出签名hap安装包
 
 - options
 
@@ -213,7 +215,7 @@ ace build [options] [fileType]
 
 ```
 
-ace install [options] [fileType]
+ace install [fileType] [options]
 
 ```
 
@@ -223,7 +225,7 @@ ace install [options] [fileType]
 
 | 子命令             | 说明             |
 | ------------------ | ---------------- |
-| --d[deviceId]      | 指定安装的设备Id |
+| -d[deviceId]       | 指定安装的设备Id |
 | --device[deviceId] | 指定安装的设备Id |
 
 - fileType
@@ -244,16 +246,17 @@ ace install [options] [fileType]
 
 ```
 
-ace uninstall [options] [fileType]
+ace uninstall [fileType] [options]
 
 ```
 
 - options
 
-| 子命令             | 说明                 |
-| ------------------ | -------------------- |
-| --d[deviceId]      | 指定卸载应用的设备Id |
-| --device[deviceId] | 指定卸载应用的设备Id |
+| 子命令               | 说明                   |
+| -------------------- | ---------------------- |
+| -d[deviceId]         | 指定卸载应用的设备Id   |
+| --device[deviceId]   | 指定卸载应用的设备Id   |
+| --bundle[bundleName] | 指定要卸载的应用的包名 |
 
 - fileType
 
@@ -300,11 +303,24 @@ ace launch [arguments] <subcommand>
 
 ```
 
-ace log
+ace log [fileType] [options]
 
 ```
 
-无参数
+- options
+
+| 子命令             | 说明             |
+| ------------------ | ---------------- |
+| -d[deviceId]       | 指定应用的设备Id |
+| --device[deviceId] | 指定应用的设备Id |
+
+- fileType
+
+| 参数 | 说明                    |
+| ---- | ----------------------- |
+| hap  | 查看鸿蒙应用日志。 默认 |
+| apk  | 查看安卓应用日志。      |
+| app  | 查看iOS应用日志。       |
 
 
 
@@ -322,7 +338,7 @@ ace run 先检查设备是否连接，确定设备类型。
 
 ```
 
-ace run [options] [fileType]
+ace run [fileType] [options]
 
 ```
 
@@ -330,7 +346,7 @@ ace run [options] [fileType]
 
 | 子命令             | 说明                 |
 | ------------------ | -------------------- |
-| --d[deviceId]      | 指定运行应用的设备Id |
+| -d[deviceId]       | 指定运行应用的设备Id |
 | --device[deviceId] | 指定运行应用的设备Id |
 
 - fileType
@@ -341,11 +357,19 @@ ace run [options] [fileType]
 | apk  | 编译并运行安卓应用 apk 包。      |
 | app  | 编译并运行iOS应用 app 包。       |
 
+### ace clean
+
+清理跨平台应用编译结果
+
+语法：
+
+```
+ace clean
+```
+
 ### ace help
 
 ace 命令行工具帮助。
-
-
 
 语法：
 
@@ -357,14 +381,16 @@ ace help <subcommand>
 
 
 
-| 子命令  | 说明                                                         |
-| ------- | ------------------------------------------------------------ |
-| devices | 列出所有连接的设备。                                         |
-| check   | 检查 ace 应用需要依赖的库和工具链。                          |
-| config  | 包括鸿蒙 sdk 路径，安卓sdk路径、nodejs 路径、编译输出的路径等。 |
-| create  | 创建一个新的ace应用或者模块(Module)。                        |
-| build   | 构建跨平台应用安装包。                                       |
-| install | 将 ace 应用安装到连接的设备上。                              |
-| launch  | 在设备上运行 ace 应用。                                      |
-| log     | 滚动展示正在运行的 ace 应用的 log。                          |
-| run     | 编译并在设备上运行 ace 应用。                                |
+| 子命令    | 说明                                                         |
+| --------- | ------------------------------------------------------------ |
+| devices   | 列出所有连接的设备。                                         |
+| check     | 检查 ace 应用需要依赖的库和工具链。                          |
+| config    | 包括鸿蒙 sdk 路径，安卓sdk路径、nodejs 路径、编译输出的路径等。 |
+| create    | 创建一个新的ace应用或者模块(Module)。                        |
+| build     | 构建跨平台应用安装包。                                       |
+| install   | 将 ace 应用安装到连接的设备上。                              |
+| uninstall | 将ace应用从设备上卸载                                        |
+| launch    | 在设备上运行 ace 应用。                                      |
+| log       | 滚动展示正在运行的 ace 应用的 log。                          |
+| run       | 编译并在设备上运行 ace 应用。                                |
+| clean     | 清理跨平台应用编译结果                                       |
