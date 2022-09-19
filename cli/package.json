@@ -13,7 +13,7 @@
   "license": "Apache 2.0",
   "dependencies": {
     "commander": "^9.4.0",
-    "inquirer": "^7.3.3"
+    "inquirer": "^8.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.6.4",
