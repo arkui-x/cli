@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy } = require('../project');
+const { getModuleList, getCurrentProjectVersion, getManifestPath } = require('../../util');
 
 let projectDir;
 
@@ -25,29 +26,6 @@ function checkCurrentDir(currentDir) {
     return true;
   }
   return false;
-}
-
-function getModuleList() {
-  const settingPath = path.join(projectDir, 'ohos/settings.gradle');
-  try {
-    if (fs.existsSync(settingPath)) {
-      const settingStr = fs.readFileSync(settingPath).toString().trim();
-      if (settingStr === 'include') {
-        console.log(`There is no modules in project.We'll create 'entry' for you.`);
-        return 'none';
-      }
-      const moduleList = settingStr.split(`'`);
-      if (moduleList.length % 2 === 0) {
-        console.error(`Please check ${settingPath}.`);
-        return '';
-      } else {
-        return moduleList;
-      }
-    }
-  } catch (error) {
-    console.error(`Please check ${settingPath}.`);
-    return '';
-  }
 }
 
 function checkModuleName(moduleList, moduleName) {
@@ -65,13 +43,12 @@ function checkModuleName(moduleList, moduleName) {
     return false;
   }
   if (fs.existsSync(path.join(projectDir, 'ohos', moduleName)) ||
-        fs.existsSync(path.join(projectDir, 'source', moduleName))) {
+    fs.existsSync(path.join(projectDir, 'source', moduleName))) {
     console.error(`${moduleName} already exists.`);
     return false;
   }
-  for (let index = 1; index < moduleList.length - 1; index++) {
-    const moduleItem = moduleList[index].slice(1, moduleList[index].length);
-    if (moduleItem === moduleName) {
+  for (let index = 0; index < moduleList.length; index++) {
+    if (moduleList[index] === moduleName) {
       console.error(`${moduleName} already exists.`);
       return false;
     }
@@ -79,15 +56,17 @@ function checkModuleName(moduleList, moduleName) {
   return true;
 }
 
-function createInSource(moduleName, templateDir) {
-  const src = path.join(templateDir, 'app/source/entry/default');
-  const dist = path.join(projectDir, 'source', moduleName, 'default/');
-  const jsonSrc = path.join(templateDir, 'app/source/entry/manifest.json');
-  const jsonDist = path.join(projectDir, 'source', moduleName, 'manifest.json');
+function createInSource(moduleName, templateDir, appVer) {
+  let src;
+  const dest = path.join(projectDir, 'source', moduleName);
+  if (appVer == 'js') {
+    src = path.join(templateDir, 'js_fa/source/entry');
+  } else {
+    src = path.join(templateDir, 'ets_fa/source/entry');
+  }
   try {
-    fs.mkdirSync(dist, { recursive: true });
-    fs.copyFileSync(jsonSrc, jsonDist);
-    return copy(src, dist);
+    fs.mkdirSync(dest, { recursive: true });
+    return copy(src, dest);
   } catch (error) {
     console.error('Error occurs when create in source.');
     return false;
@@ -95,52 +74,105 @@ function createInSource(moduleName, templateDir) {
 }
 
 function createInOhos(moduleName, templateDir) {
-  let src;
-  const dist = path.join(projectDir, `ohos/${moduleName}/`);
-  if (moduleName === 'entry') {
-    src = path.join(templateDir, 'app/ohos/entry');
-  } else {
-    src = path.join(templateDir, 'module_ohos');
-  }
+  const dest = path.join(projectDir, `ohos/${moduleName}/`);
+  let src = path.join(templateDir, 'ohos_fa/entry');
   try {
-    fs.mkdirSync(dist, { recursive: true });
-    return copy(src, dist);
+    fs.mkdirSync(dest, { recursive: true });
+    return copy(src, dest);
   } catch (error) {
     console.error('Error occurs when create in ohos');
     return false;
   }
 }
 
-function createInAndroid(moduleName, templateDir) {
-  const dist = path.join(projectDir, `android/${moduleName}/`);
-  let src;
-  if (moduleName === 'entry') {
-    src = path.join(templateDir, 'app/android/app');
-  } else {
-    src = path.join(templateDir, 'module_android');
+function checkActivityNameExist(fileNames, checkActivityName) {
+  let existFlag = false;
+  fileNames.forEach((fileName) => {
+    if (fileName == checkActivityName) {
+      existFlag = true;
+    }
+  });
+  return existFlag;
+}
+
+function getNextAndroidActivityName(srcPath) {
+  const startIndex = 2;
+  const defaultName = 'MainActivity';
+  const suffix = '.java';
+  const fileNames = fs.readdirSync(srcPath);
+  let index = startIndex;
+  let activityName = defaultName + String(index) + suffix;
+
+  while (checkActivityNameExist(fileNames, activityName)) {
+    index++;
+    activityName = defaultName + String(index) + suffix;
   }
+  return defaultName + String(index);
+}
+
+function createInAndroid(moduleName, templateDir, appVer) {
+  const packageName = getPackageName(appVer);
+  const packageArray = packageName.split('.');
+  let aceVersion = appVer == "js" ? "VERSION_JS" : "VERSION_ETS";
+  let src = path.join(templateDir, 'android/app/src/main/java');
   try {
-    fs.mkdirSync(dist, { recursive: true });
-    return copy(src, dist);
+    const templateFileName = 'MainActivity.java'
+    let dest = path.join(projectDir, 'android/app/src/main/java');
+    packageArray.forEach(pkg => {
+      dest = path.join(dest, pkg);
+    });
+    const srcFile = path.join(src, templateFileName);
+    const destClassName = getNextAndroidActivityName(dest);
+    const destFileName = destClassName + '.java';
+    const destFilePath = path.join(dest, destFileName);
+    fs.writeFileSync(destFilePath, fs.readFileSync(srcFile));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('MainActivity', 'g'), destClassName));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
+        moduleName.toLowerCase() + '_MainAbility'));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ACE_VERSION', 'g'), aceVersion));
+    let createActivityXmlInfo =
+      '    <activity \n' +
+      '            android:name=".' + destClassName + '"\n' +
+      '        android:exported="false" />\n    ';
+    let curManifestXmlInfo =
+      fs.readFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml')).toString();
+    let insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
+    let updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
+      createActivityXmlInfo +
+      curManifestXmlInfo.slice(insertIndex);
+    fs.writeFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+
+    return true;
   } catch (error) {
-    console.error('Error occurs when create in android');
+    console.error('Error occurs when create in android', error);
     return false;
   }
 }
 
-function replaceInOhos(moduleName, appName, packageName, bundleName) {
+function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
   const stringJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/resources/base/element/string.json');
   fs.writeFileSync(stringJsonPath,
     fs.readFileSync(stringJsonPath).toString().replace('appName', appName));
-
-  const moduleJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/config.json');
-  const moduleJsonObj = JSON.parse(fs.readFileSync(moduleJsonPath));
-  moduleJsonObj.app.bundleName = bundleName;
-  moduleJsonObj.module.package = packageName;
-  moduleJsonObj.module.distro.moduleName = moduleName;
-  moduleJsonObj.module.abilities[0].label = appName;
-  fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJsonObj, '', '  '));
-
+  const configJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/config.json');
+  const configJsonObj = JSON.parse(fs.readFileSync(configJsonPath));
+  configJsonObj.app.bundleName = bundleName;
+  configJsonObj.module.package = packageName;
+  configJsonObj.module.name = '.MyApplication';
+  configJsonObj.module.distro.moduleName = moduleName;
+  configJsonObj.module.abilities[0].srcLanguage = appVer;
+  delete (configJsonObj.module.abilities[0]['skills']);
+  if (moduleName == 'entry') {
+    configJsonObj.module.distro.moduleType = 'entry';
+  } else {
+    configJsonObj.module.distro.moduleType = 'feature';
+  }
+  if (appVer == 'js') {
+    delete (configJsonObj.module.js[0]['mode']);
+  }
+  fs.writeFileSync(configJsonPath, JSON.stringify(configJsonObj, '', '  '));
   if (moduleName === 'entry') {
     const testJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/ohosTest/config.json');
     const testJsonObj = JSON.parse(fs.readFileSync(testJsonPath));
@@ -149,117 +181,66 @@ function replaceInOhos(moduleName, appName, packageName, bundleName) {
     testJsonObj.module.distro.moduleName = moduleName + '_test';
     fs.writeFileSync(testJsonPath, JSON.stringify(testJsonObj, '', '  '));
   }
-
-  const abilityOhosSrc = path.join(projectDir, 'ohos', moduleName, 'src/main/java/MainAbility.java');
-  const applicationOhosSrc = path.join(projectDir, 'ohos', moduleName, 'src/main/java/MyApplication.java');
-
-  const javaSrcList = [abilityOhosSrc, applicationOhosSrc];
-  replaceJava(javaSrcList, packageName);
-
-  const ohosGradlePath = path.join(projectDir, 'ohos/settings.gradle');
-  const ohosGradleStr = fs.readFileSync(ohosGradlePath).toString().replace('\r\n', '').replace('\n', '');
-  fs.writeFileSync(ohosGradlePath, ohosGradleStr + `, ':${moduleName}'`);
 }
 
-function replaceInAndroid(moduleName, appName, packageName) {
-  if (moduleName === 'entry') {
-    moduleName = 'app';
-
-    const stringXmlPath = path.join(projectDir, 'android', moduleName, 'src/main/res/values/strings.xml');
-    fs.writeFileSync(stringXmlPath,
-      fs.readFileSync(stringXmlPath).toString().replace('appName', appName));
-
-    const abilityAndroidSrc = path.join(projectDir, 'android', moduleName, 'src/main/java/HiHelloWorldActivity.java');
-    const applicationAndroidSrc = path.join(projectDir, 'android', moduleName, 'src/main/java/HiHelloWorldApplication.java');
-
-    const unitTestPathSrc = path.join(projectDir, 'android', moduleName, 'src/test/java/ExampleUnitTest.java');
-    const exampleTestPathSrc = path.join(projectDir, 'android', moduleName, 'src/androidTest/java/ExampleInstrumentedTest.java');
-
-    const javaSrcList = [abilityAndroidSrc, applicationAndroidSrc, unitTestPathSrc, exampleTestPathSrc];
-    replaceJava(javaSrcList, packageName);
-  } else {
-    const gradlePath = path.join(projectDir, 'android/app/build.gradle');
-    const gradleStr = fs.readFileSync(gradlePath, 'utf-8').trim().split('\n');
-    for (let index = 0; index < gradleStr.length; index++) {
-      if (gradleStr[index].includes('dynamicFeatures')) {
-        if (gradleStr[index].includes('[]')) {
-          gradleStr[index] = gradleStr[index].replace(']', `':${moduleName}']`);
-        } else {
-          gradleStr[index] = gradleStr[index].replace(']', `, ':${moduleName}']`);
-        }
-        fs.writeFileSync(gradlePath, gradleStr.join('\n'));
-        break;
-      }
-    }
-
-    const stringXmlPath = path.join(projectDir, 'android/app/src/main/res/values/strings.xml');
-    let stringXml = fs.readFileSync(stringXmlPath).toString();
-    const strFlag = `<string name="app_name">${appName}</string>`;
-    stringXml = stringXml.replace(strFlag, strFlag + '\n' + strFlag.replace('app_name', `title_${moduleName.toLowerCase()}`)
-      .replace(`${appName}`, moduleName));
-    fs.writeFileSync(stringXmlPath, stringXml);
-
-    const featureActivitySrc = path.join(projectDir, 'android', moduleName, 'src/main/java/FeatureActivity.java');
-
-    const unitTestPathSrc = path.join(projectDir, 'android', moduleName, 'src/test/java/ExampleUnitTest.java');
-    const exampleTestPathSrc = path.join(projectDir, 'android', moduleName, 'src/androidTest/java/ExampleInstrumentedTest.java');
-
-    const javaSrcList = [featureActivitySrc, unitTestPathSrc, exampleTestPathSrc];
-    replaceJava(javaSrcList, packageName);
+function getPackageName(appVer) {
+  try {
+    const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
+    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+    return manifestJsonObj.appID;
+  } catch (error) {
+    console.error('Get package name error.');
+    return '';
   }
-
-  const moduleXmlPath = path.join(projectDir, 'android', moduleName, 'src/main/AndroidManifest.xml');
-  fs.writeFileSync(moduleXmlPath,
-    fs.readFileSync(moduleXmlPath).toString().replace('packageName', packageName).replace('moduleName', moduleName.toLowerCase()));
-
-  const gradlePath = path.join(projectDir, 'android', moduleName, 'build.gradle');
-  fs.writeFileSync(gradlePath,
-    fs.readFileSync(gradlePath).toString().replace('packageName', packageName));
-
-  const androidGradlePath = path.join(projectDir, 'android/settings.gradle');
-  const androidGradleStr = fs.readFileSync(androidGradlePath).toString().replace('appName', appName);
-  fs.writeFileSync(androidGradlePath, `include ':${moduleName}'\n` + androidGradleStr);
 }
 
-function replaceJava(javaSrcList, packageName) {
-  const packageInfo = packageName.split('.');
-  javaSrcList.forEach(javaSrc => {
-    let JavaDir = path.dirname(javaSrc);
-    packageInfo.forEach(element => {
-      JavaDir = path.join(JavaDir, element);
-    });
-    fs.mkdirSync(JavaDir, { recursive: true });
-    fs.writeFileSync(path.join(JavaDir, path.basename(javaSrc)),
-      fs.readFileSync(javaSrc).toString().replace('package packageName', `package ${packageName}`));
-    fs.unlinkSync(javaSrc);
-  });
+function getAppNameForModule(appVer) {
+  try {
+    const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
+    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+    return manifestJsonObj.appName;
+  } catch (error) {
+    console.error('Get app name error.');
+    return '';
+  }
 }
 
-function replaceProjectInfo(moduleName) {
+function replaceProjectInfo(moduleName, appVer) {
   try {
     const packageName = 'com.example.' + moduleName.toLowerCase();
-    let appName;
-
-    if (moduleName !== 'entry') {
-      const entryJsonPath = path.join(projectDir, 'ohos/entry/src/main/config.json');
-      const entryJsonObj = JSON.parse(fs.readFileSync(entryJsonPath));
-      appName = entryJsonObj.module.abilities[0].label;
-    } else {
-      appName = projectDir.split('/').pop();
+    let appName = getAppNameForModule(appVer);
+    if (appName == '') {
+      return false;
     }
-    const bundleName = 'com.example.' + appName.toLowerCase();
-
-    const jsonPath = path.join(projectDir, 'source', moduleName, 'manifest.json');
+    const bundleName = JSON.parse(fs.readFileSync(getManifestPath(projectDir))).appID;
+    const jsonPath = path.join(projectDir, 'source', moduleName, 'src/main', appVer, 'MainAbility/manifest.json');
     const jsonObj = JSON.parse(fs.readFileSync(jsonPath));
     jsonObj.appID = bundleName;
     jsonObj.appName = appName;
     fs.writeFileSync(jsonPath, JSON.stringify(jsonObj, '', '  '));
+    replaceInOhos(moduleName, appName, packageName, bundleName, appVer);
+    const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
 
-    replaceInOhos(moduleName, appName, packageName, bundleName);
-
-    replaceInAndroid(moduleName, appName, packageName);
-
-    return true;
+    if (fs.existsSync(settingPath)) {
+      let buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
+      let moduleInfo = {
+        "name": moduleName,
+        "srcPath": "./" + moduleName,
+        "targets": [
+          {
+            "name": "default",
+            "applyToProducts": [
+              "default"
+            ]
+          }
+        ]
+      };
+      buildProfileInfo.modules.push(moduleInfo);
+      fs.writeFileSync(settingPath, JSON.stringify(buildProfileInfo, '', '  '));
+      return true;
+    } else {
+      return false;
+    }
   } catch (error) {
     console.error('Replace project info error.');
     return false;
@@ -268,25 +249,30 @@ function replaceProjectInfo(moduleName) {
 
 function createModule() {
   if (!checkCurrentDir(process.cwd())) {
-    console.error(`Please go to ${path.join(process.cwd(), 'source')} and create module again.`);
+    console.error(`Please go to source directory under ace project path and create module again.`);
     return false;
   }
   projectDir = path.join(process.cwd(), '..');
-
-  let templateDir = path.join(__dirname, '../../../templates');
-  if (!fs.existsSync(templateDir)) {
-    templateDir = path.join(__dirname, 'template');
+  const appVer = getCurrentProjectVersion(projectDir);
+  if (appVer == '') {
+    console.log("project is not exists");
+    return false;
   }
-  const moduleList = getModuleList();
-  if (!moduleList) {
+  let templateDir = path.join(__dirname, 'template');
+  if (!fs.existsSync(templateDir)) {
+    templateDir = path.join(__dirname, '../../../templates');
+  }
+  const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
+  const moduleList = getModuleList(settingPath);
+  if (moduleList == null) {
     console.error('Create module failed');
     return false;
-  } else if (moduleList === 'none') {
+  } else if (moduleList.length == 0) {
     console.log(moduleList);
-    if (createInSource('entry', templateDir) &&
-            createInOhos('entry', templateDir) &&
-            createInAndroid('entry', templateDir)) {
-      return replaceProjectInfo('entry');
+    if (createInSource('entry', templateDir, appVer) &&
+      createInOhos('entry', templateDir) &&
+      createInAndroid('entry', templateDir, appVer)) {
+      return replaceProjectInfo('entry', appVer);
     }
   } else {
     const question = [{
@@ -298,10 +284,10 @@ function createModule() {
       }
     }];
     inquirer.prompt(question).then(answers => {
-      if (createInSource(answers.moduleName, templateDir) &&
-                createInOhos(answers.moduleName, templateDir) &&
-                createInAndroid(answers.moduleName, templateDir)) {
-        return replaceProjectInfo(answers.moduleName);
+      if (createInSource(answers.moduleName, templateDir, appVer) &&
+        createInOhos(answers.moduleName, templateDir) &&
+        createInAndroid(answers.moduleName, templateDir, appVer)) {
+        return replaceProjectInfo(answers.moduleName, appVer);
       }
     });
   }

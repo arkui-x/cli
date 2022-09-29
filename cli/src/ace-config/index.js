@@ -16,7 +16,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const configPath = process.env.APPDATA ? path.join(process.env.APPDATA, '.aceconfig') : path.join(os.homedir(), '.aceconfig');
+const configPath = process.env.APPDATA ? path.join(process.env.APPDATA, '.aceconfig')
+  : path.join(os.homedir(), '.aceconfig');
 
 function setConfig(configs, isPrint) {
   const configContent = getConfig();
@@ -28,7 +29,12 @@ function setConfig(configs, isPrint) {
       deleteInfo.push(key);
     } else {
       if (configs[key]) {
-        configContent[key] = configs[key];
+        let configPath = path.resolve(configs[key]);
+        if (!fs.existsSync(configPath)) {
+          console.error(`Config "${key}" path: "${configs[key]}" not exist.`);
+          return;
+        }
+        configContent[key] = configPath;
         setInfo[key] = configs[key];
       }
     }

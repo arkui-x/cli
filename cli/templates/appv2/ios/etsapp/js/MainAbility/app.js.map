@@ -1,1 +1,0 @@
-{"version":3,"file":"./app.js","mappings":";;;;;;;;;;;AAcA,kBAAe;IACX,QAAQ;QACJ,OAAO,CAAC,IAAI,CAAC,sBAAsB,CAAC;IACxC,CAAC;IACD,SAAS;QACL,OAAO,CAAC,IAAI,CAAC,uBAAuB,CAAC;IACzC,CAAC;CACJ","sources":["webpack:////home/lanshouren/workspace/arkui-cross/samples/eTSHelloWorld/ohos/entry/src/main/ets/MainAbility/app.ets"],"names":[],"sourceRoot":""}

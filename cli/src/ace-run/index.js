@@ -13,45 +13,33 @@
  * limitations under the License.
  */
 
-const fs = require('fs');
-const path = require('path');
 const compiler = require('../ace-build/ace-compiler');
 const build = require('../ace-build');
 const install = require('../ace-install');
 const launch = require('../ace-launch');
 const log = require('../ace-log');
-const checkDevices = require('../ace-check/checkDevices');
+const { isProjectRootDir, validInputDevice } = require('../util');
 
-function checkCurrentDir(projectDir) {
-  const ohosGradlePath = path.join(projectDir, 'ohos/settings.gradle');
-  const androidGradlePath = path.join(projectDir, 'android/settings.gradle');
-  try {
-    fs.accessSync(ohosGradlePath);
-    fs.accessSync(androidGradlePath);
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function run(fileType, devices, target) {
+function run(fileType, device, cmd) {
   const projectDir = process.cwd();
-  if (!checkCurrentDir(projectDir)) {
-    console.error(`Please go to your projectDir and run again.`);
+  if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  const devicesList = checkDevices() || [];
-  if (devicesList.length === 0) {
-    console.error('No connected device.');
+  if (!validInputDevice(device)) {
     return false;
   }
   if (fileType === 'hap') {
-    compiler(fileType, target);
-  } else if (fileType === 'apk') {
-    build(fileType, target);
+    compiler(fileType, cmd);
+  } else {
+    build(fileType, cmd);
   }
-  if (install(fileType, devices, target) && launch(fileType, devices, target)) {
-    log(devices);
+  let installFlag = true;
+  //ios launch command contain install
+  if (fileType != "app") {
+    installFlag = install(fileType, device, cmd.target);
+  }
+  if (installFlag && launch(fileType, device, cmd.target)) {
+    log(fileType, device);
     console.log('Run successful.');
     return;
   }

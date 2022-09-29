@@ -23,16 +23,16 @@ function create(args) {
   const question = [{
     name: 'delete',
     type: 'input',
-    message: 'The project already exists. Do you want to delete the directory (Y / N):',
+    message: 'The project already exists. Do you want to delete the directory (y / n):',
     validate(val) {
-      if (val !== 'y' && val !== 'n') {
+      if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
         return 'Please enter y / n!';
       } else {
         return true;
       }
     }
   }];
-  const { template, project, packages, version } = args;
+  const { project, packages, version } = args;
   const projectPath = path.join(process.cwd(), project);
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
@@ -44,64 +44,63 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, template, packages, project, version);
+        createProject(projectPath, packages, project, version);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, template, packages, project, version);
+    createProject(projectPath, packages, project, version);
   }
 }
 
-function createProject(projectPath, template, packages, project, version) {
-  fs.mkdirSync(projectPath);
-  console.log('Directory created successfully! Target directory：' + projectPath + ' .');
-  findTemplate(template, projectPath, packages, project, version);
+function createProject(projectPath, packages, project, version) {
+  try {
+    fs.mkdirSync(projectPath);
+    findTemplate(projectPath, packages, project, version);
+    console.log('Project created successfully! Target directory：' + projectPath + ' .');
+  } catch (error) {
+    console.log('Project created failed! Target directory：' + projectPath + ' .' + error);
+  }
 }
 
-function findTemplate(template, projectPath, packages, project, version) {
-  if (template === '' || version === '1') {
-    template = 'app';
-  } else if (version === '2') {
-    template = 'appv2';
-  }
-  let pathTemplate = path.join(__dirname, 'template', template);
+function findTemplate(projectPath, packages, project, version) {
+  let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
-    copy(pathTemplate, projectPath);
-    replaceProjectInfo(projectPath, packages, project);
+    copyTemplateToProject(pathTemplate, projectPath, version);
+    replaceProjectInfo(projectPath, packages, project, version);
   } else {
-    pathTemplate = path.join(__dirname, '../../../templates', template);
+    pathTemplate = path.join(__dirname, '../../../templates');
     if (fs.existsSync(pathTemplate)) {
-      copy(pathTemplate, projectPath);
-      replaceProjectInfo(projectPath, packages, project, template);
+      copyTemplateToProject(pathTemplate, projectPath, version);
+      replaceProjectInfo(projectPath, packages, project, version);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceProjectInfo(projectPath, packages, project, template) {
+function replaceProjectInfo(projectPath, packages, project, version) {
   if (!packages) {
     packages = 'com.example.arkuicross';
   }
   let jsName = 'ets';
-  if (template === 'app') {
+  if (version == '1') {
     jsName = 'js';
   }
   const packageArray = packages.split('.');
   const files = [];
   const replaceInfos = [];
   const strs = [];
+  let aceVersion;
+  let srcLanguage;
 
-  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/manifest.json'));
+  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
   replaceInfos.push('appIDValue');
   strs.push(packages);
-
-  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/manifest.json'));
+  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
   replaceInfos.push('appNameValue');
   strs.push(project);
-
   files.push(path.join(projectPath, 'android/settings.gradle'));
   replaceInfos.push('appName');
   strs.push(project);
@@ -129,13 +128,16 @@ function replaceProjectInfo(projectPath, packages, project, template) {
   files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
   replaceInfos.push('appNameValue');
   strs.push(project);
+  files.push(path.join(projectPath, 'source/entry/src/ohosTest/config.json'));
+  replaceInfos.push('bundleNameValue');
+  strs.push(packages);
   files.push(path.join(projectPath, 'ohos/entry/src/main/resources/base/element/string.json'));
   replaceInfos.push('appName');
   strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/java/HiHelloWorldActivity.java'));
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/main/java/HiHelloWorldApplication.java'));
+  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
   files.push(path.join(projectPath, 'android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
@@ -144,16 +146,45 @@ function replaceProjectInfo(projectPath, packages, project, template) {
   files.push(path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('ArkUIInstanceName');
+  strs.push('entry_MainAbility');
 
   if (jsName === 'ets') {
+    aceVersion = 'VERSION_ETS';
+    srcLanguage = 'ets';
     files.push(path.join(projectPath, 'ios/etsapp.xcodeproj/project.pbxproj'));
+    replaceInfos.push('bundleIdentifier');
+    strs.push(packages);
+    files.push(path.join(projectPath, 'ios/etsapp/AppDelegate.mm'));
+    replaceInfos.push('ACE_VERSION');
+    strs.push('ACE_VERSION_ETS');
   } else {
+    aceVersion = 'VERSION_JS';
+    srcLanguage = 'js';
     files.push(path.join(projectPath, 'ios/jsapp.xcodeproj/project.pbxproj'));
+    replaceInfos.push('bundleIdentifier');
+    strs.push(packages);
+    files.push(path.join(projectPath, 'ios/jsapp.xcodeproj/project.pbxproj'));
+    replaceInfos.push('etsapp');
+    strs.push('jsapp');
+    files.push(path.join(projectPath, 'ios/jsapp/AppDelegate.mm'));
+    replaceInfos.push('ACE_VERSION');
+    strs.push('ACE_VERSION_JS');
   }
-  replaceInfos.push('bundleIdentifier');
-  strs.push(packages);
-
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('ACE_VERSION');
+  strs.push(aceVersion);
+  files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
+  replaceInfos.push('srcLanguageValue');
+  strs.push(srcLanguage);
   replaceInfo(files, replaceInfos, strs);
+  if (jsName === 'js') {
+    const configJsonPath = path.join(projectPath, 'ohos/entry/src/main/config.json');
+    const configJsonObj = JSON.parse(fs.readFileSync(configJsonPath));
+    delete (configJsonObj.module.js[0]['mode']);
+    fs.writeFileSync(configJsonPath, JSON.stringify(configJsonObj, '', '  '));
+  }
 
   const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
   const testAospJavaPath = path.join(projectPath, 'android/app/src/test/java');
@@ -171,23 +202,23 @@ function createPackageFile(packagePaths, packageArray) {
       packagePath = path.join(packagePath, packageInfo);
     });
     files.forEach(javaFile => {
-      const _src = path.join(oldPath, javaFile);
-      const _dst = path.join(packagePath, javaFile);
-      if (fs.statSync(_src).isFile()) {
-        fs.writeFileSync(_dst, fs.readFileSync(_src));
-        fs.unlinkSync(_src);
+      const srcEle = path.join(oldPath, javaFile);
+      const dstEle = path.join(packagePath, javaFile);
+      if (fs.statSync(srcEle).isFile()) {
+        fs.writeFileSync(dstEle, fs.readFileSync(srcEle));
+        fs.unlinkSync(srcEle);
       } else {
-        fs.mkdirSync(_dst);
-        copy(_src, _dst);
-        rmdir(_src);
+        fs.mkdirSync(dstEle);
+        copy(srcEle, dstEle);
+        rmdir(srcEle);
       }
     });
   });
 }
-
 function replaceInfo(files, repalceInfos, strs) {
   files.forEach((filePath, index) => {
-    fs.writeFileSync(filePath, fs.readFileSync(filePath).toString().replace(repalceInfos[index], strs[index]));
+    fs.writeFileSync(filePath,
+      fs.readFileSync(filePath).toString().replace(new RegExp(repalceInfos[index], 'g'), strs[index]));
   });
 }
 
@@ -208,19 +239,61 @@ function rmdir(filePath) {
 }
 
 function copy(src, dst) {
-  const paths = fs.readdirSync(src);
-  paths.forEach(function(newpath) {
-    const _src = path.join(src, newpath);
-    const _dst = path.join(dst, newpath);
-    if (fs.statSync(_src).isFile()) {
-      fs.writeFileSync(_dst, fs.readFileSync(_src));
-    } else {
-      if (!fs.existsSync(_dst)) {
-        fs.mkdirSync(_dst, { recursive: true });
+  const paths = fs.readdirSync(src).filter(item => {
+    return (item.substring(0, 1) != ".");
+  });
+  paths.forEach(newpath => {
+    const srcEle = path.join(src, newpath);
+    const dstEle = path.join(dst, newpath);
+    if (fs.statSync(srcEle).isFile()) {
+      let parentDir = path.parse(dstEle).dir;
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
       }
-      copy(_src, _dst);
+      fs.writeFileSync(dstEle, fs.readFileSync(srcEle));
+    } else {
+      if (!fs.existsSync(dstEle)) {
+        fs.mkdirSync(dstEle, { recursive: true });
+      }
+      copy(srcEle, dstEle);
     }
   });
+  return true;
+}
+
+function copySourceTemplate(templatePath, projectPath, version) {
+  let sourcePath;
+  if (version == '1') {
+    sourcePath = path.join(templatePath, '/js_fa/source');
+  } else {
+    sourcePath = path.join(templatePath, '/ets_fa/source');
+  }
+  console.log('sourcePath: ' + sourcePath);
+  return copy(sourcePath, path.join(projectPath, '/source'));
+}
+
+function copyIosTemplate(templatePath, projectPath, version) {
+  copy(path.join(templatePath, '/ios'), path.join(projectPath, '/ios'));
+  if (version == '1') {
+    fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/jsapp.xcodeproj'));
+    fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/jsapp'));
+  }
+  return true;
+}
+
+function copyTemplateToProject(templatePath, projectPath, version) {
+  if (!copySourceTemplate(templatePath, projectPath, version)) {
+    return false;
+  }
+  if (!copy(path.join(templatePath, '/ohos_fa'), path.join(projectPath, '/ohos'))) {
+    return false;
+  }
+  if (!copy(path.join(templatePath, '/android'), path.join(projectPath, '/android'))) {
+    return false;
+  }
+  if (!copyIosTemplate(templatePath, projectPath, version)) {
+    return false;
+  }
   return true;
 }
 

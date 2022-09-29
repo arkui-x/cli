@@ -75,7 +75,7 @@ class Ide {
   checkConfig() {
     try {
       const config = getConfig();
-      return config[`${this.stdType}-dir`];
+      return config[`${this.stdType}-path`];
     } catch (err) {
       // ignore
     }
@@ -83,7 +83,7 @@ class Ide {
 
   checkMacApp() {
     const appPath = [`/Applications/${this.stdType}.app`,
-      path.join(homeDir, '/Applications', `${this.stdType}.app`)];
+    path.join(homeDir, '/Applications', `${this.stdType}.app`)];
     for (const i in appPath) {
       if (fs.existsSync(appPath[i])) {
         return appPath[i];
