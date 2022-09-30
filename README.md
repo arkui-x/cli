@@ -14,26 +14,31 @@
 
 3. OpenHarmony SDK
 
-   编译 hap 需要，OpenHarmony SDK 支持通过安装DevEco Studio获得，也可通过SDK Manager获得。[DevEco Studio及SDK Manager下载地址](https://developer.harmonyos.com/cn/develop/deveco-studio)
+   编译 hap 需要OpenHarmony SDK 支持，具体参考[DevEco Studio及SDK Manager下载地址](https://developer.harmonyos.com/cn/develop/deveco-studio)。
 
-   **SDK Manager下载SDK推荐配置路径及方式：**
+   
+
+   **SDK推荐环境变量配置：**
 
    [Linux]
-   ```
+
+   ```shell
    // 配置环境变量
    export OpenHarmony_HOME=/home/usrername/path-to-ohsdk
    export PATH=${OpenHarmony_HOME}/toolchains/versioncode:${PATH}
    ```
 
    [Mac]
-   ```
+
+   ```shell
    // 配置环境变量
    export OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
    export PATH=$OpenHarmony_HOME/toolchains/versioncode:$PATH
    ```
 
    [Windows]
-   ```
+
+   ```shell
    // 配置环境变量
    set OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
    set PATH=%PATH%;%OpenHarmony_HOME%/toolchains/versioncode
@@ -41,59 +46,87 @@
 
 4. Android SDK
 
-   编译 apk 需要，Android SDK 支持通过安装Android Studio获得、也可通过SDK Manager获得。[Android Studio及SDK Manager下载地址](https://developer.android.com/studio)
+   编译 apk 需要，Android SDK 支持通过安装Android Studio获得，具体参考[Android Studio及SDK Manager下载地址](https://developer.android.com/studio)。
 
-   **SDK Manager下载SDK推荐配置路径及方式：**
+   
+
+   **SDK推荐环境变量配置：**
 
    [Linux]
-   ```
+
+   ```shell
    // 配置环境变量
    export ANDROID_HOME=/home/usrername/path-to-android-sdk
    export PATH=${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/build-tools/28.0.3:${ANDROID_HOME}/platform-tools:${PATH}
    ```
 
    [Mac]
-   ```
+
+   ```shell
    // 配置环境变量
    export ANDROID_HOME=/Users/usrername/path-to-android-sdk
    export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/build-tools/28.0.3:$ANDROID_HOME/platform-tools:$PATH
    ```
 
    [Windows]
-   ```
+
+   ```shell
    // 配置环境变量
    set ANDROID_HOME=/home/usrername/path-to-android-sdk
    set PATH=%PATH%;%ANDROID_HOME%/tools;%ANDROID_HOME%/tools/bin;%ANDROID_HOME%/build-tools/28.0.3;%ANDROID_HOME%/platform-tools
    ```
 
+5. Xcode及Command Line Tools for Xcode(仅Mac平台安装)
+
+   Xcode和Command Line Tools for Xcode应用可前往苹果商店下载安装。
+
+   Command Line Tools也可使用命令方式安装:
+
+   ```shell
+   xcode-select --install
+   ```
+
+6. libimobiledevice(仅Mac平台安装)
+
+   ```shell
+   brew install libimobiledevice
+   ```
+
+   详细信息参照：[libimobiledevice安装](https://www.npmjs.com/package/libimobiledevice)
+
+7. ios-deploy(仅Mac平台安装)
+
+   ```shell
+   brew install ios-deploy
+   ```
+
+   详细信息参照：[ios-deploy 安装](https://www.npmjs.com/package/ios-deploy)
+
 ## 依赖安装
 
-有两种方式可以运行框架，分别需要安装相关依赖：
+修改npm源：
 
-1. 如果获得了项目的源码，则可以在项目根目录执行安装命令，安装cli依赖包。
+​	前往用户目录下在.npmrc文件中添加如下内容：
 
-   ```
-   npm install . -g
-   ```
+```shell
+@ohos:registry=https://repo.harmonyos.com/npm/
+registry=https://repo.huaweicloud.com/repository/npm/
+```
+
+可以在工具链cli目录执行安装命令，安装cli依赖包。
+
+```shell
+cd ace_tools/cli
+npm install . -g
+```
 
 *注：如遇到全局安装失败，可先执行npm install，再执行npm install . -g*
 
-2. 如果获得了打包后的 ace_tools.js 文件和 ace 脚本文件，可配置ace脚本到环境变量，使能ACE Tools命令行工具。
-
 ## 创建应用
-
-接下来从零开始，通过命令行工具完成项目创建和编译打包。
-
-首先进入项目的根目录
-
-   ```
-cd ..
-cd ace_tools/
-   ```
 
 1. ### 检查开发环境
 
-   ```
+   ```shell
    ace check
    ```
 
@@ -103,7 +136,7 @@ cd ace_tools/
 
 2. ### 检查设备连接
 
-   ```
+   ```shell
    ace devices
    ```
 
@@ -113,7 +146,7 @@ cd ace_tools/
 
 3. ### 开发环境路径配置
 
-   ```
+   ```shell
    ace config
    ```
 
@@ -123,202 +156,261 @@ cd ace_tools/
 
    以创建一个 ‘demo’  项目为例：
 
-   ```
+   ```shell
    ace create project
    ? Please enter the project name: demo
    ? Please enter the packages (com.example.demo):com.example.demo
-   ? Please enter the ACE version (1: 类Web范式, 2: 声明式范式): 2
+   ? Please enter the ACE version (1: 声明式范式, 2: 类Web范式): 1
    ```
 
-执行 `ace create project` 命令（project 可省略），接着输入项目名 demo ，包名直接回车默认即可。输入“2”代表创建ArkUI声明式应用项目。
+执行 `ace create project` 命令（project 可省略），接着输入项目名 demo ，包名直接回车默认即可。输入“1”代表创建ArkUI声明式范式应用项目。
 
 一个名为 ‘demo’ 的项目就创建成功了。
 
+项目关键结构如下：
+
+```shell
+demo/
+├── android		//用于编译跨平台应用Android工程
+│   ├── app
+│   │   ├── libs
+│   │   └── src
+│   │       ├── androidTest
+│   │       ├── main
+│   │       │   ├── AndroidManifest.xml
+│   │       │   ├── assets	//用于存放跨平台应用编译生成的资源文件
+│   │       │   ├── java
+│   │       │   │   └── com
+│   │       │   │       └── example
+│   │       │   │           └── demo
+│   │       │   │               ├── MainActivity.java	//继承自ArkUI提供的AceActivity基类
+│   │       │   │               └── MyApplication.java	//继承自ArkUI提供的AceApplication基类
+│   │       │   └── res
+│   │       └── test
+│   └── settings.gradle
+├── ios		//用于编译跨平台应用ios工程
+│   ├── etsapp
+│   │   ├── AppDelegate.h
+│   │   ├── AppDelegate.mm	//实例化AceViewController，并加载ArkUI页面
+│   │   ├── Info.plist
+│   │   └── main.m
+│   ├── etsapp.xcodeproj
+│   ├── frameworks
+│   └── js
+├── ohos	//用于编译跨平台应用ohos工程
+│   ├── build-profile.json5
+│   ├── entry
+│   │   └── src
+│   │       └── main
+│   │           ├── config.json
+│   │           └── resources
+└── source	//用于编写跨平台应用源码
+    └── entry
+        └── src
+            ├── main
+            │   ├── ets
+            │   │   └── MainAbility
+            │   │       ├── app.ets
+            │   │       ├── manifest.json	//工程配置信息
+            │   │       └── pages
+            │   │           └── index
+            │   │               └── index.ets
+            │   └── resources
+            └── ohosTest
+
+
+```
+
+
+
 ## 编写代码
 
-在上述工程创建完成后，便可以修改源码以用于开发调试。
+在上述工程创建完成后，开发者可在项目中的source目录下进行代码开发。
+
+
 
 ## 项目编译
 
 开始对 'demo' 项目进行编译。编译分为hap 、apk和app：
 
-   ```
+   ```shell
 cd demo
    ```
 
 1. 编译hap，默认编译所有Module
 
-   ```
+   ```shell
    ace build hap
    ```
 
-   每个Module生成一个hap应用文件，默认路径为 demo/ohos/entry/build/outputs/hap/debug/。
+   每个Module生成一个hap应用文件，默认路径为 demo/ohos/entry/build/default/outputs/default/。
 
 2. 编译hap，只编译指定的Module
 
-   ```
+   ```shell
    ace build hap --target moduleName
+   ace build hap --target "moduleName1 moduleName2 ..."
    ```
 
-   最终会生成一个hap应用文件。默认路径为 demo/ohos/moduleName/build/outputs/hap/debug/。
+   最终各module会在对应目录下生成一个hap应用文件。默认路径为 demo/ohos/moduleName/build/default/outputs/default/。
 
-   *注：多个Module可分别加在 --target 参数后，逗号分开。*
+   *注：当前版本指定Module编译时，需要先完成entry模块编译，多个Module可分别加在 --target 参数后，使用引号包括目标Module名并使用空格分开。*
 
 3. 编译apk，默认编译Module为app的模块
 
-   ```
+   ```shell
    ace build apk
    ```
 
-   最终生成Module为app的apk应用文件，默认路径为：demo/android/app/build/outputs/bundle/debug/。
+   最终会生成一个apk应用文件，默认路径为：demo/android/app/build/outputs/apk/debug/。
 
 4. 编译apk，编译指定的Module
 
-   ```
+   ```shell
    ace build apk --target moduleName
    ```
 
-   最终会生成一个apk应用文件。默认路径为：demo/android/moduleName/build/outputs/debug/
+   最终会生成一个apk应用文件。默认路径为：demo/android/app/build/outputs/apk/debug/。
 
 5. 编译app，默认编译Module为app的模块
 
-   ```
+   ```shell
    ace build app
    ```
-
-最终生成Module为app的app应用文件，默认路径为：demo/ios/build/outputs/app/
-
+   
+   最终生成一个app应用文件，默认路径为：demo/ios/build/outputs/app/
+   
 6. 编译app，编译指定的Module
 
-   ```
+   ```shell
    ace build app --target moduleName
    ```
 
-最终会生成一个app应用文件。默认路径为：demo/ios/moduleName/build/outputs/app/
+   最终会生成一个app应用文件。默认路径为：demo/ios/build/outputs/app/
 
 ## 应用安装和卸载
 
 开始对编译出的应用包进行安装，先进入到demo工程目录下
 
-   ```
+   ```shell
 cd demo
    ```
 
 1. 安装hap应用安装包
 
-   ```
+   ```shell
    ace install hap
    ```
 
 2. 安装hap应用到指定的设备上
 
-   ```
-   ace install hap -d[deviceId]
+   ```shell
+   ace install hap -d deviceId
    ```
 
 3. 安装apk应用安装包
 
-   ```
+   ```shell
    ace install apk
    ```
 
 4. 安装apk应用安装包到指定的设备上
 
-   ```
-   ace install apk -d[deviceId]
+   ```shell
+   ace install apk -d deviceId
    ```
 
 5. 安装app应用安装包
 
-   ```
+   ```shell
    ace install app
    ```
 
 6. 安装app应用安装包到指定的设备上
 
-   ```
-   ace install app -d[deviceId] 
+   ```shell
+   ace install app -d deviceId
    ```
 
 7. 卸载hap应用安装包
 
-   ```
-   ace uninstall hap -bundle[bundleName]
+   ```shell
+   ace uninstall hap --bundle bundleName
    ```
 
 8. 卸载指定设备上的hap应用安装包
 
-   ```
-   ace uninstall hap -bundle[bundleName] -d[deviceId]
+   ```shell
+   ace uninstall hap --bundle bundleName -d deviceId
    ```
 
 9. 卸载apk应用安装包
 
-   ```
-   ace uninstall apk -bundle[bundleName]
+   ```shell
+   ace uninstall apk --bundle bundleName
    ```
 
 10. 卸载指定设备上的apk应用安装包
 
-    ```
-    ace uninstall apk -bundle[bundleName] -d[deviceId]
+    ```shell
+    ace uninstall apk --bundle bundleName -d deviceId
     ```
 
 11. 卸载app应用安装包
 
-    ```
-    ace uninstall app -bundle[bundleName]
+    ```shell
+    ace uninstall app --bundle bundleName
     ```
 
 12. 卸载指定设备上的app应用安装包
 
-    ```
-    ace uninstall app -bundle[bundleName] -d[deviceId]
+    ```shell
+    ace uninstall app --bundle bundleName -d deviceId
     ```
 
 ## 运行应用
 
 1. 运行hap应用
 
-   ```
+   ```shell
    ace run hap
    ```
 
 2. 在指定的设备上运行hap应用
 
-   ```
-   ace run hap -d[deviceId]
+   ```shell
+   ace run hap -d deviceId
    ```
 
 3. 运行apk应用
 
-   ```
+   ```shell
    ace run apk
    ```
 
 4. 在指定的设备上运行apk应用
 
-   ```
-   ace run apk -d[deviceId] 
+   ```shell
+   ace run apk -d deviceId
    ```
 
 5. 运行app应用
 
-   ```
+   ```shell
    ace run app
    ```
 
 6. 在指定的设备上运行app应用
 
-   ```
-   ace run app -d[deviceId]
+   ```shell
+   ace run app -d deviceId
    ```
 
 ## 清理编译结果
 
 清除所有编译结果(hap、apk、app)
 
-  ```
+  ```shell
 ace clean
   ```
 
@@ -328,51 +420,51 @@ ace clean
 
 1. 输出hap应用日志
 
-  ```
+  ```shell
 ace log hap
   ```
 
 2. 输出指定的设备上运行hap应用日志
 
-  ```
-ace log hap -d[deviceId]
+  ```shell
+ace log hap -d deviceId
   ```
 
 3. 输出apk应用日志
 
-  ```
+  ```shell
 ace log apk
   ```
 
 4. 输出指定的设备上运行apk应用日志
 
-  ```
-ace log apk -d[deviceId]
+  ```shell
+ace log apk -d deviceId
   ```
 
 5. 输出app应用日志
 
-  ```
+  ```shell
 ace log app
   ```
 
 6. 输出指定的设备上运行app应用日志
 
-  ```
-ace log app -d[deviceId] 
+  ```shell
+ace log app -d deviceId
   ```
 
 ## 帮助工具
 
 展示可以支持的命令信息
 
-  ```
+  ```shell
 ace help
   ```
 
 支持单个指令支持查询
 
-```
+```shell
 ace build --help
 ```
 

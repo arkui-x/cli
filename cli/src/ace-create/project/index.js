@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const check = require('../../ace-check');
+const aceVersionJs = '2';
 
 function create(args) {
   check();
@@ -85,7 +86,7 @@ function replaceProjectInfo(projectPath, packages, project, version) {
     packages = 'com.example.arkuicross';
   }
   let jsName = 'ets';
-  if (version == '1') {
+  if (version == aceVersionJs) {
     jsName = 'js';
   }
   const packageArray = packages.split('.');
@@ -263,18 +264,17 @@ function copy(src, dst) {
 
 function copySourceTemplate(templatePath, projectPath, version) {
   let sourcePath;
-  if (version == '1') {
+  if (version == aceVersionJs) {
     sourcePath = path.join(templatePath, '/js_fa/source');
   } else {
     sourcePath = path.join(templatePath, '/ets_fa/source');
   }
-  console.log('sourcePath: ' + sourcePath);
   return copy(sourcePath, path.join(projectPath, '/source'));
 }
 
 function copyIosTemplate(templatePath, projectPath, version) {
   copy(path.join(templatePath, '/ios'), path.join(projectPath, '/ios'));
-  if (version == '1') {
+  if (version == aceVersionJs) {
     fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/jsapp.xcodeproj'));
     fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/jsapp'));
   }

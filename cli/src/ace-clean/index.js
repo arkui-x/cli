@@ -74,7 +74,10 @@ function cleanAndroid() {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
-    exec(cmds);
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit',
+    });
   } catch (error) {
     console.error(error)
     message = 'Clean android project failed.';
@@ -97,7 +100,10 @@ function cleanIOS() {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
-    exec(cmds);
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit',
+    });
   } catch (error) {
     console.error(error)
     message = 'Clean ios project failed.';
@@ -121,7 +127,10 @@ function cleanOHOS() {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
-    exec(cmds);
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit',
+    });
   } catch (error) {
     console.log(error)
     message = 'Clean ohos project failed.';

@@ -76,7 +76,10 @@ function buildAPK(cmd) {
       cmd = cmd.replace(/\//g, '\\');
     }
     try {
-      exec(cmd);
+      exec(cmd, {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
     } catch (error) {
       gradleMessage = 'Build apk failed.';
       isBuildSuccess = false;
@@ -131,7 +134,10 @@ function buildAPP(cmd) {
   console.log('Start building app...');
   cmds.forEach(cmd => {
     try {
-      exec(cmd);
+      exec(cmd, {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
     } catch (error) {
       message = 'Build app failed.';
       isBuildSuccess = false;
