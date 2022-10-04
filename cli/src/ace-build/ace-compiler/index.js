@@ -207,7 +207,10 @@ function runGradle(fileType, cmd, moduleList) {
   }
   try {
     console.log(`${gradleMessage}`);
-    exec(cmds);
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit',
+    });
     return true;
   } catch (error) {
     console.error('Run gradle tasks failed.');

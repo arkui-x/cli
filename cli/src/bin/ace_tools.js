@@ -71,7 +71,7 @@ function parseCommander() {
             inquirer.prompt([{
               name: 'version',
               type: 'input',
-              message: 'Please enter the ArkUI version (1: 类web范式, 2: 声明式范式):',
+              message: 'Please enter the ArkUI version (1: 声明式范式, 2: 类web范式):',
               validate(val) {
                 if (val === '1' || val === '2') {
                   return true;
