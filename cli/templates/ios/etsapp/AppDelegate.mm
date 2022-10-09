@@ -20,10 +20,10 @@
 @synthesize window = _window;
 
 /**
- * Example ace view controller, which will load arkui-crossplatform ability instance.
- * AceViewController is provided by arkui-crossplatform
+ * Example ace view controller, which will load ArkUI-X ability instance.
+ * AceViewController is provided by ArkUI-X
  *
- * @see <a href="https://gitee.com/arkui-crossplatform/doc/blob/master/contribute/tutorial/how-to-build-iOS-app.md">
+ * @see <a href="https://gitee.com/arkui-x/doc/blob/master/contribute/tutorial/how-to-build-iOS-app.md">
  * to build ios library</a>
  */
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {

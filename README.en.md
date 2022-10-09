@@ -1,3 +1,3 @@
 # cli
 
-Command line tools for ArkUI crossplatform project, responsible for project creation, compilation, app installation/launching/uninstallation, etc 
+Command line tools for ArkUI-X project, responsible for project creation, compilation, app installation/launching/uninstallation, etc 
