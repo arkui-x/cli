@@ -165,8 +165,8 @@ function cleanJSBundle() {
     console.error("android or ios js file delete failed");
     isContinue = false;
   }
-  const resourceAndroid = path.join(projectDir, '/android/app/src/main/assets/resources/appres');
-  const resourcehIOS = path.join(projectDir, '/ios/resources/appres');
+  const resourceAndroid = path.join(projectDir, '/android/app/src/main/assets/res/appres');
+  const resourcehIOS = path.join(projectDir, '/ios/res/appres');
   if (!removeDir(resourceAndroid, [], true) || !removeDir(resourcehIOS, [], true)) {
     console.error("android or ios resource file delete failed");
     isContinue = false;

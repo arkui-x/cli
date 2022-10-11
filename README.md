@@ -76,9 +76,9 @@
    set PATH=%PATH%;%ANDROID_HOME%/tools;%ANDROID_HOME%/tools/bin;%ANDROID_HOME%/build-tools/28.0.3;%ANDROID_HOME%/platform-tools
    ```
 
-5. Xcode及Command Line Tools for Xcode(仅Mac平台安装)
+5. Mac依赖
 
-   Xcode和Command Line Tools for Xcode应用可前往苹果商店下载安装。
+   5.1 Xcode和Command Line Tools for Xcode应用可前往苹果商店下载安装。
 
    Command Line Tools也可使用命令方式安装:
 
@@ -86,21 +86,21 @@
    xcode-select --install
    ```
 
-6. libimobiledevice(仅Mac平台安装)
+   5.2 libimobiledevice
 
    ```shell
    brew install libimobiledevice
    ```
 
-   详细信息参照：[libimobiledevice安装](https://www.npmjs.com/package/libimobiledevice)
+   详细信息参照：[libimobiledevice安装](https://libimobiledevice.org)
 
-7. ios-deploy(仅Mac平台安装)
+   5.3 ios-deploy
 
    ```shell
    brew install ios-deploy
    ```
 
-   详细信息参照：[ios-deploy 安装](https://www.npmjs.com/package/ios-deploy)
+   详细信息参照：[ios-deploy 安装](https://github.com/ios-control/ios-deploy)
 
 ## 依赖安装
 
@@ -197,6 +197,7 @@ demo/
 │   ├── etsapp.xcodeproj
 │   ├── frameworks
 │   └── js
+│   └── res
 ├── ohos	//用于编译跨平台应用ohos工程
 │   ├── build-profile.json5
 │   ├── entry
@@ -217,7 +218,6 @@ demo/
             │   │               └── index.ets
             │   └── resources
             └── ohosTest
-
 
 ```
 

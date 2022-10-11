@@ -10,6 +10,7 @@
 		DF9C1B5E28B9FC3A005DCF58 /* libace_ios.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */; };
 		DF9C1B5F28B9FC3A005DCF58 /* libace_ios.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DF9C1B6128B9FC4B005DCF58 /* js in Resources */ = {isa = PBXBuildFile; fileRef = DF9C1B6028B9FC4B005DCF58 /* js */; };
+		DFFB5DAD28F4429C00E74486 /* res in Resources */ = {isa = PBXBuildFile; fileRef = DFFB5DAC28F4429C00E74486 /* res */; };
 		F0AF1AD227D3684F008C55DD /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0AF1AD127D3684F008C55DD /* AppDelegate.mm */; };
 		F0AF1ADD27D36856008C55DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0AF1ADC27D36856008C55DD /* Assets.xcassets */; };
 		F0AF1AE027D36856008C55DD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F0AF1ADE27D36856008C55DD /* LaunchScreen.storyboard */; };
@@ -33,6 +34,7 @@
 /* Begin PBXFileReference section */
 		DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libace_ios.xcframework; path = frameworks/libace_ios.xcframework; sourceTree = "<group>"; };
 		DF9C1B6028B9FC4B005DCF58 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = js; sourceTree = "<group>"; };
+		DFFB5DAC28F4429C00E74486 /* res */ = {isa = PBXFileReference; lastKnownFileType = folder; path = res; sourceTree = "<group>"; };
 		F0AF1ACD27D3684F008C55DD /* etsapp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = etsapp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0AF1AD027D3684F008C55DD /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		F0AF1AD127D3684F008C55DD /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -57,6 +59,7 @@
 		F0AF1AC427D3684F008C55DD = {
 			isa = PBXGroup;
 			children = (
+				DFFB5DAC28F4429C00E74486 /* res */,
 				DF9C1B6028B9FC4B005DCF58 /* js */,
 				F0AF1ACF27D3684F008C55DD /* etsapp */,
 				F0AF1ACE27D3684F008C55DD /* Products */,
@@ -151,6 +154,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F0AF1AE027D36856008C55DD /* LaunchScreen.storyboard in Resources */,
+				DFFB5DAD28F4429C00E74486 /* res in Resources */,
 				DF9C1B6128B9FC4B005DCF58 /* js in Resources */,
 				F0AF1ADD27D36856008C55DD /* Assets.xcassets in Resources */,
 			);
