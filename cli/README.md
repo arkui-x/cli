@@ -138,11 +138,17 @@ The project already exists. Do you want to delete the directory (Y / N):
 
 ```
 
-删除已有项目成功和失败:
+删除已有项目成功:
 
 ```shell
 
 Delete directory successfully, creating new project...:
+
+```
+
+删除已有项目成失败:
+
+```shell
 
 Failed to create project, project directory already exists!
 

@@ -96,8 +96,8 @@ function copyBundleToAndroidAndIOS(moduleList) {
   });
   //This time, copy the first module resource to ios/android.
   let ohosResourcePath = path.join(projectDir, '/ohos/entry/build/default/intermediates/res/default/');
-  let filePathAndroid = path.join(projectDir, '/android/app/src/main/assets/resources/appres');
-  let filePathIOS = path.join(projectDir, '/ios/resources/appres');
+  let filePathAndroid = path.join(projectDir, '/android/app/src/main/assets/res/appres');
+  let filePathIOS = path.join(projectDir, '/ios/res/appres');
   fs.mkdirSync(filePathAndroid, { recursive: true });
   fs.mkdirSync(filePathIOS, { recursive: true });
   isContinue = isContinue && copy(ohosResourcePath, filePathAndroid) && copy(ohosResourcePath, filePathIOS);

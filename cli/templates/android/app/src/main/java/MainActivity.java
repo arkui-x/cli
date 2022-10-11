@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
  * Example ace activity class, which will load ArkUI-X ability instance.
  * AceActivity is provided by ArkUI-X
  * @see <a href=
- * "https://gitee.com/arkui-x/doc/blob/master/contribute/tutorial/how-to-build-Android-app.md">
+ * "https://gitee.com/arkui-crossplatform/doc/blob/master/contribute/tutorial/how-to-build-Android-app.md">
  * to build android library</a>
  */
 public class MainActivity extends AceActivity {
