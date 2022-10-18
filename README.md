@@ -1,6 +1,46 @@
 # 快速指南
 
-## 环境安装
+## 简介
+
+ArkUI-X Command Line Tools，是一套为跨平台应用开发者提供的命令行工具，用于构建OHOS、Android和iOS平台的应用程序， 其功能包括开发环境检查，新建项目，编译打包，安装调试等。
+
+图1 ArkUI-X Command Line Tools模块结构
+
+![](figures/cli.jpg)
+
+命令行各平台使用不同脚本文件做为入口，再通过nodejs执行到ace_tools.js文件，使用npm模块commander解析命令行执行各子模块导出的方法。
+
+## 目录介绍
+
+ArkUI开发框架的源代码结构参见 [代码工程结构及构建说明](https://gitee.com/arkui-crossplatform/doc/blob/master/application-dev/quick-start/project-structure-guide.md) , ACE工具链的代码在/developtools/ace_tools/cli 下，目录结构如下图所示：
+
+```
+/developtools/ace_tools/cli
+├── src                         # 命令相关
+│   ├── ace-build               # 构建跨平台应用安装包
+│   ├── ace-check               # 查验跨平台应用开发环境
+│   ├── ace-clean               # 清理跨平台应用编译结果
+│   ├── ace-config              # 设置ace工具链相关配置
+│   ├── ace-create              # 创建跨平台应用工程及应用模块
+│   ├── ace-devices             # 查询当前所有连接的设备
+│   ├── ace-install             # 将跨平台应用安装到连接的设备上
+│   ├── ace-launch              # 在设备上运行ArkUI跨平台应用
+│   ├── ace-log                 # 展示正在运行的跨平台应用的 log
+│   ├── ace-run                 # 编译并在设备上运行ArkUI跨平台应用
+│   ├── ace-uninstall           # 将跨平台应用从连接的设备上卸载
+│   ├── bin                     # 各终端入口脚本
+│   └── util                    # 工具模块
+└── templates                   # 模板相关
+    ├── andriod                 # andriod工程模板
+    ├── ets_fa                  # ets工程模板
+    ├── ios                     # ios工程模板
+    ├── js_fa                   # js工程模板
+    └── ohos_fa                 # openharmony工程模板
+```
+
+## 使用说明
+
+### 环境安装
 
 在使用命令行工具创建工程之前，请先检查本地开发环境：
 
@@ -102,7 +142,7 @@
 
    详细信息参照：[ios-deploy 安装](https://github.com/ios-control/ios-deploy)
 
-## 依赖安装
+### 依赖安装
 
 修改npm源：
 
@@ -122,7 +162,7 @@ npm install . -g
 
 *注：如遇到全局安装失败，可先执行npm install，再执行npm install . -g*
 
-## 创建应用
+### 创建应用
 
 1. ### 检查开发环境
 
@@ -221,15 +261,11 @@ demo/
 
 ```
 
-
-
-## 编写代码
+### 编写代码
 
 在上述工程创建完成后，开发者可在项目中的source目录下进行代码开发。
 
-
-
-## 项目编译
+### 项目编译
 
 开始对 'demo' 项目进行编译。编译分为hap 、apk和app：
 
@@ -288,7 +324,7 @@ cd demo
 
    最终会生成一个app应用文件。默认路径为：demo/ios/build/outputs/app/
 
-## 应用安装和卸载
+### 应用安装和卸载
 
 开始对编译出的应用包进行安装，先进入到demo工程目录下
 
@@ -368,7 +404,7 @@ cd demo
     ace uninstall app --bundle bundleName -d deviceId
     ```
 
-## 运行应用
+###  运行应用
 
 1. 运行hap应用
 
@@ -406,7 +442,7 @@ cd demo
    ace run app -d deviceId
    ```
 
-## 清理编译结果
+### 清理编译结果
 
 清除所有编译结果(hap、apk、app)
 
@@ -414,7 +450,7 @@ cd demo
 ace clean
   ```
 
-## 输出日志文件
+### 输出日志文件
 
 滚动输出正在运行的应用日志信息
 
@@ -454,7 +490,7 @@ ace log app
 ace log app -d deviceId
   ```
 
-## 帮助工具
+### 帮助工具
 
 展示可以支持的命令信息
 

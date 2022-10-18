@@ -27,7 +27,7 @@ function clean() {
     return false;
   }
   let successFlag = true;
-  let failedMsg = "Clean faild:"
+  let failedMsg = "Clean failed:"
   if (!cleanOHOS()) {
     failedMsg += "\tcleanOHOS";
     successFlag = false;
@@ -148,8 +148,8 @@ function cleanJSBundle() {
     const src = path.join(projectDir, '/ohos', module, 'build');
     isContinue = removeDir(src, [], true);
     const ohosSource = path.join(projectDir, 'ohos', module, '/src/main/');
-    //This time, ohos resources is created by merging with source resources, should not be deleted.
-    //Wait for the processing of resources to be modified.
+    // This time, ohos resources is created by merging with source resources, should not be deleted.
+    // Wait for the processing of resources to be modified.
     if (!removeDir(ohosSource, ['resources', 'config.json'], true)) {
       console.error("ohos code file delete failed");
       isContinue = false;
@@ -166,8 +166,8 @@ function cleanJSBundle() {
     isContinue = false;
   }
   const resourceAndroid = path.join(projectDir, '/android/app/src/main/assets/res/appres');
-  const resourcehIOS = path.join(projectDir, '/ios/res/appres');
-  if (!removeDir(resourceAndroid, [], true) || !removeDir(resourcehIOS, [], true)) {
+  const resourceIOS = path.join(projectDir, '/ios/res/appres');
+  if (!removeDir(resourceAndroid, [], true) || !removeDir(resourceIOS, [], true)) {
     console.error("android or ios resource file delete failed");
     isContinue = false;
   }
