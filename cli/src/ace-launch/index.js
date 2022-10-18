@@ -143,11 +143,11 @@ function launch(fileType, device, moduleName) {
       console.log(`Launch ${fileType.toUpperCase()} successfully.`);
       return true;
     } catch (error) {
-      console.error(`Lanuch ${fileType.toUpperCase()} failed.`);
+      console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;
     }
   } else {
-    console.error(`Lanuch ${fileType.toUpperCase()} failed.`);
+    console.error(`Launch ${fileType.toUpperCase()} failed.`);
     return false;
   }
 }

@@ -216,10 +216,10 @@ function createPackageFile(packagePaths, packageArray) {
     });
   });
 }
-function replaceInfo(files, repalceInfos, strs) {
+function replaceInfo(files, replaceInfos, strs) {
   files.forEach((filePath, index) => {
     fs.writeFileSync(filePath,
-      fs.readFileSync(filePath).toString().replace(new RegExp(repalceInfos[index], 'g'), strs[index]));
+      fs.readFileSync(filePath).toString().replace(new RegExp(replaceInfos[index], 'g'), strs[index]));
   });
 }
 

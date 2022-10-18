@@ -1,6 +1,6 @@
 # ArkUI跨平台应用构建命令行工具
 
-ACE Command Tools，是一套为跨平台应用开发者提供的命令行工具，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
+ArkUI-X Command Line Tools，是一套为跨平台应用开发者提供的命令行工具，用于构建OHOS、Android和iOS平台的应用程序， 其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
 
 
@@ -23,7 +23,7 @@ ace config [options] <path>
 | --openharmony-sdk | OpenHarmony SDK路径。 |
 | --android-sdk | Android SDK路径。    |
 | --nodejs-dir  | nodejs 路径。        |
-| --buid-dir    | 编译输出的路径。     |
+| --build-dir   | 编译输出的路径。     |
 | --deveco-studio-path | DevEco Studio安装路径（可选参数）。 |
 | --android-studio-path | Android Studio安装路径（可选参数）。 |
 | --java-sdk | JDK路径。 |

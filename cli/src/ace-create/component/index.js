@@ -77,7 +77,7 @@ function getModuleList() {
 
 function checkComponentName(componentName, componentList) {
   if (!componentName) {
-    console.error('Component name must be required!');
+    console.error('Component name is required!');
     return false;
   }
   if (componentList.includes(componentName)) {
@@ -137,7 +137,7 @@ function createComponent() {
   try {
     manifestFile = JSON.parse(fs.readFileSync(manifestPath));
   } catch (error) {
-    console.error('Read manifest.json file filed.');
+    console.error('Read manifest.json file failed.');
     return false;
   }
   const componentList = getComponentList(manifestFile);
