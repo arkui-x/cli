@@ -23,6 +23,7 @@ function checkXcodeVersion() {
         }
         return "";
     } catch (err) {
+        // ignore
     }
 }
 function checkIdeviceVersion() {
@@ -32,6 +33,7 @@ function checkIdeviceVersion() {
         }
         return "";
     } catch (err) {
+        // ignore
     }
 }
 function checkDeployVersion() {
@@ -41,6 +43,7 @@ function checkDeployVersion() {
         }
         return "";
     } catch (err) {
+        // ignore
     }
 }
 

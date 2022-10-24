@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -48,7 +48,7 @@ function readConfig() {
     }
     return true;
   } catch (error) {
-    console.error(`Please 'ace check' first.\n` + error);
+    console.error(`Please 'ace check' first.`);
     return false;
   }
 }
@@ -129,7 +129,7 @@ function syncManifest(moduleList) {
       fs.writeFileSync(configPath, JSON.stringify(configObj, '', '  '));
       isContinue = isContinue && true;
     } catch (error) {
-      console.error(`Please check pages in ${manifestPath} and ${configPath}.\n` + error);
+      console.error(`Please check pages in ${manifestPath} and ${configPath}.`);
       isContinue = isContinue && false;
     }
   });
@@ -169,7 +169,7 @@ function syncBundleName(moduleList) {
         return true;
       }
     } catch (error) {
-      console.error(`Please check pages in ${manifestPath} and ${gradlePath}.\n` + error);
+      console.error(`Please check pages in ${manifestPath} and ${gradlePath}.`);
       return false;
     }
   });

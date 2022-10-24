@@ -504,3 +504,6 @@ ace help
 ace build --help
 ```
 
+## 相关概念
+
+ACE：元能力跨平台运行环境 (Ability Cross-platform Environment)。
