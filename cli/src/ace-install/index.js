@@ -129,6 +129,7 @@ function installHap(toolObj, filePathList, device) {
     }
     return true;
   } catch (error) {
+    console.error('Internal error with installing hap');
     return false;
   }
 }
@@ -193,6 +194,7 @@ function installApp(toolObj, filePathList, device) {
     }
     return true;
   } catch (error) {
+    console.error('Internal error with installing app');
     return false;
   }
 }

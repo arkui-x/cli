@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,7 +27,7 @@ function getTools() {
       const toolchainsPath = path.join(openHarmonySdkDir, "toolchains");
       const fileArr = fs.readdirSync(toolchainsPath);
       let hdcPath;
-      if (fileArr.length > 0) {
+      if (fileArr && fileArr.length > 0) {
         fileArr.forEach(item => {
           if (item.substring(0, 1) != ".") {
             hdcPath = ({ 'hdc': path.join(toolchainsPath, item, 'hdc_std') });
@@ -38,6 +38,7 @@ function getTools() {
         }
       }
     } catch (err) {
+      // ignore
     }
   }
   if ((platform === Platform.MacOS) && deployVersion) {
@@ -59,6 +60,7 @@ function getToolByType(fileType, isLogTool) {
         })
       }
     } catch (err) {
+      // ignore
     }
   }
   if (fileType == 'apk' && androidSdkDir) {

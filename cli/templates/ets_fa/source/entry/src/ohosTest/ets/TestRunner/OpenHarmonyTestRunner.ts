@@ -39,7 +39,7 @@ async function onAbilityCreateCallback() {
 }
 
 async function addAbilityMonitorCallback(err: any) {
-    console.info('addAbilityMonitorCallback : ' + JSON.stringify(err))
+    console.debug('addAbilityMonitorCallback : ' + JSON.stringify(err))
 }
 
 export default class OpenHarmonyTestRunner implements TestRunner {
@@ -47,7 +47,7 @@ export default class OpenHarmonyTestRunner implements TestRunner {
     }
 
     onPrepare() {
-        console.info('OpenHarmonyTestRunner OnPrepare')
+        console.debug('OpenHarmonyTestRunner OnPrepare')
     }
 
     onRun() {
@@ -68,16 +68,16 @@ export default class OpenHarmonyTestRunner implements TestRunner {
         {
             cmd += ' -D'
         }
-        console.info('cmd : '+cmd)
+        console.debug('cmd : '+cmd)
         abilityDelegator.executeShellCommand(cmd,
             (err: any, d: any) => {
-                console.info('executeShellCommand : err : ' + JSON.stringify(err));
-                console.info('executeShellCommand : data : ' + d.stdResult);
-                console.info('executeShellCommand : data : ' + d.exitCode);
+                console.debug('executeShellCommand : err : ' + JSON.stringify(err));
+                console.debug('executeShellCommand : data : ' + d.stdResult);
+                console.debug('executeShellCommand : data : ' + d.exitCode);
             })
-        console.info('OpenHarmonyTestRunner onRun call abilityDelegator.getAppContext')
+        console.debug('OpenHarmonyTestRunner onRun call abilityDelegator.getAppContext')
         var context = abilityDelegator.getAppContext()
-        console.info('getAppContext : ' + JSON.stringify(context))
-        console.info('OpenHarmonyTestRunner onRun end')
+        console.debug('getAppContext : ' + JSON.stringify(context))
+        console.debug('OpenHarmonyTestRunner onRun end')
     }
 };

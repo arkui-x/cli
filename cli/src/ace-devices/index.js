@@ -18,7 +18,7 @@ const { getTools } = require('../ace-check/getTool');
 const { Platform, platform } = require('../ace-check/platform');
 function devices(logFlag) {
   let tools = getTools();
-  if (tools.length == 0) {
+  if (tools && tools.length == 0) {
     console.info(`No such debug tools (hdc/adb/ios-deploy).`);
     return {
       'all': [],
