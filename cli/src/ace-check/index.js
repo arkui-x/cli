@@ -27,6 +27,7 @@ const checkJavaSdk = require('./checkJavaSdk');
 const { setConfig } = require('../ace-config');
 const devices = require('../ace-devices');
 const info = require('./Info');
+const process = require('child_process');
 const {
   requirementTitle,
   optionTitle,
@@ -67,6 +68,7 @@ function check() {
 
   if (nodejsDir) {
     setConfig({ 'nodejs-dir': nodejsDir });
+    process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
   }
 
   if (javaSdkDir) {
