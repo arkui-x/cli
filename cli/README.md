@@ -63,13 +63,13 @@ ohos@user ~ % ace check
 [√] OpenHarmony toolchains - develop for OpenHarmony devices
   • SDK at /Users/ohos/Desktop/sdk
   • Node.js Runtime Environment at /usr/local/bin/node
+  • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
 [√] Android toolchains - develop for Android devices
   • SDK at /Users/ohos/Library/Android/sdk
 [√] DevEco Studio
   • DevEco Studio at /Applications/deveco-studio.app
 [!] Android Studio
-  ! Android Studio is not installed, you can install in https://developer.android.google.cn/studio
-  • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
+  ! Android Studio is not installed, you can install in https://developer.android.google.cn/studio 
 [√] iOS toolchains - develop for iOS devices
   • Xcode 13.3Build version 13E113
   • idevicesyslog 1.3.0

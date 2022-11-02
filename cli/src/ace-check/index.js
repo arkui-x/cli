@@ -44,7 +44,8 @@ function check() {
   requirementTitle(info.openHarmonyTitle, openHarmonySdkDir && nodejsDir && javaSdkDir);
   requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
   requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
-
+  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+  
   optionTitle(info.androidTitle, androidSdkDir);
   optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
   if (platform != Platform.Linux) {
@@ -53,7 +54,7 @@ function check() {
   }
   optionTitle(info.androidStudioTitle, androidStudioDir);
   optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
-  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+
   if (platform === Platform.MacOS) {
     requirementTitle(info.iosXcodeTitle, xCodeVersion && iDeviceVersion && deployVersion);
     requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion);
