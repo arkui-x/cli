@@ -164,7 +164,7 @@ npm install . -g
 
 ### 创建应用
 
-1. ### 检查开发环境
+#### 1. 检查开发环境
 
    ```shell
    ace check
@@ -174,7 +174,7 @@ npm install . -g
 
 *注：开发环境检查主要针对SDK和IDE的默认安装和下载路径；如果通过SDK Manager下载SDK，会检查默认环境变量：ANDROID_HOME和OpenHarmony_HOME是否配置。*
 
-2. ### 检查设备连接
+#### 2. 检查设备连接
 
    ```shell
    ace devices
@@ -184,7 +184,7 @@ npm install . -g
 
 *注：该命令已经集成在 ` ace check` 中，可跳过。*
 
-3. ### 开发环境路径配置
+#### 3. 开发环境路径配置
 
    ```shell
    ace config
@@ -192,7 +192,7 @@ npm install . -g
 
 如果开发者没有按照IDE和SDK默认路径进行安装和下载，可通过此命令进行自定义路径配置。
 
-4. ### 创建project
+#### 4. 创建project
 
    以创建一个 ‘demo’  项目为例：
 
