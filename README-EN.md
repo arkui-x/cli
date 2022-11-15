@@ -326,7 +326,7 @@ cd demo
 
 ### Installing and Uninstalling the Application
 
-Go to the demo project directory .
+Go to the demo project directory.
 
    ```shell
 cd demo
