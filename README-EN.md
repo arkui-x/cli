@@ -200,7 +200,7 @@ If the IDE and SDK are not downloaded to or installed in the default paths, you 
    ace create project
    ? Please enter the project name: demo
    ? Please enter the packages (com.example.demo):com.example.demo
-   ? Please enter the ACE version (1: declarative paradigm, 2: web-likeparadigm): 1
+   ? Please enter the ACE version (1: declarative paradigm, 2: web-like paradigm): 1
    ```
 
 Run the `ace create project` command (**project** can be omitted). Then, enter the project name **demo** and press **Enter** to retain the default bundle name. Enter **1** to create an ArkUI declarative paradigm-based application project.
