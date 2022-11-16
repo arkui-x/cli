@@ -6,7 +6,7 @@ ArkUI-X Command Line Tools is a command line (CLI) tool that allows developers t
 
 **Figure 1** Architecture of the ArkUI-X Command Line Tools module 
 
-![](figures/cli.jpg)
+![](figures/cli-en.jpg)
 
 The script file used as the tool entry varies depending on the platform. Use the proper script file to launch the tool. Then, run **ace_tools.js** through Node.js, and use the commander of the npm module to parse the commands and execute the exported methods of each sub-module.
 
