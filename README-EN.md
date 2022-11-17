@@ -6,13 +6,13 @@ ArkUI-X Command Line Tools is a command line (CLI) tool that allows developers t
 
 **Figure 1** Architecture of the ArkUI-X Command Line Tools module 
 
-![](figures/cli-en.jpg)
+![](figures/cli-en.png)
 
 The script file used as the tool entry varies depending on the platform. Use the proper script file to launch the tool. Then, run **ace_tools.js** through Node.js, and use the commander of the npm module to parse the commands and execute the exported methods of each sub-module.
 
 ## Directory Structure
 
-For details about the source code structure of the ArkUI framework, see [ArkUI-X Application Project Structure](https://gitee.com/arkui-crossplatform/doc/blob/master/application-dev/quick-start/project-structure-guide.md). The code of the ACE toolchain is available at **/developtools/ace_tools/cli**. The directory structure is as follows:
+For details about the source code structure of the ArkUI framework, see [ArkUI Project Structure and Building](https://gitee.com/arkui-x/docs/blob/master/en/framework-dev/quick-start/project-structure-guide.md). The code of the ACE toolchain is available at **/developtools/ace_tools/cli**. The directory structure is as follows:
 
 ```
 /developtools/ace_tools/cli
@@ -54,7 +54,7 @@ Before using the CLI tool to create a project, check the local development envir
 
 3. OpenHarmony SDK
 
-   An OpenHarmony SDK is required for HAP building. If no OpenHarmony SDK exists, [download and install one] (https://developer.harmonyos.com/en/develop/deveco-studio) depending on your system.
+   An OpenHarmony SDK is required for HAP building. If no OpenHarmony SDK exists, [download and install one](https://developer.harmonyos.com/en/develop/deveco-studio) depending on your system.
 
    
 
