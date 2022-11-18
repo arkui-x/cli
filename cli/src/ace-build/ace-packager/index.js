@@ -51,8 +51,8 @@ function writeLocalProperties() {
 }
 
 function copyToOutput(fileType) {
-  let type = fileType == "apk" ? "android" : "ios";
-  let src = path.join(projectDir, `/${type}/build/outputs/${fileType}/`);
+  let typePath = fileType == "apk" ? "android/app" : "ios";
+  let src = path.join(projectDir, `/${typePath}/build/outputs/${fileType}/`);
   let filePath = copyToBuildDir(src);
   console.log(`filepath: ${filePath}`);
 }
