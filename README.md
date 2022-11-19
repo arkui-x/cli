@@ -2,15 +2,14 @@
 
 ## 简介
 ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，用于构建OpenHarmony、Android和iOS平台的应用程序， 其功能包括开发环境检查，新建项目，编译打包，安装调试等。
+
 **注释：** ACE - 元能力跨平台运行环境 (Ability Cross-platform Environment)。
 
-图1 ArkUI Tools命令行工具模块结构
+图1 ACE Tools命令行工具模块结构
 
 ![](figures/cli.jpg)
 
 命令行各平台使用不同脚本文件做为入口，再通过Node.js执行到ace_tools.js文件，使用npm模块commander解析命令行执行各子模块导出的方法。
-
-ACE：元能力跨平台运行环境 (Ability Cross-platform Environment)。
 
 ## 目录结构
 ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https://gitee.com/arkui-crossplatform/doc/blob/master/application-dev/quick-start/project-structure-guide.md) , ACE Tools工具链的代码在//developtools/ace_tools下，目录结构如下图所示：
@@ -75,7 +74,7 @@ ace config [options] <path>
 | DevEco Studio    | DevEco Studio安装路径        | 是      | 否    | 是   |
 | Android Studio   | Android Studio安装路径       | 是      | 是    | 是   |
 | 连接设备         | 当前连接的所有设备           | 是      | 是    | 是   |
-| Xcode            | 当前xcode的版本号            | 否      | 否    | 是   |
+| Xcode            | 当前Xcode的版本号            | 否      | 否    | 是   |
 | libimobiledevice | 当前libimobiledevice的版本号 | 否      | 否    | 是   |
 | ios-deploy       | 当前ios-deploy的版本号       | 否      | 否    | 是   |
 
@@ -314,9 +313,9 @@ Uninstall APP successfully.
 
 ### ace log
 
-滚动展示正在运行的跨平台应用的 log。
+滚动展示正在运行的跨平台应用的日志。
 
-默认只输出跨平台应用进程相关 log。
+默认只输出跨平台应用进程相关日志。
 
 语法：
 
@@ -404,7 +403,7 @@ ace help <subcommand>
 | install   | 将跨平台应用安装到连接的设备上。                             |
 | uninstall | 将跨平台应用从设备上卸载。                                   |
 | launch    | 在设备上运行跨平台应用。                                     |
-| log       | 滚动展示正在运行的跨平台应用的 log。                         |
+| log       | 滚动展示正在运行的跨平台应用的日志。                         |
 | run       | 运行跨平台应用包。                                           |
 | clean     | 清理跨平台应用编译结果。                                     |
 | help      | 跨平台应用命令行工具帮助。                                   |
