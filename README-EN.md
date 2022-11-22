@@ -7,7 +7,7 @@ ACE stands for Ability Cross-platform Environment. It is a cross-platform progra
 
 **Figure 1** Structure of ACE Tools
 
-![](figures/cli-en.jpg)
+![](figures/cli-en.png)
 
 The script file used as the tool entry varies depending on the platform. Use the appropriate script file to launch the tool. Then, run **ace_tools.js** through Node.js, and use the commander module of npm to parse the commands and execute the exported methods of each sub-module.
 
