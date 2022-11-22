@@ -1,18 +1,18 @@
-# Quick Start Guide
+# ACE Tools
 
-## Overview
+## Introduction
+ACE Tools is a command line (CLI) tool that allows ArkUI-X project developers to build applications on the OpenHarmony, Android, and iOS platforms. Its functions include development environment check, project creation, building and packaging, and installation and debugging.
 
-ArkUI-X Command Line Tools is a command line (CLI) tool that allows developers to build applications runnable across the OpenHarmony, Android, and iOS platforms. Its functions include development environment check, project creation, building and packaging, and installation and debugging.
+ACE stands for Ability Cross-platform Environment. It is a cross-platform programming framework dedicated to OpenHarmony.
 
-**Figure 1** Architecture of the ArkUI-X Command Line Tools module 
+**Figure 1** Structure of ACE Tools
 
-![](figures/cli-en.png)
+![](figures/cli-en.jpg)
 
-The script file used as the tool entry varies depending on the platform. Use the proper script file to launch the tool. Then, run **ace_tools.js** through Node.js, and use the commander of the npm module to parse the commands and execute the exported methods of each sub-module.
+The script file used as the tool entry varies depending on the platform. Use the appropriate script file to launch the tool. Then, run **ace_tools.js** through Node.js, and use the commander module of npm to parse the commands and execute the exported methods of each sub-module.
 
 ## Directory Structure
-
-For details about the source code structure of the ArkUI framework, see [ArkUI Project Structure and Building](https://gitee.com/arkui-x/docs/blob/master/en/framework-dev/quick-start/project-structure-guide.md). The code of the ACE toolchain is available at **/developtools/ace_tools/cli**. The directory structure is as follows:
+For details about the source code structure of the ArkUI-X project, see [ArkUI-X Application Project Structure](https://gitee.com/arkui-x/docs/blob/master/en/application-dev/quick-start/package-structure-guide.md). The code of the ACE Tools is available at **//developtools/ace_tools**. The directory structure is as follows:
 
 ```
 /developtools/ace_tools/cli
@@ -31,479 +31,412 @@ For details about the source code structure of the ArkUI framework, see [ArkUI P
 │   ├── bin                     # Device entry scripts
 │   └── util                    # Utilities
 └── templates                   # Templates
-    ├── android                 # Android project templates
-    ├── ets_fa                  # eTS project templates
+    ├── andriod                 # Android project templates
+    ├── ets_fa                  # ArkTS-based declarative development paradigm templates
     ├── ios                     # iOS project templates
-    ├── js_fa                   # JS project templates
-    └── ohos_fa                 # OpenHarmony project template
+    ├── js_fa                   # JS-compatible web-like development paradigm templates
+    └── ohos_fa                 # OpenHarmony project templates
 ```
 
 ## How to Use
 
-### Installing the Environment
+### ace config
 
-Before using the CLI tool to create a project, check the local development environment.
+Adds ACE Tools-specific configuration, including the OpenHarmony SDK directory, Android SDK directory, Node.js directory, and build output directory.
 
-1. NodeJS
-
-   Run the `node -v` command to check the local Node.js version. If no Node.js version exists, [download and install a latest stable version](https://nodejs.org/en/download/). A version later than 14.19.1 is recommended.
-
-2. Java
-
-   Run the `java -version` command to check the local JDK version. If no JDK version exists, [download and install a latest stable version](https://repo.huaweicloud.com/openjdk/), and configure related environment variables. A version later than JDK11.0.2 is recommended.
-
-3. OpenHarmony SDK
-
-   An OpenHarmony SDK is required for HAP building. If no OpenHarmony SDK exists, [download and install one](https://developer.harmonyos.com/en/develop/deveco-studio) depending on your system.
-
-   
-
-   **Recommended environment variable configuration for the SDK:**
-
-   [Linux]
-
-   ```shell
-   // Configure environment variables.
-   export OpenHarmony_HOME=/home/usrername/path-to-ohsdk
-   export PATH=${OpenHarmony_HOME}/toolchains/versioncode:${PATH}
-   ```
-
-   [Mac]
-
-   ```shell
-   // Configure environment variables.
-   export OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
-   export PATH=$OpenHarmony_HOME/toolchains/versioncode:$PATH
-   ```
-
-   [Windows]
-
-   ```shell
-   // Configure environment variables.
-   set OpenHarmony_HOME=/Users/usrername/path-to-ohsdk
-   set PATH=%PATH%;%OpenHarmony_HOME%/toolchains/versioncode
-   ```
-
-4. Android SDK
-
-   An Android SDK is required for APK building. You can access the Android SDK through Android Studio. If you do not have Android Studio, [download and install one](https://developer.android.com/studio).
-
-   
-
-   **Recommended environment variable configuration for the SDK:**
-
-   [Linux]
-
-   ```shell
-   // Configure environment variables.
-   export ANDROID_HOME=/home/usrername/path-to-android-sdk
-   export PATH=${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/build-tools/28.0.3:${ANDROID_HOME}/platform-tools:${PATH}
-   ```
-
-   [Mac]
-
-   ```shell
-   // Configure environment variables.
-   export ANDROID_HOME=/Users/usrername/path-to-android-sdk
-   export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/build-tools/28.0.3:$ANDROID_HOME/platform-tools:$PATH
-   ```
-
-   [Windows]
-
-   ```shell
-   // Configure environment variables.
-   set ANDROID_HOME=/home/usrername/path-to-android-sdk
-   set PATH=%PATH%;%ANDROID_HOME%/tools;%ANDROID_HOME%/tools/bin;%ANDROID_HOME%/build-tools/28.0.3;%ANDROID_HOME%/platform-tools
-   ```
-
-5. Mac dependency
-
-   - Xcode and Command Line Tools for Xcode
-
-   You can download Xcode and Command Line Tools for Xcode from Apple Store. Alternatively, you can run the following command to install the Command Line Tools:
-
-   ```shell
-   xcode-select --install
-   ```
-
-   - libimobiledevice
-
-   ```shell
-   brew install libimobiledevice
-   ```
-
-   For details, see [Libimobiledevice Installation](https://libimobiledevice.org).
-
-   - ios-deploy
-
-   ```shell
-   brew install ios-deploy
-   ```
-
-   For details, see [ios-deploy Installation] (https://github.com/ios-control/ios-deploy).
-
-### Installing Dependencies
-
-Modify the npm source.
-
-​	Go to the user directory and add the following content to the **.npmrc** file:
+Syntax:
 
 ```shell
-@ohos:registry=https://repo.harmonyos.com/npm/
-registry=https://repo.huaweicloud.com/repository/npm/
+ace config [options] <path>
 ```
 
-You can run the installation command in the toolchain's **cli** directory to install the CLI dependency package.
+| Parameter         | Description               |
+| ------------- | ------------------- |
+| --openharmony-sdk | OpenHarmony SDK directory.|
+| --android-sdk | Android SDK directory.   |
+| --nodejs-dir  | Node.js directory.       |
+| --build-dir   | Build output directory.    |
+| --deveco-studio-path | DevEco Studio installation directory (optional).|
+| --android-studio-path | Android Studio installation directory (optional).|
+| --java-sdk | JDK directory.|
+
+### ace check
+
+Checks the ArkUI-X application development environment.
+
+The following table lists the check items.
+
+| Item        | Description                        | Windows | Linux | Mac  |
+| ---------------- | ---------------------------- | ------- | ----- | ---- |
+| Node.js           | Node.js directory.                 | Yes     | Yes   | Yes  |
+| OpenHarmony SDK  | OpenHarmony SDK directory.         | Yes     | Yes   | Yes  |
+| Android SDK      | Android SDK directory.             | Yes     | Yes   | Yes  |
+| DevEco Studio    | DevEco Studio installation directory.       | Yes     | No   | Yes  |
+| Android Studio   | Android Studio installation directory.      | Yes     | Yes   | Yes  |
+| Connected device        | All currently connected devices.          | Yes     | Yes   | Yes  |
+| Xcode            | Xcode version.           | No     | No   | Yes  |
+| libimobiledevice | libimobiledevice version.| No     | No   | Yes  |
+| ios-deploy       | ios-deploy version.      | No     | No   | Yes  |
+
+Syntax:
 
 ```shell
-cd ace_tools/cli
-npm install . -g
+ace check
 ```
 
-Note: If the global installation fails, run the **npm install** command and then the **npm install. -g** command.
+No parameters need to be specified.
 
-### Creating an Application
-
-#### 1. Check the development environment.
-
-   ```shell
-   ace check
-   ```
-
-Run the `ace check` command to check the local development environment. Mandatory items must pass the check. Otherwise, you are not allowed to continue the subsequent operations.
-
-Note: The development environment check focuses on the default installation and download paths of the SDK and IDE. If the SDK is downloaded through SDK Manager, the system checks whether the default environment variables **ANDROID_HOME** and **OpenHarmony_HOME** are properly configured.
-
-#### 2. Check the device connection.
-
-   ```shell
-   ace devices
-   ```
-
-The command output contains a list of currently connected devices and device IDs. Take a record of the information as you need to specify a device ID as the input parameter of subsequent commands.
-
-Note: This command has been integrated in `ace check` and can be skipped.
-
-#### 3. Configure the development environment path.
-
-   ```shell
-   ace config
-   ```
-
-If the IDE and SDK are not downloaded to or installed in the default paths, you can run this command to change the paths.
-
-#### 4. Create a project.
-
-   The following describes how to create a project named **demo**:
-
-   ```shell
-   ace create project
-   ? Please enter the project name: demo
-   ? Please enter the packages (com.example.demo):com.example.demo
-   ? Please enter the ACE version (1: declarative paradigm, 2: web-like paradigm): 1
-   ```
-
-Run the `ace create project` command (**project** can be omitted). Then, enter the project name **demo** and press **Enter** to retain the default bundle name. Enter **1** to create an ArkUI declarative paradigm-based application project.
-
-A project named **demo** is thus created.
-
-The key structure of the project is as follows:
+Reference command output:
 
 ```shell
-demo/
-├── android		// Android project for the cross-platform application
-│   ├── app
-│   │   ├── libs
-│   │   └── src
-│   │       ├── androidTest
-│   │       ├── main
-│   │       │   ├── AndroidManifest.xml
-│   │       │   ├── assets	// Resource files generated from building of the cross-platform application
-│   │       │   ├── java
-│   │       │   │   └── com
-│   │       │   │       └── example
-│   │       │   │           └── demo
-│   │       │   │               ├── MainActivity.java	// Inherited from the AceActivity base class provided by ArkUI
-│   │       │   │               └── MyApplication.java	// Inherited from the AceApplication base class provided by ArkUI
-│   │       │   └── res
-│   │       └── test
-│   └── settings.gradle
-├── ios		// iOS project for the cross-platform application
-│   ├── etsapp
-│   │   ├── AppDelegate.h
-│   │   ├── AppDelegate.mm	// Instantiate AceViewController and load the ArkUI page.
-│   │   ├── Info.plist
-│   │   └── main.m
-│   ├── etsapp.xcodeproj
-│   ├── frameworks
-│   └── js
-│   └── res
-├── ohos	// OpenHarmony project for the cross-platform application
-│   ├── build-profile.json5
-│   ├── entry
-│   │   └── src
-│   │       └── main
-│   │           ├── config.json
-│   │           └── resources
-└── source	// Source code for the cross-platform application
-    └── entry
-        └── src
-            ├── main
-            │   ├── ets
-            │   │   └── MainAbility
-            │   │       ├── app.ets
-            │   │       ├── manifest.json	// Project configuration 
-            │   │       └── pages
-            │   │           └── index
-            │   │               └── index.ets
-            │   └── resources
-            └── ohosTest
+ohos@user ~ % ace check
+[√] OpenHarmony toolchains - develop for OpenHarmony devices
+  • SDK at /Users/ohos/Desktop/sdk
+  • Node.js Runtime Environment at /usr/local/bin/node
+  • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
+[√] Android toolchains - develop for Android devices
+  • SDK at /Users/ohos/Library/Android/sdk
+[√] DevEco Studio
+  • DevEco Studio at /Applications/deveco-studio.app
+[!] Android Studio
+  ! Android Studio is not installed, you can install in https://developer.android.google.cn/studio 
+[√] iOS toolchains - develop for iOS devices
+  • Xcode 13.3Build version 13E113
+  • idevicesyslog 1.3.0
+  • 1.11.4
+Tools info :[×] hdc is not installed [√] adb installed [√] ios-deploy installed
+[√] Connected device (1 available)
+  • iOS Devices	[....] Found 00008020-001C0D92146A002E (N841AP, iPhone XR, iphoneos, arm64e, 15.0, 19A346) a.k.a. 'iPhone Xr 15.0' connected through USB.
 
+  √ Ace-check found no issues.
 ```
 
-### Editing Code
+### ace devices
 
-After the project is created, you can develop code in the **source** directory of the project.
+Lists all connected devices. On Windows and Linux, you can query the currently connected Android and OpenHarmony devices. 
 
-### Building the Project
+On Mac, you can query the currently connected Android, OpenHarmony, and iOS devices.
 
-Start building the **demo** project. This includes three parts: HAP, APK, and app.
 
-   ```shell
-cd demo
-   ```
+Syntax:
 
-1. Build the HAP. By default, this applies to all modules.
+```shell
+ace devices
+```
 
-   ```shell
-   ace build hap
-   ```
+No parameters need to be specified.
 
-   An HAP file is generated for each module. The default path is **demo/ohos/entry/build/default/outputs/default/**.
+Reference command output:
 
-2. Build the HAP for the specified modules.
+```shell
+ohos@user ~ % ace devices
+Tools info :[×] hdc is not installed [√] adb installed [√] ios-deploy installed
+[√] Connected device (1 available)
+  • iOS Devices	[....] Found 00008020-001C0D92146A002E (N841AP, iPhone XR, iphoneos, arm64e, 15.0, 19A346) a.k.a. 'iPhone Xr 15.0' connected through USB.
+```
 
-   ```shell
-   ace build hap --target moduleName
-   ace build hap --target "moduleName1 moduleName2 ..."
-   ```
+### ace create project
 
-   An HAP file is generated for each specified module. The default path is **demo/ohos/moduleName/build/default/outputs/default/**.
+Creates an ArkUI-X project.
 
-   Note: In this version, you need to build the entry module first if you are building the HAP for specified modules. If you want to add multiple modules, add them to end of the **--target** parameter. If you do so, use quotation marks to include each target module, and separate each two of them with a space.
+If the project already exists, a prompt is displayed, asking you whether to delete the project.
 
-3. Build the APK. By default, this applies to the **app** module.
+When creating a project, you need to specify the project name and package name in sequence. If you do not enter the package name, it will be defaulted to **com.example.***project name*.
 
-   ```shell
-   ace build apk
-   ```
 
-   An APK file is generated. The default path is **demo/android/app/build/outputs/apk/debug/**.
+Syntax:
 
-4. Build the APK for the specified module.
+```shell
+ace create project
+```
 
-   ```shell
-   ace build apk --target moduleName
-   ```
+Prompt asking whether to delete the existing project:
 
-   An APK file is generated. The default path is **demo/android/app/build/outputs/apk/debug/**.
+```shell
+The project already exists. Do you want to delete the directory (Y / N):
+```
 
-5. Build the app. By default, this applies to the **app** module.
+Prompt indicating that the existing project is deleted successfully:
 
-   ```shell
-   ace build app
-   ```
-   
-   An app file is generated. The default path is **demo/ios/build/outputs/app/**.
-   
-6. Build the app for the specified module.
+```shell
+Delete directory successfully, creating new project...:
+```
 
-   ```shell
-   ace build app --target moduleName
-   ```
+Prompt indicating a failure to delete the existing project:
 
-   An app file is generated. The default path is **demo/ios/build/outputs/app/**.
+```shell
+Failed to create project, project directory already exists!
+```
 
-### Installing and Uninstalling the Application
+Prompt for entering the project name:
 
-Go to the demo project directory.
+```shell
+Please input project name:
+```
 
-   ```shell
-cd demo
-   ```
+Prompt for entering the package name:
 
-1. Install the HAP.
+```shell
+Please input package name: com.example.${projectName}:
+```
 
-   ```shell
-   ace install hap
-   ```
+Prompt for entering the project version:
 
-2. Install the HAP on the specified device.
+```shell
+Please enter the ACE version (1: ArkTS-based declarative development paradigm, 2: JS-compatible web-like development paradigm):
+```
 
-   ```shell
-   ace install hap -d deviceId
-   ```
+Prompt indicating that the project is created successfully:
 
-3. Install the APK.
+```shell
+Project created successfully! Target directory: ${projectName}
+```
 
-   ```shell
-   ace install apk
-   ```
+### ace create module
 
-4. Install the APK on the specified device.
+Creates an ArkUI-X application module.
 
-   ```shell
-   ace install apk -d deviceId
-   ```
 
-5. Install the app.
+You need to run the command in the **source** directory of the newly created ArkUI-X project. Then, enter the module name at the following prompt:
 
-   ```shell
-   ace install app
-   ```
+```shell
+Please input module name:
+```
 
-6. Install the app on the specified device.
+If the module name already exists, the system displays the message **${module name} already exists**. Change the module name, and press **Enter**. The ArkUI-X application module is successfully created.
 
-   ```shell
-   ace install app -d deviceId
-   ```
+### ace build
 
-7. Uninstalling the HAP
+Builds an ArkUI-X application installation package.
 
-   ```shell
-   ace uninstall hap --bundle bundleName
-   ```
+Syntax:
 
-8. Uninstall the HAP on the specified device.
+```shell
+ace build [options] [fileType]
+```
 
-   ```shell
-   ace uninstall hap --bundle bundleName -d deviceId
-   ```
+You can build HAP and APK packages on Windows and Linux, and build HAP, APK, and App packages on Mac.
 
-9. Uninstall the APK.
+**Note:** On DevEco Studio, open the project to build and enable automatic signing as follows: Go to **File** > **Project Structure** > **Project** > **Signing Configs**, and select **Automatically generate signature**. Then, run the **ace build** command to build the signed HAP installation package. On Mac, use Xcode to open the corresponding iOS project, enable automatic signing on the **Singing** tab on the **Build settings** page, and run the build command.
 
-   ```shell
-   ace uninstall apk --bundle bundleName
-   ```
+- options
 
-10. Uninstall the APK on the specified device.
+| Option               | Description                                      |
+| --------------------- | ------------------------------------------ |
+| --target [moduleName] | Specifies the name of the target module.                  |
+| -r --release          | Sets the type of the application to **release**. The default type is **debug**.|
+| --nosign              | Builds an unsigned application (for App package only).         |
+| -h --help             | Displays the help information.                            |
 
-    ```shell
-    ace uninstall apk --bundle bundleName -d deviceId
-    ```
+- fileType
 
-11. Uninstall the app.
+| Parameter| Description                                                  |
+| ---- | ------------------------------------------------------ |
+| hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
+| apk  | APK package of the Android application.                                 |
+| app  | App package of the iOS application.                                  |
 
-    ```shell
-    ace uninstall app --bundle bundleName
-    ```
+Reference command output:
 
-12. Uninstall the app on the specified device.
+```shell
+Build hap successfully.
+filepath: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
+```
 
-    ```shell
-    ace uninstall app --bundle bundleName -d deviceId
-    ```
+### ace install
 
-###  Running the Application
+Installs an ArkUI-X application on a connected device.
 
-1. Run the HAP.
 
-   ```shell
-   ace run hap
-   ```
+Syntax:
 
-2. Run the HAP on the specified device.
+```shell
+ace install [options] [fileType]
+```
 
-   ```shell
-   ace run hap -d deviceId
-   ```
+You can install HAP and APK packages on Windows and Linux, and install HAP, APK, and App packages on Mac.
 
-3. Run the APK.
+- options
 
-   ```shell
-   ace run apk
-   ```
+| Option             | Description              |
+| ------------------- | ------------------ |
+| -d [deviceId]       | Specifies the ID of the device for installing the application.|
+| --device [deviceId] | Specifies the ID of the device for installing the application.|
 
-4. Run the APK on the specified device.
+- fileType
 
-   ```shell
-   ace run apk -d deviceId
-   ```
+| Parameter| Description                                                  |
+| ---- | ------------------------------------------------------ |
+| hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
+| apk  | APK package of the Android application.                                 |
+| app  | App package of the iOS application.                                  |
 
-5. Run the app.
+Command output:
 
-   ```shell
-   ace run app
-   ```
+```shell
+ohos@user % ace install app
+Install APP successfully.
+```
 
-6. Run the app on the specified device.
+### ace uninstall
 
-   ```shell
-   ace run app -d deviceId
-   ```
+Uninstalls an ArkUI-X application on a connected device.
 
-### Clearing Build Results
+Syntax:
 
-Clear build results of the HAP, APK, and app.
+```shell
+ace uninstall [options] [fileType]
+```
 
-  ```shell
+- options
+
+| Option               | Description                  |
+| --------------------- | ---------------------- |
+| -d [deviceId]         | Specifies the ID of the device running the application to uninstall.|
+| --device [deviceId]   | Specifies the ID of the device running the application to uninstall.|
+| --bundle [bundleName] | Bundle name of the application to uninstall.  |
+
+- fileType
+
+| Parameter| Description                                                  |
+| ---- | ------------------------------------------------------ |
+| hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
+| apk  | APK package of the Android application.                                 |
+| app  | App package of the iOS application.                                  |
+
+Command output:
+
+```shell
+ohos@user % ace uninstall --bundle com.example.${projectName} app
+Uninstall APP successfully.
+```
+
+### ace log
+
+Displays the logs of an ArkUI-X application in scrolling mode.
+
+By default, only logs related to processes of the ArkUI-X application are generated.
+
+Syntax:
+
+```shell
+ace log [options] [fileType]
+```
+
+- options
+
+| Option             | Description                  |
+| ------------------- | ---------------------- |
+| -d [deviceId]       | Specifies the ID of the device running the ArkUI-X application.|
+| --device [deviceId] | Specifies the ID of the device running the ArkUI-X application.|
+
+- fileType
+
+| Parameter| Description                                               |
+| ---- | --------------------------------------------------- |
+| hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
+| apk  | APK package of the Android application.                                 |
+| app  | App package of the iOS application.                                  |
+
+### ace run
+
+Runs an ArkUI-X application.
+
+This command checks whether the target device is connected, determines the device type, and then performs operations such as building, installing, and starting an ArkUI-X application, and generating application process logs.
+
+On Windows and Linux, you can build, install, and run HAP and APK packages. On Mac, you can build, install, and run HAP, APK, and App packages.
+
+Syntax:
+
+```shell
+ace run [options] [fileType]
+```
+
+- options
+
+| Option             | Description                  |
+| ------------------- | ---------------------- |
+| -d [deviceId]       | Specifies the ID of the device on which the ArkUI-X application is run.|
+| --device [deviceId] | Specifies the ID of the device on which the ArkUI-X application is run.|
+
+- fileType
+
+| Parameter| Description                                                        |
+| ---- | ------------------------------------------------------------ |
+| hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
+| apk  | APK package of the Android application.                                 |
+| app  | App package of the iOS application.                                  |
+
+### ace clean
+
+Clears the build results of an ArkUI-X application.
+
+Syntax:
+
+```shell
 ace clean
-  ```
-
-### Generating Log Files
-
-Log information of running applications is displayed continuously.
-
-1. Display the HAP log.
-
-  ```shell
-ace log hap
-  ```
-
-2. Display the log for the HAP running on the specified device.
-
-  ```shell
-ace log hap -d deviceId
-  ```
-
-3. Display the APK log.
-
-  ```shell
-ace log apk
-  ```
-
-4. Display the log for the APK running on the specified device.
-
-  ```shell
-ace log apk -d deviceId
-  ```
-
-5. Display the app log.
-
-  ```shell
-ace log app
-  ```
-
-6. Display the log for the app running on the specified device.
-
-  ```shell
-ace log app -d deviceId
-  ```
-
-### Displaying Help Information
-
-Display the help information about supported commands.
-
-  ```shell
-ace help
-  ```
-
-Display the help information about the specified command.
-
-```shell
-ace build --help
 ```
 
-## Related Concepts
+Command output:
 
-ACE: Ability Cross-platform Environment
+```shell
+Clean project successfully
+```
+
+### ace help
+
+Obtains the CLI help for an ArkUI-X application.
+
+Syntax:
+
+```shell
+ace help <subcommand>
+```
+
+| Option   | Description                                                        |
+| --------- | ------------------------------------------------------------ |
+| devices   | Lists all connected devices.                                        |
+| check     | Checks the ArkUI-X application development environment.                                    |
+| config    | Adds ACE Tools-specific configuration, including the OpenHarmony SDK directory, Android SDK directory, Node.js directory, and build output directory.|
+| create    | Creates an ArkUI-X application or module.                    |
+| build     | Builds an ArkUI-X application installation package.                                      |
+| install   | Installs an ArkUI-X application on a connected device.                            |
+| uninstall | Uninstalls an ArkUI-X application on a connected device.                                  |
+| launch    | Launches an ArkUI-X application on a connected device.                                    |
+| log       | Displays the logs of an ArkUI-X application in scrolling mode.                        |
+| run       | Runs an ArkUI-X application.                                          |
+| clean     | Clears the build results of an ArkUI-X application.                                    |
+| help      | Obtains the CLI help for an ArkUI-X application.                                  |
+
+The prompt is as follows:
+
+```shell
+ohos@user % ace help
+Usage: ace <command> [options]
+
+Options:
+  -V, --version                   output the version number
+  -d, --device <device>           input device id to specify the device to do something
+  -h, --help                      display help for command
+
+Commands:
+  create [subcommand]             create ace project/module/component
+  check                           check sdk environment
+  devices                         list the connected devices.
+  config [options]                
+          --openharmony-sdk [OpenHarmony SDK]
+          --android-sdk   [Android Sdk]
+          --deveco-studio-path [DevEco Studio Path]
+          --android-studio-path [Android Studio Path]
+          --build-dir     [Build Dir]
+          --nodejs-dir    [Nodejs Dir]
+          --java-sdk      [Java Sdk]
+  build [options] [fileType]      build hap/apk/app of moduleName
+  install [options] [fileType]    install hap/apk/app on device
+  uninstall [options] [fileType]  uninstall hap/apk/app on device
+  run [options] [fileType]        run hap/apk on device
+  launch [options] [fileType]     launch hap/apk on device
+  log [fileType]                  show debug log
+  clean                           clean project
+  help [command]                  display help for command
+```
