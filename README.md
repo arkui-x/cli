@@ -1,7 +1,7 @@
 # ACE Tools
 
 ## 简介
-ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，用于构建OpenHarmony、Android和iOS平台的应用程序， 其功能包括开发环境检查，新建项目，编译打包，安装调试等。
+ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，用于构建OpenHarmony、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
 **注释：** ACE - 元能力跨平台运行环境 (Ability Cross-platform Environment)。
 
@@ -31,7 +31,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 │   ├── bin                     # 各终端入口脚本
 │   └── util                    # 工具模块
 └── templates                   # 模板相关
-    ├── andriod                 # Andriod工程模板
+    ├── android                 # Android工程模板
     ├── ets_fa                  # 基于ArkTS的声明式开发范式模板
     ├── ios                     # iOS工程模板
     ├── js_fa                   # 兼容JS的类Web开发范式模板
@@ -162,7 +162,7 @@ The project already exists. Do you want to delete the directory (Y / N):
 Delete directory successfully, creating new project...:
 ```
 
-删除已有项目成失败:
+删除已有项目失败:
 
 ```shell
 Failed to create project, project directory already exists!
