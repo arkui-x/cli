@@ -12,7 +12,7 @@ ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工�
 命令行各平台使用不同脚本文件做为入口，再通过Node.js执行到ace_tools.js文件，使用npm模块commander解析命令行执行各子模块导出的方法。
 
 ## 目录结构
-ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https://gitee.com/arkui-crossplatform/doc/blob/master/application-dev/quick-start/project-structure-guide.md) , ACE Tools工具链的代码在//developtools/ace_tools下，目录结构如下图所示：
+ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https://gitee.com/arkui-x/docs/blob/master/zh-cn/framework-dev/quick-start/project-structure-guide.md) , ACE Tools工具链的代码在//developtools/ace_tools下，目录结构如下图所示：
 
 ```
 /developtools/ace_tools/cli
