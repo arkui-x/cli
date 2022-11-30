@@ -12,7 +12,7 @@ ACE stands for Ability Cross-platform Environment. It is a cross-platform progra
 The script file used as the tool entry varies depending on the platform. Use the appropriate script file to launch the tool. Then, run **ace_tools.js** through Node.js, and use the commander module of npm to parse the commands and execute the exported methods of each sub-module.
 
 ## Directory Structure
-For details about the source code structure of the ArkUI-X project, see [ArkUI-X Application Project Structure](https://gitee.com/arkui-x/docs/blob/master/en/application-dev/quick-start/package-structure-guide.md). The code of the ACE Tools is available at **//developtools/ace_tools**. The directory structure is as follows:
+For details about the source code structure of the ArkUI-X project, see [ArkUI-X Project Structure](https://gitee.com/arkui-x/docs/blob/master/en/framework-dev/quick-start/project-structure-guide.md). The code of the ACE Tools is available at **//developtools/ace_tools**. The directory structure is as follows:
 
 ```
 /developtools/ace_tools/cli
