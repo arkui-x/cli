@@ -106,6 +106,13 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/.eslintrc" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/hvigorfile.js" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/ohosTest/module.json5" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/main/module.json5" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/build-profile.json5" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/hvigorfile.js" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/AppScope/app.json5" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/build-profile.json5" desc="webpack编译配置文件，无需添加版权头"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="License文件头校验策略的过滤条件" >
                 <filteritem type="filepath" name="cli/templates/ios/.*.js" desc="示例展示无需添加License头"/>
@@ -139,6 +146,13 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/test/java/ExampleUnitTest.java" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/.eslintrc" desc="webpack编译配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/hvigorfile.js" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/ohosTest/module.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/main/module.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/build-profile.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/hvigorfile.js" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/AppScope/app.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/build-profile.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
             </filefilter>
         </filefilterlist>
 
