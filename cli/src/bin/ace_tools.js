@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@ const program = require('commander');
 const { create } = require('../ace-create/project');
 const createModule = require('../ace-create/module');
 const createComponent = require('../ace-create/component');
+const createAbility = require('../ace-create/ability');
 const { setConfig } = require('../ace-config');
 const check = require('../ace-check');
 const devices = require('../ace-devices');
@@ -57,58 +58,80 @@ function parseCommander() {
 
 function parseCreate() {
   program.command('create [subcommand]')
-  .description(`create ace project/module/component`)
-  .action((subcommand, cmd) => {
-    if (!subcommand || subcommand === 'project') {
-      inquirer.prompt([{
-        name: 'project',
-        type: 'input',
-        message: 'Please enter the project name:',
-        validate(val) {
-          if (val === '') {
-            return 'Project name must be required!';
-          }
-          return true;
-        }
-      }]).then(answers => {
-        const initInfo = {};
-        initInfo.platform = '';
-        initInfo.project = answers.project;
+    .description(`create ace project/module/component/ability`)
+    .action((subcommand, cmd) => {
+      if (!subcommand || subcommand === 'project') {
         inquirer.prompt([{
-          name: 'packages',
+          name: 'project',
           type: 'input',
-          message: 'Please enter the packages (com.example.' + initInfo.project + '):',
+          message: 'Please enter the project name:',
           validate(val) {
+            if (val === '') {
+              return 'Project name must be required!';
+            }
             return true;
           }
         }]).then(answers => {
-          initInfo.packages = answers.packages ? answers.packages.toLowerCase()
-            : 'com.example.' + initInfo.project.toLowerCase();
+          const initInfo = {};
+          initInfo.platform = '';
+          initInfo.project = answers.project;
           inquirer.prompt([{
-            name: 'version',
+            name: 'packages',
             type: 'input',
-            message: 'Please enter the ArkUI version (1: 声明式范式, 2: 类web范式):',
+            message: 'Please enter the packages (com.example.' + initInfo.project + '):',
             validate(val) {
-              if (val === '1' || val === '2') {
-                return true;
-              } else {
-                return 'ArkUI version must be an integer: 1 or 2.';
-              }
+              return true;
             }
           }]).then(answers => {
-            initInfo.version = answers.version;
-            create(initInfo);
+            initInfo.packages = answers.packages ? answers.packages.toLowerCase()
+              : 'com.example.' + initInfo.project.toLowerCase();
+            initInfo.sdkVersion = '9';
+            inquirer.prompt([{
+              name: 'moduletpye',
+              type: 'input',
+              message: 'Please enter the ArkUI Module Type (1: Stage, 2: FA):',
+              validate(val) {
+                if (val === '1' || val === '2') {
+                  return true;
+                } else {
+                  return 'ArkUI Module Type must be an integer: 1 or 2.';
+                }
+              }
+            }]).then(answers => {
+              initInfo.moduletpye = answers.moduletpye;
+              if (initInfo.moduletpye === '1') {
+                initInfo.version = '1';
+                create(initInfo);
+              } else {
+                inquirer.prompt([{
+                  name: 'version',
+                  type: 'input',
+                  message: 'Please enter the ArkUI version (1: 声明式范式, 2: 类web范式):',
+                  validate(val) {
+                    if (val === '1' || val === '2') {
+                      return true;
+                    } else {
+                      return 'ArkUI version must be an integer: 1 or 2.';
+                    }
+                  }
+                }]).then(answers => {
+                  initInfo.version = answers.version;
+                  create(initInfo);
+                });
+              }
+            });
           });
         });
-      });
-    } else if (subcommand === 'module') {
-      createModule();
-    } else if (subcommand === 'component') {
-      createComponent();
-    } else {
-      console.log(`Please use ace create with subcommand : project/module/component.`);
-    }
-  });
+      } else if (subcommand === 'module') {
+        createModule();
+      } else if (subcommand === 'component') {
+        createComponent();
+      } else if (subcommand === 'ability') {
+        createAbility();
+      } else {
+        console.log(`Please use ace create with subcommand : project/module/component/ability.`);
+      }
+    });
 }
 
 function parseCheck() {
@@ -140,7 +163,7 @@ function parseConfig() {
         --build-dir     [Build Dir]
         --nodejs-dir    [Nodejs Dir]
         --java-sdk      [Java Sdk]`)
-    .action((cmd, description)  => {
+    .action((cmd, description) => {
       if (cmd.openharmonySdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath
         || cmd.buildDir ||
         cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease) {
@@ -168,7 +191,7 @@ function parseBuild() {
     .action((fileType, cmd) => {
       if (fileType === 'hap' || typeof fileType === 'undefined') {
         compiler('hap', cmd);
-      } else if ((fileType === 'apk') || (fileType === 'app')) {
+      } else if (fileType === 'apk' || fileType === 'app') {
         build(fileType, cmd);
       } else {
         console.log(`Please use ace build with subcommand : hap, apk or app.`);
@@ -243,7 +266,7 @@ function parseLog() {
     .action((fileType, options, cmd) => {
       if (fileType === 'hap' || typeof fileType === 'undefined') {
         log('hap', cmd.parent._optionValues.device);
-      } else if ((fileType === 'apk') || (fileType === 'app')) {
+      } else if (fileType === 'apk' || fileType === 'app') {
         log(fileType, cmd.parent._optionValues.device);
       } else {
         console.log(`Please use ace build with subcommand : hap, apk or app.`);

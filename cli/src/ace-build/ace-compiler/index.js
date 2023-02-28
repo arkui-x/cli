@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,7 +26,7 @@ const {
   copyToBuildDir
 } = require('../ace-build');
 const { copy } = require('../../ace-create/project');
-const { isProjectRootDir, getModuleList } = require('../../util');
+const { isProjectRootDir, getModuleList, isStageProject } = require('../../util');
 let projectDir;
 let openHarmonySdkDir;
 let nodejsDir;
@@ -63,14 +63,14 @@ function copySourceToOhos(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
     const manifestPath = path.join(projectDir, '/source', module, '/src/main/ets/MainAbility/manifest.json');
-    //copy js
+    // copy js
     uiSyntax = fs.existsSync(manifestPath) ? 'ets' : 'js';
     const src = path.join(projectDir, 'source', module, '/src/main/' + uiSyntax);
     const dist = path.join(projectDir, 'ohos', module, '/src/main/' + uiSyntax);
     fs.mkdirSync(src, { recursive: true });
     fs.mkdirSync(dist, { recursive: true });
     isContinue = isContinue && copy(src, dist);
-    //copy resources
+    // copy resources
     const resourcesSrc = path.join(projectDir, 'source', module, '/src/main/resources');
     const resourcesDist = path.join(projectDir, 'ohos', module, '/src/main/resources');
     fs.mkdirSync(resourcesSrc, { recursive: true });
@@ -80,10 +80,23 @@ function copySourceToOhos(moduleList) {
   return isContinue;
 }
 
+function copyStageSourceToOhos(moduleList) {
+  let isContinue = true;
+  uiSyntax = 'ets';
+  moduleList.forEach(module => {
+    const src = path.join(projectDir, 'source', module);
+    const dist = path.join(projectDir, 'ohos', module);
+    fs.mkdirSync(src, { recursive: true });
+    fs.mkdirSync(dist, { recursive: true });
+    isContinue = isContinue && copy(src, dist);
+  });
+  return isContinue;
+}
+
 function copyBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
-    //Now only consider one ability
+    // Now only consider one ability
     const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/assets/default/js/MainAbility');
     let distAndroid;
     let distIOS;
@@ -94,13 +107,46 @@ function copyBundleToAndroidAndIOS(moduleList) {
     fs.mkdirSync(distIOS, { recursive: true });
     isContinue = isContinue && copy(src, distAndroid) && copy(src, distIOS);
   });
-  //This time, copy the first module resource to ios/android.
-  let ohosResourcePath = path.join(projectDir, '/ohos/entry/build/default/intermediates/res/default/');
-  let filePathAndroid = path.join(projectDir, '/android/app/src/main/assets/res/appres');
-  let filePathIOS = path.join(projectDir, '/ios/res/appres');
+  // This time, copy the first module resource to ios/android.
+  const ohosResourcePath = path.join(projectDir, '/ohos/entry/build/default/intermediates/res/default/');
+  const filePathAndroid = path.join(projectDir, '/android/app/src/main/assets/res/appres');
+  const filePathIOS = path.join(projectDir, '/ios/res/appres');
   fs.mkdirSync(filePathAndroid, { recursive: true });
   fs.mkdirSync(filePathIOS, { recursive: true });
   isContinue = isContinue && copy(ohosResourcePath, filePathAndroid) && copy(ohosResourcePath, filePathIOS);
+  return isContinue;
+}
+
+function copyStageBundleToAndroidAndIOS(moduleList) {
+  let isContinue = true;
+  moduleList.forEach(module => {
+    // Now only consider one ability
+    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/assets_jsbundle/default/ets');
+    const resindex = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources.index');
+    const resPath = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources');
+    const moduleJsonPath = path.join(projectDir, '/ohos', module,
+      'build/default/intermediates/res/default/module.json');
+    const destClassName = module.toLowerCase();
+    const distAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/', destClassName + '/ets');
+    const distIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/ets');
+    const resindexAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',
+      destClassName + '/resources.index');
+    const resPathAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',
+      destClassName + '/resources');
+    const moduleJsonPathAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',
+      destClassName + '/module.json');
+    const resindexIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/resources.index');
+    const resPathIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/resources');
+    const moduleJsonPathIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/module.json');
+    fs.mkdirSync(distAndroid, { recursive: true });
+    fs.mkdirSync(distIOS, { recursive: true });
+    isContinue = isContinue && copy(src, distAndroid) && copy(src, distIOS);
+    isContinue = isContinue && copy(resPath, resPathAndroid) && copy(resPath, resPathIOS);
+    fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
+    fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
+    fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
+    fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
+  });
   return isContinue;
 }
 
@@ -182,12 +228,12 @@ function runGradle(fileType, cmd, moduleList) {
   cmds.push(`npm install`);
   let gradleMessage;
   if (fileType === 'hap' || !fileType) {
-    let moduleStr = "";
+    let moduleStr = '';
     if (moduleList) {
-      moduleStr = "-p module=" + moduleList.join(",");
+      moduleStr = '-p module=' + moduleList.join(',');
     }
     if (cmd.release) {
-      const debugStr = "debuggable=false";
+      const debugStr = 'debuggable=false';
       cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js ${debugStr} --mode module ${moduleStr} assembleHap`);
     } else {
       cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js --mode module ${moduleStr} assembleHap`);
@@ -209,7 +255,7 @@ function runGradle(fileType, cmd, moduleList) {
     console.log(`${gradleMessage}`);
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
     return true;
   } catch (error) {
@@ -218,15 +264,55 @@ function runGradle(fileType, cmd, moduleList) {
   }
 }
 
+function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
+  if (isStageProject(path.join(projectDir, 'source/'))) {
+    if (readConfig()
+      && writeLocalProperties()
+      && copyStageSourceToOhos(moduleListAll)
+      && runGradle(fileType, cmd, moduleListSpecified)
+      && copyStageBundleToAndroidAndIOS(moduleListSpecified)) {
+      if (fileType === 'hap') {
+        console.log(`Build hap successfully.`);
+        copyHaptoOutput();
+        return true;
+      } else if (fileType === 'apk') {
+        return true;
+      } else if (fileType === 'app') {
+        return true;
+      }
+    }
+  } else {
+    if (readConfig()
+      && writeLocalProperties()
+      && copySourceToOhos(moduleListAll)
+      && syncManifest(moduleListAll)
+      && runGradle(fileType, cmd, moduleListSpecified)
+      && copyBundleToAndroidAndIOS(moduleListSpecified)
+      && syncBundleName(moduleListAll)) {
+      if (fileType === 'hap') {
+        console.log(`Build hap successfully.`);
+        copyHaptoOutput();
+        return true;
+      } else if (fileType === 'apk') {
+        return true;
+      } else if (fileType === 'app') {
+        return true;
+      }
+    }
+  }
+  console.error(`Compile failed.`);
+  return false;
+}
+
 function compiler(fileType, cmd) {
-  let moduleListInput = cmd.target;
+  const moduleListInput = cmd.target;
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
   const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
   const moduleListAll = getModuleList(settingPath);
-  if ((moduleListAll == null) || (moduleListAll.length === 0)) {
+  if (moduleListAll == null || moduleListAll.length === 0) {
     console.error('There is no module in project.');
     return false;
   }
@@ -245,25 +331,7 @@ function compiler(fileType, cmd) {
     }
     moduleListSpecified = inputModules;
   }
-  if (readConfig()
-    && writeLocalProperties()
-    && copySourceToOhos(moduleListAll)
-    && syncManifest(moduleListAll)
-    && runGradle(fileType, cmd, moduleListSpecified)
-    && copyBundleToAndroidAndIOS(moduleListSpecified)
-    && syncBundleName(moduleListAll)) {
-    if (fileType === 'hap') {
-      console.log(`Build hap successfully.`);
-      copyHaptoOutput();
-      return true;
-    } else if (fileType === 'apk') {
-      return true;
-    } else if (fileType === 'app') {
-      return true;
-    }
-  }
-  console.error(`Compile failed.`);
-  return false;
+  return compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified);
 }
 
 module.exports = compiler;

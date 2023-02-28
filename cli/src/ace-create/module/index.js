@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,7 +17,8 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy } = require('../project');
-const { getModuleList, getCurrentProjectVersion, getManifestPath } = require('../../util');
+const { getModuleList, getCurrentProjectVersion, getManifestPath, isStageProject,
+  getModuleAbilityList } = require('../../util');
 
 let projectDir;
 
@@ -75,7 +76,7 @@ function createInSource(moduleName, templateDir, appVer) {
 
 function createInOhos(moduleName, templateDir) {
   const dest = path.join(projectDir, `ohos/${moduleName}/`);
-  let src = path.join(templateDir, 'ohos_fa/entry');
+  const src = path.join(templateDir, 'ohos_fa/entry');
   try {
     fs.mkdirSync(dest, { recursive: true });
     return copy(src, dest);
@@ -110,13 +111,13 @@ function getNextAndroidActivityName(srcPath) {
   return defaultName + String(index);
 }
 
-function createInAndroid(moduleName, templateDir, appVer) {
-  const packageName = getPackageName(appVer);
+function createInAndroid(moduleName, templateDir, appVer, type) {
+  const packageName = getPackageName(appVer, type);
   const packageArray = packageName.split('.');
-  let aceVersion = appVer == "js" ? "VERSION_JS" : "VERSION_ETS";
-  let src = path.join(templateDir, 'android/app/src/main/java');
+  const aceVersion = appVer == 'js' ? 'VERSION_JS' : 'VERSION_ETS';
+  const src = path.join(templateDir, 'android/app/src/main/java');
   try {
-    const templateFileName = 'MainActivity.java'
+    const templateFileName = 'MainActivity.java';
     let dest = path.join(projectDir, 'android/app/src/main/java');
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
@@ -133,14 +134,14 @@ function createInAndroid(moduleName, templateDir, appVer) {
         moduleName.toLowerCase() + '_MainAbility'));
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ACE_VERSION', 'g'), aceVersion));
-    let createActivityXmlInfo =
+    const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
       '        android:exported="false" />\n    ';
-    let curManifestXmlInfo =
+    const curManifestXmlInfo =
       fs.readFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml')).toString();
-    let insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
-    let updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
+    const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
+    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
       createActivityXmlInfo +
       curManifestXmlInfo.slice(insertIndex);
     fs.writeFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
@@ -163,14 +164,14 @@ function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
   configJsonObj.module.name = '.MyApplication';
   configJsonObj.module.distro.moduleName = moduleName;
   configJsonObj.module.abilities[0].srcLanguage = appVer;
-  delete (configJsonObj.module.abilities[0]['skills']);
+  delete configJsonObj.module.abilities[0]['skills'];
   if (moduleName == 'entry') {
     configJsonObj.module.distro.moduleType = 'entry';
   } else {
     configJsonObj.module.distro.moduleType = 'feature';
   }
   if (appVer == 'js') {
-    delete (configJsonObj.module.js[0]['mode']);
+    delete configJsonObj.module.js[0]['mode'];
   }
   fs.writeFileSync(configJsonPath, JSON.stringify(configJsonObj, '', '  '));
   if (moduleName === 'entry') {
@@ -183,32 +184,44 @@ function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
   }
 }
 
-function getPackageName(appVer) {
+function getPackageName(appVer, type) {
   try {
-    const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
-    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
-    return manifestJsonObj.appID;
+    if (type == 'FA') {
+      const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
+      const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+      return manifestJsonObj.appID;
+    } else {
+      const manifestPath = path.join(projectDir, 'ohos/AppScope/app.json5');
+      const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+      return manifestJsonObj.app.bundleName;
+    }
   } catch (error) {
     console.error('Get package name error.');
     return '';
   }
 }
 
-function getAppNameForModule(appVer) {
+function getAppNameForModule(appVer, type) {
   try {
-    const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
-    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
-    return manifestJsonObj.appName;
+    if (type == 'FA') {
+      const manifestPath = path.join(projectDir, 'source/entry/src/main', appVer, 'MainAbility/manifest.json');
+      const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+      return manifestJsonObj.appName;
+    } else {
+      const manifestPath = path.join(projectDir, 'ohos/package.json');
+      const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+      return manifestJsonObj.name;
+    }
   } catch (error) {
     console.error('Get app name error.');
     return '';
   }
 }
 
-function replaceProjectInfo(moduleName, appVer) {
+function replaceProjectInfo(moduleName, appVer, type) {
   try {
     const packageName = 'com.example.' + moduleName.toLowerCase();
-    let appName = getAppNameForModule(appVer);
+    const appName = getAppNameForModule(appVer, type);
     if (appName == '') {
       return false;
     }
@@ -222,15 +235,15 @@ function replaceProjectInfo(moduleName, appVer) {
     const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
 
     if (fs.existsSync(settingPath)) {
-      let buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
-      let moduleInfo = {
-        "name": moduleName,
-        "srcPath": "./" + moduleName,
-        "targets": [
+      const buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
+      const moduleInfo = {
+        'name': moduleName,
+        'srcPath': './' + moduleName,
+        'targets': [
           {
-            "name": "default",
-            "applyToProducts": [
-              "default"
+            'name': 'default',
+            'applyToProducts': [
+              'default'
             ]
           }
         ]
@@ -247,32 +260,165 @@ function replaceProjectInfo(moduleName, appVer) {
   }
 }
 
-function createModule() {
-  if (!checkCurrentDir(process.cwd())) {
-    console.error(`Please go to source directory under ace project path and create module again.`);
+function createStageModuleInSource(moduleName, templateDir) {
+  const dest = path.join(projectDir, 'source', moduleName);
+  const src = path.join(templateDir, 'ets_stage/source/entry');
+  try {
+    fs.mkdirSync(dest, { recursive: true });
+    return copy(src, dest);
+  } catch (error) {
+    console.error('Error occurs when create in source.');
     return false;
   }
-  projectDir = path.join(process.cwd(), '..');
-  const appVer = getCurrentProjectVersion(projectDir);
-  if (appVer == '') {
-    console.log("project is not exists");
+}
+
+function replaceStageProfile(moduleName) {
+  try {
+    if (moduleName != 'entry') {
+      const srcModulePath = path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5');
+      const modulePathJson = JSON.parse(fs.readFileSync(srcModulePath).toString());
+      delete modulePathJson.module.abilities[0].skills;
+      fs.writeFileSync(srcModulePath, JSON.stringify(modulePathJson, '', '  '));
+      const srcModuleBuildPath = path.join(projectDir, 'source/' + moduleName + '/build-profile.json5');
+      const moduleEntryModule = {
+        'apiType': 'stageMode',
+        'buildOption': {
+        },
+        'entryModules': [
+          'entry'
+        ],
+        'targets': [
+          {
+            'name': 'default'
+          },
+          {
+            'name': 'ohosTest'
+          }
+        ]
+      };
+      fs.writeFileSync(srcModuleBuildPath, JSON.stringify(moduleEntryModule, '', '  '));
+    }
+    const srcBuildPath = path.join(projectDir, 'ohos/build-profile.json5');
+    const buildPathJson = JSON.parse(fs.readFileSync(srcBuildPath).toString());
+    const moduleInfo = {
+      'name': moduleName,
+      'srcPath': './' + moduleName,
+      'targets': [
+        {
+          'name': 'default',
+          'applyToProducts': [
+            'default'
+          ]
+        }
+      ]
+    };
+    buildPathJson.modules.push(moduleInfo);
+    fs.writeFileSync(srcBuildPath, JSON.stringify(buildPathJson, '', '  '));
+    return true;
+  } catch (error) {
+    console.error('Replace stage project info error.');
     return false;
   }
-  let templateDir = path.join(__dirname, 'template');
-  if (!fs.existsSync(templateDir)) {
-    templateDir = path.join(__dirname, '../../../templates');
+}
+
+function replaceStageProjectInfo(moduleName) {
+  try {
+    const files = [];
+    const replaceInfos = [];
+    const strs = [];
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/resources/base/element/string.json'));
+    replaceInfos.push('module_name');
+    strs.push(moduleName + '_desc');
+    if (moduleName != 'entry') {
+      files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+      replaceInfos.push('entry');
+      strs.push('feature');
+    }
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+    replaceInfos.push('module_description');
+    strs.push(moduleName + '_desc');
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+    replaceInfos.push('module_name');
+    strs.push(moduleName);
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/module.json5'));
+    replaceInfos.push('module_test_name');
+    strs.push(moduleName + '_test');
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/module.json5'));
+    replaceInfos.push('module_test_description');
+    strs.push(moduleName + '_test_desc');
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/resources/base/element/string.json'));
+    replaceInfos.push('module_test_name');
+    strs.push(moduleName + '_test_desc');
+    files.push(path.join(projectDir, 'source/' + moduleName + '/package.json'));
+    replaceInfos.push('module_name');
+    strs.push(moduleName);
+    files.forEach((filePath, index) => {
+      fs.writeFileSync(filePath,
+        fs.readFileSync(filePath).toString().replace(new RegExp(replaceInfos[index], 'g'), strs[index]));
+    });
+    return replaceStageProfile(moduleName);
+  } catch (error) {
+    console.error('Replace project info error.');
+    return false;
   }
-  const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
-  const moduleList = getModuleList(settingPath);
-  if (moduleList == null) {
+}
+
+function createStageInIOS(moduleName, moduleList) {
+  const iosFilePath = path.join(projectDir, 'ios/app/AppDelegate.mm');
+  if (!fs.existsSync(iosFilePath)) {
     console.error('Create module failed');
     return false;
-  } else if (moduleList.length == 0) {
-    console.log(moduleList);
+  }
+  const abilityList = getModuleAbilityList(projectDir, moduleList);
+  let fileContent = fs.readFileSync(iosFilePath, 'utf8');
+  const keyword = '[[AceViewController alloc] initWithVersion:(ACE_VERSION_ETS) instanceName:@"' +
+  abilityList[abilityList.length - 1] + '"];\n';
+  const index = fileContent.indexOf(keyword);
+  const newLine = '    AceViewController *controller' +
+    (abilityList.length + 1) +
+    ' = [[AceViewController alloc] initWithVersion:(ACE_VERSION_ETS) instanceName:@"' +
+    moduleName + '_MainAbility"];\n';
+  fileContent = fileContent.slice(0, index + keyword.length) + newLine + fileContent.slice(index + keyword.length);
+  fs.writeFileSync(iosFilePath, fileContent, 'utf8');
+  return true;
+}
+
+function createStageModule(moduleList, templateDir) {
+  if (moduleList.length == 0) {
+    if (createStageModuleInSource('entry', templateDir) &&
+    createInAndroid('entry', templateDir, 'ets', 'Stage')) {
+      return replaceStageProjectInfo('entry');
+    }
+  } else {
+    const question = [{
+      name: 'moduleName',
+      type: 'input',
+      message: 'Please enter the module name:',
+      validate(val) {
+        return checkModuleName(moduleList, val);
+      }
+    }];
+    inquirer.prompt(question).then(answers => {
+      if (createStageModuleInSource(answers.moduleName, templateDir)
+      && createInAndroid(answers.moduleName, templateDir, 'ets', 'Stage')
+      && createStageInIOS(answers.moduleName, moduleList)) {
+        return replaceStageProjectInfo(answers.moduleName);
+      }
+    });
+  }
+}
+
+function createFaModule(moduleList, templateDir) {
+  const appVer = getCurrentProjectVersion(projectDir);
+  if (appVer == '') {
+    console.log('project is not exists');
+    return false;
+  }
+  if (moduleList.length == 0) {
     if (createInSource('entry', templateDir, appVer) &&
-      createInOhos('entry', templateDir) &&
-      createInAndroid('entry', templateDir, appVer)) {
-      return replaceProjectInfo('entry', appVer);
+        createInOhos('entry', templateDir) &&
+        createInAndroid('entry', templateDir, appVer, 'FA')) {
+      return replaceProjectInfo('entry', appVer, 'FA');
     }
   } else {
     const question = [{
@@ -285,11 +431,34 @@ function createModule() {
     }];
     inquirer.prompt(question).then(answers => {
       if (createInSource(answers.moduleName, templateDir, appVer) &&
-        createInOhos(answers.moduleName, templateDir) &&
-        createInAndroid(answers.moduleName, templateDir, appVer)) {
-        return replaceProjectInfo(answers.moduleName, appVer);
+          createInOhos(answers.moduleName, templateDir) &&
+          createInAndroid(answers.moduleName, templateDir, appVer, 'FA')) {
+        return replaceProjectInfo(answers.moduleName, appVer, 'FA');
       }
     });
+  }
+}
+
+function createModule() {
+  if (!checkCurrentDir(process.cwd())) {
+    console.error(`Please go to source directory under ace project path and create module again.`);
+    return false;
+  }
+  projectDir = path.join(process.cwd(), '..');
+  const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
+  const moduleList = getModuleList(settingPath);
+  if (moduleList == null) {
+    console.error('Create module failed');
+    return false;
+  }
+  let templateDir = path.join(__dirname, 'template');
+  if (!fs.existsSync(templateDir)) {
+    templateDir = path.join(__dirname, '../../../templates');
+  }
+  if (isStageProject(process.cwd())) {
+    return createStageModule(moduleList, templateDir);
+  } else {
+    return createFaModule(moduleList, templateDir);
   }
 }
 

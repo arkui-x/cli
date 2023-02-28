@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,7 @@ function getModuleList(settingPath) {
   try {
     const moduleList = [];
     if (fs.existsSync(settingPath)) {
-      let buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
+      const buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
       for (let index = 0; index < buildProfileInfo.modules.length; index++) {
         moduleList.push(buildProfileInfo.modules[index].name);
       }
@@ -44,6 +44,24 @@ function getModuleList(settingPath) {
     }
   } catch (error) {
     console.error(`Please check ${settingPath}.`);
+    return null;
+  }
+}
+
+function getModuleAbilityList(projDir, moduleList) {
+  try {
+    const moduleAbilityList = [];
+    for (let index = 0; index < moduleList.length; index++) {
+      const moduleJsonPath = path.join(projDir, 'source', moduleList[index],
+        'src/main/module.json5');
+      const moduleJsonFile = JSON.parse(fs.readFileSync(moduleJsonPath));
+      moduleJsonFile.module.abilities.forEach(component => {
+        moduleAbilityList.push(moduleList[index] + '_' + component['name']);
+      });
+    }
+    return moduleAbilityList;
+  } catch (error) {
+    console.error(`Please check ${projDir}.`);
     return null;
   }
 }
@@ -65,17 +83,26 @@ function getCurrentProjectVersion(projDir) {
   return templateVer;
 }
 
+function isStageProject(projDir) {
+  const checkFile = path.join(projDir, 'entry/build-profile.json5');
+  if (!fs.existsSync(checkFile)) {
+    return false;
+  }
+  const fileInfo = fs.readFileSync(checkFile).toString();
+  return fileInfo.includes('stageMode');
+}
+
 function validInputDevice(device) {
   const devicesArr = devices();
   if (!device) {
-    if ((devicesArr.available.length == 1)) {
+    if (devicesArr.available.length == 1) {
       return true;
     } else if (devicesArr.available.length > 1) {
       console.error(`Error: more than one devices/emulators found, please use '--device <deviceId>'.`);
-      return false;  
+      return false;
     } else {
       console.error(`Error: device not found.`);
-      return false;  
+      return false;
     }
   } else {
     for (let i = 0; i < devicesArr.available.length; i++) {
@@ -89,9 +116,9 @@ function validInputDevice(device) {
 }
 
 function getManifestPath(projectDir) {
-  let version = getCurrentProjectVersion(projectDir);
-  if (version == "") {
-    console.log("project is not exists");
+  const version = getCurrentProjectVersion(projectDir);
+  if (version == '') {
+    console.log('project is not exists');
     return false;
   }
   return path.join(projectDir, 'source/entry/src/main', version, 'MainAbility/manifest.json');
@@ -101,5 +128,7 @@ module.exports = {
   getModuleList,
   getCurrentProjectVersion,
   validInputDevice,
-  getManifestPath
+  getManifestPath,
+  isStageProject,
+  getModuleAbilityList
 };
