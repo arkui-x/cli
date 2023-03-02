@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,7 +33,7 @@ function create(args) {
       }
     }
   }];
-  const { project, packages, version } = args;
+  const { project, packages, version, sdkVersion, moduletpye } = args;
   const projectPath = path.join(process.cwd(), project);
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
@@ -45,43 +45,176 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, packages, project, version);
+        createProject(projectPath, packages, project, version, sdkVersion, moduletpye);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, packages, project, version);
+    createProject(projectPath, packages, project, version, sdkVersion, moduletpye);
   }
 }
 
-function createProject(projectPath, packages, project, version) {
+function createProject(projectPath, packages, project, version, sdkVersion, moduletpye) {
   try {
     fs.mkdirSync(projectPath);
-    findTemplate(projectPath, packages, project, version);
+    if (moduletpye === '2') {
+      findTemplate(projectPath, packages, project, version, sdkVersion);
+    } else {
+      findStageTemplate(projectPath, packages, project);
+    }
     console.log('Project created successfully! Target directory：' + projectPath + ' .');
   } catch (error) {
     console.log('Project created failed! Target directory：' + projectPath + ' .' + error);
   }
 }
 
-function findTemplate(projectPath, packages, project, version) {
+function findStageTemplate(projectPath, packages, project) {
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
-    copyTemplateToProject(pathTemplate, projectPath, version);
-    replaceProjectInfo(projectPath, packages, project, version);
+    copyStageTemplate(pathTemplate, projectPath);
+    replaceStageProjectInfo(projectPath, packages, project);
   } else {
     pathTemplate = path.join(__dirname, '../../../templates');
     if (fs.existsSync(pathTemplate)) {
-      copyTemplateToProject(pathTemplate, projectPath, version);
-      replaceProjectInfo(projectPath, packages, project, version);
+      copyStageTemplate(pathTemplate, projectPath);
+      replaceStageProjectInfo(projectPath, packages, project);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceProjectInfo(projectPath, packages, project, version) {
+function replaceStageProjectInfo(projectPath, packages, project) {
+  if (!packages) {
+    packages = 'com.example.arkuicross';
+  }
+  const packageArray = packages.split('.');
+  const files = [];
+  const replaceInfos = [];
+  const strs = [];
+  const aceVersion = 'VERSION_ETS';
+
+  files.push(path.join(projectPath, 'ohos/AppScope/resources/base/element/string.json'));
+  replaceInfos.push('projectName');
+  strs.push(project);
+  files.push(path.join(projectPath, 'ohos/AppScope/app.json5'));
+  replaceInfos.push('appBunduleName');
+  strs.push(packages);
+  files.push(path.join(projectPath, 'ohos/package.json'));
+  replaceInfos.push('packageInfo');
+  strs.push(project);
+  files.push(path.join(projectPath, 'source/entry/src/main/resources/base/element/string.json'));
+  replaceInfos.push('module_name');
+  strs.push('entry_desc');
+  files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
+  replaceInfos.push('module_description');
+  strs.push('entry_desc');
+  files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
+  replaceInfos.push('module_name');
+  strs.push('entry');
+  files.push(path.join(projectPath, 'source/entry/src/ohosTest/module.json5'));
+  replaceInfos.push('module_test_name');
+  strs.push('entry_test');
+  files.push(path.join(projectPath, 'source/entry/src/ohosTest/module.json5'));
+  replaceInfos.push('module_test_description');
+  strs.push('entry_test_desc');
+  files.push(path.join(projectPath, 'source/entry/src/ohosTest/resources/base/element/string.json'));
+  replaceInfos.push('module_test_name');
+  strs.push('entry_test_desc');
+  files.push(path.join(projectPath, 'source/entry/package.json'));
+  replaceInfos.push('module_name');
+  strs.push('entry');
+
+  files.push(path.join(projectPath, 'android/settings.gradle'));
+  replaceInfos.push('appName');
+  strs.push(project);
+  files.push(path.join(projectPath, 'android/settings.gradle'));
+  replaceInfos.push('appIDValueHi');
+  strs.push(packages);
+  files.push(path.join(projectPath, 'android/settings.gradle'));
+  replaceInfos.push('appNameValueHi');
+  strs.push(project);
+  files.push(path.join(projectPath, 'android/app/src/main/res/values/strings.xml'));
+  replaceInfos.push('appName');
+  strs.push(project);
+  files.push(path.join(projectPath, 'android/app/src/main/AndroidManifest.xml'));
+  replaceInfos.push('packageName');
+  strs.push(packages);
+  files.push(path.join(projectPath, 'android/app/build.gradle'));
+  replaceInfos.push('packageName');
+  strs.push(packages);
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('package packageName');
+  strs.push('package ' + packages);
+  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
+  replaceInfos.push('package packageName');
+  strs.push('package ' + packages);
+  files.push(path.join(projectPath, 'android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
+  replaceInfos.push('package packageName');
+  strs.push('package ' + packages);
+  files.push(path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java'));
+  replaceInfos.push('package packageName');
+  strs.push('package ' + packages);
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('ArkUIInstanceName');
+  strs.push('entry_MainAbility');
+
+  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('bundleIdentifier');
+  strs.push(packages);
+  files.push(path.join(projectPath, 'ios/app/AppDelegate.mm'));
+  replaceInfos.push('ACE_VERSION');
+  strs.push('ACE_VERSION_ETS');
+
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('ACE_VERSION');
+  strs.push(aceVersion);
+  replaceInfo(files, replaceInfos, strs);
+
+  const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
+  const testAospJavaPath = path.join(projectPath, 'android/app/src/test/java');
+  const androidTestAospJavaPath = path.join(projectPath, 'android/app/src/androidTest/java');
+  const packagePaths = [aospJavaPath, testAospJavaPath, androidTestAospJavaPath];
+  createPackageFile(packagePaths, packageArray);
+}
+
+function copyStageTemplate(templatePath, projectPath) {
+  if (!copy(path.join(templatePath, '/ets_stage/source'), path.join(projectPath, '/source'))) {
+    return false;
+  }
+  if (!copy(path.join(templatePath, '/ohos_stage'), path.join(projectPath, '/ohos'))) {
+    return false;
+  }
+  if (!copy(path.join(templatePath, '/android'), path.join(projectPath, '/android'))) {
+    return false;
+  }
+  if (!copy(path.join(templatePath, '/ios'), path.join(projectPath, '/ios'))) {
+    return false;
+  }
+  fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/app.xcodeproj'));
+  fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/app'));
+  fs.renameSync(path.join(projectPath, '/ios/js'), path.join(projectPath, '/ios/arkui-x'));
+  return true;
+}
+
+function findTemplate(projectPath, packages, project, version, sdkVersion) {
+  let pathTemplate = path.join(__dirname, 'template');
+  if (fs.existsSync(pathTemplate)) {
+    copyTemplateToProject(pathTemplate, projectPath, version);
+    replaceProjectInfo(projectPath, packages, project, version, sdkVersion);
+  } else {
+    pathTemplate = path.join(__dirname, '../../../templates');
+    if (fs.existsSync(pathTemplate)) {
+      copyTemplateToProject(pathTemplate, projectPath, version);
+      replaceProjectInfo(projectPath, packages, project, version, sdkVersion);
+    } else {
+      console.log('Error: Template is not exist!');
+    }
+  }
+}
+
+function replaceProjectInfo(projectPath, packages, project, version, sdkVersion) {
   if (!packages) {
     packages = 'com.example.arkuicross';
   }
@@ -150,6 +283,9 @@ function replaceProjectInfo(projectPath, packages, project, version) {
   files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ArkUIInstanceName');
   strs.push('entry_MainAbility');
+  files.push(path.join(projectPath, 'ohos/build-profile.json5'));
+  replaceInfos.push('appSdkVersion');
+  strs.push(sdkVersion);
 
   if (jsName === 'ets') {
     aceVersion = 'VERSION_ETS';
@@ -183,7 +319,7 @@ function replaceProjectInfo(projectPath, packages, project, version) {
   if (jsName === 'js') {
     const configJsonPath = path.join(projectPath, 'ohos/entry/src/main/config.json');
     const configJsonObj = JSON.parse(fs.readFileSync(configJsonPath));
-    delete (configJsonObj.module.js[0]['mode']);
+    delete configJsonObj.module.js[0]['mode'];
     fs.writeFileSync(configJsonPath, JSON.stringify(configJsonObj, '', '  '));
   }
 
@@ -241,13 +377,13 @@ function rmdir(filePath) {
 
 function copy(src, dst) {
   const paths = fs.readdirSync(src).filter(item => {
-    return (item.substring(0, 1) != ".");
+    return item.substring(0, 1) != '.';
   });
   paths.forEach(newpath => {
     const srcEle = path.join(src, newpath);
     const dstEle = path.join(dst, newpath);
     if (fs.statSync(srcEle).isFile()) {
-      let parentDir = path.parse(dstEle).dir;
+      const parentDir = path.parse(dstEle).dir;
       if (!fs.existsSync(parentDir)) {
         fs.mkdirSync(parentDir, { recursive: true });
       }
