@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import Ability from '@ohos.application.Ability'
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry'
-import { Hypium } from '@ohos/hypium'
-import testsuite from '../test/List.test'
-import Window from '@ohos.window'
+import UIAbility from '@ohos.app.ability.UIAbility';
+import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
+import { Hypium } from '@ohos/hypium';
+import testsuite from '../test/List.test';
+import window from '@ohos.window';
 
-export default class TestAbility extends Ability {
+export default class TestAbility extends UIAbility {
     onCreate(want, launchParam) {
         console.log('onCreate');
     }
@@ -28,9 +28,9 @@ export default class TestAbility extends Ability {
         console.log('onDestroy');
     }
 
-    onWindowStageCreate(windowStage: Window.WindowStage) {
+    onWindowStageCreate(windowStage: window.WindowStage) {
         console.log('onCreate');
-        windowStage.loadContent('TestAbility/pages/index', (err, data) => {
+        windowStage.loadContent('testability/pages/Index', (err, data) => {
             if (err.code) {
                 console.log('loadContent error');
                 return;

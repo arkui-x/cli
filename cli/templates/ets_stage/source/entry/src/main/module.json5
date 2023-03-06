@@ -2,9 +2,8 @@
   "module": {
     "name": "module_name",
     "type": "entry",
-    "srcEntrance": "./ets/Application/MyAbilityStage.ts",
-    "description": "$string:module_description",
-    "mainElement": "MainAbility",
+    "description": "$string:module_desc",
+    "mainElement": "module_ability_name",
     "deviceTypes": [
       "default",
       "tablet"
@@ -14,13 +13,13 @@
     "pages": "$profile:main_pages",
     "abilities": [
       {
-        "name": "MainAbility",
-        "srcEntrance": "./ets/MainAbility/MainAbility.ts",
-        "description": "$string:MainAbility_desc",
+        "name": "module_ability_name",
+        "srcEntrance": "./ets/module_path_nameability/module_ability_name.ts",
+        "description": "$string:module_ability_name_desc",
         "icon": "$media:icon",
-        "label": "$string:MainAbility_label",
+        "label": "$string:module_ability_name_label",
         "startWindowIcon": "$media:icon",
-        "startWindowBackground": "$color:white",
+        "startWindowBackground": "$color:start_window_background",
         "visible": true,
         "skills": [
           {

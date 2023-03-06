@@ -10,7 +10,7 @@
     },
     {
       "name": "app_name",
-      "value": "label"
+      "value": "appName"
     }
   ]
 }
