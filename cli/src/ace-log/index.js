@@ -18,7 +18,7 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice, getManifestPath, getCurrentProjectVersion } = require('../util');
+const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProject } = require('../util');
 
 let toolObj;
 function log(fileType, device) {
@@ -31,7 +31,7 @@ function log(fileType, device) {
   const timeOutCount = 5;
   if (!pid) {
     for (let i = 0; i < timeOutCount; i++) {
-      sleep(sleepTime)
+      sleep(sleepTime);
       pid = getPid(device, fileType);
       if (pid) {
         break;
@@ -80,6 +80,13 @@ function validTool(toolObj) {
 }
 
 function validManifestPath() {
+  if (isStageProject(path.join(process.cwd(), 'ohos'))) {
+    if (!fs.existsSync(path.join(process.cwd(), 'ohos/AppScope/app.json5'))) {
+      console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
+      return false;
+    }
+    return true;
+  }
   const bundleNamePath = getManifestPath(process.cwd());
   if (!bundleNamePath || !fs.existsSync(bundleNamePath)) {
     console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
@@ -102,14 +109,14 @@ function getPid(device, fileType) {
   if (!bundleName) {
     return;
   }
-  if (fileType === "app") {
-    let toolIosDeploy = getToolByType(fileType);
+  if (fileType === 'app') {
+    const toolIosDeploy = getToolByType(fileType);
     if (!validTool(toolIosDeploy)) {
       return undefined;
     }
-    let deviceStr = device ? "--id " + device : "";
-    let output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
-    let result = output.indexOf("true") == -1 ? undefined : getPName();
+    const deviceStr = device ? '--id ' + device : '';
+    const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
+    const result = output.indexOf('true') == -1 ? undefined : getPName();
     return result;
   } else {
     if (device) {
@@ -130,13 +137,13 @@ function getPid(device, fileType) {
       }
     }
     const PID_REG = new RegExp(`\\S+\\s+(\\d+).+${bundleName}`, 'g');
-    let dataArr = hilog.toString().split("\r\n");
+    const dataArr = hilog.toString().split('\r\n');
     for (let i = 0; i < dataArr.length; i++) {
-      let dataItem = dataArr[i];
+      const dataItem = dataArr[i];
       if (PID_REG.test(dataItem)) {
         let pidData = dataItem.match(PID_REG)[0];
-        pidData = pidData.replace(/\s+/ig, " ");
-        let dataItemArr = pidData.split(" ");
+        pidData = pidData.replace(/\s+/ig, ' ');
+        const dataItemArr = pidData.split(' ');
         const bundleIndex = 7;
         if (dataItemArr[bundleIndex] == bundleName) {
           return dataItemArr[1];
@@ -149,6 +156,9 @@ function getPid(device, fileType) {
 function getBundleName() {
   let bundleNamePath;
   try {
+    if (isStageProject(path.join(process.cwd(), 'ohos'))) {
+      return JSON.parse(fs.readFileSync(path.join(process.cwd(), 'ohos/AppScope/app.json5'))).app.bundleName;
+    }
     bundleNamePath = getManifestPath(process.cwd());
     if (bundleNamePath) {
       return JSON.parse(fs.readFileSync(bundleNamePath)).appID;
@@ -159,14 +169,17 @@ function getBundleName() {
 }
 
 function getPName() {
+  if (isStageProject(path.join(process.cwd(), 'ohos'))) {
+    return 'etsapp';
+  }
   if (getCurrentProjectVersion(process.cwd()) == 'ets') {
-    return "etsapp";
+    return 'etsapp';
   } else {
-    return "jsapp";
+    return 'jsapp';
   }
 }
 function sleep(sleepTime) {
-  let beginTime = new Date().getTime();
+  const beginTime = new Date().getTime();
   while (true) {
     if (new Date().getTime() - beginTime > sleepTime) {
       break;

@@ -97,7 +97,8 @@ function copyBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
-    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/assets/default/js/MainAbility');
+    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/' +
+     uiSyntax + '/MainAbility');
     let distAndroid;
     let distIOS;
     const destClassName = module.toLowerCase();
@@ -121,7 +122,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
-    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/assets_jsbundle/default/ets');
+    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/ets');
     const resindex = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources.index');
     const resPath = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources');
     const moduleJsonPath = path.join(projectDir, '/ohos', module,

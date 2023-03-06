@@ -29,6 +29,14 @@ function checkCurrentDir(currentDir) {
   return false;
 }
 
+function capitalize(str) {
+  if (/^[A-Z]/.test(str)) {
+    return str;
+  } else {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+}
+
 function checkModuleName(moduleList, moduleName) {
   if (!moduleName) {
     console.error('Module name must be required!');
@@ -40,6 +48,10 @@ function checkModuleName(moduleList, moduleName) {
     return false;
   }
   if (!moduleName.match(/^\w+$/)) {
+    console.error('The Module name can contain only letters, digits, and underscores(_).');
+    return false;
+  }
+  if (/^\d/.test(moduleName)) {
     console.error('The Module name can contain only letters, digits, and underscores(_).');
     return false;
   }
@@ -323,32 +335,44 @@ function replaceStageProfile(moduleName) {
 
 function replaceStageProjectInfo(moduleName) {
   try {
+    fs.renameSync(path.join(projectDir, 'source/' + moduleName + '/src/main/ets/entryability/EntryAbility.ts'),
+      path.join(projectDir, 'source/' + moduleName + '/src/main/ets/entryability',
+        capitalize(moduleName) + 'Ability.ts'));
+    fs.renameSync(path.join(projectDir, 'source/' + moduleName + '/src/main/ets/entryability'),
+      path.join(projectDir, 'source/' + moduleName + '/src/main/ets', moduleName.toLowerCase() + 'ability'));
     const files = [];
     const replaceInfos = [];
     const strs = [];
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/resources/base/element/string.json'));
-    replaceInfos.push('module_name');
-    strs.push(moduleName + '_desc');
+    replaceInfos.push('module_ability_name');
+    strs.push(capitalize(moduleName) + 'Ability');
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/resources/en_US/element/string.json'));
+    replaceInfos.push('module_ability_name');
+    strs.push(capitalize(moduleName) + 'Ability');
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/resources/zh_CN/element/string.json'));
+    replaceInfos.push('module_ability_name');
+    strs.push(capitalize(moduleName) + 'Ability');
     if (moduleName != 'entry') {
       files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
       replaceInfos.push('entry');
       strs.push('feature');
     }
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
-    replaceInfos.push('module_description');
-    strs.push(moduleName + '_desc');
+    replaceInfos.push('module_path_name');
+    strs.push(moduleName.toLowerCase());
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/ets', moduleName.toLowerCase() +
+    'ability', capitalize(moduleName) + 'Ability.ts'));
+    replaceInfos.push('EntryAbility');
+    strs.push(capitalize(moduleName) + 'Ability');
+    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+    replaceInfos.push('module_ability_name');
+    strs.push(capitalize(moduleName) + 'Ability');
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/module.json5'));
     replaceInfos.push('module_test_name');
     strs.push(moduleName + '_test');
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/module.json5'));
-    replaceInfos.push('module_test_description');
-    strs.push(moduleName + '_test_desc');
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/resources/base/element/string.json'));
-    replaceInfos.push('module_test_name');
-    strs.push(moduleName + '_test_desc');
     files.push(path.join(projectDir, 'source/' + moduleName + '/package.json'));
     replaceInfos.push('module_name');
     strs.push(moduleName);

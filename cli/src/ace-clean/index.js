@@ -21,33 +21,43 @@ const config = getConfig();
 const fs = require('fs');
 const path = require('path');
 let projectDir;
+
+function isNeedClean() {
+  const nodeModulePath = path.join(projectDir, 'ohos/node_modules');
+  return fs.existsSync(nodeModulePath);
+}
+
 function clean() {
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
+  if (!isNeedClean()) {
+    console.log('Clean project successfully');
+    return;
+  }
   let successFlag = true;
-  let failedMsg = "Clean failed:"
+  let failedMsg = 'Clean failed:';
   if (!cleanOHOS()) {
-    failedMsg += "\tcleanOHOS";
+    failedMsg += '\tcleanOHOS';
     successFlag = false;
   }
   if (!cleanAndroid()) {
-    failedMsg += "\tcleanAndroid";
+    failedMsg += '\tcleanAndroid';
     successFlag = false;
   }
   if (platform == Platform.MacOS) {
     if (!cleanIOS()) {
-      failedMsg += "\tcleanIOS";
+      failedMsg += '\tcleanIOS';
       successFlag = false;
     }
   }
   if (!cleanOutputPath()) {
-    failedMsg += "\tcleanOutputPath";
+    failedMsg += '\tcleanOutputPath';
     successFlag = false;
   }
   if (!cleanJSBundle()) {
-    failedMsg += "\tcleanJSBundle";
+    failedMsg += '\tcleanJSBundle';
     successFlag = false;
   }
   if (successFlag) {
@@ -69,17 +79,17 @@ function cleanAndroid() {
   let isBuildSuccess = true;
   console.log('Start clean android project...');
   cmds = cmds.join(' && ');
-  console.log(cmds)
+  console.log(cmds);
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     message = 'Clean android project failed.';
     isBuildSuccess = false;
   }
@@ -95,17 +105,17 @@ function cleanIOS() {
   let isBuildSuccess = true;
   console.log('Start clean ios project...');
   cmds = cmds.join(' && ');
-  console.log(cmds)
+  console.log(cmds);
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     message = 'Clean ios project failed.';
     isBuildSuccess = false;
   }
@@ -122,17 +132,17 @@ function cleanOHOS() {
   let isBuildSuccess = true;
   console.log('Start clean ohos project...');
   cmds = cmds.join(' && ');
-  console.log(cmds)
+  console.log(cmds);
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit',
+      stdio: 'inherit'
     });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     message = 'Clean ohos project failed.';
     isBuildSuccess = false;
   }
@@ -151,24 +161,24 @@ function cleanJSBundle() {
     // This time, ohos resources is created by merging with source resources, should not be deleted.
     // Wait for the processing of resources to be modified.
     if (!removeDir(ohosSource, ['resources', 'config.json'], true)) {
-      console.error("ohos code file delete failed");
+      console.error('ohos code file delete failed');
       isContinue = false;
     }
   });
   if (!isContinue) {
-    console.error("Ohos build file delete failed");
+    console.error('Ohos build file delete failed');
     isContinue = false;
   }
   const jsAndroid = path.join(projectDir, '/android/app/src/main/assets/js');
   const jsIOS = path.join(projectDir, '/ios/js');
   if (!removeDir(jsAndroid, [], true) || !removeDir(jsIOS, [], true)) {
-    console.error("android or ios js file delete failed");
+    console.error('android or ios js file delete failed');
     isContinue = false;
   }
   const resourceAndroid = path.join(projectDir, '/android/app/src/main/assets/res/appres');
   const resourceIOS = path.join(projectDir, '/ios/res/appres');
   if (!removeDir(resourceAndroid, [], true) || !removeDir(resourceIOS, [], true)) {
-    console.error("android or ios resource file delete failed");
+    console.error('android or ios resource file delete failed');
     isContinue = false;
   }
   return isContinue;
@@ -181,7 +191,7 @@ function cleanOutputPath() {
       removeDir(buildDir);
     }
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return false;
   }
   return true;
@@ -194,7 +204,7 @@ function removeDir(path, ignoreDirArr, saveDirectory) {
       files = fs.readdirSync(path);
       files.forEach((file) => {
         if (ignoreDirArr.indexOf(file) == -1) {
-          let curPath = path + "/" + file;
+          const curPath = path + '/' + file;
           if (fs.statSync(curPath).isDirectory()) {
             removeDir(curPath, ignoreDirArr, false);
           } else {
