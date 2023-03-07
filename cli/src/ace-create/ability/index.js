@@ -100,13 +100,8 @@ function createStageAbilityInAndroid(moduleName, templateDir) {
   }
 }
 
-function updateManifest(abilityName) {
+function replaceResourceJson(abilityName) {
   try {
-    const newTsFilePath = path.join(projectDir, 'src/main/ets', abilityName, abilityName + '.ts');
-    fs.renameSync(path.join(projectDir, 'src/main/ets', abilityName, 'MainAbility.ts'), newTsFilePath);
-    let content = fs.readFileSync(newTsFilePath, 'utf8');
-    content = content.replace(/MainAbility/g, abilityName);
-    fs.writeFileSync(newTsFilePath, content);
     const resourceStringPath = path.join(projectDir, 'src/main/resources/base/element/string.json');
     const resourceStringJson = JSON.parse(fs.readFileSync(resourceStringPath));
     resourceStringJson.string.push(
@@ -119,7 +114,50 @@ function updateManifest(abilityName) {
         value: 'label'
       }
     );
-    fs.writeFileSync(resourceStringPath, JSON.stringify(resourceStringJson, '', '  '));
+    const resourceEnStringPath = path.join(projectDir, 'src/main/resources/en_US/element/string.json');
+    const resourceEnStringJson = JSON.parse(fs.readFileSync(resourceEnStringPath));
+    resourceEnStringJson.string.push(
+      {
+        name: abilityName + '_desc',
+        value: 'description'
+      },
+      {
+        name: abilityName + '_label',
+        value: 'label'
+      }
+    );
+    fs.writeFileSync(resourceEnStringPath, JSON.stringify(resourceEnStringJson, '', '  '));
+    const resourceZhStringPath = path.join(projectDir, 'src/main/resources/zh_CN/element/string.json');
+    const resourceZhStringJson = JSON.parse(fs.readFileSync(resourceZhStringPath));
+    resourceZhStringJson.string.push(
+      {
+        name: abilityName + '_desc',
+        value: 'description'
+      },
+      {
+        name: abilityName + '_label',
+        value: 'label'
+      }
+    );
+    fs.writeFileSync(resourceZhStringPath, JSON.stringify(resourceZhStringJson, '', '  '));
+    return true;
+  } catch (error) {
+    console.error('Replace ability info error.');
+    return false;
+  }
+}
+
+function updateManifest(abilityName) {
+  try {
+    const newTsFilePath = path.join(projectDir, 'src/main/ets', abilityName, abilityName + '.ts');
+    fs.renameSync(path.join(projectDir, 'src/main/ets', abilityName, 'EntryAbility.ts'), newTsFilePath);
+    let content = fs.readFileSync(newTsFilePath, 'utf8');
+    content = content.replace(/EntryAbility/g, abilityName);
+    fs.writeFileSync(newTsFilePath, content);
+    if (!replaceResourceJson(abilityName)) {
+      console.error('Replace resource info error.');
+      return false;
+    }
     const moduleJsonPath = path.join(projectDir, 'src/main/module.json5');
     const moduleJson = JSON.parse(fs.readFileSync(moduleJsonPath));
     moduleJson.module.abilities.push(
@@ -130,7 +168,7 @@ function updateManifest(abilityName) {
         icon: '$media:icon',
         label: '$string:' + abilityName + '_label',
         startWindowIcon: '$media:icon',
-        startWindowBackground: '$color:white',
+        startWindowBackground: '$color:start_window_background',
         visible: true
       }
     );
@@ -166,7 +204,7 @@ function getTemplatePath() {
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }
-  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/MainAbility');
+  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/entryability');
   return templateDir;
 }
 

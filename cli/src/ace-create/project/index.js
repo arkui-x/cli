@@ -105,20 +105,26 @@ function replaceStageProjectInfo(projectPath, packages, project) {
   replaceInfos.push('packageInfo');
   strs.push(project);
   files.push(path.join(projectPath, 'source/entry/src/main/resources/base/element/string.json'));
-  replaceInfos.push('module_name');
-  strs.push('entry_desc');
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
+  files.push(path.join(projectPath, 'source/entry/src/main/resources/en_US/element/string.json'));
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
+  files.push(path.join(projectPath, 'source/entry/src/main/resources/zh_CN/element/string.json'));
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
   files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
-  replaceInfos.push('module_description');
-  strs.push('entry_desc');
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
+  files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
+  replaceInfos.push('module_path_name');
+  strs.push('entry');
   files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
   replaceInfos.push('module_name');
   strs.push('entry');
   files.push(path.join(projectPath, 'source/entry/src/ohosTest/module.json5'));
   replaceInfos.push('module_test_name');
   strs.push('entry_test');
-  files.push(path.join(projectPath, 'source/entry/src/ohosTest/module.json5'));
-  replaceInfos.push('module_test_description');
-  strs.push('entry_test_desc');
   files.push(path.join(projectPath, 'source/entry/src/ohosTest/resources/base/element/string.json'));
   replaceInfos.push('module_test_name');
   strs.push('entry_test_desc');
@@ -232,6 +238,9 @@ function replaceProjectInfo(projectPath, packages, project, version, sdkVersion)
   files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
   replaceInfos.push('appIDValue');
   strs.push(packages);
+  files.push(path.join(projectPath, 'ohos/package.json'));
+  replaceInfos.push('jsapp');
+  strs.push(project);
   files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
   replaceInfos.push('appNameValue');
   strs.push(project);
@@ -286,6 +295,9 @@ function replaceProjectInfo(projectPath, packages, project, version, sdkVersion)
   files.push(path.join(projectPath, 'ohos/build-profile.json5'));
   replaceInfos.push('appSdkVersion');
   strs.push(sdkVersion);
+  files.push(path.join(projectPath, 'source/entry/src/main/resources/base/element/string.json'));
+  replaceInfos.push('appName');
+  strs.push(project);
 
   if (jsName === 'ets') {
     aceVersion = 'VERSION_ETS';

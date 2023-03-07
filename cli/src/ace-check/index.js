@@ -39,6 +39,7 @@ const javaSdkDir = checkJavaSdk();
 const { Platform, platform } = require('./platform');
 
 function check() {
+  console.log('The toolchain supports only DevEco V3.1.0 and SDK V3.2.10');
   let errorTimes = 0;
 
   requirementTitle(info.openHarmonyTitle, openHarmonySdkDir && nodejsDir && javaSdkDir);
