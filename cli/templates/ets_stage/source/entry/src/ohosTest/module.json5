@@ -2,8 +2,7 @@
   "module": {
     "name": "module_test_name",
     "type": "feature",
-    "srcEntrance": "./ets/Application/TestAbilityStage.ts",
-    "description": "$string:module_test_description",
+    "description": "$string:module_test_desc",
     "mainElement": "TestAbility",
     "deviceTypes": [
       "default",
@@ -21,7 +20,7 @@
         "label": "$string:TestAbility_label",
         "visible": true,
         "startWindowIcon": "$media:icon",
-        "startWindowBackground": "$color:white",
+        "startWindowBackground": "$color:start_window_background",
         "skills": [
           {
             "actions": [

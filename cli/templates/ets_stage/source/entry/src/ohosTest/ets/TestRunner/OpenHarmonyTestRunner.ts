@@ -13,26 +13,11 @@
  * limitations under the License.
  */
 
-import TestRunner from '@ohos.application.testRunner'
-import AbilityDelegatorRegistry from '@ohos.application.abilityDelegatorRegistry'
+import TestRunner from '@ohos.application.testRunner';
+import AbilityDelegatorRegistry from '@ohos.app.ability.abilityDelegatorRegistry';
 
 var abilityDelegator = undefined
 var abilityDelegatorArguments = undefined
-
-function translateParamsToString(parameters) {
-    const keySet = new Set([
-        '-s class', '-s notClass', '-s suite', '-s it',
-        '-s level', '-s testType', '-s size', '-s timeout',
-        '-s dryRun'
-    ])
-    let targetParams = '';
-    for (const key in parameters) {
-        if (keySet.has(key)) {
-            targetParams = `${targetParams} ${key} ${parameters[key]}`
-        }
-    }
-    return targetParams.trim()
-}
 
 async function onAbilityCreateCallback() {
     console.log('onAbilityCreateCallback');
@@ -61,7 +46,6 @@ export default class OpenHarmonyTestRunner implements TestRunner {
         };
         abilityDelegator.addAbilityMonitor(lMonitor, addAbilityMonitorCallback)
         var cmd = 'aa start -d 0 -a TestAbility' + ' -b ' + abilityDelegatorArguments.bundleName
-        cmd += ' '+translateParamsToString(abilityDelegatorArguments.parameters)
         var debug = abilityDelegatorArguments.parameters['-D']
         if (debug == 'true')
         {
@@ -70,6 +54,6 @@ export default class OpenHarmonyTestRunner implements TestRunner {
         abilityDelegator.executeShellCommand(cmd,
             (err: any, d: any) => {
                 console.log('executeShellCommand' + err + d);
-            })
+        })
     }
 }

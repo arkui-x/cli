@@ -1,15 +1,15 @@
 {
   "string": [
     {
-      "name": "module_name",
+      "name": "module_desc",
+      "value": "module description"
+    },
+    {
+      "name": "module_ability_name_desc",
       "value": "description"
     },
     {
-      "name": "MainAbility_desc",
-      "value": "description"
-    },
-    {
-      "name": "MainAbility_label",
+      "name": "module_ability_name_label",
       "value": "label"
     }
   ]

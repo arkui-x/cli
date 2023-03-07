@@ -110,7 +110,7 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/ohosTest/module.json5" desc="webpack编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/main/module.json5" desc="webpack编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ohos_stage/build-profile.json5" desc="webpack编译配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_stage/hvigorfile.js" desc="webpack编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/hvigorfile.ts" desc="webpack编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ohos_stage/AppScope/app.json5" desc="webpack编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/build-profile.json5" desc="webpack编译配置文件，无需添加版权头"/>
             </filefilter>
@@ -150,7 +150,7 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/ohosTest/module.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/main/module.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ohos_stage/build-profile.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_stage/hvigorfile.js" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/ohos_stage/hvigorfile.ts" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ohos_stage/AppScope/app.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/build-profile.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
             </filefilter>
