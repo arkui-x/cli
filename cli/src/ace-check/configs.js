@@ -27,6 +27,14 @@ const openHarmonySdk = new Sdk(
   'toolchains'
 );
 
+const harmonyOsSdk = new Sdk(
+  'HarmonyOS',
+  ['HarmonyOS'],
+  'HarmonyOS_HOME',
+  'HarmonyOS',
+  'toolchains'
+);
+
 const devEcoStudio = new Ide(
   'DevEco Studio',
   [`/opt/deveco-studio`, `${homeDir}/deveco-studio`],
@@ -54,6 +62,7 @@ const androidSdk = new Sdk(
 );
 
 const openHarmonySdkDir = openHarmonySdk.locateSdk();
+const harmonyOsSdkDir = harmonyOsSdk.locateSdk();
 const nodejsDir = checkNodejs();
 const devEcoStudioDir = devEcoStudio.locateIde();
 const androidStudioDir = androidStudio.locateIde();
@@ -64,6 +73,7 @@ const deployVersion = checkDeployVersion();
 
 module.exports = {
   openHarmonySdkDir,
+  harmonyOsSdkDir,
   nodejsDir,
   devEcoStudioDir,
   androidStudioDir,

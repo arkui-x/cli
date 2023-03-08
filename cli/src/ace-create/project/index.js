@@ -16,8 +16,10 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
+const JSON5 = require('json5');
 const check = require('../../ace-check');
 const aceVersionJs = '2';
+const aceHarmonyOS = '2';
 
 function create(args) {
   check();
@@ -33,7 +35,7 @@ function create(args) {
       }
     }
   }];
-  const { project, packages, version, sdkVersion, moduletpye } = args;
+  const { project, packages, system, version, sdkVersion, moduletpye } = args;
   const projectPath = path.join(process.cwd(), project);
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
@@ -45,23 +47,23 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, packages, project, version, sdkVersion, moduletpye);
+        createProject(projectPath, packages, project, system, version, sdkVersion, moduletpye);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, packages, project, version, sdkVersion, moduletpye);
+    createProject(projectPath, packages, project, system, version, sdkVersion, moduletpye);
   }
 }
 
-function createProject(projectPath, packages, project, version, sdkVersion, moduletpye) {
+function createProject(projectPath, packages, project, system, version, sdkVersion, moduletpye) {
   try {
     fs.mkdirSync(projectPath);
     if (moduletpye === '2') {
-      findTemplate(projectPath, packages, project, version, sdkVersion);
+      findTemplate(projectPath, packages, project, system, version, sdkVersion);
     } else {
-      findStageTemplate(projectPath, packages, project);
+      findStageTemplate(projectPath, packages, project, system);
     }
     console.log('Project created successfully! Target directory：' + projectPath + ' .');
   } catch (error) {
@@ -69,23 +71,23 @@ function createProject(projectPath, packages, project, version, sdkVersion, modu
   }
 }
 
-function findStageTemplate(projectPath, packages, project) {
+function findStageTemplate(projectPath, packages, project, system) {
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
     copyStageTemplate(pathTemplate, projectPath);
-    replaceStageProjectInfo(projectPath, packages, project);
+    replaceStageProjectInfo(projectPath, packages, project, system);
   } else {
     pathTemplate = path.join(__dirname, '../../../templates');
     if (fs.existsSync(pathTemplate)) {
       copyStageTemplate(pathTemplate, projectPath);
-      replaceStageProjectInfo(projectPath, packages, project);
+      replaceStageProjectInfo(projectPath, packages, project, system);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceStageProjectInfo(projectPath, packages, project) {
+function replaceStageProjectInfo(projectPath, packages, project, system) {
   if (!packages) {
     packages = 'com.example.arkuicross';
   }
@@ -177,7 +179,9 @@ function replaceStageProjectInfo(projectPath, packages, project) {
   replaceInfos.push('ACE_VERSION');
   strs.push(aceVersion);
   replaceInfo(files, replaceInfos, strs);
-
+  if (system == aceHarmonyOS) {
+    modifyHarmonyOSConfig(projectPath, 'entry', 'stage');
+  }
   const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
   const testAospJavaPath = path.join(projectPath, 'android/app/src/test/java');
   const androidTestAospJavaPath = path.join(projectPath, 'android/app/src/androidTest/java');
@@ -204,23 +208,23 @@ function copyStageTemplate(templatePath, projectPath) {
   return true;
 }
 
-function findTemplate(projectPath, packages, project, version, sdkVersion) {
+function findTemplate(projectPath, packages, project, system, version, sdkVersion) {
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
     copyTemplateToProject(pathTemplate, projectPath, version);
-    replaceProjectInfo(projectPath, packages, project, version, sdkVersion);
+    replaceProjectInfo(projectPath, packages, project, system, version, sdkVersion);
   } else {
     pathTemplate = path.join(__dirname, '../../../templates');
     if (fs.existsSync(pathTemplate)) {
       copyTemplateToProject(pathTemplate, projectPath, version);
-      replaceProjectInfo(projectPath, packages, project, version, sdkVersion);
+      replaceProjectInfo(projectPath, packages, project, system, version, sdkVersion);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceProjectInfo(projectPath, packages, project, version, sdkVersion) {
+function replaceProjectInfo(projectPath, packages, project, system, version, sdkVersion) {
   if (!packages) {
     packages = 'com.example.arkuicross';
   }
@@ -328,6 +332,10 @@ function replaceProjectInfo(projectPath, packages, project, version, sdkVersion)
   replaceInfos.push('srcLanguageValue');
   strs.push(srcLanguage);
   replaceInfo(files, replaceInfos, strs);
+
+  if (system == aceHarmonyOS) {
+    modifyHarmonyOSConfig(projectPath, 'entry');
+  }
   if (jsName === 'js') {
     const configJsonPath = path.join(projectPath, 'ohos/entry/src/main/config.json');
     const configJsonObj = JSON.parse(fs.readFileSync(configJsonPath));
@@ -445,7 +453,44 @@ function copyTemplateToProject(templatePath, projectPath, version) {
   return true;
 }
 
+function modifyHarmonyOSConfig(projectPath, moduleName, moduletpye) {
+  let buildProfile;
+  let configFile;
+  let deviceTypeName;
+  if (moduletpye === 'stage') {
+    buildProfile = path.join(projectPath, 'source', moduleName, '/build-profile.json5');
+    configFile = [path.join(projectPath, 'source', moduleName, 'src/main/module.json5'),
+    path.join(projectPath, 'source', moduleName, 'src/ohosTest/module.json5')];
+    deviceTypeName = 'deviceTypes';
+  } else {
+    buildProfile = path.join(projectPath, 'ohos', moduleName, '/build-profile.json5');
+    configFile = [path.join(projectPath, 'ohos', moduleName, 'src/main/config.json'),
+    path.join(projectPath, 'source', moduleName, 'src/ohosTest/config.json')];
+    deviceTypeName = 'deviceType';
+  }
+
+  if (fs.existsSync(buildProfile)) {
+    let buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
+    for (let index = 0; index < buildProfileInfo.targets.length; index++) {
+      if (buildProfileInfo.targets[index].name === 'default') {
+        buildProfileInfo.targets[index].runtimeOS = HarmonyOS;
+        break;
+      }
+    }
+    fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
+  }
+
+  configFile.forEach(config => {
+    if (fs.existsSync(config)) {
+      let configFileInfo = JSON.parse(fs.readFileSync(config));
+      configFileInfo.module[deviceTypeName] = ['phone'];
+      fs.writeFileSync(config, JSON.stringify(configFileInfo, '', '  '));
+    }
+  });
+}
+
 module.exports = {
   create,
-  copy
+  copy,
+  modifyHarmonyOSConfig
 };

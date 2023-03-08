@@ -85,40 +85,54 @@ function parseCreate() {
           }]).then(answers => {
             initInfo.packages = answers.packages ? answers.packages.toLowerCase()
               : 'com.example.' + initInfo.project.toLowerCase();
-            initInfo.sdkVersion = '9';
             inquirer.prompt([{
-              name: 'moduletpye',
+              name: 'system',
               type: 'input',
-              message: 'Please enter the ArkUI Module Type (1: Stage, 2: FA):',
+              message: 'Please enter the system (1: OpenHarmony, 2: HarmonyOS):',
               validate(val) {
                 if (val === '1' || val === '2') {
                   return true;
                 } else {
-                  return 'ArkUI Module Type must be an integer: 1 or 2.';
+                  return 'system must be an integer: 1 or 2.';
                 }
               }
             }]).then(answers => {
-              initInfo.moduletpye = answers.moduletpye;
-              if (initInfo.moduletpye === '1') {
-                initInfo.version = '1';
-                create(initInfo);
-              } else {
-                inquirer.prompt([{
-                  name: 'version',
-                  type: 'input',
-                  message: 'Please enter the ArkUI version (1: 声明式范式, 2: 类web范式):',
-                  validate(val) {
-                    if (val === '1' || val === '2') {
-                      return true;
-                    } else {
-                      return 'ArkUI version must be an integer: 1 or 2.';
-                    }
+              initInfo.system = answers.system;
+              initInfo.sdkVersion = '9';
+              inquirer.prompt([{
+                name: 'moduletpye',
+                type: 'input',
+                message: 'Please enter the ArkUI Module Type (1: Stage, 2: FA):',
+                validate(val) {
+                  if (val === '1' || val === '2') {
+                    return true;
+                  } else {
+                    return 'ArkUI Module Type must be an integer: 1 or 2.';
                   }
-                }]).then(answers => {
-                  initInfo.version = answers.version;
+                }
+              }]).then(answers => {
+                initInfo.moduletpye = answers.moduletpye;
+                if (initInfo.moduletpye === '1') {
+                  initInfo.version = '1';
                   create(initInfo);
-                });
-              }
+                } else {
+                  inquirer.prompt([{
+                    name: 'version',
+                    type: 'input',
+                    message: 'Please enter the ArkUI version (1: 声明式范式, 2: 类web范式):',
+                    validate(val) {
+                      if (val === '1' || val === '2') {
+                        return true;
+                      } else {
+                        return 'ArkUI version must be an integer: 1 or 2.';
+                      }
+                    }
+                  }]).then(answers => {
+                    initInfo.version = answers.version;
+                    create(initInfo);
+                  });
+                }
+              });
             });
           });
         });
@@ -149,6 +163,7 @@ function parseDevices() {
 function parseConfig() {
   program.command('config')
     .option('--openharmony-sdk [OpenHarmony Sdk]', 'openharmony-sdk path')
+    .option('--harmonyos-sdk [HarmonyOS Sdk]', 'harmonyos-sdk path')
     .option('--android-sdk [Android Sdk]', 'android-sdk path')
     .option('--deveco-studio-path [DevEco Studio Path]', 'deveco-studio path')
     .option('--android-studio-path [Android Studio Path]', 'android-studio path')
@@ -157,6 +172,7 @@ function parseConfig() {
     .option('--java-sdk [Java Sdk]', 'java-sdk path')
     .description(`
         --openharmony-sdk [OpenHarmony SDK]
+        --harmonyos-sdk  [HarmonyOS SDK]
         --android-sdk   [Android Sdk]
         --deveco-studio-path [DevEco Studio Path]
         --android-studio-path [Android Studio Path]
@@ -164,11 +180,12 @@ function parseConfig() {
         --nodejs-dir    [Nodejs Dir]
         --java-sdk      [Java Sdk]`)
     .action((cmd, description) => {
-      if (cmd.openharmonySdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath
+      if (cmd.openharmonySdk || cmd.harmonyosSdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath
         || cmd.buildDir ||
         cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease) {
         setConfig({
           'openharmony-sdk': cmd.openharmonySdk,
+          'harmonyos-sdk': cmd.harmonyosSdk,
           'android-sdk': cmd.androidSdk,
           'deveco-studio-path': cmd.devecoStudioPath,
           'android-studio-path': cmd.androidStudioPath,

@@ -18,7 +18,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice } = require('../util');
+const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
 function checkInstallFile(projectDir, fileType, moduleList) {
   try {
     const filePathList = [];
@@ -77,8 +77,12 @@ function install(fileType, device, moduleListInput) {
     console.error('There is no file to install');
     return false;
   }
-
-  const toolObj = getToolByType(fileType);
+  const currentSystem = getCurrentProjectSystem(projectDir);
+  if (!currentSystem) {
+    console.error('current system is unknown.');
+    return false;
+  }
+  const toolObj = getToolByType(fileType, currentSystem);
   if (!toolObj) {
     console.error('There is no install tool, please check');
     return false;
@@ -107,7 +111,7 @@ function installHap(toolObj, filePathList, device) {
   let deviceOption;
   if ('hdc' in toolObj) {
     cmdPath = toolObj['hdc'];
-    cmdInstallOption = 'install -r';
+    cmdInstallOption = 'app install -r';
     if (device) {
       deviceOption = `-t ${device}`;
     } else {

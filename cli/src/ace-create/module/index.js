@@ -16,11 +16,13 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const { copy } = require('../project');
+const JSON5 = require('json5');
+const { copy, modifyHarmonyOSConfig } = require('../project');
 const { getModuleList, getCurrentProjectVersion, getManifestPath, isStageProject,
-  getModuleAbilityList } = require('../../util');
+  getModuleAbilityList, getCurrentProjectSystem } = require('../../util');
 
 let projectDir;
+let currentSystem;
 
 function checkCurrentDir(currentDir) {
   if (path.basename(currentDir) === 'source') {
@@ -57,7 +59,7 @@ function checkModuleName(moduleList, moduleName) {
   }
   if (fs.existsSync(path.join(projectDir, 'ohos', moduleName)) ||
     fs.existsSync(path.join(projectDir, 'source', moduleName))) {
-    console.error(`${moduleName} already exists.`);
+    console.error(`\n${moduleName} already exists.`);
     return false;
   }
   for (let index = 0; index < moduleList.length; index++) {
@@ -244,6 +246,17 @@ function replaceProjectInfo(moduleName, appVer, type) {
     jsonObj.appName = appName;
     fs.writeFileSync(jsonPath, JSON.stringify(jsonObj, '', '  '));
     replaceInOhos(moduleName, appName, packageName, bundleName, appVer);
+
+    const moduleBuildProfile = path.join(projectDir, 'ohos', moduleName, '/build-profile.json5');
+    if (moduleName != 'entry' && fs.existsSync(moduleBuildProfile)) {
+      let moduleBuildProfileInfo = JSON5.parse(fs.readFileSync(moduleBuildProfile));
+      moduleBuildProfileInfo.entryModules = ["entry"];
+      fs.writeFileSync(moduleBuildProfile, JSON.stringify(moduleBuildProfileInfo, '', '  '));
+    }
+    if (currentSystem === HarmonyOS) {
+      modifyHarmonyOSConfig(projectDir, moduleName);
+    }
+
     const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
 
     if (fs.existsSync(settingPath)) {
@@ -310,6 +323,7 @@ function replaceStageProfile(moduleName) {
       };
       fs.writeFileSync(srcModuleBuildPath, JSON.stringify(moduleEntryModule, '', '  '));
     }
+
     const srcBuildPath = path.join(projectDir, 'ohos/build-profile.json5');
     const buildPathJson = JSON.parse(fs.readFileSync(srcBuildPath).toString());
     const moduleInfo = {
@@ -380,7 +394,14 @@ function replaceStageProjectInfo(moduleName) {
       fs.writeFileSync(filePath,
         fs.readFileSync(filePath).toString().replace(new RegExp(replaceInfos[index], 'g'), strs[index]));
     });
-    return replaceStageProfile(moduleName);
+    if (!replaceStageProfile(moduleName)) {
+      console.error('Please check stage project.');
+      return false;
+    }
+    if (currentSystem === HarmonyOS) {
+      modifyHarmonyOSConfig(projectDir, moduleName, 'stage');
+    }
+    return true;
   } catch (error) {
     console.error('Replace project info error.');
     return false;
@@ -469,6 +490,11 @@ function createModule() {
     return false;
   }
   projectDir = path.join(process.cwd(), '..');
+  currentSystem = getCurrentProjectSystem(projectDir);
+  if (!currentSystem) {
+    console.error('current system is unknown.');
+    return false;
+  }
   const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
   const moduleList = getModuleList(settingPath);
   if (moduleList == null) {

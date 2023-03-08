@@ -15,7 +15,11 @@
 
 const fs = require('fs');
 const path = require('path');
+const JSON5 = require('json5');
 const devices = require('../ace-devices');
+global.HarmonyOS = 'HarmonyOS';
+global.OpenHarmony = 'OpenHarmony';
+
 function isProjectRootDir(currentDir) {
   const ohosBuildProfilePath = path.join(currentDir, 'ohos/build-profile.json5');
   const androidGradlePath = path.join(currentDir, 'android/settings.gradle');
@@ -106,7 +110,7 @@ function validInputDevice(device) {
     }
   } else {
     for (let i = 0; i < devicesArr.available.length; i++) {
-      if (devicesArr.available[i].indexOf(`${device}`) != -1) {
+      if (devicesArr.available[i].split(/[\t\s]+/)[2] == device) {
         return true;
       }
     }
@@ -123,6 +127,30 @@ function getManifestPath(projectDir) {
   }
   return path.join(projectDir, 'source/entry/src/main', version, 'MainAbility/manifest.json');
 }
+
+function getCurrentProjectSystem(projDir) {
+  let currentSystem = '';
+  let configFile = path.join(projDir, 'ohos/entry/build-profile.json5');
+  configFile = fs.existsSync(configFile) ? configFile : path.join(projDir, 'source/entry/build-profile.json5');
+  if (!fs.existsSync(configFile)) {
+    console.error(`Please check entry/build-profile.json5 existing.`);
+    return null;
+  }
+  let buildProfileInfo = JSON5.parse(fs.readFileSync(configFile).toString());
+  for (let index = 0; index < buildProfileInfo.targets.length; index++) {
+    if (buildProfileInfo.targets[index].name === 'default') {
+      if (buildProfileInfo.targets[index].runtimeOS == HarmonyOS) {
+        currentSystem = HarmonyOS;
+      } else {
+        currentSystem = OpenHarmony;
+      }
+      break;
+    }
+  }
+  return currentSystem;
+}
+
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -130,5 +158,6 @@ module.exports = {
   validInputDevice,
   getManifestPath,
   isStageProject,
-  getModuleAbilityList
+  getModuleAbilityList,
+  getCurrentProjectSystem
 };

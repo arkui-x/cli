@@ -15,6 +15,7 @@
 
 const {
   openHarmonySdkDir,
+  harmonyOsSdkDir,
   nodejsDir,
   devEcoStudioDir,
   androidStudioDir,
@@ -46,7 +47,12 @@ function check() {
   requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
   requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
   requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
-  
+
+  requirementTitle(info.harmonyOsTitle, harmonyOsSdkDir && nodejsDir && javaSdkDir);
+  requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir);
+  requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
+  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+
   optionTitle(info.androidTitle, androidSdkDir);
   optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
   if (platform != Platform.Linux) {
@@ -68,6 +74,10 @@ function check() {
     setConfig({ 'openharmony-sdk': openHarmonySdkDir });
   }
 
+  if (harmonyOsSdkDir) {
+    setConfig({ 'harmonyos-sdk': harmonyOsSdkDir });
+  }
+
   if (nodejsDir) {
     setConfig({ 'nodejs-dir': nodejsDir });
     process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
@@ -82,13 +92,14 @@ function check() {
   }
 
   errorTimes = !openHarmonySdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !harmonyOsSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !nodejsDir ? errorTimes++ : errorTimes;
   errorTimes = !javaSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !androidSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !devEcoStudioDir ? errorTimes++ : errorTimes;
   errorTimes = !androidStudioDir ? errorTimes++ : errorTimes;
 
-  if (openHarmonySdkDir || androidSdkDir || deployVersion) {
+  if (openHarmonySdkDir || harmonyOsSdkDir || androidSdkDir || deployVersion) {
     const validDevice = devices(true);
     if (validDevice.all.length === 0) {
       errorTimes += 1;
