@@ -26,11 +26,13 @@ const {
   copyToBuildDir
 } = require('../ace-build');
 const { copy } = require('../../ace-create/project');
-const { isProjectRootDir, getModuleList, isStageProject } = require('../../util');
+const { isProjectRootDir, getModuleList, isStageProject, getCurrentProjectSystem } = require('../../util');
 let projectDir;
 let openHarmonySdkDir;
+let harmonyOsSdkDir;
 let nodejsDir;
 let uiSyntax;
+let currentSystem;
 
 function readConfig() {
   try {
@@ -38,13 +40,23 @@ function readConfig() {
       if (Object.prototype.hasOwnProperty.call(config, 'openharmony-sdk')) {
         openHarmonySdkDir = config['openharmony-sdk'];
       }
+      if (Object.prototype.hasOwnProperty.call(config, 'harmonyos-sdk')) {
+        harmonyOsSdkDir = config['harmonyos-sdk'];
+      }
       if (Object.prototype.hasOwnProperty.call(config, 'nodejs-dir')) {
         nodejsDir = config['nodejs-dir'];
       }
     }
-    if (!openHarmonySdkDir || !nodejsDir) {
-      console.error(`Please check harmonySdk and nodejs in your environment.`);
-      return false;
+    if (currentSystem === HarmonyOS) {
+      if (!harmonyOsSdkDir || !nodejsDir) {
+        console.error(`Please check HarmonyOS Sdk and nodejs in your environment.`);
+        return false;
+      }
+    } else {
+      if (!openHarmonySdkDir || !nodejsDir) {
+        console.error(`Please check OpenHarmony Sdk and nodejs in your environment.`);
+        return false;
+      }
     }
     return true;
   } catch (error) {
@@ -54,8 +66,13 @@ function readConfig() {
 }
 
 function writeLocalProperties() {
+  let content;
   const filePath = path.join(projectDir, '/ohos/local.properties');
-  const content = `sdk.dir=${openHarmonySdkDir}\nnodejs.dir=${nodejsDir}`;
+  if (currentSystem === HarmonyOS) {
+    content = `hwsdk.dir=${harmonyOsSdkDir}\nnodejs.dir=${nodejsDir}`;
+  } else {
+    content = `sdk.dir=${openHarmonySdkDir}\nnodejs.dir=${nodejsDir}`;
+  }
   return createLocalProperties(filePath, content);
 }
 
@@ -315,6 +332,11 @@ function compiler(fileType, cmd) {
   const moduleListAll = getModuleList(settingPath);
   if (moduleListAll == null || moduleListAll.length === 0) {
     console.error('There is no module in project.');
+    return false;
+  }
+  currentSystem = getCurrentProjectSystem(projectDir);
+  if (!currentSystem) {
+    console.error('current system is unknown.');
     return false;
   }
 

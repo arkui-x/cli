@@ -18,7 +18,8 @@ const path = require('path');
 const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice, getCurrentProjectVersion, isStageProject } = require('../util');
+const { isProjectRootDir, validInputDevice, getCurrentProjectVersion, isStageProject,
+  getCurrentProjectSystem } = require('../util');
 let bundleName;
 let packageName;
 let ohosclassName;
@@ -154,37 +155,27 @@ function launch(fileType, device, moduleName) {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  const toolObj = getToolByType(fileType);
+  const currentSystem = getCurrentProjectSystem(projectDir);
+  if (!currentSystem) {
+    console.error('current system is unknown.');
+    return false;
+  }
+  const toolObj = getToolByType(fileType, currentSystem);
   if (toolObj == null || toolObj == undefined) {
     console.error('There are not install tool, please check');
     return false;
   }
   if (validInputDevice(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
-    let cmdLaunch = '';
-    if ('hdc' in toolObj) {
-      const cmdPath = toolObj['hdc'];
-      const deviceOption = device ? `-t ${device}` : '';
-      if (isStageProject(path.join(projectDir, 'ohos'))) {
-        cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${className} -m ${packageName} -b ${bundleName}`;
-      } else {
-        cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${packageName}${className} -b ${bundleName}`;
-      }
-    } else if ('adb' in toolObj) {
-      const cmdPath = toolObj['adb'];
-      const deviceOption = device ? `-s ${device}` : '';
-      cmdLaunch =
-        `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
-    } else if ('ios-deploy' in toolObj) {
-      const cmdPath = toolObj['ios-deploy'];
-      const deviceOption = device ? `--id ${device}` : '';
-      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} --no-wifi --justlaunch`;
-    } else {
-      console.error('Internal error with hdc and adb checking.');
+    const cmdLaunch = getCmdLaunch(projectDir, toolObj, device);
+    if (!cmdLaunch) {
       return false;
     }
-
     try {
-      exec(`${cmdLaunch}`);
+      const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
+      if (result.includes('failed')) {
+        console.error(result);
+        return false;
+      }
       console.log(`Launch ${fileType.toUpperCase()} successfully.`);
       return true;
     } catch (error) {
@@ -195,6 +186,31 @@ function launch(fileType, device, moduleName) {
     console.error(`Launch ${fileType.toUpperCase()} failed.`);
     return false;
   }
+}
+
+function getCmdLaunch(projectDir, toolObj, device) {
+  let cmdLaunch = '';
+  if ('hdc' in toolObj) {
+    const cmdPath = toolObj['hdc'];
+    const deviceOption = device ? `-t ${device}` : '';
+    if (isStageProject(path.join(projectDir, 'ohos'))) {
+      cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${className} -m ${packageName} -b ${bundleName}`;
+    } else {
+      cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${packageName}${className} -b ${bundleName}`;
+    }
+  } else if ('adb' in toolObj) {
+    const cmdPath = toolObj['adb'];
+    const deviceOption = device ? `-s ${device}` : '';
+    cmdLaunch =
+      `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+  } else if ('ios-deploy' in toolObj) {
+    const cmdPath = toolObj['ios-deploy'];
+    const deviceOption = device ? `--id ${device}` : '';
+    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} --no-wifi --justlaunch`;
+  } else {
+    console.error('Internal error with hdc and adb checking.');
+  }
+  return cmdLaunch;
 }
 
 module.exports = launch;

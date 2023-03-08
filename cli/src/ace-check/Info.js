@@ -16,12 +16,14 @@
 class Info {
   constructor() {
     this.noOpenHarmonySdk = `OpenHarmony SDK is not installed`;
+    this.noHarmonyOsSdk = `HarmonyOS SDK is not installed`;
     this.noAndroidSdk = `Android SDK is not installed if you want to develop Android APP`;
     this.noNodejs = `Node.js Runtime Environment is not found`;
     this.noJavaSdk = `Java SDK is not found`;
     this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com`;
     this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio`;
     this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices`;
+    this.harmonyOsTitle = `HarmonyOS toolchains - develop for HarmonyOS devices`;
     this.androidTitle = `Android toolchains - develop for Android devices`;
     this.devEcoStudioTitle = `DevEco Studio`;
     this.androidStudioTitle = `Android Studio`;
@@ -33,8 +35,12 @@ class Info {
     this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
   }
 
-  hasSdk(sdkDir) {
-    return `SDK at ${sdkDir}`;
+  hasSdk(ohSdkDir) {
+    return `OpenHarmony SDK at ${ohSdkDir}`;
+  }
+
+  hasHoSdk(hoSdkDir) {
+    return `HarmonyOS SDK at ${hoSdkDir}`;
   }
 
   hasNodejs(nodejsDir) {
@@ -43,6 +49,10 @@ class Info {
 
   hasJavaSdk(javaSdkDir) {
     return `Java Sdk at ${javaSdkDir}`;
+  }
+
+  hasAndroidSdk(androidSdkDir) {
+    return `Android SDK at ${androidSdkDir}`;
   }
 
   hasDevEcoStudio(devEcoStudioDir) {
@@ -57,8 +67,12 @@ class Info {
     return openHarmonySdkDir ? this.hasSdk(openHarmonySdkDir) : this.noOpenHarmonySdk;
   }
 
+  harmonyOsSdkInfo(harmonyOsSdkDir) {
+    return harmonyOsSdkDir ? this.hasHoSdk(harmonyOsSdkDir) : this.noHarmonyOsSdk;
+  }
+
   androidSdkInfo(androidSdkDir) {
-    return androidSdkDir ? this.hasSdk(androidSdkDir) : this.noAndroidSdk;
+    return androidSdkDir ? this.hasAndroidSdk(androidSdkDir) : this.noAndroidSdk;
   }
 
   nodejsInfo(nodejsDir) {

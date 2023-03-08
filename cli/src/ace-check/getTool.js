@@ -16,29 +16,23 @@
 const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('./platform');
-const { openHarmonySdkDir, androidSdkDir, deployVersion } = require('../ace-check/configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion } = require('../ace-check/configs');
 function getTools() {
   let toolPaths = [];
+  let hdcPath = {};
   if (androidSdkDir) {
     toolPaths.push({ 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') });
   }
   if (openHarmonySdkDir) {
-    try {
-      const toolchainsPath = path.join(openHarmonySdkDir, "toolchains");
-      const fileArr = fs.readdirSync(toolchainsPath);
-      let hdcPath;
-      if (fileArr && fileArr.length > 0) {
-        fileArr.forEach(item => {
-          if (item.substring(0, 1) != ".") {
-            hdcPath = ({ 'hdc': path.join(toolchainsPath, item, 'hdc_std') });
-          }
-        })
-        if (hdcPath) {
-          toolPaths.push(hdcPath);
-        }
-      }
-    } catch (err) {
-      // ignore
+    hdcPath = getToolchains(OpenHarmony);
+    if (hdcPath) {
+      toolPaths.push(hdcPath);
+    }
+  }
+  if (harmonyOsSdkDir) {
+    hdcPath = getToolchains(HarmonyOS, 'hohdc');
+    if (hdcPath) {
+      toolPaths.push(hdcPath);
     }
   }
   if ((platform === Platform.MacOS) && deployVersion) {
@@ -46,21 +40,14 @@ function getTools() {
   }
   return toolPaths;
 }
-function getToolByType(fileType, isLogTool) {
-  let toolPath;
-  if (fileType == 'hap' && openHarmonySdkDir) {
-    try {
-      const toolchainsPath = path.join(openHarmonySdkDir, "toolchains");
-      const fileaArr = fs.readdirSync(toolchainsPath);
-      if (fileaArr.length > 0) {
-        fileaArr.forEach(item => {
-          if (item.substring(0, 1) != ".") {
-            toolPath = ({ 'hdc': path.join(toolchainsPath, item, 'hdc_std') });
-          }
-        })
-      }
-    } catch (err) {
-      // ignore
+
+function getToolByType(fileType, currentSystem, isLogTool) {
+  let toolPath = {};
+  if (fileType == 'hap') {
+    if (harmonyOsSdkDir && currentSystem === HarmonyOS) {
+      toolPath = getToolchains(HarmonyOS);
+    } else if (openHarmonySdkDir && currentSystem === OpenHarmony) {
+      toolPath = getToolchains(OpenHarmony);
     }
   }
   if (fileType == 'apk' && androidSdkDir) {
@@ -76,6 +63,44 @@ function getToolByType(fileType, isLogTool) {
   return toolPath;
 }
 
+function getToolchains(systemType, key) {
+  let hdcPath = {};
+  let toolchainsPath;
+  if (!key) {
+    key = 'hdc'
+  }
+  if (systemType === OpenHarmony) {
+    toolchainsPath = path.join(openHarmonySdkDir, 'toolchains');
+    if (!fs.existsSync(toolchainsPath)) {
+      const fileArr = fs.readdirSync(openHarmonySdkDir);
+      if (fileArr && fileArr.length > 0) {
+        fileArr.forEach(item => {
+          if (!isNaN(item.substring(0, 1))) {
+            hdcPath[`${key}`] = path.join(openHarmonySdkDir, item, '/toolchains/hdc');
+          }
+        })
+      }
+    } else {
+      hdcPath[`${key}`] = path.join(toolchainsPath, 'hdc');
+    }
+  } else if (systemType === HarmonyOS) {
+    toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
+    if (!fs.existsSync(toolchainsPath)) {
+      toolchainsPath = path.join(harmonyOsSdkDir, '/hmscore');
+      const fileArr = fs.readdirSync(toolchainsPath);
+      if (fileArr && fileArr.length > 0) {
+        fileArr.forEach(item => {
+          if (!isNaN(item.substring(0, 1))) {
+            hdcPath[`${key}`] = path.join(toolchainsPath, item, '/toolchains/hdc');
+          }
+        })
+      }
+    } else {
+      hdcPath[`${key}`] = path.join(toolchainsPath, 'hdc');
+    }
+  }
+  return hdcPath;
+}
 module.exports = {
   getTools,
   getToolByType

@@ -18,21 +18,31 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProject } = require('../util');
+const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProject,
+  isProjectRootDir, getCurrentProjectSystem } = require('../util');
 
 let toolObj;
 function log(fileType, device) {
-  toolObj = getToolByType(fileType, true);
-  if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath()) {
+  const projectDir = process.cwd();
+  if (!isProjectRootDir(projectDir)) {
+    return false;
+  }
+  const currentSystem = getCurrentProjectSystem(projectDir)
+  if (!currentSystem) {
+    console.error('current system is unknown.');
+    return false;
+  }
+  toolObj = getToolByType(fileType, currentSystem, true);
+  if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath(projectDir)) {
     return;
   }
-  let pid = getPid(device, fileType);
+  let pid = getPid(projectDir, device, fileType);
   const sleepTime = 1000;
   const timeOutCount = 5;
   if (!pid) {
     for (let i = 0; i < timeOutCount; i++) {
       sleep(sleepTime);
-      pid = getPid(device, fileType);
+      pid = getPid(projectDir, device, fileType);
       if (pid) {
         break;
       }
@@ -41,7 +51,10 @@ function log(fileType, device) {
   if (!validPid(pid)) {
     return;
   }
+  logCmd(toolObj, device, pid);
+}
 
+function logCmd(toolObj, device, pid) {
   let hilog;
   if (device) {
     if ('hdc' in toolObj) {
@@ -79,15 +92,15 @@ function validTool(toolObj) {
   return true;
 }
 
-function validManifestPath() {
-  if (isStageProject(path.join(process.cwd(), 'ohos'))) {
-    if (!fs.existsSync(path.join(process.cwd(), 'ohos/AppScope/app.json5'))) {
+function validManifestPath(projectDir) {
+  if (isStageProject(path.join(projectDir, 'ohos'))) {
+    if (!fs.existsSync(path.join(projectDir, 'ohos/AppScope/app.json5'))) {
       console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
       return false;
     }
     return true;
   }
-  const bundleNamePath = getManifestPath(process.cwd());
+  const bundleNamePath = getManifestPath(projectDir);
   if (!bundleNamePath || !fs.existsSync(bundleNamePath)) {
     console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
     return false;
@@ -97,15 +110,15 @@ function validManifestPath() {
 
 function validPid(pid) {
   if (!pid) {
-    console.error(`Error: no such application bundle (${getBundleName()}) in the device.`);
+    console.error(`Error: no such application bundle (${getBundleName(projectDir)}) in the device.`);
     return false;
   }
   return true;
 }
 
-function getPid(device, fileType) {
+function getPid(projectDir, device, fileType) {
   let hilog;
-  const bundleName = getBundleName();
+  const bundleName = getBundleName(projectDir);
   if (!bundleName) {
     return;
   }
@@ -116,7 +129,7 @@ function getPid(device, fileType) {
     }
     const deviceStr = device ? '--id ' + device : '';
     const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
-    const result = output.indexOf('true') == -1 ? undefined : getPName();
+    const result = output.indexOf('true') == -1 ? undefined : getPName(projectDir);
     return result;
   } else {
     if (device) {
@@ -153,13 +166,13 @@ function getPid(device, fileType) {
   }
 }
 
-function getBundleName() {
+function getBundleName(projectDir) {
   let bundleNamePath;
   try {
-    if (isStageProject(path.join(process.cwd(), 'ohos'))) {
-      return JSON.parse(fs.readFileSync(path.join(process.cwd(), 'ohos/AppScope/app.json5'))).app.bundleName;
+    if (isStageProject(path.join(projectDir, 'ohos'))) {
+      return JSON.parse(fs.readFileSync(path.join(projectDir, 'ohos/AppScope/app.json5'))).app.bundleName;
     }
-    bundleNamePath = getManifestPath(process.cwd());
+    bundleNamePath = getManifestPath(projectDir);
     if (bundleNamePath) {
       return JSON.parse(fs.readFileSync(bundleNamePath)).appID;
     }
@@ -168,11 +181,11 @@ function getBundleName() {
   }
 }
 
-function getPName() {
-  if (isStageProject(path.join(process.cwd(), 'ohos'))) {
+function getPName(projectDir) {
+  if (isStageProject(path.join(projectDir, 'ohos'))) {
     return 'etsapp';
   }
-  if (getCurrentProjectVersion(process.cwd()) == 'ets') {
+  if (getCurrentProjectVersion(projectDir) == 'ets') {
     return 'etsapp';
   } else {
     return 'jsapp';
