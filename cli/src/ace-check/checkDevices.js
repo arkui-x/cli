@@ -22,10 +22,10 @@ function checkDevices() {
   const toolObj = getTools() || [];
   for (let i = 0; i < toolObj.length; i++) {
     if ('hdc' in toolObj[i]) {
-      title = "Openharmony/Harmonyos Devices\t";
+      title = "OpenHarmony/HarmonyOS Devices\t";
       deviceCommand = `${toolObj[i]['hdc']} list targets`;
     } else if ('hohdc' in toolObj[i]) {
-      title = "Openharmony/Harmonyos Devices\t";
+      title = "OpenHarmony/HarmonyOS Devices\t";
       deviceCommand = `${toolObj[i]['hohdc']} list targets`;
     } else if ('adb' in toolObj[i]) {
       title = "Android Devices\t";

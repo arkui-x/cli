@@ -102,12 +102,12 @@ function parseCreate() {
               inquirer.prompt([{
                 name: 'moduletpye',
                 type: 'input',
-                message: 'Please enter the ArkUI Module Type (1: Stage, 2: FA):',
+                message: 'Please enter the Ability Model Type (1: Stage, 2: FA):',
                 validate(val) {
                   if (val === '1' || val === '2') {
                     return true;
                   } else {
-                    return 'ArkUI Module Type must be an integer: 1 or 2.';
+                    return 'Ability Model Type must be an integer: 1 or 2.';
                   }
                 }
               }]).then(answers => {
@@ -119,12 +119,12 @@ function parseCreate() {
                   inquirer.prompt([{
                     name: 'version',
                     type: 'input',
-                    message: 'Please enter the ArkUI version (1: 声明式范式, 2: 类web范式):',
+                    message: 'Please enter the ACE version (1: 基于ArkTS的声明式开发范式, 2: 兼容JS的类Web开发范式):',
                     validate(val) {
                       if (val === '1' || val === '2') {
                         return true;
                       } else {
-                        return 'ArkUI version must be an integer: 1 or 2.';
+                        return 'ACE version must be an integer: 1 or 2.';
                       }
                     }
                   }]).then(answers => {
