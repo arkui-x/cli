@@ -240,7 +240,7 @@ function syncBundleName(moduleList) {
   return isContinue;
 }
 
-function runGradle(fileType, cmd, moduleList) {
+function runGradle(fileType, cmd, moduleList, moduleType) {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
   cmds.push(`npm install`);
@@ -258,10 +258,12 @@ function runGradle(fileType, cmd, moduleList) {
     }
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app') {
-    if (uiSyntax === 'ets') {
-      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileETS`);
+    if (moduleType === 'Stage') {
+      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js default@CompileArkTS`);
+    } else if (uiSyntax === 'ets') {
+      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js default@LegacyCompileArkTS`);
     } else {
-      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js CompileJS`);
+      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js default@LegacyCompileJS`);
     }
     gradleMessage = 'Start compiling jsBundle...';
   }
@@ -277,7 +279,7 @@ function runGradle(fileType, cmd, moduleList) {
     });
     return true;
   } catch (error) {
-    console.error('Run gradle tasks failed.');
+    console.error('Run tasks failed.');
     return false;
   }
 }
@@ -287,7 +289,7 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
     if (readConfig()
       && writeLocalProperties()
       && copyStageSourceToOhos(moduleListAll)
-      && runGradle(fileType, cmd, moduleListSpecified)
+      && runGradle(fileType, cmd, moduleListSpecified, 'Stage')
       && copyStageBundleToAndroidAndIOS(moduleListSpecified)) {
       if (fileType === 'hap') {
         console.log(`Build hap successfully.`);
@@ -304,7 +306,7 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
       && writeLocalProperties()
       && copySourceToOhos(moduleListAll)
       && syncManifest(moduleListAll)
-      && runGradle(fileType, cmd, moduleListSpecified)
+      && runGradle(fileType, cmd, moduleListSpecified, 'FA')
       && copyBundleToAndroidAndIOS(moduleListSpecified)
       && syncBundleName(moduleListAll)) {
       if (fileType === 'hap') {

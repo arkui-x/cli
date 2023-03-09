@@ -60,11 +60,11 @@ function devices(logFlag) {
 
 function showTools(tools) {
   let [ohHdcTitle, hoHdcTitle, adbTitle, iosDeployTitle] =
-    ["[×] openharmony hdc is not installed", "[×] harmonyos hdc is not installed",
+    ["[×] OpenHarmony hdc is not installed", "[×] HarmonyOS hdc is not installed",
     "[×] adb is not installed", "[×] ios-deploy is not installed"];
   for (let i = 0; i < tools.length; i++) {
-    ohHdcTitle = tools[i]["hdc"] ? "[√] openharmony hdc installed" : ohHdcTitle;
-    hoHdcTitle = tools[i]["hohdc"] ? "[√] harmonyos hdc installed" : hoHdcTitle;
+    ohHdcTitle = tools[i]["hdc"] ? "[√] OpenHarmony hdc installed" : ohHdcTitle;
+    hoHdcTitle = tools[i]["hohdc"] ? "[√] HarmonyOS hdc installed" : hoHdcTitle;
     adbTitle = tools[i]["adb"] ? "[√] adb installed" : adbTitle;
     iosDeployTitle = tools[i]["ios-deploy"] ? "[√] ios-deploy installed" : iosDeployTitle;
   }
