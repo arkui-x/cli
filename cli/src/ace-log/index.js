@@ -22,8 +22,9 @@ const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProj
   isProjectRootDir, getCurrentProjectSystem } = require('../util');
 
 let toolObj;
+let projectDir;
 function log(fileType, device) {
-  const projectDir = process.cwd();
+  projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
@@ -33,16 +34,16 @@ function log(fileType, device) {
     return false;
   }
   toolObj = getToolByType(fileType, currentSystem, true);
-  if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath(projectDir)) {
+  if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath()) {
     return;
   }
-  let pid = getPid(projectDir, device, fileType);
+  let pid = getPid(device, fileType);
   const sleepTime = 1000;
   const timeOutCount = 5;
   if (!pid) {
     for (let i = 0; i < timeOutCount; i++) {
       sleep(sleepTime);
-      pid = getPid(projectDir, device, fileType);
+      pid = getPid(device, fileType);
       if (pid) {
         break;
       }
@@ -92,7 +93,7 @@ function validTool(toolObj) {
   return true;
 }
 
-function validManifestPath(projectDir) {
+function validManifestPath() {
   if (isStageProject(path.join(projectDir, 'ohos'))) {
     if (!fs.existsSync(path.join(projectDir, 'ohos/AppScope/app.json5'))) {
       console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
@@ -110,15 +111,15 @@ function validManifestPath(projectDir) {
 
 function validPid(pid) {
   if (!pid) {
-    console.error(`Error: no such application bundle (${getBundleName(projectDir)}) in the device.`);
+    console.error(`Error: no such application bundle (${getBundleName()}) in the device.`);
     return false;
   }
   return true;
 }
 
-function getPid(projectDir, device, fileType) {
+function getPid(device, fileType) {
   let hilog;
-  const bundleName = getBundleName(projectDir);
+  const bundleName = getBundleName();
   if (!bundleName) {
     return;
   }
@@ -129,7 +130,7 @@ function getPid(projectDir, device, fileType) {
     }
     const deviceStr = device ? '--id ' + device : '';
     const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
-    const result = output.indexOf('true') == -1 ? undefined : getPName(projectDir);
+    const result = output.indexOf('true') == -1 ? undefined : getPName();
     return result;
   } else {
     if (device) {
@@ -166,7 +167,7 @@ function getPid(projectDir, device, fileType) {
   }
 }
 
-function getBundleName(projectDir) {
+function getBundleName() {
   let bundleNamePath;
   try {
     if (isStageProject(path.join(projectDir, 'ohos'))) {
@@ -181,7 +182,7 @@ function getBundleName(projectDir) {
   }
 }
 
-function getPName(projectDir) {
+function getPName() {
   if (isStageProject(path.join(projectDir, 'ohos'))) {
     return 'etsapp';
   }

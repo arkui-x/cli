@@ -59,7 +59,7 @@ class Sdk {
       }
     } else if (platform === Platform.MacOS) {
       for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i], 'sdk');
+        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i], 'Sdk');
         if (fs.existsSync(defaultPath)) {
           sdkHomeDir = defaultPath;
         }

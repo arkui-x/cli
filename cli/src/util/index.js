@@ -110,7 +110,7 @@ function validInputDevice(device) {
     }
   } else {
     for (let i = 0; i < devicesArr.available.length; i++) {
-      if (devicesArr.available[i].split(/[\t\s]+/)[2] == device) {
+      if (getDeviceID(devicesArr.available[i]) == device) {
         return true;
       }
     }
@@ -148,6 +148,16 @@ function getCurrentProjectSystem(projDir) {
     }
   }
   return currentSystem;
+}
+
+function getDeviceID(device) {
+  let id;
+  if (device.split(/[\t\s]+/)[0] == 'iOS') {
+    id = device.split(/[\t\s]+/)[4];
+  } else {
+    id = device.split(/[\t\s]+/)[2];
+  }
+  return id;
 }
 
 
