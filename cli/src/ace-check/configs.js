@@ -29,7 +29,7 @@ const openHarmonySdk = new Sdk(
 
 const harmonyOsSdk = new Sdk(
   'HarmonyOS',
-  ['HarmonyOS'],
+  ['Huawei'],
   'HarmonyOS_HOME',
   'HarmonyOS',
   'toolchains'

@@ -78,7 +78,7 @@ function parseCreate() {
           inquirer.prompt([{
             name: 'packages',
             type: 'input',
-            message: 'Please enter the packages (com.example.' + initInfo.project + '):',
+            message: 'Please enter the bundle name (com.example.' + initInfo.project.toLowerCase() + '):',
             validate(val) {
               return true;
             }

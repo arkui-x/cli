@@ -72,35 +72,76 @@ function getToolchains(systemType, key) {
   if (systemType === OpenHarmony) {
     toolchainsPath = path.join(openHarmonySdkDir, 'toolchains');
     if (!fs.existsSync(toolchainsPath)) {
-      const fileArr = fs.readdirSync(openHarmonySdkDir);
-      if (fileArr && fileArr.length > 0) {
-        fileArr.forEach(item => {
-          if (!isNaN(item.substring(0, 1))) {
-            hdcPath[`${key}`] = path.join(openHarmonySdkDir, item, '/toolchains/hdc');
-          }
-        })
+      const ideHdcPath = getIdeToolPath(openHarmonySdkDir);
+      if (ideHdcPath) {
+        hdcPath[`${key}`] = ideHdcPath;
       }
     } else {
-      hdcPath[`${key}`] = path.join(toolchainsPath, 'hdc');
+      const cliHdcPath = getCliToolPath(toolchainsPath);
+      if (cliHdcPath) {
+        hdcPath[`${key}`] = cliHdcPath;
+      }
     }
   } else if (systemType === HarmonyOS) {
     toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
     if (!fs.existsSync(toolchainsPath)) {
-      toolchainsPath = path.join(harmonyOsSdkDir, '/hmscore');
-      const fileArr = fs.readdirSync(toolchainsPath);
-      if (fileArr && fileArr.length > 0) {
-        fileArr.forEach(item => {
-          if (!isNaN(item.substring(0, 1))) {
-            hdcPath[`${key}`] = path.join(toolchainsPath, item, '/toolchains/hdc');
-          }
-        })
+      const ideToolPath = path.join(harmonyOsSdkDir, '/hmscore');
+      const ideHdcPath = getIdeToolPath(ideToolPath);
+      if (ideHdcPath) {
+        hdcPath[`${key}`] = ideHdcPath;
       }
     } else {
-      hdcPath[`${key}`] = path.join(toolchainsPath, 'hdc');
+      const cliHdcPath = getCliToolPath(toolchainsPath);
+      if (cliHdcPath) {
+        hdcPath[`${key}`] = cliHdcPath;
+      }
     }
   }
   return hdcPath;
 }
+
+function getIdeToolPath(ideToolPath) {
+  let toolPath = '';
+  if (fs.existsSync(ideToolPath)) {
+    const fileArr = fs.readdirSync(ideToolPath);
+    if (fileArr && fileArr.length > 0) {
+      fileArr.forEach(item => {
+        if (!isNaN(item.substring(0, 1))) {
+          toolPath = getVaildToolPath(path.join(ideToolPath, item, '/toolchains'));
+        }
+      })
+    }
+  }
+  return toolPath;
+}
+
+function getCliToolPath(cliToolPath) {
+  let toolPath = '';
+  if (fs.existsSync(cliToolPath)) {
+    const fileArr = fs.readdirSync(cliToolPath);
+    if (fileArr && fileArr.length > 0) {
+      fileArr.forEach(item => {
+        if (!isNaN(item.substring(0, 1))) {
+          toolPath = getVaildToolPath(path.join(cliToolPath, item));
+        }
+      })
+    }
+  }
+  return toolPath;
+}
+
+function getVaildToolPath(vaildToolPath) {
+  if (fs.existsSync(vaildToolPath)) {
+    const fileArr = fs.readdirSync(vaildToolPath);
+    for (let i = 0; i < fileArr.length; i++) {
+      if (fileArr[i].substring(0, 3) === 'hdc') {
+        return path.join(vaildToolPath, fileArr[i]);
+      }
+    }
+  }
+  return '';
+}
+
 module.exports = {
   getTools,
   getToolByType
