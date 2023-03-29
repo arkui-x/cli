@@ -26,44 +26,18 @@ function checkAbilityName(abilityName, abilityList, moduleName) {
     console.error('abilityName name is required!');
     return false;
   }
-  if (abilityList.includes(moduleName + '_' + abilityName)) {
+  if (abilityList.includes(moduleName + '_' + abilityName + 'Ability')) {
     console.error('abilityName name already exists!');
     return false;
   }
   return true;
 }
 
-function checkActivityNameExist(fileNames, checkActivityName) {
-  let existFlag = false;
-  fileNames.forEach((fileName) => {
-    if (fileName == checkActivityName) {
-      existFlag = true;
-    }
-  });
-  return existFlag;
-}
-
-function getNextAndroidActivityName(srcPath) {
-  const startIndex = 2;
-  const defaultName = 'MainActivity';
-  const suffix = '.java';
-  const fileNames = fs.readdirSync(srcPath);
-  let index = startIndex;
-  let activityName = defaultName + String(index) + suffix;
-
-  while (checkActivityNameExist(fileNames, activityName)) {
-    index++;
-    activityName = defaultName + String(index) + suffix;
-  }
-  return defaultName + String(index);
-}
-
-function createStageAbilityInAndroid(moduleName, templateDir) {
+function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
   try {
     const manifestPath = path.join(projectDir, '../../ohos/AppScope/app.json5');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
     const packageArray = manifestJsonObj.app.bundleName.split('.');
-    const aceVersion = 'VERSION_ETS';
     const src = path.join(templateDir, 'android/app/src/main/java');
     const templateFileName = 'MainActivity.java';
     let dest = path.join(projectDir, '../../android/app/src/main/java');
@@ -71,17 +45,26 @@ function createStageAbilityInAndroid(moduleName, templateDir) {
       dest = path.join(dest, pkg);
     });
     const srcFile = path.join(src, templateFileName);
-    const destClassName = getNextAndroidActivityName(dest);
+    const destClassName = moduleName.replace(/\b\w/g, function(l) {
+      return l.toUpperCase();
+    }) + abilityName;
     const destFileName = destClassName + '.java';
     const destFilePath = path.join(dest, destFileName);
     fs.writeFileSync(destFilePath, fs.readFileSync(srcFile));
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('MainActivity', 'g'), destClassName));
     fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
-        moduleName));
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('packageName', 'g'), manifestJsonObj.app.bundleName));
     fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(new RegExp('ACE_VERSION', 'g'), aceVersion));
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ohos.ace.adapter.AceActivity', 'g'),
+        'ohos.stage.ability.adapter.StageActivity'));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
+        manifestJsonObj.app.bundleName + ':' + moduleName + ':' + abilityName + ':'));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(/setVersion\([^\)]*\);/g, ''));
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
@@ -150,9 +133,9 @@ function replaceResourceJson(abilityName) {
 function updateManifest(abilityName) {
   try {
     const newTsFilePath = path.join(projectDir, 'src/main/ets', abilityName, abilityName + '.ts');
-    fs.renameSync(path.join(projectDir, 'src/main/ets', abilityName, 'EntryAbility.ts'), newTsFilePath);
+    fs.renameSync(path.join(projectDir, 'src/main/ets', abilityName, 'MainAbility.ts'), newTsFilePath);
     let content = fs.readFileSync(newTsFilePath, 'utf8');
-    content = content.replace(/EntryAbility/g, abilityName);
+    content = content.replace(/MainAbility/g, abilityName);
     fs.writeFileSync(newTsFilePath, content);
     if (!replaceResourceJson(abilityName)) {
       console.error('Replace resource info error.');
@@ -204,7 +187,7 @@ function getTemplatePath() {
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }
-  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/entryability');
+  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/mainability');
   return templateDir;
 }
 
@@ -246,11 +229,11 @@ function createAbility() {
     }
   }];
   inquirer.prompt(question).then(answers => {
-    if (createInSource(answers.abilityName, templateDir) &&
-    updateManifest(answers.abilityName) &&
-    createStageAbilityInAndroid(path.basename(projectDir) + '_' + answers.abilityName,
+    if (createInSource(answers.abilityName + 'Ability', templateDir) &&
+    updateManifest(answers.abilityName + 'Ability') &&
+    createStageAbilityInAndroid(path.basename(projectDir), answers.abilityName + 'Ability',
       path.join(templateDir, '../../../../../../../')) &&
-      createStageAbilityInIOS(path.basename(projectDir) + '_' + answers.abilityName, moduleAbilityList)) {
+      createStageAbilityInIOS(path.basename(projectDir) + '_' + answers.abilityName + 'Ability', moduleAbilityList)) {
       return true;
     }
   });

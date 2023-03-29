@@ -95,8 +95,9 @@ function replaceStageProjectInfo(projectPath, packages, project, system) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
-  const aceVersion = 'VERSION_ETS';
-
+  fs.writeFileSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'),
+    fs.readFileSync(path.join(projectPath,
+      'android/app/src/main/java/MainActivity.java')).toString().replace(/setVersion\([^\)]*\);/g, ''));
   files.push(path.join(projectPath, 'ohos/AppScope/resources/base/element/string.json'));
   replaceInfos.push('projectName');
   strs.push(project);
@@ -108,19 +109,16 @@ function replaceStageProjectInfo(projectPath, packages, project, system) {
   strs.push(project);
   files.push(path.join(projectPath, 'source/entry/src/main/resources/base/element/string.json'));
   replaceInfos.push('module_ability_name');
-  strs.push('EntryAbility');
+  strs.push('MainAbility');
   files.push(path.join(projectPath, 'source/entry/src/main/resources/en_US/element/string.json'));
   replaceInfos.push('module_ability_name');
-  strs.push('EntryAbility');
+  strs.push('MainAbility');
   files.push(path.join(projectPath, 'source/entry/src/main/resources/zh_CN/element/string.json'));
   replaceInfos.push('module_ability_name');
-  strs.push('EntryAbility');
+  strs.push('MainAbility');
   files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
   replaceInfos.push('module_ability_name');
-  strs.push('EntryAbility');
-  files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
-  replaceInfos.push('module_path_name');
-  strs.push('entry');
+  strs.push('MainAbility');
   files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
   replaceInfos.push('module_name');
   strs.push('entry');
@@ -164,9 +162,28 @@ function replaceStageProjectInfo(projectPath, packages, project, system) {
   files.push(path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
+
   files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ArkUIInstanceName');
-  strs.push('entry_MainAbility');
+  strs.push(packages + ':entry:MainAbility:');
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('ohos.ace.adapter.AceActivity');
+  strs.push('ohos.stage.ability.adapter.StageActivity');
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('AceActivity');
+  strs.push('StageActivity');
+  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  replaceInfos.push('MainActivity');
+  strs.push('EntryMainActivity');
+  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
+  replaceInfos.push('ohos.ace.adapter.AceApplication');
+  strs.push('ohos.stage.ability.adapter.StageApplication');
+  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
+  replaceInfos.push('AceApplication');
+  strs.push('StageApplication');
+  files.push(path.join(projectPath, 'android/app/src/main/AndroidManifest.xml'));
+  replaceInfos.push('MainActivity');
+  strs.push('EntryMainActivity');
 
   files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
   replaceInfos.push('bundleIdentifier');
@@ -175,10 +192,9 @@ function replaceStageProjectInfo(projectPath, packages, project, system) {
   replaceInfos.push('ACE_VERSION');
   strs.push('ACE_VERSION_ETS');
 
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
-  replaceInfos.push('ACE_VERSION');
-  strs.push(aceVersion);
   replaceInfo(files, replaceInfos, strs);
+  fs.renameSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'), path.join(projectPath,
+    'android/app/src/main/java/EntryMainActivity.java'));
   if (system == aceHarmonyOS) {
     modifyHarmonyOSConfig(projectPath, 'entry', 'stage');
   }
@@ -460,17 +476,17 @@ function modifyHarmonyOSConfig(projectPath, moduleName, moduletpye) {
   if (moduletpye === 'stage') {
     buildProfile = path.join(projectPath, 'source', moduleName, '/build-profile.json5');
     configFile = [path.join(projectPath, 'source', moduleName, 'src/main/module.json5'),
-    path.join(projectPath, 'source', moduleName, 'src/ohosTest/module.json5')];
+      path.join(projectPath, 'source', moduleName, 'src/ohosTest/module.json5')];
     deviceTypeName = 'deviceTypes';
   } else {
     buildProfile = path.join(projectPath, 'ohos', moduleName, '/build-profile.json5');
     configFile = [path.join(projectPath, 'ohos', moduleName, 'src/main/config.json'),
-    path.join(projectPath, 'source', moduleName, 'src/ohosTest/config.json')];
+      path.join(projectPath, 'source', moduleName, 'src/ohosTest/config.json')];
     deviceTypeName = 'deviceType';
   }
 
   if (fs.existsSync(buildProfile)) {
-    let buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
+    const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
     for (let index = 0; index < buildProfileInfo.targets.length; index++) {
       if (buildProfileInfo.targets[index].name === 'default') {
         buildProfileInfo.targets[index].runtimeOS = HarmonyOS;
@@ -482,7 +498,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName, moduletpye) {
 
   configFile.forEach(config => {
     if (fs.existsSync(config)) {
-      let configFileInfo = JSON.parse(fs.readFileSync(config));
+      const configFileInfo = JSON.parse(fs.readFileSync(config));
       configFileInfo.module[deviceTypeName] = ['phone'];
       fs.writeFileSync(config, JSON.stringify(configFileInfo, '', '  '));
     }

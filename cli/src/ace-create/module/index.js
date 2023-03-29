@@ -167,6 +167,56 @@ function createInAndroid(moduleName, templateDir, appVer, type) {
   }
 }
 
+function createStageInAndroid(moduleName, templateDir, appVer, type) {
+  const packageName = getPackageName(appVer, type);
+  const packageArray = packageName.split('.');
+  const src = path.join(templateDir, 'android/app/src/main/java');
+  try {
+    const templateFileName = 'MainActivity.java';
+    const destClassName = moduleName.replace(/\b\w/g, function(l) {
+      return l.toUpperCase();
+    }) + 'MainActivity';
+    let dest = path.join(projectDir, 'android/app/src/main/java');
+    packageArray.forEach(pkg => {
+      dest = path.join(dest, pkg);
+    });
+    const srcFile = path.join(src, templateFileName);
+    const destFileName = destClassName + '.java';
+    const destFilePath = path.join(dest, destFileName);
+    fs.writeFileSync(destFilePath, fs.readFileSync(srcFile));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('MainActivity', 'g'), destClassName));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('packageName', 'g'), packageName));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ohos.ace.adapter.AceActivity', 'g'),
+        'ohos.stage.ability.adapter.StageActivity'));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(/setVersion\([^\)]*\);/g, ''));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
+    fs.writeFileSync(destFilePath,
+      fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
+      + moduleName + ':MainAbility'));
+    const createActivityXmlInfo =
+      '    <activity \n' +
+      '            android:name=".' + destClassName + '"\n' +
+      '        android:exported="false" />\n    ';
+    const curManifestXmlInfo =
+      fs.readFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml')).toString();
+    const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
+    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
+      createActivityXmlInfo +
+      curManifestXmlInfo.slice(insertIndex);
+    fs.writeFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+
+    return true;
+  } catch (error) {
+    console.error('Error occurs when create in android', error);
+    return false;
+  }
+}
+
 function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
   const stringJsonPath = path.join(projectDir, 'ohos', moduleName, 'src/main/resources/base/element/string.json');
   fs.writeFileSync(stringJsonPath,
@@ -249,8 +299,8 @@ function replaceProjectInfo(moduleName, appVer, type) {
 
     const moduleBuildProfile = path.join(projectDir, 'ohos', moduleName, '/build-profile.json5');
     if (moduleName != 'entry' && fs.existsSync(moduleBuildProfile)) {
-      let moduleBuildProfileInfo = JSON5.parse(fs.readFileSync(moduleBuildProfile));
-      moduleBuildProfileInfo.entryModules = ["entry"];
+      const moduleBuildProfileInfo = JSON5.parse(fs.readFileSync(moduleBuildProfile));
+      moduleBuildProfileInfo.entryModules = ['entry'];
       fs.writeFileSync(moduleBuildProfile, JSON.stringify(moduleBuildProfileInfo, '', '  '));
     }
     if (currentSystem === HarmonyOS) {
@@ -349,11 +399,6 @@ function replaceStageProfile(moduleName) {
 
 function replaceStageProjectInfo(moduleName) {
   try {
-    fs.renameSync(path.join(projectDir, 'source/' + moduleName + '/src/main/ets/entryability/EntryAbility.ts'),
-      path.join(projectDir, 'source/' + moduleName + '/src/main/ets/entryability',
-        capitalize(moduleName) + 'Ability.ts'));
-    fs.renameSync(path.join(projectDir, 'source/' + moduleName + '/src/main/ets/entryability'),
-      path.join(projectDir, 'source/' + moduleName + '/src/main/ets', moduleName.toLowerCase() + 'ability'));
     const files = [];
     const replaceInfos = [];
     const strs = [];
@@ -377,10 +422,6 @@ function replaceStageProjectInfo(moduleName) {
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/ets', moduleName.toLowerCase() +
-    'ability', capitalize(moduleName) + 'Ability.ts'));
-    replaceInfos.push('EntryAbility');
-    strs.push(capitalize(moduleName) + 'Ability');
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
     replaceInfos.push('module_ability_name');
     strs.push(capitalize(moduleName) + 'Ability');
@@ -431,7 +472,7 @@ function createStageInIOS(moduleName, moduleList) {
 function createStageModule(moduleList, templateDir) {
   if (moduleList.length == 0) {
     if (createStageModuleInSource('entry', templateDir) &&
-    createInAndroid('entry', templateDir, 'ets', 'Stage')) {
+    createStageInAndroid('entry', templateDir, 'ets', 'Stage')) {
       return replaceStageProjectInfo('entry');
     }
   } else {
@@ -445,7 +486,7 @@ function createStageModule(moduleList, templateDir) {
     }];
     inquirer.prompt(question).then(answers => {
       if (createStageModuleInSource(answers.moduleName, templateDir)
-      && createInAndroid(answers.moduleName, templateDir, 'ets', 'Stage')
+      && createStageInAndroid(answers.moduleName, templateDir, 'ets', 'Stage')
       && createStageInIOS(answers.moduleName, moduleList)) {
         return replaceStageProjectInfo(answers.moduleName);
       }
