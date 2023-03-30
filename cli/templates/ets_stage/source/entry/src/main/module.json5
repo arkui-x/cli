@@ -3,7 +3,8 @@
     "name": "module_name",
     "type": "entry",
     "description": "$string:module_desc",
-    "mainElement": "module_ability_name",
+    "srcEntrance": "./ets/Application/AbilityStage.ts",
+    "mainElement": "MainAbility",
     "deviceTypes": [
       "default",
       "tablet"
@@ -13,8 +14,8 @@
     "pages": "$profile:main_pages",
     "abilities": [
       {
-        "name": "module_ability_name",
-        "srcEntrance": "./ets/module_path_nameability/module_ability_name.ts",
+        "name": "MainAbility",
+        "srcEntrance": "./ets/mainability/MainAbility.ts",
         "description": "$string:module_ability_name_desc",
         "icon": "$media:icon",
         "label": "$string:module_ability_name_label",
