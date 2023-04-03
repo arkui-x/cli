@@ -68,7 +68,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
-      '        android:exported="false" />\n    ';
+      '        android:exported="false" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
     const curManifestXmlInfo =
       fs.readFileSync(path.join(projectDir, '../../android/app/src/main/AndroidManifest.xml')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
