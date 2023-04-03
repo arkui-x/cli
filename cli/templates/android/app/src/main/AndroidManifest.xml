@@ -13,7 +13,7 @@
         android:theme="@style/Theme.Helloworld">
 	<activity android:name=".MainActivity"
 		android:windowSoftInputMode="adjustResize |stateHidden"
-		android:configChanges="orientation|keyboard|layoutDirection|screenSize|uiMode|smallestScreenSize"
+		android:configChanges="orientation|keyboard|layoutDirection|screenSize|uiMode|smallestScreenSize|density"
 		>
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
