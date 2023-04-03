@@ -105,7 +105,23 @@ function copyStageSourceToOhos(moduleList) {
     const dist = path.join(projectDir, 'ohos', module);
     fs.mkdirSync(src, { recursive: true });
     fs.mkdirSync(dist, { recursive: true });
-    isContinue = isContinue && copy(src, dist);
+    const uiSyntaxSrc = path.join(projectDir, 'source', module, '/src/main/' + uiSyntax);
+    const uiSyntaxDist = path.join(projectDir, 'ohos', module, '/src/main/' + uiSyntax);
+    fs.mkdirSync(uiSyntaxSrc, { recursive: true });
+    fs.mkdirSync(uiSyntaxDist, { recursive: true });
+    isContinue = isContinue && copy(uiSyntaxSrc, uiSyntaxDist);
+    //copy resources
+    const resourcesSrc = path.join(projectDir, 'source', module, '/src/main/resources');
+    const resourcesDist = path.join(projectDir, 'ohos', module, '/src/main/resources');
+    fs.mkdirSync(resourcesSrc, { recursive: true });
+    fs.mkdirSync(resourcesDist, { recursive: true });
+    isContinue = isContinue && copy(resourcesSrc, resourcesDist);
+    const fileList = ['build-profile.json5', 'hvigorfile.ts', 'package.json', 'src/main/module.json5'];
+    fileList.forEach(file => {
+      const fileSrc = path.join(projectDir, 'source', module, file);
+      const fileDst = path.join(projectDir, 'ohos', module, file);
+      fs.copyFileSync(fileSrc, fileDst);
+    });
   });
   return isContinue;
 }
@@ -115,7 +131,7 @@ function copyBundleToAndroidAndIOS(moduleList) {
   moduleList.forEach(module => {
     // Now only consider one ability
     const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/' +
-     uiSyntax + '/MainAbility');
+      uiSyntax + '/MainAbility');
     let distAndroid;
     let distIOS;
     const destClassName = module.toLowerCase();

@@ -124,31 +124,28 @@ function getPid(device, fileType) {
     return;
   }
   if (fileType === 'app') {
-    const toolIosDeploy = getToolByType(fileType);
-    if (!validTool(toolIosDeploy)) {
-      return undefined;
-    }
-    const deviceStr = device ? '--id ' + device : '';
-    const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
-    const result = output.indexOf('true') == -1 ? undefined : getPName();
-    return result;
+    return getAppPid(device, fileType, bundleName);
   } else {
-    if (device) {
-      if ('hdc' in toolObj) {
-        hilog = execSync(`${toolObj['hdc']} -t ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
-      } else if ('adb' in toolObj) {
-        hilog = execSync(`${toolObj['adb']} -s ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+    try {
+      if (device) {
+        if ('hdc' in toolObj) {
+          hilog = execSync(`${toolObj['hdc']} -t ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else if ('adb' in toolObj) {
+          hilog = execSync(`${toolObj['adb']} -s ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else {
+          return undefined;
+        }
       } else {
-        return undefined;
+        if ('hdc' in toolObj) {
+          hilog = execSync(`${toolObj['hdc']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else if ('adb' in toolObj) {
+          hilog = execSync(`${toolObj['adb']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else {
+          return undefined;
+        }
       }
-    } else {
-      if ('hdc' in toolObj) {
-        hilog = execSync(`${toolObj['hdc']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
-      } else if ('adb' in toolObj) {
-        hilog = execSync(`${toolObj['adb']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
-      } else {
-        return undefined;
-      }
+    } catch (err) {
+      return undefined;
     }
     const PID_REG = new RegExp(`\\S+\\s+(\\d+).+${bundleName}`, 'g');
     const dataArr = hilog.toString().split('\r\n');
@@ -164,6 +161,21 @@ function getPid(device, fileType) {
         }
       }
     }
+  }
+}
+
+function getAppPid(device, fileType, bundleName) {
+  const toolIosDeploy = getToolByType(fileType);
+  if (!validTool(toolIosDeploy)) {
+    return undefined;
+  }
+  try {
+    const deviceStr = device ? '--id ' + device : '';
+    const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
+    const result = output.indexOf('true') == -1 ? undefined : getPName();
+    return result;
+  } catch (err) {
+    return undefined;
   }
 }
 

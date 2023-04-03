@@ -150,6 +150,16 @@ function getCurrentProjectSystem(projDir) {
   return currentSystem;
 }
 
+function isNativeCppTemplate(projDir) {
+  let checkFile = path.join(projDir, 'ohos/entry/build-profile.json5');
+  checkFile = fs.existsSync(checkFile) ? checkFile : path.join(projDir, 'source/entry/build-profile.json5');
+  if (!fs.existsSync(checkFile)) {
+    return false;
+  }
+  const fileInfo = fs.readFileSync(checkFile).toString();
+  return fileInfo.includes('CMakeLists.txt');
+}
+
 function getDeviceID(device) {
   let id;
   if (device.split(/[\t\s]+/)[0] == 'iOS') {
@@ -169,5 +179,6 @@ module.exports = {
   getManifestPath,
   isStageProject,
   getModuleAbilityList,
-  getCurrentProjectSystem
+  getCurrentProjectSystem,
+  isNativeCppTemplate
 };
