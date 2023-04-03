@@ -1,0 +1,16 @@
+{
+  "name": "module_name",
+  "version": "1.0.0",
+  "ohos": {
+    "org": "huawei",
+    "buildTool": "hvigor",
+    "directoryLevel": "module"
+  },
+  "description": "example description",
+  "repository": {},
+  "license": "ISC",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/libentry.so": "file:./src/main/cpp/types/libentry"
+  }
+}
