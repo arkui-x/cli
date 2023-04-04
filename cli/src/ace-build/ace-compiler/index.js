@@ -112,6 +112,9 @@ function copyStageSourceToOhos(moduleList) {
 
 function copyBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
+  deleteOldFile(path.join(projectDir, 'ios/js'));
+  deleteOldFile(path.join(projectDir, 'ios/res'));
+  deleteOldFile(path.join(projectDir, 'android/app/src/main/assets'));
   moduleList.forEach(module => {
     // Now only consider one ability
     const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/' +
@@ -137,6 +140,8 @@ function copyBundleToAndroidAndIOS(moduleList) {
 
 function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
+  deleteOldFile(path.join(projectDir, 'ios/arkui-x'));
+  deleteOldFile(path.join(projectDir, 'android/app/src/main/assets'));
   moduleList.forEach(module => {
     // Now only consider one ability
     const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/ets');
@@ -166,6 +171,25 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
   });
   return isContinue;
+}
+
+function deleteOldFile(deleteFilePath) {
+  try {
+    if (fs.existsSync(deleteFilePath)) {
+      const files = fs.readdirSync(deleteFilePath);
+      files.forEach(function(file, index) {
+        const curPath = path.join(deleteFilePath, file);
+        if (fs.statSync(curPath).isDirectory()) {
+          deleteOldFile(curPath);
+        } else {
+          fs.unlinkSync(curPath);
+        }
+      });
+      fs.rmdirSync(deleteFilePath);
+    }
+  } catch (error) {
+    console.log(error);
+  }
 }
 
 function copyHaptoOutput() {
