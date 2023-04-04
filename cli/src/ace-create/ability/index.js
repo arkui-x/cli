@@ -47,7 +47,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
     const srcFile = path.join(src, templateFileName);
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + abilityName;
+    }) + abilityName.replace('Ability', 'Activity');
     const destFileName = destClassName + '.java';
     const destFilePath = path.join(dest, destFileName);
     fs.writeFileSync(destFilePath, fs.readFileSync(srcFile));
