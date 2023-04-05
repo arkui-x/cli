@@ -101,6 +101,7 @@ function copyStageSourceToOhos(moduleList) {
   let isContinue = true;
   uiSyntax = 'ets';
   moduleList.forEach(module => {
+    deleteOldFile(path.join(projectDir, 'ohos', module));
     const src = path.join(projectDir, 'source', module);
     const dist = path.join(projectDir, 'ohos', module);
     fs.mkdirSync(src, { recursive: true });
@@ -141,7 +142,7 @@ function copyBundleToAndroidAndIOS(moduleList) {
 function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   deleteOldFile(path.join(projectDir, 'ios/arkui-x'));
-  deleteOldFile(path.join(projectDir, 'android/app/src/main/assets'));
+  deleteOldFile(path.join(projectDir, 'android/app/src/main/assets/arkui-x'));
   moduleList.forEach(module => {
     // Now only consider one ability
     const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/ets');
@@ -175,7 +176,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
 
 function deleteOldFile(deleteFilePath) {
   try {
-    if (fs.existsSync(deleteFilePath)) {
+    if (fs.existsSync(deleteFilePath) && !deleteFilePath.includes(path.join('arkui-x', 'systemres'))) {
       const files = fs.readdirSync(deleteFilePath);
       files.forEach(function(file, index) {
         const curPath = path.join(deleteFilePath, file);
@@ -185,7 +186,9 @@ function deleteOldFile(deleteFilePath) {
           fs.unlinkSync(curPath);
         }
       });
-      fs.rmdirSync(deleteFilePath);
+      if (!deleteFilePath.endsWith('arkui-x')) {
+        fs.rmdirSync(deleteFilePath);
+      }
     }
   } catch (error) {
     console.log(error);
