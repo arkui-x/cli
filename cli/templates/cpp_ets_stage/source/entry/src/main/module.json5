@@ -1,0 +1,38 @@
+{
+  "module": {
+    "name": "module_name",
+    "type": "entry",
+    "description": "$string:module_desc",
+    "srcEntrance": "./ets/Application/AbilityStage.ts",
+    "mainElement": "MainAbility",
+    "deviceTypes": [
+      "default",
+      "tablet"
+    ],
+    "deliveryWithInstall": true,
+    "installationFree": false,
+    "pages": "$profile:main_pages",
+    "abilities": [
+      {
+        "name": "MainAbility",
+        "srcEntrance": "./ets/mainability/MainAbility.ts",
+        "description": "$string:module_ability_name_desc",
+        "icon": "$media:icon",
+        "label": "$string:module_ability_name_label",
+        "startWindowIcon": "$media:icon",
+        "startWindowBackground": "$color:start_window_background",
+        "visible": true,
+        "skills": [
+          {
+            "entities": [
+              "entity.system.home"
+            ],
+            "actions": [
+              "action.system.home"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

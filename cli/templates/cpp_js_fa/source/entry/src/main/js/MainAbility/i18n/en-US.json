@@ -1,0 +1,8 @@
+{
+  "strings": {
+    "hello": "Test native api: 2 + 3 =",
+    "world": "?"
+  },
+  "Files": {
+  }
+}
