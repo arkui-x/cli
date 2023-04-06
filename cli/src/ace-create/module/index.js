@@ -19,7 +19,7 @@ const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { copy, modifyHarmonyOSConfig } = require('../project');
 const { getModuleList, getCurrentProjectVersion, getManifestPath, isStageProject,
-  getModuleAbilityList, getCurrentProjectSystem } = require('../../util');
+  getModuleAbilityList, getCurrentProjectSystem, isNativeCppTemplate } = require('../../util');
 
 let projectDir;
 let currentSystem;
@@ -74,10 +74,18 @@ function checkModuleName(moduleList, moduleName) {
 function createInSource(moduleName, templateDir, appVer) {
   let src;
   const dest = path.join(projectDir, 'source', moduleName);
-  if (appVer == 'js') {
-    src = path.join(templateDir, 'js_fa/source/entry');
+  if (isNativeCppTemplate(projectDir)) {
+    if (appVer == 'js') {
+      src = path.join(templateDir, 'cpp_js_fa/source/entry');
+    } else {
+      src = path.join(templateDir, 'cpp_ets_fa/source/entry');
+    }
   } else {
-    src = path.join(templateDir, 'ets_fa/source/entry');
+    if (appVer == 'js') {
+      src = path.join(templateDir, 'js_fa/source/entry');
+    } else {
+      src = path.join(templateDir, 'ets_fa/source/entry');
+    }
   }
   try {
     fs.mkdirSync(dest, { recursive: true });
@@ -90,9 +98,13 @@ function createInSource(moduleName, templateDir, appVer) {
 
 function createInOhos(moduleName, templateDir) {
   const dest = path.join(projectDir, `ohos/${moduleName}/`);
-  const src = path.join(templateDir, 'ohos_fa/entry');
+  let src = path.join(templateDir, 'ohos_fa/entry');
   try {
     fs.mkdirSync(dest, { recursive: true });
+    if (isNativeCppTemplate(projectDir)) {
+      src = path.join(templateDir, 'cpp_ohos_fa/entry');
+      return copyNativeToModule(moduleName, templateDir) && copy(src, dest);
+    }
     return copy(src, dest);
   } catch (error) {
     console.error('Error occurs when create in ohos');
@@ -246,6 +258,9 @@ function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
     testJsonObj.module.distro.moduleName = moduleName + '_test';
     fs.writeFileSync(testJsonPath, JSON.stringify(testJsonObj, '', '  '));
   }
+  if (moduleName != 'entry' && isNativeCppTemplate(projectDir)) {
+    replaceNativeCppTemplate(moduleName, appName, 'fa');
+  }
 }
 
 function getPackageName(appVer, type) {
@@ -296,13 +311,8 @@ function replaceProjectInfo(moduleName, appVer, type) {
     jsonObj.appName = appName;
     fs.writeFileSync(jsonPath, JSON.stringify(jsonObj, '', '  '));
     replaceInOhos(moduleName, appName, packageName, bundleName, appVer);
+    modifyModuleBuildProfile(projectDir, moduleName, type);
 
-    const moduleBuildProfile = path.join(projectDir, 'ohos', moduleName, '/build-profile.json5');
-    if (moduleName != 'entry' && fs.existsSync(moduleBuildProfile)) {
-      const moduleBuildProfileInfo = JSON5.parse(fs.readFileSync(moduleBuildProfile));
-      moduleBuildProfileInfo.entryModules = ['entry'];
-      fs.writeFileSync(moduleBuildProfile, JSON.stringify(moduleBuildProfileInfo, '', '  '));
-    }
     if (currentSystem === HarmonyOS) {
       modifyHarmonyOSConfig(projectDir, moduleName);
     }
@@ -337,9 +347,13 @@ function replaceProjectInfo(moduleName, appVer, type) {
 
 function createStageModuleInSource(moduleName, templateDir) {
   const dest = path.join(projectDir, 'source', moduleName);
-  const src = path.join(templateDir, 'ets_stage/source/entry');
+  let src = path.join(templateDir, 'ets_stage/source/entry');
   try {
     fs.mkdirSync(dest, { recursive: true });
+    if (isNativeCppTemplate(projectDir)) {
+      src = path.join(templateDir, 'cpp_ets_stage/source/entry');
+      return copyNativeToModule(moduleName, templateDir) && copy(src, dest);
+    }
     return copy(src, dest);
   } catch (error) {
     console.error('Error occurs when create in source.');
@@ -354,24 +368,14 @@ function replaceStageProfile(moduleName) {
       const modulePathJson = JSON.parse(fs.readFileSync(srcModulePath).toString());
       delete modulePathJson.module.abilities[0].skills;
       fs.writeFileSync(srcModulePath, JSON.stringify(modulePathJson, '', '  '));
-      const srcModuleBuildPath = path.join(projectDir, 'source/' + moduleName + '/build-profile.json5');
-      const moduleEntryModule = {
-        'apiType': 'stageMode',
-        'buildOption': {
-        },
-        'entryModules': [
-          'entry'
-        ],
-        'targets': [
-          {
-            'name': 'default'
-          },
-          {
-            'name': 'ohosTest'
-          }
-        ]
-      };
-      fs.writeFileSync(srcModuleBuildPath, JSON.stringify(moduleEntryModule, '', '  '));
+      modifyModuleBuildProfile(projectDir, moduleName, 'stage');
+      if (isNativeCppTemplate(projectDir)) {
+        const appName = getAppNameForModule('ets', 'stage');
+        if (appName == '') {
+          return false;
+        }
+        replaceNativeCppTemplate(moduleName, appName, 'stage');
+      }
     }
 
     const srcBuildPath = path.join(projectDir, 'ohos/build-profile.json5');
@@ -524,6 +528,66 @@ function createFaModule(moduleList, templateDir) {
     });
   }
 }
+
+function modifyModuleBuildProfile(projectDir, moduleName, moduleType) {
+  let moduleBuildProfile;
+  if (moduleType === 'stage') {
+    moduleBuildProfile = path.join(projectDir, 'source', moduleName, '/build-profile.json5');
+  } else {
+    moduleBuildProfile = path.join(projectDir, 'ohos', moduleName, '/build-profile.json5');
+  }
+  if (moduleName != 'entry' && fs.existsSync(moduleBuildProfile)) {
+    const moduleBuildProfileInfo = JSON5.parse(fs.readFileSync(moduleBuildProfile));
+    moduleBuildProfileInfo.entryModules = ['entry'];
+    fs.writeFileSync(moduleBuildProfile, JSON.stringify(moduleBuildProfileInfo, '', '  '));
+  }
+}
+
+function copyNativeToModule(moduleName, templateDir) {
+  if (!copy(path.join(templateDir, '/cpp/cpp_src'), path.join(projectDir, `/source/${moduleName}/src/main/cpp`))) {
+    return false;
+  }
+  if (!copy(path.join(templateDir, '/cpp/cpp_ohos'), path.join(projectDir, `/ohos/${moduleName}/src/main/cpp`))) {
+    return false;
+  }
+  return true;
+}
+
+function replaceNativeCppTemplate(moduleName, appName, moduleType) {
+  try {
+    let packageJsonPath;
+    const moduleToLower = moduleName.toLowerCase();
+    const baseModulePath = path.join(projectDir, 'source', moduleName);
+    if (moduleType === 'stage') {
+      packageJsonPath = path.join(baseModulePath, 'package.json');
+    } else {
+      packageJsonPath = path.join(projectDir, 'ohos', moduleName, 'package.json');
+    }
+    const cMakeFile = path.join(projectDir, `ohos/${moduleName}/src/main/cpp/CMakeLists.txt`);
+    const cPackageFile = path.join(baseModulePath, 'src/main/cpp/types/libentry/package.json');
+    const oldPath = path.join(baseModulePath, 'src/main/cpp/types/libentry');
+    const newPath = path.join(baseModulePath, `src/main/cpp/types/lib${moduleToLower}`);
+    const helloPath = path.join(baseModulePath, 'src/main/cpp/hello.cpp');
+    
+    replaceFileString(packageJsonPath, /entry/g, moduleToLower);
+    replaceFileString(cMakeFile, /entry/g, moduleToLower);
+    replaceFileString(cMakeFile, 'appNameValue', appName);
+    replaceFileString(cPackageFile, /entry/g, moduleToLower);
+    replaceFileString(helloPath, /entry/g, moduleName);
+    replaceFileString(helloPath, /Entry/g, capitalize(moduleName));
+    fs.renameSync(oldPath, newPath);
+
+    return true;
+  } catch {
+    console.error('Replace Native C++ template failed.');
+    return false;
+  }
+}
+
+function replaceFileString(file, oldString, newString) {
+  fs.writeFileSync(file, fs.readFileSync(file).toString().replace(oldString, newString));
+}
+
 
 function createModule() {
   if (!checkCurrentDir(process.cwd())) {

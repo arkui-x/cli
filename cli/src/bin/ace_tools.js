@@ -98,40 +98,54 @@ function parseCreate() {
               }
             }]).then(answers => {
               initInfo.system = answers.system;
-              initInfo.sdkVersion = '9';
               inquirer.prompt([{
-                name: 'moduletpye',
+                name: 'template',
                 type: 'input',
-                message: 'Please enter the Ability Model Type (1: Stage, 2: FA):',
+                message: 'Please enter the template (1: Empty Ability, 2: Native C++):',
                 validate(val) {
                   if (val === '1' || val === '2') {
                     return true;
                   } else {
-                    return 'Ability Model Type must be an integer: 1 or 2.';
+                    return 'template must be an integer: 1 or 2.';
                   }
                 }
               }]).then(answers => {
-                initInfo.moduletpye = answers.moduletpye;
-                if (initInfo.moduletpye === '1') {
-                  initInfo.version = '1';
-                  create(initInfo);
-                } else {
-                  inquirer.prompt([{
-                    name: 'version',
-                    type: 'input',
-                    message: 'Please enter the ACE version (1: 基于ArkTS的声明式开发范式, 2: 兼容JS的类Web开发范式):',
-                    validate(val) {
-                      if (val === '1' || val === '2') {
-                        return true;
-                      } else {
-                        return 'ACE version must be an integer: 1 or 2.';
-                      }
+                initInfo.template = answers.template;
+                initInfo.sdkVersion = '9';
+                inquirer.prompt([{
+                  name: 'moduleType',
+                  type: 'input',
+                  message: 'Please enter the Ability Model Type (1: Stage, 2: FA):',
+                  validate(val) {
+                    if (val === '1' || val === '2') {
+                      return true;
+                    } else {
+                      return 'Ability Model Type must be an integer: 1 or 2.';
                     }
-                  }]).then(answers => {
-                    initInfo.version = answers.version;
+                  }
+                }]).then(answers => {
+                  initInfo.moduleType = answers.moduleType;
+                  if (initInfo.moduleType === '1') {
+                    initInfo.version = '1';
                     create(initInfo);
-                  });
-                }
+                  } else {
+                    inquirer.prompt([{
+                      name: 'version',
+                      type: 'input',
+                      message: 'Please enter the ACE version (1: 基于ArkTS的声明式开发范式, 2: 兼容JS的类Web开发范式):',
+                      validate(val) {
+                        if (val === '1' || val === '2') {
+                          return true;
+                        } else {
+                          return 'ACE version must be an integer: 1 or 2.';
+                        }
+                      }
+                    }]).then(answers => {
+                      initInfo.version = answers.version;
+                      create(initInfo);
+                    });
+                  }
+                });
               });
             });
           });
