@@ -14,6 +14,7 @@
  */
 
 const fs = require('fs');
+const readline = require('readline');
 const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
@@ -195,13 +196,29 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
   replaceInfos.push('bundleIdentifier');
   strs.push(packages);
-  files.push(path.join(projectPath, 'ios/app/AppDelegate.mm'));
-  replaceInfos.push('ACE_VERSION');
-  strs.push('ACE_VERSION_ETS');
+  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('etsapp');
+  strs.push('app');
+  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('res');
+  strs.push('arkui-x');
+  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('DFFB5DAC28F4429C00E74486');
+  strs.push('DFC5555529D7F36400B63EB3');
+  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('AppDelegate.mm');
+  strs.push('AppDelegate.m');
+  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('DFFB5DAD28F4429C00E74486');
+  strs.push('DFC5555629D7F36400B63EB3');
+  files.push(path.join(projectPath, 'ios/app/AppDelegate.m'));
+  replaceInfos.push('packageName');
+  strs.push(packages);
   if (template == aceTemplateNC) {
     modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
   }
   replaceInfo(files, replaceInfos, strs);
+  replaceIOSRbxprojInfo(projectPath);
   fs.renameSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'), path.join(projectPath,
     'android/app/src/main/java/EntryMainActivity.java'));
   if (system == aceHarmonyOS) {
@@ -252,6 +269,12 @@ function copyStageTemplate(templatePath, projectPath, template) {
   fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/app.xcodeproj'));
   fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/app'));
   fs.renameSync(path.join(projectPath, '/ios/js'), path.join(projectPath, '/ios/arkui-x'));
+  fs.unlinkSync(path.join(projectPath, '/ios/app/AppDelegate.mm'));
+  fs.unlinkSync(path.join(projectPath, '/ios/app/AppDelegate.h'));
+  fs.renameSync(path.join(projectPath, '/ios/app/AppDelegate_stage.m'),
+    path.join(projectPath, '/ios/app/AppDelegate.m'));
+  fs.renameSync(path.join(projectPath, '/ios/app/AppDelegate_stage.h'),
+    path.join(projectPath, '/ios/app/AppDelegate.h'));
   return true;
 }
 
@@ -269,6 +292,29 @@ function findTemplate(projectPath, packages, project, system, template, version,
       console.log('Error: Template is not exist!');
     }
   }
+}
+
+function replaceIOSRbxprojInfo(projectPath) {
+  const rbxprojInfoPath = path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj');
+  const rl = readline.createInterface({
+    input: fs.createReadStream(rbxprojInfoPath)
+  });
+
+  const fileStream = fs.createWriteStream(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj1'),
+    { autoClose: true });
+
+  rl.on('line', function(line) {
+    if (!line.includes('DF9C1B6128B9FC4B005DCF58') && !line.includes('DF9C1B6028B9FC4B005DCF58')) {
+      fileStream.write(line + '\n');
+    }
+  });
+  rl.on('close', function() {
+    fileStream.end(function() {
+      fs.fsyncSync(fileStream.fd);
+      fs.unlinkSync(rbxprojInfoPath);
+      fs.renameSync(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj1'), rbxprojInfoPath);
+    });
+  });
 }
 
 function replaceProjectInfo(projectPath, packages, project, system, template, version, sdkVersion) {
@@ -496,6 +542,15 @@ function copyIosTemplate(templatePath, projectPath, template, version) {
   if (version == aceVersionJs) {
     fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/jsapp.xcodeproj'));
     fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/jsapp'));
+    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/AppDelegate_stage.m'));
+    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/AppDelegate_stage.h'));
+    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainAbilityViewController.m'));
+    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainAbilityViewController.h'));
+  } else {
+    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/AppDelegate_stage.m'));
+    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/AppDelegate_stage.h'));
+    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainAbilityViewController.m'));
+    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainAbilityViewController.h'));
   }
   return true;
 }

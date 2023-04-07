@@ -294,7 +294,7 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
       moduleStr = '-p module=' + moduleList.join(',');
     }
     if (cmd.release) {
-      const debugStr = 'debuggable=false';
+      const debugStr = '-p product=default';
       cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js ${debugStr} --mode module ${moduleStr} assembleHap`);
     } else {
       cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js --mode module ${moduleStr} assembleHap`);
