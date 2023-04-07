@@ -163,23 +163,42 @@ function updateManifest(abilityName) {
   }
 }
 
-function createStageAbilityInIOS(moduleName, moduleList) {
-  const iosFilePath = path.join(projectDir, '../../ios/app/AppDelegate.mm');
-  if (!fs.existsSync(iosFilePath)) {
-    console.error('Create module failed');
+function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
+  try {
+    const destClassName = moduleName.replace(/\b\w/g, function(l) {
+      return l.toUpperCase();
+    }) + abilityName + 'ViewController';
+    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainAbilityViewController');
+    fs.writeFileSync(path.join(projectDir, '../../ios/app/' + destClassName + '.h'),
+      fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainAbilityViewController', 'g'),
+        destClassName));
+    fs.writeFileSync(path.join(projectDir, '../../ios/app/' + destClassName + '.m'),
+      fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainAbilityViewController', 'g'),
+        destClassName));
+    const createViewControlInfo =
+      '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
+      'isEqualToString:@"' + abilityName + '"]) {\n' +
+      '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",bundleName, ' +
+      'moduleName, abilityName];\n' +
+      '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
+      'initWithInstanceName:instanceName];\n' +
+      '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
+      '    } // other ViewController\n';
+    const curManifestXmlInfo =
+      fs.readFileSync(path.join(projectDir, '../../ios/app/AppDelegate.m')).toString();
+    const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
+    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainAbilityViewController.h"');
+    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
+    '#import "' + destClassName + '.h"\n' +
+    curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
+    createViewControlInfo +
+      curManifestXmlInfo.slice(insertIndex + 26);
+    fs.writeFileSync(path.join(projectDir, '../../ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    return true;
+  } catch (error) {
+    console.error('Error occurs when create in ios', error);
     return false;
   }
-  let fileContent = fs.readFileSync(iosFilePath, 'utf8');
-  const keyword = '[[AceViewController alloc] initWithVersion:(ACE_VERSION_ETS) instanceName:@"' +
-      moduleList[moduleList.length - 1] + '"];\n';
-  const index = fileContent.indexOf(keyword);
-  const newLine = '    AceViewController *controller' +
-      (moduleList.length + 1) +
-      ' = [[AceViewController alloc] initWithVersion:(ACE_VERSION_ETS) instanceName:@"' +
-      moduleName + '"];\n';
-  fileContent = fileContent.slice(0, index + keyword.length) + newLine + fileContent.slice(index + keyword.length);
-  fs.writeFileSync(iosFilePath, fileContent, 'utf8');
-  return true;
 }
 
 function getTemplatePath() {
@@ -233,7 +252,8 @@ function createAbility() {
     updateManifest(answers.abilityName + 'Ability') &&
     createStageAbilityInAndroid(path.basename(projectDir), answers.abilityName + 'Ability',
       path.join(templateDir, '../../../../../../../')) &&
-      createStageAbilityInIOS(path.basename(projectDir) + '_' + answers.abilityName + 'Ability', moduleAbilityList)) {
+      createStageAbilityInIOS(path.basename(projectDir), answers.abilityName + 'Ability',
+        path.join(templateDir, '../../../../../../../'))) {
       return true;
     }
   });

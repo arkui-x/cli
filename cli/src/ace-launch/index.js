@@ -150,6 +150,21 @@ function getNamesApk(projectDir) {
   }
 }
 
+function isPackageInAndroid() {
+  const comd = 'adb shell pm list packages | find "' + packageName + '"';
+  try {
+    const result = exec(`${comd}`, { encoding: 'utf8' });
+    if (!result.includes(packageName)) {
+      console.log('Activity not exist.');
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.log('Activity not exist.');
+    return false;
+  }
+}
+
 function launch(fileType, device, moduleName) {
   const projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
@@ -166,6 +181,10 @@ function launch(fileType, device, moduleName) {
     return false;
   }
   if (validInputDevice(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
+    if (!isPackageInAndroid()) {
+      console.error(`Launch ${fileType.toUpperCase()} failed.`);
+      return false;
+    }
     const cmdLaunch = getCmdLaunch(projectDir, toolObj, device);
     if (!cmdLaunch) {
       return false;

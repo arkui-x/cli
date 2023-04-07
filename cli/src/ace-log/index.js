@@ -28,7 +28,7 @@ function log(fileType, device) {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  const currentSystem = getCurrentProjectSystem(projectDir)
+  const currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
     console.error('current system is unknown.');
     return false;
