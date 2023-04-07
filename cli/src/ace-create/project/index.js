@@ -199,7 +199,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   replaceInfos.push('ACE_VERSION');
   strs.push('ACE_VERSION_ETS');
   if (template == aceTemplateNC) {
-    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
+    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion, '');
   }
   replaceInfo(files, replaceInfos, strs);
   fs.renameSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'), path.join(projectPath,
@@ -237,11 +237,7 @@ function copyStageTemplate(templatePath, projectPath, template) {
     if (!copy(path.join(templatePath, '/cpp/cpp_android'), path.join(projectPath, '/android/app/src/main/cpp'))) {
       return false;
     }
-    if (!copy(path.join(templatePath, '/cpp/cpp_ios/libentry'), path.join(projectPath, '/ios/libentry'))) {
-      return false;
-    }
-    if (!copy(path.join(templatePath, '/cpp/cpp_ios/replace_project'),
-      path.join(projectPath, '/ios/etsapp.xcodeproj'))) {
+    if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '/ios/etsapp.xcodeproj'))) {
       return false;
     }
   } else {
@@ -379,7 +375,7 @@ function replaceProjectInfo(projectPath, packages, project, system, template, ve
   replaceInfos.push('srcLanguageValue');
   strs.push(srcLanguage);
   if (template == aceTemplateNC) {
-    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
+    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion, jsName);
   }
   replaceInfo(files, replaceInfos, strs);
 
@@ -490,8 +486,7 @@ function copySourceTemplate(templatePath, projectPath, template, version) {
 function copyIosTemplate(templatePath, projectPath, template, version) {
   copy(path.join(templatePath, '/ios'), path.join(projectPath, '/ios'));
   if (template == aceTemplateNC) {
-    copy(path.join(templatePath, '/cpp/cpp_ios/libentry'), path.join(projectPath, '/ios/libentry'));
-    copy(path.join(templatePath, '/cpp/cpp_ios/replace_project'), path.join(projectPath, '/ios/etsapp.xcodeproj'));
+    copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '/ios/etsapp.xcodeproj'));
   }
   if (version == aceVersionJs) {
     fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/jsapp.xcodeproj'));
@@ -568,7 +563,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName, type) {
   });
 }
 
-function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion) {
+function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion, jsName) {
   const nativeIncludePath = getIncludePath(system, sdkVersion)
   files.push(path.join(projectPath, 'ohos/entry/src/main/cpp/CMakeLists.txt'));
   replaceInfos.push('appNameValue');
@@ -579,7 +574,7 @@ function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, 
   files.push(path.join(projectPath, 'android/app/src/main/cpp/CMakeLists.txt'));
   replaceInfos.push('SDK_INCLUDE_PATH');
   strs.push(nativeIncludePath);
-  files.push(path.join(projectPath, 'ios/libentry/libentry.xcodeproj/project.pbxproj'));
+  files.push(path.join(projectPath, `ios/${jsName}app.xcodeproj/project.pbxproj`));
   replaceInfos.push('NATIVE_SDK_INCLUDE');
   if (platform === Platform.MacOS) {
     strs.push(nativeIncludePath);
