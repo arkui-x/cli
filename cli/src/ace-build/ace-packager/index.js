@@ -25,8 +25,7 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { copy } = require('../../ace-create/project');
-const { isProjectRootDir, getCurrentProjectVersion, isNativeCppTemplate } = require('../../util');
+const { isProjectRootDir, getCurrentProjectVersion } = require('../../util');
 const projectDir = process.cwd();
 let androidOSSdkDir;
 
@@ -102,9 +101,6 @@ function packager(target, cmd) {
       }
     }
   } else if (target == "app") {
-    if (isNativeCppTemplate(projectDir)) {
-      buildFramework();
-    }
     if (buildAPP(cmd)) {
       copyToOutput(target);
       return true;
@@ -149,27 +145,6 @@ function buildAPP(cmd) {
   });
   console.log(message);
   return isBuildSuccess;
-}
-
-function buildFramework() {
-  const frameworkProj = path.join(projectDir, 'ios/libentry/libentry.xcodeproj');
-  const exportPath = path.join(projectDir, 'ios/libentry/build/outputs');
-  const src = path.join(exportPath, '/libentry.framework');
-  const dst = path.join(projectDir, 'ios/frameworks/libentry.framework');
-  const cmdStr = `xcodebuild -project ${frameworkProj} -sdk iphoneos `
-    + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
-  try {
-    exec(cmdStr, {
-      encoding: 'utf-8',
-      stdio: 'inherit',
-    });
-  } catch (error) {
-    console.log('Build framework failed.');
-    return false;
-  }
-  copy(src, dst);
-  console.log('Build framework successful.');
-  return true;
 }
 
 module.exports = packager;
