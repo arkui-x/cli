@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		229F400E29C2C3E2009A3204 /* libentry.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 229F400D29C2C3E2009A3204 /* libentry.framework */; };
-		229F400F29C2C3E2009A3204 /* libentry.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 229F400D29C2C3E2009A3204 /* libentry.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		22BA295B29DEAE9800375D33 /* hello.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22BA295A29DEAE9800375D33 /* hello.cpp */; };
 		DF9C1B5E28B9FC3A005DCF58 /* libace_ios.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */; };
 		DF9C1B5F28B9FC3A005DCF58 /* libace_ios.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		DF9C1B6128B9FC4B005DCF58 /* js in Resources */ = {isa = PBXBuildFile; fileRef = DF9C1B6028B9FC4B005DCF58 /* js */; };
@@ -27,7 +26,6 @@
 			dstSubfolderSpec = 10;
 			files = (
 				DF9C1B5F28B9FC3A005DCF58 /* libace_ios.xcframework in Embed Frameworks */,
-				229F400F29C2C3E2009A3204 /* libentry.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -35,7 +33,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		229F400D29C2C3E2009A3204 /* libentry.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libentry.framework; path = frameworks/libentry.framework; sourceTree = "<group>"; };
+		22BA295A29DEAE9800375D33 /* hello.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = hello.cpp; path = ../source/entry/src/main/cpp/hello.cpp; sourceTree = "<group>"; };
 		DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libace_ios.xcframework; path = frameworks/libace_ios.xcframework; sourceTree = "<group>"; };
 		DF9C1B6028B9FC4B005DCF58 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = js; sourceTree = "<group>"; };
 		DFFB5DAC28F4429C00E74486 /* res */ = {isa = PBXFileReference; lastKnownFileType = folder; path = res; sourceTree = "<group>"; };
@@ -54,7 +52,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				DF9C1B5E28B9FC3A005DCF58 /* libace_ios.xcframework in Frameworks */,
-				229F400E29C2C3E2009A3204 /* libentry.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,6 +61,7 @@
 		F0AF1AC427D3684F008C55DD = {
 			isa = PBXGroup;
 			children = (
+				22BA295A29DEAE9800375D33 /* hello.cpp */,
 				DFFB5DAC28F4429C00E74486 /* res */,
 				DF9C1B6028B9FC4B005DCF58 /* js */,
 				F0AF1ACF27D3684F008C55DD /* etsapp */,
@@ -96,7 +94,6 @@
 		F0AF1AEB27D36948008C55DD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				229F400D29C2C3E2009A3204 /* libentry.framework */,
 				DF9C1B5D28B9FC3A005DCF58 /* libace_ios.xcframework */,
 			);
 			name = Frameworks;
@@ -173,6 +170,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				22BA295B29DEAE9800375D33 /* hello.cpp in Sources */,
 				F0AF1AD227D3684F008C55DD /* AppDelegate.mm in Sources */,
 				F0AF1AE327D36856008C55DD /* main.m in Sources */,
 			);
@@ -315,10 +313,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MCN34247SC;
 				ENABLE_BITCODE = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/frameworks",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = etsapp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -336,6 +330,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "shiseido sc adhoc";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = NATIVE_SDK_INCLUDE/native/sysroot/usr/include;
 			};
 			name = Debug;
 		};
@@ -350,10 +345,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MCN34247SC;
 				ENABLE_BITCODE = NO;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(PROJECT_DIR)/frameworks",
-				);
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = etsapp/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -371,6 +362,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "shiseido sc adhoc";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = NATIVE_SDK_INCLUDE/native/sysroot/usr/include;
 			};
 			name = Release;
 		};
