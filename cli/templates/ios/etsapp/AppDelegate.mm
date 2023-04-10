@@ -14,7 +14,7 @@
  */
  
 #import "AppDelegate.h"
-#import <libace_ios/Ace.h>
+#import <libarkui_ios/Ace.h>
 
 @implementation AppDelegate
 @synthesize window = _window;

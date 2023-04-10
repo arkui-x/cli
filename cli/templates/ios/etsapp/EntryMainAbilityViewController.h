@@ -16,7 +16,7 @@
 #ifndef EntryMainAbilityViewController_h
 #define EntryMainAbilityViewController_h
 #import <UIKit/UIKit.h>
-#import <libace_ios/StageViewController.h>
+#import <libarkui_ios/StageViewController.h>
 @interface EntryMainAbilityViewController : StageViewController
 
 

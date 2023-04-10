@@ -658,7 +658,7 @@ function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, 
     }
 
     packagingOptions {
-        pickFirst 'lib/arm64-v8a/libace_napi.so'
+        pickFirst 'lib/arm64-v8a/libarkui_android.so'
     }
       `;
     buildGradleInfo.splice(num, 0, value);

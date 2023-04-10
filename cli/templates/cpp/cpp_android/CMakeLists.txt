@@ -14,11 +14,11 @@ include_directories(${NATIVERENDER_INCLUDE_PATH2})
 add_library(entry SHARED ${NATIVERENDER_SOURCE_PATH}/hello.cpp)
 
 
-add_library(ace_napi SHARED IMPORTED GLOBAL)
+add_library(arkui_android SHARED IMPORTED GLOBAL)
 set_target_properties(
-        ace_napi
+        arkui_android
         PROPERTIES IMPORTED_LOCATION
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../../libs/${CMAKE_ANDROID_ARCH_ABI}/libace_napi.so
+        ${CMAKE_CURRENT_SOURCE_DIR}/../../../libs/${CMAKE_ANDROID_ARCH_ABI}/libarkui_android.so
 )
 
-target_link_libraries(entry PUBLIC ace_napi)
+target_link_libraries(entry PUBLIC arkui_android)
