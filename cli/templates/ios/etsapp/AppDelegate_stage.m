@@ -15,7 +15,7 @@
 
 #import "AppDelegate.h"
 #import "EntryMainAbilityViewController.h"
-#import <libace_ios/StageApplication.h>
+#import <libarkui_ios/StageApplication.h>
 
 #define BUNDLE_DIRECTORY @"arkui-x"
 #define BUNDLE_NAME @"packageName"
