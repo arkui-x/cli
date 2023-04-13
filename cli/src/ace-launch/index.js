@@ -181,7 +181,7 @@ function launch(fileType, device, moduleName) {
     return false;
   }
   if (validInputDevice(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
-    if (!isPackageInAndroid()) {
+    if (fileType === 'apk' && !isPackageInAndroid()) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;
     }
