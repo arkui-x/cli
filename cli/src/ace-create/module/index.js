@@ -209,7 +209,7 @@ function createStageInAndroid(moduleName, templateDir, appVer, type) {
       fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
-      + moduleName + ':MainAbility'));
+      + moduleName + ':MainAbility:'));
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
