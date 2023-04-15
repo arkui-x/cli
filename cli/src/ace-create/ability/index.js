@@ -68,7 +68,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
-      '        android:exported="false" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
+      '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
     const curManifestXmlInfo =
       fs.readFileSync(path.join(projectDir, '../../android/app/src/main/AndroidManifest.xml')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
@@ -167,13 +167,13 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
   try {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + abilityName + 'ViewController';
-    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainAbilityViewController');
+    }) + abilityName.replace('Ability', '') + 'ViewController';
+    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainViewController');
     fs.writeFileSync(path.join(projectDir, '../../ios/app/' + destClassName + '.h'),
-      fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainAbilityViewController', 'g'),
+      fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
     fs.writeFileSync(path.join(projectDir, '../../ios/app/' + destClassName + '.m'),
-      fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainAbilityViewController', 'g'),
+      fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
     const createViewControlInfo =
       '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
@@ -187,7 +187,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
     const curManifestXmlInfo =
       fs.readFileSync(path.join(projectDir, '../../ios/app/AppDelegate.m')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainAbilityViewController.h"');
+    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainViewController.h"');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
     '#import "' + destClassName + '.h"\n' +
     curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
@@ -229,6 +229,9 @@ function createAbility() {
     return false;
   }
   const moduleListForAbility = getModuleList(buildFilePath);
+  if (moduleListForAbility === null) {
+    return false;
+  }
   if (!moduleListForAbility.includes(path.basename(projectDir))) {
     console.error(`Please go to your ${path.join('projectName', 'source', 'ModuleName')} and create ability again.`);
     return false;

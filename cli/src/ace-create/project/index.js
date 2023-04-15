@@ -539,13 +539,13 @@ function copyIosTemplate(templatePath, projectPath, template, version) {
     fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/jsapp'));
     fs.unlinkSync(path.join(projectPath, '/ios/jsapp/AppDelegate_stage.m'));
     fs.unlinkSync(path.join(projectPath, '/ios/jsapp/AppDelegate_stage.h'));
-    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainAbilityViewController.m'));
-    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainAbilityViewController.h'));
+    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainViewController.m'));
+    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainViewController.h'));
   } else {
     fs.unlinkSync(path.join(projectPath, '/ios/etsapp/AppDelegate_stage.m'));
     fs.unlinkSync(path.join(projectPath, '/ios/etsapp/AppDelegate_stage.h'));
-    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainAbilityViewController.m'));
-    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainAbilityViewController.h'));
+    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainViewController.m'));
+    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainViewController.h'));
   }
   return true;
 }
@@ -619,7 +619,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName, type) {
 }
 
 function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion, jsName) {
-  const nativeIncludePath = getIncludePath(system, sdkVersion)
+  const nativeIncludePath = getIncludePath(system, sdkVersion);
   files.push(path.join(projectPath, 'ohos/entry/src/main/cpp/CMakeLists.txt'));
   replaceInfos.push('appNameValue');
   strs.push(project);
@@ -638,13 +638,13 @@ function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, 
   }
   const buildGradle = path.join(projectPath, 'android/app/build.gradle');
   if (fs.existsSync(buildGradle)) {
-    let buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
+    const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
     let num;
     for (let i = 0; i < buildGradleInfo.length; i++) {
       if (buildGradleInfo[i] == `            abiFilters "arm64-v8a", "armeabi-v7a"`) {
         buildGradleInfo[i] = `            abiFilters "arm64-v8a"`;
       }
-      if (buildGradleInfo[i] == "    dynamicFeatures = []") {
+      if (buildGradleInfo[i] == '    dynamicFeatures = []') {
         num = i;
         break;
       }

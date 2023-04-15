@@ -11,6 +11,7 @@
     "deliveryWithInstall": true,
     "installationFree": false,
     "pages": "$profile:test_pages",
+    "metadata": [{"name":"ArkTSPartialUpdate","value":"true"}],
     "abilities": [
       {
         "name": "TestAbility",

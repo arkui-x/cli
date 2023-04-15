@@ -268,7 +268,6 @@ function parseRun() {
     .action((fileType, options, cmd) => {
       fileType = fileType || 'hap';
       if (fileType === 'hap' || fileType === 'apk' || fileType === 'app') {
-        options.target = options.target || 'entry';
         run(fileType, cmd.parent._optionValues.device, options);
       } else {
         console.log(`Please use ace run with subcommand : hap or apk.`);

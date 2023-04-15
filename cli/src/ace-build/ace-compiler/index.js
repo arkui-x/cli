@@ -212,10 +212,12 @@ function deleteOldFile(deleteFilePath) {
   }
 }
 
-function copyHaptoOutput() {
-  const src = path.join(projectDir, '/ohos/entry/build/default/outputs/default');
-  const filePath = copyToBuildDir(src);
-  console.log(`filepath: ${filePath}`);
+function copyHaptoOutput(moduleListSpecified) {
+  moduleListSpecified.forEach(module => {
+    const src = path.join(projectDir, '/ohos/' + module + '/build/default/outputs/default');
+    const filePath = copyToBuildDir(src);
+    console.log(`filepath: ${filePath}`);
+  });
 }
 
 function syncManifest(moduleList) {
@@ -337,7 +339,7 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
       && copyStageBundleToAndroidAndIOS(moduleListSpecified)) {
       if (fileType === 'hap') {
         console.log(`Build hap successfully.`);
-        copyHaptoOutput();
+        copyHaptoOutput(moduleListSpecified);
         return true;
       } else if (fileType === 'apk') {
         return true;
@@ -355,7 +357,7 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
       && syncBundleName(moduleListAll)) {
       if (fileType === 'hap') {
         console.log(`Build hap successfully.`);
-        copyHaptoOutput();
+        copyHaptoOutput(moduleListSpecified);
         return true;
       } else if (fileType === 'apk') {
         return true;
