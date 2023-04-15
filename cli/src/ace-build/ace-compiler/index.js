@@ -101,7 +101,8 @@ function copyStageSourceToOhos(moduleList) {
   let isContinue = true;
   uiSyntax = 'ets';
   moduleList.forEach(module => {
-    deleteOldFile(path.join(projectDir, 'ohos', module));
+    deleteOldFile(path.join(projectDir, 'ohos', module, 'src/main', uiSyntax));
+    deleteOldFile(path.join(projectDir, 'ohos', module, 'src/main/resources'));
     const src = path.join(projectDir, 'source', module);
     const dist = path.join(projectDir, 'ohos', module);
     fs.mkdirSync(src, { recursive: true });
