@@ -163,7 +163,7 @@ function createInAndroid(moduleName, templateDir, appVer, type) {
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
-      '        android:exported="false" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
+      '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
     const curManifestXmlInfo =
       fs.readFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
@@ -213,7 +213,7 @@ function createStageInAndroid(moduleName, templateDir, appVer, type) {
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
-      '        android:exported="false" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
+      '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
     const curManifestXmlInfo =
       fs.readFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
@@ -457,13 +457,13 @@ function createStageInIOS(moduleName, moduleList, templateDir) {
   try {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + 'MainAbilityViewController';
-    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainAbilityViewController');
+    }) + 'MainViewController';
+    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainViewController');
     fs.writeFileSync(path.join(projectDir, 'ios/app/' + destClassName + '.h'),
-      fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainAbilityViewController', 'g'),
+      fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
     fs.writeFileSync(path.join(projectDir, 'ios/app/' + destClassName + '.m'),
-      fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainAbilityViewController', 'g'),
+      fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
     const createViewControlInfo =
       '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName '+
@@ -477,7 +477,7 @@ function createStageInIOS(moduleName, moduleList, templateDir) {
     const curManifestXmlInfo =
       fs.readFileSync(path.join(projectDir, 'ios/app/AppDelegate.m')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainAbilityViewController.h"');
+    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainViewController.h"');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
     '#import "' + destClassName + '.h"\n' +
     curManifestXmlInfo.slice(insertImportIndex, insertIndex) +

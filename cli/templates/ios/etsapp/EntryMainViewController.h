@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-#import "EntryMainAbilityViewController.h"
+#ifndef EntryMainViewController_h
+#define EntryMainViewController_h
+#import <UIKit/UIKit.h>
+#import <libarkui_ios/StageViewController.h>
+@interface EntryMainViewController : StageViewController
 
-@interface EntryMainAbilityViewController ()
 
 @end
 
-@implementation EntryMainAbilityViewController
-
-@end
+#endif /* EntryMainViewController_h */

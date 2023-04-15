@@ -32,7 +32,7 @@ function getNames(projectDir, fileType, moduleName) {
   if (fileType === 'hap') {
     return getNamesHaps(projectDir, moduleName);
   } else if (fileType === 'apk') {
-    return getNamesApk(projectDir);
+    return getNamesApk(projectDir, moduleName);
   } else if (fileType === 'app') {
     return getNamesApp(projectDir);
   }
@@ -105,7 +105,7 @@ function getNamesHaps(projectDir, moduleName) {
   }
 }
 
-function getNamesApk(projectDir) {
+function getNamesApk(projectDir, moduleName) {
   try {
     const androidXmlPath =
       path.join(projectDir, '/android/app/src/main/AndroidManifest.xml');
@@ -131,6 +131,9 @@ function getNamesApk(projectDir) {
       });
       if (isStageProject(path.join(projectDir, 'ohos'))) {
         bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
+        androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
+          return l.toUpperCase();
+        }) + 'MainActivity';
       } else {
         bundleName = JSON.parse(fs.readFileSync(manifestPath)).appID;
       }

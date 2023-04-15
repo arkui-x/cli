@@ -34,8 +34,9 @@ function run(fileType, device, cmd) {
     build(fileType, cmd);
   }
   let installFlag = true;
-  //ios launch command contain install
-  if (fileType != "app") {
+  cmd.target = cmd.target || 'entry';
+  // ios launch command contain install
+  if (fileType != 'app') {
     installFlag = install(fileType, device, cmd.target);
   }
   if (installFlag && launch(fileType, device, cmd.target)) {

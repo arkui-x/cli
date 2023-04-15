@@ -13,13 +13,23 @@
  * limitations under the License.
  */
 
-#ifndef EntryMainAbilityViewController_h
-#define EntryMainAbilityViewController_h
-#import <UIKit/UIKit.h>
-#import <libarkui_ios/StageViewController.h>
-@interface EntryMainAbilityViewController : StageViewController
+#import "EntryMainViewController.h"
 
+@interface EntryMainViewController ()
 
 @end
 
-#endif /* EntryMainAbilityViewController_h */
+@implementation EntryMainViewController
+- (instancetype)initWithInstanceName:(NSString *)instanceName {
+    self = [super initWithInstanceName:instanceName];
+    if (self) {
+
+    }
+    return self;
+}
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+}
+@end

@@ -25,7 +25,7 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { isProjectRootDir, getCurrentProjectVersion } = require('../../util');
+const { isProjectRootDir, getCurrentProjectVersion, isStageProject } = require('../../util');
 const projectDir = process.cwd();
 let androidOSSdkDir;
 
@@ -115,10 +115,9 @@ function buildAPP(cmd) {
     mode = 'release';
   }
   let currentDir = process.cwd();
-  let version = getCurrentProjectVersion(currentDir);
-  if (version == "") {
-    console.log("project is not exists");
-    return false;
+  let version = '';
+  if (!isStageProject(path.join(currentDir, 'source'))) {
+    version = getCurrentProjectVersion(currentDir);
   }
   let projectDir = path.join(currentDir, 'ios', version + 'app.xcodeproj');
   let exportPath = path.join(currentDir, 'ios', 'build/outputs/app/');
