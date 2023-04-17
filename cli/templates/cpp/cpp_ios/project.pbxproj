@@ -330,7 +330,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "shiseido sc adhoc";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = NATIVE_SDK_INCLUDE/native/sysroot/usr/include;
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
 			};
 			name = Debug;
 		};
@@ -362,7 +362,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "shiseido sc adhoc";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = NATIVE_SDK_INCLUDE/native/sysroot/usr/include;
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
 			};
 			name = Release;
 		};
