@@ -71,11 +71,15 @@ function clean() {
 function cleanAndroid() {
   let cmds = [];
   const androidDir = path.join(projectDir, 'android');
+  let message = 'Clean android project successful.';
+  if (!fs.existsSync(path.join(projectDir, 'android/app/build'))) {
+    console.log(message);
+    return true;
+  }
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
   cmds.push(`cd ${androidDir} && ./gradlew clean`);
-  let message = 'Clean android project successful.';
   let isBuildSuccess = true;
   console.log('Start clean android project...');
   cmds = cmds.join(' && ');
