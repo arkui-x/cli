@@ -164,7 +164,7 @@ function cleanJSBundle() {
     const ohosSource = path.join(projectDir, 'ohos', module, '/src/main/');
     // This time, ohos resources is created by merging with source resources, should not be deleted.
     // Wait for the processing of resources to be modified.
-    if (!removeDir(ohosSource, ['resources', 'config.json'], true)) {
+    if (!removeDir(ohosSource, ['resources', 'config.json', 'module.json5'], true)) {
       console.error('ohos code file delete failed');
       isContinue = false;
     }
