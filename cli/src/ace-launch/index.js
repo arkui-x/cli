@@ -44,7 +44,12 @@ function getNamesApp(projectDir) {
     console.log('project is not exists');
     return false;
   }
-  const appName = version == 'js' ? 'jsapp.app' : 'etsapp.app';
+  let appName = '';
+  if (isStageProject(path.join(projectDir, 'ohos'))) {
+    appName = 'app.app';
+  } else {
+    appName = version == 'js' ? 'jsapp.app' : 'etsapp.app';
+  }
   appPackagePath = path.join(projectDir, '/ios/build/outputs/app/', appName);
   return true;
 }
@@ -153,8 +158,16 @@ function getNamesApk(projectDir, moduleName) {
   }
 }
 
-function isPackageInAndroid() {
-  const comd = 'adb shell pm list packages | find "' + packageName + '"';
+function isPackageInAndroid(toolObj, device) {
+  let comd = '';
+  if ('adb' in toolObj) {
+    const cmdPath = toolObj['adb'];
+    const deviceOption = device ? `-s ${device}` : '';
+    comd = `${cmdPath} ${deviceOption} shell pm list packages | find  "${packageName}"`;
+  } else {
+    console.error('Internal error with adb checking.');
+    return false;
+  }
   try {
     const result = exec(`${comd}`, { encoding: 'utf8' });
     if (!result.includes(packageName)) {
@@ -184,7 +197,7 @@ function launch(fileType, device, moduleName) {
     return false;
   }
   if (validInputDevice(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
-    if (fileType === 'apk' && !isPackageInAndroid()) {
+    if (fileType === 'apk' && !isPackageInAndroid(toolObj, device)) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;
     }

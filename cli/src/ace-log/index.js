@@ -196,7 +196,7 @@ function getBundleName() {
 
 function getPName() {
   if (isStageProject(path.join(projectDir, 'ohos'))) {
-    return 'etsapp';
+    return 'app';
   }
   if (getCurrentProjectVersion(projectDir) == 'ets') {
     return 'etsapp';
