@@ -215,7 +215,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   replaceInfos.push('packageName');
   strs.push(packages);
   if (template == aceTemplateNC) {
-    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion, '');
+    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
   }
   replaceInfo(files, replaceInfos, strs);
   replaceIOSRbxprojInfo(projectPath);
@@ -421,7 +421,7 @@ function replaceProjectInfo(projectPath, packages, project, system, template, ve
   replaceInfos.push('srcLanguageValue');
   strs.push(srcLanguage);
   if (template == aceTemplateNC) {
-    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion, jsName);
+    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
   }
   replaceInfo(files, replaceInfos, strs);
 
@@ -618,7 +618,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName, type) {
   });
 }
 
-function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion, jsName) {
+function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion) {
   const nativeIncludePath = getIncludePath(system, sdkVersion);
   files.push(path.join(projectPath, 'ohos/entry/src/main/cpp/CMakeLists.txt'));
   replaceInfos.push('appNameValue');
@@ -629,13 +629,6 @@ function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, 
   files.push(path.join(projectPath, 'android/app/src/main/cpp/CMakeLists.txt'));
   replaceInfos.push('SDK_INCLUDE_PATH');
   strs.push(nativeIncludePath);
-  files.push(path.join(projectPath, `ios/${jsName}app.xcodeproj/project.pbxproj`));
-  replaceInfos.push('NATIVE_SDK_INCLUDE');
-  if (platform === Platform.MacOS) {
-    strs.push(nativeIncludePath);
-  } else {
-    strs.push(path.join('/Users/ohos/Library/OpenHarmony/', sdkVersion).replace(/\\/g, '/'));
-  }
   const buildGradle = path.join(projectPath, 'android/app/build.gradle');
   if (fs.existsSync(buildGradle)) {
     const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
