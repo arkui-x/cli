@@ -82,6 +82,9 @@ class Ide {
   }
 
   checkMacApp() {
+    if (this.stdType === 'android-studio') {
+      this.stdType = 'Android Studio';
+    }
     const appPath = [`/Applications/${this.stdType}.app`,
     path.join(homeDir, '/Applications', `${this.stdType}.app`)];
     for (const i in appPath) {
@@ -156,6 +159,9 @@ class Ide {
   }
 
   validIdePath(dir, platform) {
+    if (this.stdType === 'Android Studio') {
+      this.exePrefix = 'studio';
+    }
     const exe = platform === Platform.Linux ? '.sh' : platform === Platform.MacOS ? '' : '.exe';
     if (fs.existsSync(path.join(dir, `${this.exePrefix}${exe}`))) {
       return true;
