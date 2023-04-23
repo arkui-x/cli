@@ -296,7 +296,7 @@ function replaceIOSRbxprojInfo(projectPath) {
     input: fs.createReadStream(rbxprojInfoPath)
   });
 
-  const fileStream = fs.createWriteStream(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj1'),
+  const fileStream = fs.createWriteStream(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj.temp'),
     { autoClose: true });
 
   rl.on('line', function(line) {
@@ -308,7 +308,30 @@ function replaceIOSRbxprojInfo(projectPath) {
     fileStream.end(function() {
       fs.fsyncSync(fileStream.fd);
       fs.unlinkSync(rbxprojInfoPath);
-      fs.renameSync(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj1'), rbxprojInfoPath);
+      fs.renameSync(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj.temp'), rbxprojInfoPath);
+    });
+  });
+}
+
+function replaceFAIOSRbxprojInfo(aceType, projectPath) {
+  const rbxprojInfoPath = path.join(projectPath, 'ios/' + aceType + 'app.xcodeproj/project.pbxproj');
+  const rl = readline.createInterface({
+    input: fs.createReadStream(rbxprojInfoPath)
+  });
+
+  const fileStream = fs.createWriteStream(path.join(projectPath, 'ios/' +
+    aceType + 'app.xcodeproj/project.pbxproj.temp'), { autoClose: true });
+
+  rl.on('line', function(line) {
+    if (!line.includes('EntryMainViewController')) {
+      fileStream.write(line + '\n');
+    }
+  });
+  rl.on('close', function() {
+    fileStream.end(function() {
+      fs.fsyncSync(fileStream.fd);
+      fs.unlinkSync(rbxprojInfoPath);
+      fs.renameSync(path.join(projectPath, 'ios/' + aceType + 'app.xcodeproj/project.pbxproj.temp'), rbxprojInfoPath);
     });
   });
 }
@@ -424,7 +447,7 @@ function replaceProjectInfo(projectPath, packages, project, system, template, ve
     modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
   }
   replaceInfo(files, replaceInfos, strs);
-
+  replaceFAIOSRbxprojInfo(jsName, projectPath);
   if (system == aceHarmonyOS) {
     modifyHarmonyOSConfig(projectPath, 'entry');
   }
