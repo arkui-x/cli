@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DF4BEDE929F4F5280060CCEB /* EntryMainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = DF4BEDE729F4F5270060CCEB /* EntryMainViewController.m */; };
 		22BA295B29DEAE9800375D33 /* hello.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 22BA295A29DEAE9800375D33 /* hello.cpp */; };
 		DF9C1B5E28B9FC3A005DCF58 /* libarkui_ios.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libarkui_ios.xcframework */; };
 		DF9C1B5F28B9FC3A005DCF58 /* libarkui_ios.xcframework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DF9C1B5D28B9FC3A005DCF58 /* libarkui_ios.xcframework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
@@ -33,6 +34,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DF4BEDE729F4F5270060CCEB /* EntryMainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryMainViewController.m; sourceTree = "<group>"; };
+		DF4BEDE829F4F5280060CCEB /* EntryMainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryMainViewController.h; sourceTree = "<group>"; };
 		22BA295A29DEAE9800375D33 /* hello.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = hello.cpp; path = ../source/entry/src/main/cpp/hello.cpp; sourceTree = "<group>"; };
 		DF9C1B5D28B9FC3A005DCF58 /* libarkui_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libarkui_ios.xcframework; path = frameworks/libarkui_ios.xcframework; sourceTree = "<group>"; };
 		DF9C1B6028B9FC4B005DCF58 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = js; sourceTree = "<group>"; };
@@ -81,6 +84,8 @@
 		F0AF1ACF27D3684F008C55DD /* etsapp */ = {
 			isa = PBXGroup;
 			children = (
+				DF4BEDE829F4F5280060CCEB /* EntryMainViewController.h */,
+				DF4BEDE729F4F5270060CCEB /* EntryMainViewController.m */,
 				F0AF1AD027D3684F008C55DD /* AppDelegate.h */,
 				F0AF1AD127D3684F008C55DD /* AppDelegate.mm */,
 				F0AF1ADC27D36856008C55DD /* Assets.xcassets */,
@@ -172,6 +177,7 @@
 			files = (
 				22BA295B29DEAE9800375D33 /* hello.cpp in Sources */,
 				F0AF1AD227D3684F008C55DD /* AppDelegate.mm in Sources */,
+				DF4BEDE929F4F5280060CCEB /* EntryMainViewController.m in Sources */,
 				F0AF1AE327D36856008C55DD /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
