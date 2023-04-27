@@ -39,6 +39,18 @@ function capitalize(str) {
   }
 }
 
+function isModuleNameQualified(name) {
+  const regEn = /[`~!@#$%^&*()+<>?:"{},.\/;'\\[\]]/im;
+  const regCn = /[·！#￥（——）：；“”‘、，|《。》？、【】[\]]/im;
+
+  if (regEn.test(name) || regCn.test(name) || !isNaN(name[0]) || name.length > 31) {
+    return false;
+  } else if (name[0] === '_') {
+    return false;
+  }
+  return true;
+}
+
 function checkModuleName(moduleList, moduleName) {
   if (!moduleName) {
     console.error('Module name must be required!');
@@ -503,6 +515,11 @@ function createStageModule(moduleList, templateDir) {
       type: 'input',
       message: 'Please enter the module name:',
       validate(val) {
+        if (!isModuleNameQualified(val)) {
+          console.log('Module name must contain 1 to 31 characters, start with a letter, ' +
+            'and include only letters, digits and underscores (_).');
+          return false;
+        }
         return checkModuleName(moduleList, val);
       }
     }];
@@ -534,6 +551,11 @@ function createFaModule(moduleList, templateDir) {
       type: 'input',
       message: 'Please enter the module name:',
       validate(val) {
+        if (!isModuleNameQualified(val)) {
+          console.log('Module name must contain 1 to 31 characters, start with a letter, ' +
+            'and include only letters, digits and underscores (_).');
+          return false;
+        }
         return checkModuleName(moduleList, val);
       }
     }];

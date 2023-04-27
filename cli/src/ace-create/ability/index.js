@@ -33,6 +33,18 @@ function checkAbilityName(abilityName, abilityList, moduleName) {
   return true;
 }
 
+function isAbilityNameQualified(name) {
+  const regEn = /[`~!@#$%^&*()+<>?:"{},.\/;'\\[\]]/im;
+  const regCn = /[·！#￥（——）：；“”‘、，|《。》？、【】[\]]/im;
+
+  if (regEn.test(name) || regCn.test(name) || !isNaN(name[0]) || name.length > 50) {
+    return false;
+  } else if (name[0] === '_') {
+    return false;
+  }
+  return true;
+}
+
 function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
   try {
     const manifestPath = path.join(projectDir, '../../ohos/AppScope/app.json5');
@@ -247,6 +259,11 @@ function createAbility() {
     type: 'input',
     message: 'Please enter the ability name:',
     validate(val) {
+      if (!isAbilityNameQualified(val)) {
+        console.log('The ability name must contain 1 to 50 characters, start with a letter,' +
+          ' and include only letters, digits and underscores (_)');
+        return false;
+      }
       return checkAbilityName(val, moduleAbilityList, path.basename(projectDir));
     }
   }];
