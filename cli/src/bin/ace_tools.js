@@ -56,6 +56,18 @@ function parseCommander() {
   program.parse(process.argv);
 }
 
+function isProjectNameQualified(name) {
+  const regEn = /[`~!@#$%^&*()+<>?:"{},.\/;'\\[\]]/im;
+  const regCn = /[·！#￥（——）：；“”‘、，|《。》？、【】[\]]/im;
+
+  if (regEn.test(name) || regCn.test(name) || !isNaN(name[0]) || name.length > 200) {
+    return false;
+  } else if (name[0] === '_') {
+    return false;
+  }
+  return true;
+}
+
 function parseCreate() {
   program.command('create [subcommand]')
     .description(`create ace project/module/component/ability`)
@@ -68,6 +80,9 @@ function parseCreate() {
           validate(val) {
             if (val === '') {
               return 'Project name must be required!';
+            } else if (!isProjectNameQualified(val)) {
+              return 'The project name must contain 1 to 200 characters, start with a ' +
+                'letter, and include only letters, digits and underscores (_)';
             }
             return true;
           }
