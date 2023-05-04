@@ -167,7 +167,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     const resPath = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources');
     const moduleJsonPath = path.join(projectDir, '/ohos', module,
       'build/default/intermediates/res/default/module.json');
-    const destClassName = module.toLowerCase();
+    const destClassName = module;
     const distAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/', destClassName + '/ets');
     const distIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/ets');
     const resindexAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',

@@ -163,7 +163,7 @@ function isPackageInAndroid(toolObj, device) {
   if ('adb' in toolObj) {
     const cmdPath = toolObj['adb'];
     const deviceOption = device ? `-s ${device}` : '';
-    comd = `${cmdPath} ${deviceOption} shell pm list packages | find  "${packageName}"`;
+    comd = `${cmdPath} ${deviceOption} shell pm list packages`;
   } else {
     console.error('Internal error with adb checking.');
     return false;
