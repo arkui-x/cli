@@ -1,0 +1,374 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 53;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2208FD3B29F61C8900D1A1FE /* hello.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2208FD3A29F61C8900D1A1FE /* hello.cpp */; };
+		22FAD4CA29E6A45C00729313 /* MyFramework.h in Headers */ = {isa = PBXBuildFile; fileRef = 22FAD4C929E6A45C00729313 /* MyFramework.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		22FAD4D129E6A63E00729313 /* ArkUIAppDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 22FAD4D029E6A63E00729313 /* ArkUIAppDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		22FAD4D329E6A64500729313 /* ArkUIAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FAD4D229E6A64500729313 /* ArkUIAppDelegate.m */; };
+		22FAD50229F12AFC00729313 /* libarkui_ios.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */; };
+		22FAD4D829E6A68F00729313 /* js in Resources */ = {isa = PBXBuildFile; fileRef = 22FAD4D729E6A68F00729313 /* js */; };
+		22FAD50429F12BFA00729313 /* arkui-x in Resources */ = {isa = PBXBuildFile; fileRef = 22FAD50329F12BF900729313 /* arkui-x */; };
+		22FAD50629F12CA500729313 /* EntryMainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 22FAD50529F12CA400729313 /* EntryMainViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		22FAD50829F12CAB00729313 /* EntryMainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FAD50729F12CAB00729313 /* EntryMainViewController.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2208FD3A29F61C8900D1A1FE /* hello.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = hello.cpp; path = ../../../source/entry/src/main/cpp/hello.cpp; sourceTree = "<group>"; };
+		22FAD4C629E6A45C00729313 /* MyFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MyFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		22FAD4C929E6A45C00729313 /* MyFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyFramework.h; sourceTree = "<group>"; };
+		22FAD4D029E6A63E00729313 /* ArkUIAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArkUIAppDelegate.h; sourceTree = "<group>"; };
+		22FAD4D229E6A64500729313 /* ArkUIAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArkUIAppDelegate.m; sourceTree = "<group>"; };
+		22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libarkui_ios.xcframework; path = ../frameworks/libarkui_ios.xcframework; sourceTree = "<group>"; };
+		22FAD4D729E6A68F00729313 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../js; sourceTree = "<group>"; };
+		22FAD50329F12BF900729313 /* arkui-x */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../arkui-x"; sourceTree = "<group>"; };
+		22FAD50529F12CA400729313 /* EntryMainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryMainViewController.h; sourceTree = "<group>"; };
+		22FAD50729F12CAB00729313 /* EntryMainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryMainViewController.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		22FAD4C329E6A45C00729313 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22FAD50229F12AFC00729313 /* libarkui_ios.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		22FAD4BC29E6A45C00729313 = {
+			isa = PBXGroup;
+			children = (
+				22FAD50329F12BF900729313 /* arkui-x */,
+				22FAD4D729E6A68F00729313 /* js */,
+				22FAD4C829E6A45C00729313 /* MyFramework */,
+				22FAD4C729E6A45C00729313 /* Products */,
+				22FAD4D429E6A65700729313 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		22FAD4C729E6A45C00729313 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				22FAD4C629E6A45C00729313 /* MyFramework.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		22FAD4C829E6A45C00729313 /* MyFramework */ = {
+			isa = PBXGroup;
+			children = (
+				2208FD3A29F61C8900D1A1FE /* hello.cpp */,
+				22FAD50729F12CAB00729313 /* EntryMainViewController.m */,
+				22FAD50529F12CA400729313 /* EntryMainViewController.h */,
+				22FAD4D229E6A64500729313 /* ArkUIAppDelegate.m */,
+				22FAD4D029E6A63E00729313 /* ArkUIAppDelegate.h */,
+				22FAD4C929E6A45C00729313 /* MyFramework.h */,
+			);
+			path = MyFramework;
+			sourceTree = "<group>";
+		};
+		22FAD4D429E6A65700729313 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		22FAD4C129E6A45C00729313 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22FAD4D129E6A63E00729313 /* ArkUIAppDelegate.h in Headers */,
+				22FAD50629F12CA500729313 /* EntryMainViewController.h in Headers */,
+				22FAD4CA29E6A45C00729313 /* MyFramework.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		22FAD4C529E6A45C00729313 /* MyFramework */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 22FAD4CD29E6A45C00729313 /* Build configuration list for PBXNativeTarget "MyFramework" */;
+			buildPhases = (
+				22FAD4C129E6A45C00729313 /* Headers */,
+				22FAD4C229E6A45C00729313 /* Sources */,
+				22FAD4C329E6A45C00729313 /* Frameworks */,
+				22FAD4C429E6A45C00729313 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MyFramework;
+			productName = MyFramework;
+			productReference = 22FAD4C629E6A45C00729313 /* MyFramework.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		22FAD4BD29E6A45C00729313 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastUpgradeCheck = 1420;
+				TargetAttributes = {
+					22FAD4C529E6A45C00729313 = {
+						CreatedOnToolsVersion = 14.2;
+					};
+				};
+			};
+			buildConfigurationList = 22FAD4C029E6A45C00729313 /* Build configuration list for PBXProject "MyFramework" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 22FAD4BC29E6A45C00729313;
+			productRefGroup = 22FAD4C729E6A45C00729313 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				22FAD4C529E6A45C00729313 /* MyFramework */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		22FAD4C429E6A45C00729313 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				22FAD50429F12BFA00729313 /* arkui-x in Resources */,
+				22FAD4D829E6A68F00729313 /* js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		22FAD4C229E6A45C00729313 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2208FD3B29F61C8900D1A1FE /* hello.cpp in Sources */,
+				22FAD50829F12CAB00729313 /* EntryMainViewController.m in Sources */,
+				22FAD4D329E6A64500729313 /* ArkUIAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		22FAD4CB29E6A45C00729313 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		22FAD4CC29E6A45C00729313 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		22FAD4CE29E6A45C00729313 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MyFramework;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
+			};
+			name = Debug;
+		};
+		22FAD4CF29E6A45C00729313 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MyFramework;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		22FAD4C029E6A45C00729313 /* Build configuration list for PBXProject "MyFramework" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22FAD4CB29E6A45C00729313 /* Debug */,
+				22FAD4CC29E6A45C00729313 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		22FAD4CD29E6A45C00729313 /* Build configuration list for PBXNativeTarget "MyFramework" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				22FAD4CE29E6A45C00729313 /* Debug */,
+				22FAD4CF29E6A45C00729313 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 22FAD4BD29E6A45C00729313 /* Project object */;
+}
