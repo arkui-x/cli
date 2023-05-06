@@ -170,6 +170,31 @@ function getDeviceID(device) {
   return id;
 }
 
+function getAarName(projectDir) {
+  const aarName = [];
+  const aarConfigPath = path.join(projectDir, 'android/settings.gradle');
+  if (!fs.existsSync(aarConfigPath)) {
+    return aarName;
+  }
+  fs.readFileSync(aarConfigPath).toString().split(/\r\n|\n|\r/gm).forEach(line =>{
+    if (line.indexOf('include') !== -1 && line.split("'")[1].substring(1) !== 'app') {
+      aarName.push(line.split("'")[1].substring(1));
+    }
+  });
+  return aarName;
+}
+
+function getFrameworkName(projectDir) {
+  const frameworkName = [];
+  const frameworkPath = path.join(projectDir, 'ios/');
+  fs.readdirSync(frameworkPath).forEach(dir => {
+    if (fs.statSync(path.join(frameworkPath, dir)).isDirectory() &&
+      fs.readdirSync(path.join(frameworkPath, dir)).includes(`${dir}.xcodeproj`)) {
+      frameworkName.push(dir);
+    }
+  });
+  return frameworkName;
+}
 
 module.exports = {
   isProjectRootDir,
@@ -180,5 +205,7 @@ module.exports = {
   isStageProject,
   getModuleAbilityList,
   getCurrentProjectSystem,
-  isNativeCppTemplate
+  isNativeCppTemplate,
+  getAarName,
+  getFrameworkName
 };

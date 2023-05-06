@@ -26,7 +26,8 @@ const {
   copyToBuildDir
 } = require('../ace-build');
 const { copy } = require('../../ace-create/project');
-const { isProjectRootDir, getModuleList, isStageProject, getCurrentProjectSystem } = require('../../util');
+const { isProjectRootDir, getModuleList, isStageProject, getCurrentProjectSystem,
+  getAarName, getFrameworkName } = require('../../util');
 let projectDir;
 let openHarmonySdkDir;
 let harmonyOsSdkDir;
@@ -303,7 +304,8 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
       cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js --mode module ${moduleStr} assembleHap`);
     }
     gradleMessage = 'Start building hap...';
-  } else if (fileType === 'apk' || fileType === 'app') {
+  } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
+    fileType === 'framework' || fileType === 'xcframework') {
     if (moduleType === 'Stage') {
       cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js default@CompileArkTS`);
     } else if (uiSyntax === 'ets') {
@@ -330,6 +332,95 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
   }
 }
 
+function copyBundleToAAR(moduleList) {
+  const aarNameList = getAarName(projectDir);
+  let isContinue = true;
+  aarNameList.forEach(aarName => {
+    const aarPath = path.join(projectDir, 'android', aarName);
+    if (!fs.existsSync(aarPath)) {
+      console.error(`Build aar failed.\nPlease check ${aarPath} directory existing.`);
+      return false;
+    }
+    deleteOldFile(path.join(aarPath, 'src/main/assets'));
+    moduleList.forEach(module => {
+      const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/' +
+        uiSyntax + '/MainAbility');
+      const destClassName = module.toLowerCase();
+      const distAAR = path.join(aarPath, 'src/main/assets/js', destClassName + '_MainAbility');
+      fs.mkdirSync(distAAR, { recursive: true });
+      isContinue = isContinue && copy(src, distAAR);
+    });
+    const ohosResourcePath = path.join(projectDir, '/ohos/entry/build/default/intermediates/res/default/');
+    const filePathAAR = path.join(aarPath, 'src/main/assets/res/appres');
+    fs.mkdirSync(filePathAAR, { recursive: true });
+    isContinue = isContinue && copy(ohosResourcePath, filePathAAR);
+  });
+  return isContinue;
+}
+
+function copyStageBundleToAAR(moduleList) {
+  const aarNameList = getAarName(projectDir);
+  let isContinue = true;
+  aarNameList.forEach(aarName => {
+    const aarPath = path.join(projectDir, 'android', aarName);
+    if (!fs.existsSync(aarPath)) {
+      console.error(`Build aar failed.\nPlease check ${aarPath} directory existing.`);
+      return false;
+    }
+    deleteOldFile(path.join(aarPath, 'src/main/assets/arkui-x'));
+    moduleList.forEach(module => {
+      // Now only consider one ability
+      const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/ets');
+      const resindex = path.join(projectDir, '/ohos', module,
+        'build/default/intermediates/res/default/resources.index');
+      const resPath = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources');
+      const moduleJsonPath = path.join(projectDir, '/ohos', module,
+        'build/default/intermediates/res/default/module.json');
+      const destClassName = module.toLowerCase();
+      const distAndroid = path.join(aarPath, 'src/main/assets/arkui-x/', destClassName + '/ets');
+      const resindexAndroid = path.join(aarPath, 'src/main/assets/arkui-x/', destClassName + '/resources.index');
+      const resPathAndroid = path.join(aarPath, 'src/main/assets/arkui-x/', destClassName + '/resources');
+      const moduleJsonPathAndroid = path.join(aarPath, 'src/main/assets/arkui-x/', destClassName + '/module.json');
+      fs.mkdirSync(distAndroid, { recursive: true });
+      isContinue = isContinue && copy(src, distAndroid);
+      isContinue = isContinue && copy(resPath, resPathAndroid);
+      fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
+      fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
+    });
+  });
+  return isContinue;
+}
+
+function validateLibraryExist(fileType) {
+  if (fileType === 'aar') {
+    if (getAarName(projectDir).length == 0) {
+      return false;
+    }
+  } else {
+    if (getFrameworkName(projectDir).length == 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function compilerModuleType(moduleListAll, fileType, moduleListSpecified, moduleType) {
+  if (fileType === 'hap') {
+    console.log(`Build hap successfully.`);
+    copyHaptoOutput(moduleListSpecified);
+    return true;
+  } else if (fileType === 'apk' || fileType === 'app' ||
+    fileType === 'framework' || fileType === 'xcframework') {
+    return true;
+  } else if (fileType === 'aar') {
+    if (moduleType === 'Stage') {
+      return copyStageBundleToAAR(moduleListAll);
+    } else {
+      return copyBundleToAAR(moduleListAll);
+    }
+  }
+}
+
 function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
   if (isStageProject(path.join(projectDir, 'source/'))) {
     if (readConfig()
@@ -337,15 +428,7 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
       && copyStageSourceToOhos(moduleListAll)
       && runGradle(fileType, cmd, moduleListSpecified, 'Stage')
       && copyStageBundleToAndroidAndIOS(moduleListSpecified)) {
-      if (fileType === 'hap') {
-        console.log(`Build hap successfully.`);
-        copyHaptoOutput(moduleListSpecified);
-        return true;
-      } else if (fileType === 'apk') {
-        return true;
-      } else if (fileType === 'app') {
-        return true;
-      }
+      return compilerModuleType(moduleListAll, fileType, moduleListSpecified, 'Stage');
     }
   } else {
     if (readConfig()
@@ -355,15 +438,7 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
       && runGradle(fileType, cmd, moduleListSpecified, 'FA')
       && copyBundleToAndroidAndIOS(moduleListSpecified)
       && syncBundleName(moduleListAll)) {
-      if (fileType === 'hap') {
-        console.log(`Build hap successfully.`);
-        copyHaptoOutput(moduleListSpecified);
-        return true;
-      } else if (fileType === 'apk') {
-        return true;
-      } else if (fileType === 'app') {
-        return true;
-      }
+      return compilerModuleType(moduleListAll, fileType, moduleListSpecified, 'Fa');
     }
   }
   console.error(`Compile failed.`);
@@ -375,6 +450,13 @@ function compiler(fileType, cmd) {
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
+  }
+  if (fileType === 'aar' || fileType === 'framework' || fileType === 'xcframework') {
+    const dir = fileType === 'xcframework' ? 'framework' : fileType;
+    if (!validateLibraryExist(fileType)) {
+      console.error(`Build ${fileType} failed.\nPlease check ${dir} existing.`);
+      return false;
+    }
   }
   const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
   const moduleListAll = getModuleList(settingPath);
