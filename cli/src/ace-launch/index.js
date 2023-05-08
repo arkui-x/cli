@@ -207,7 +207,7 @@ function launch(fileType, device, moduleName) {
     }
     try {
       const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
-      if (result.includes('failed')) {
+      if (result.includes('Failure') || result.toLowerCase().includes('failed')) {
         console.error(result);
         return false;
       }

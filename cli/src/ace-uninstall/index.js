@@ -120,7 +120,7 @@ function uninstallHap(toolObj, device, bundle) {
   commands.push(`${cmdUninstall}`);
   try {
     const result = exec(`${commands}`).toString().trim();
-    if ((result.includes('Fail')) || (result.includes('failed'))) {
+    if ((result.includes('Fail')) || (result.toLowerCase().includes('failed'))) {
       return false;
     }
     return true;
