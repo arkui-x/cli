@@ -1,7 +1,7 @@
 # ACE Tools
 
 ## 简介
-ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，用于构建OpenHarmony、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
+ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，用于构建OpenHarmony/HarmonyOS、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
 **注释：** ACE - 元能力跨平台运行环境 (Ability Cross-platform Environment)。
 
@@ -32,17 +32,25 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 │   └── util                    # 工具模块
 └── templates                   # 模板相关
     ├── android                 # Android工程模板
+    ├── cpp                     # Native C++配置模板                           
+    ├── cpp_ets_fa              # 基于ArkTS的声明式开发范式Native C++模板
+    ├── cpp_ets_stage           # Stage Native C++开发模板
+    ├── cpp_js_fa               # 兼容JS的类Web开发范式Native C++模板
+    ├── cpp_ohos_fa             # Fa ohos工程模板
     ├── ets_fa                  # 基于ArkTS的声明式开发范式模板
+    ├── ets_stage               # Stage开发模板
     ├── ios                     # iOS工程模板
     ├── js_fa                   # 兼容JS的类Web开发范式模板
-    └── ohos_fa                 # OpenHarmony工程模板
+    ├── ohos_fa                 # ohos Fa工程模板
+    ├── ohos_stage              # ohos Stage工程模板
+
 ```
 
 ## 使用方法
 
 ### ace config
 
-设置ACE工具链相关配置，包括OpenHarmony SDK路径，Android SDK路径、Node.js路径、编译输出路径等。 
+设置ACE工具链相关配置，包括OpenHarmony SDK路径，HarmonyOS SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 
 
 语法：
 
@@ -53,6 +61,7 @@ ace config [options] <path>
 | 参数          | 说明                |
 | ------------- | ------------------- |
 | --openharmony-sdk | OpenHarmony SDK路径。 |
+| --harmonyos-sdk | HarmonyOS SDK路径。 |
 | --android-sdk | Android SDK路径。    |
 | --nodejs-dir  | Node.js 路径。        |
 | --build-dir   | 编译输出的路径。     |
@@ -70,6 +79,7 @@ ace config [options] <path>
 | ---------------- | ---------------------------- | ------- | ----- | ---- |
 | Node.js           | Node.js 路径                  | 是      | 是    | 是   |
 | OpenHarmony SDK  | OpenHarmony SDK路径          | 是      | 是    | 是   |
+| HarmonyOS SDK    | HarmonyOS SDK路径          | 是      | 是    | 是   |
 | Android SDK      | Android SDK路径              | 是      | 是    | 是   |
 | DevEco Studio    | DevEco Studio安装路径        | 是      | 否    | 是   |
 | Android Studio   | Android Studio安装路径       | 是      | 是    | 是   |
@@ -91,31 +101,36 @@ ace check
 ```shell
 ohos@user ~ % ace check
 [√] OpenHarmony toolchains - develop for OpenHarmony devices
-  • SDK at /Users/ohos/Desktop/sdk
+  • OpenHarmony SDK at /Users/ohos/openharmony/sdk
+  • Node.js Runtime Environment at /usr/local/bin/node
+  • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
+[√] HarmonyOS toolchains - develop for HarmonyOS devices
+  • HarmonyOS SDK at /Users/ohos/harmonyos/sdk
   • Node.js Runtime Environment at /usr/local/bin/node
   • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
 [√] Android toolchains - develop for Android devices
-  • SDK at /Users/ohos/Library/Android/sdk
-[√] DevEco Studio
+  • Android SDK at /Users/ohos/Library/Android/sdk
+[√] DevEco Studio [Requires DevEco Studio 3.1 Beta1, API Version 9+]
   • DevEco Studio at /Applications/deveco-studio.app
 [!] Android Studio
-  ! Android Studio is not installed, you can install in https://developer.android.google.cn/studio 
+  ! Android Studio is not installed, you can install in https://developer.android.google.cn/studio
 [√] iOS toolchains - develop for iOS devices
   • Xcode 13.3Build version 13E113
   • idevicesyslog 1.3.0
   • 1.11.4
-Tools info :[×] hdc is not installed [√] adb installed [√] ios-deploy installed
+Tools info :[√] OpenHarmony hdc installed [√] HarmonyOS hdc installed [√] adb installed [√] ios-deploy installed
 [√] Connected device (1 available)
   • iOS Devices	[....] Found 00008020-001C0D92146A002E (N841AP, iPhone XR, iphoneos, arm64e, 15.0, 19A346) a.k.a. 'iPhone Xr 15.0' connected through USB.
 
   √ Ace-check found no issues.
+
 ```
 
 ### ace devices
 
-列出当前所有连接的设备，Windows和Linux平台上可以查询到当前连接的Android和OpenHarmony设备；
+列出当前所有连接的设备，Windows平台上可以查询到当前连接的Android和OpenHarmony/HarmonyOS设备；Linux平台上可以查询到当前连接的Android设备；
 
-Mac平台上可以查询到当前连接的Android，OpenHarmony和iOS设备。
+Mac平台上可以查询到当前连接的Android，OpenHarmony/HarmonyOS和iOS设备。
 
 
 语法：
@@ -130,7 +145,7 @@ ace devices
 
 ```shell
 ohos@user ~ % ace devices
-Tools info :[×] hdc is not installed [√] adb installed [√] ios-deploy installed
+Tools info :[√] OpenHarmony hdc installed [√] HarmonyOS hdc installed [√] adb installed [√] ios-deploy installed
 [√] Connected device (1 available)
   • iOS Devices	[....] Found 00008020-001C0D92146A002E (N841AP, iPhone XR, iphoneos, arm64e, 15.0, 19A346) a.k.a. 'iPhone Xr 15.0' connected through USB.
 ```
@@ -180,6 +195,24 @@ Please input project name:
 Please input package name: com.example.${projectName}:
 ```
 
+提示输入RuntimeOS系统：
+
+```shell
+Please enter the system (1: OpenHarmony, 2: HarmonyOS):
+```
+
+提示输入项目模板：
+
+```shell
+Please enter the template (1: Empty Ability, 2: Native C++):
+```
+
+提示输入Ability类型：
+
+```shell
+Please enter the Ability Model Type (1: Stage, 2: FA):
+```
+
 提示输入项目版本：
 
 ```shell
@@ -205,6 +238,19 @@ Please input module name:
 
 如果此module name已存在，会提示开发者${module name} already exists.，开发者修改名称后，回车确认，可以成功新建出跨平台应用模块(Module)。
 
+### ace create ability
+
+新建跨平台应用Ability
+
+
+需要在新建的跨平台应用工程的source/具体module目录下执行，提示输入Ability名称：
+
+```shell
+Please enter the ability name:
+```
+
+如果此abilityname已存在，会提示开发者abilityName name already exists!.，开发者修改名称后，回车确认，可以成功新建出跨平台应用Ability。
+
 ### ace build
 
 构建跨平台应用安装包。
@@ -217,7 +263,7 @@ ace build [options] [fileType]
 
 在Windows和Linux平台上可构建Hap和Apk，在Mac平台上可构建Hap、Apk和App。
 
-注：在DevEco Studio中打开要编译的工程配置自动签名，单击File > Project Structure > Project > Signing Configs界面勾选“Automatically generate signature”，等待自动签名完成即可，再执行ace build即可构建出签名hap安装包；在Mac上编译App之前需要使用Xcode打开对应ios工程，在Build settings的Singing进行签名配置，再执行编译命令。
+注：在DevEco Studio中打开要编译的工程配置自动签名，单击File > Project Structure > Project > Signing Configs界面勾选“Automatically generate signature”，等待自动签名完成即可，再执行ace build即可构建出签名hap安装包；在Mac上编译App之前需要使用Xcode打开对应ios工程，在Build settings的Singing进行签名配置，再执行编译命令；在Linux上无法签名。
 
 - options
 
@@ -232,7 +278,7 @@ ace build [options] [fileType]
 
 | 参数 | 说明                                                   |
 | ---- | ------------------------------------------------------ |
-| hap  | 生成OpenHarmony应用 hap 包，fileType未输入时，默认参数为hap。 |
+| hap  | 生成OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
 | apk  | 生成Android应用 apk 包。                                  |
 | app  | 生成iOS应用 app 包。                                   |
 
@@ -267,7 +313,7 @@ ace install [options] [fileType]
 
 | 参数 | 说明                                                   |
 | ---- | ------------------------------------------------------ |
-| hap  | 安装OpenHarmony应用 hap 包，fileType未输入时，默认参数为hap。 |
+| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
 | apk  | 安装Android应用 apk 包。                                  |
 | app  | 安装iOS应用 app 包。                                   |
 
@@ -300,7 +346,7 @@ ace uninstall [options] [fileType]
 
 | 参数 | 说明                                                   |
 | ---- | ------------------------------------------------------ |
-| hap  | 卸载OpenHarmony应用 hap 包，fileType未输入时，默认参数为hap。 |
+| hap  | 卸载OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
 | apk  | 卸载Android应用 apk 包。                                  |
 | app  | 卸载iOS应用 app 包。                                   |
 
@@ -327,14 +373,14 @@ ace log [options] [fileType]
 
 | 子命令              | 说明                   |
 | ------------------- | ---------------------- |
-| -d [deviceId]       | 指定卸载应用的设备Id。 |
-| --device [deviceId] | 指定卸载应用的设备Id。 |
+| -d [deviceId]       | 指定日志应用的设备Id。 |
+| --device [deviceId] | 指定日志应用的设备Id。 |
 
 - fileType
 
 | 参数 | 说明                                                |
 | ---- | --------------------------------------------------- |
-| hap  | 查看OpenHarmony应用日志，fileType未输入时，默认参数为hap。 |
+| hap  | 查看OpenHarmony/HarmonyOS应用日志，fileType未输入时，默认参数为hap。 |
 | apk  | 查看Android应用日志。                                  |
 | app  | 查看iOS应用日志。                                   |
 
@@ -344,7 +390,7 @@ ace log [options] [fileType]
 
 ace run 先检查设备是否连接，确定设备类型，然后执行跨平台应用构建、安装、启动、输出应用进程log等操作。
 
-在Windows和Linux平台上可以构建安装并运行Hap和Apk，在Mac平台上可以构建安装并运行Hap、Apk和App。
+在Windows平台上可以构建安装并运行Hap和Apk，在Linux平台上可以构建安装并运行Apk，仅能构建Hap，在Mac平台上可以构建安装并运行Hap、Apk和App。
 
 语法：
 
@@ -363,7 +409,7 @@ ace run [options] [fileType]
 
 | 参数 | 说明                                                         |
 | ---- | ------------------------------------------------------------ |
-| hap  | 构建并运行OpenHarmony应用 hap 包，fileType未输入时，默认参数为hap。 |
+| hap  | 构建并运行OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
 | apk  | 构建并运行Android应用 apk 包。                                  |
 | app  | 构建并运行iOS应用 app 包。                                   |
 
@@ -397,7 +443,7 @@ ace help <subcommand>
 | --------- | ------------------------------------------------------------ |
 | devices   | 列出所有连接的设备。                                         |
 | check     | 查验跨平台应用开发环境。                                     |
-| config    | 设置ACE工具链相关配置，包括OpenHarmony SDK路径，Android SDK路径、Node.js路径、编译输出路径等。 |
+| config    | 设置ACE工具链相关配置，包括OpenHarmony SDK路径、HarmonyOS SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 |
 | create    | 创建一个新的跨平台应用或者模块(Module)。                     |
 | build     | 构建跨平台应用安装包。                                       |
 | install   | 将跨平台应用安装到连接的设备上。                             |
@@ -420,11 +466,12 @@ Options:
   -h, --help                      display help for command
 
 Commands:
-  create [subcommand]             create ace project/module/component
+  create [subcommand]             create ace project/module/component/ability
   check                           check sdk environment
   devices                         list the connected devices.
   config [options]                
           --openharmony-sdk [OpenHarmony SDK]
+          --harmonyos-sdk  [HarmonyOS SDK]
           --android-sdk   [Android Sdk]
           --deveco-studio-path [DevEco Studio Path]
           --android-studio-path [Android Studio Path]
