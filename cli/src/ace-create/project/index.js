@@ -723,5 +723,9 @@ function getIdeDefaultSdk(system) {
 module.exports = {
   create,
   copy,
-  modifyHarmonyOSConfig
+  rmdir,
+  modifyHarmonyOSConfig,
+  createPackageFile,
+  replaceInfo,
+  getIncludePath
 };

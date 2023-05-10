@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const { isProjectRootDir, getModuleList } = require('../util');
+const { isProjectRootDir, getModuleList, getFrameworkName, getAarName } = require('../util');
 const { Platform, platform } = require('../ace-check/platform');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
@@ -46,9 +46,17 @@ function clean() {
     failedMsg += '\tcleanAndroid';
     successFlag = false;
   }
+  if (getAarName(projectDir).length !== 0 && !cleanAAR()) {
+    failedMsg += '\tcleanAAR';
+    successFlag = false;
+  }
   if (platform == Platform.MacOS) {
     if (!cleanIOS()) {
       failedMsg += '\tcleanIOS';
+      successFlag = false;
+    }
+    if (getFrameworkName(projectDir).length !== 0 && !cleanFramework()) {
+      failedMsg += '\tcleanFramework';
       successFlag = false;
     }
   }
@@ -225,6 +233,69 @@ function removeDir(path, ignoreDirArr, saveDirectory) {
     return false;
   }
   return true;
+}
+
+function cleanAAR() {
+  let cmds = [];
+  const aarDir = path.join(projectDir, 'android');
+  let message = 'Clean aar project successful.';
+  let needClean = false;
+  getAarName(projectDir).forEach(aarName =>{
+    if (fs.existsSync(path.join(projectDir, `android/${aarName}/build`))) {
+      needClean = true;
+    }
+  });
+ 
+  if (!needClean) {
+    console.log(message);
+    return true;
+  }
+  if (platform !== Platform.Windows) {
+    cmds.push(`cd ${aarDir} && chmod 755 gradlew`);
+  }
+  cmds.push(`cd ${aarDir} && ./gradlew clean`);
+  let isBuildSuccess = true;
+  console.log('Start clean aar project...');
+  cmds = cmds.join(' && ');
+  if (platform === Platform.Windows) {
+    cmds = cmds.replace(/\//g, '\\');
+  }
+  try {
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit'
+    });
+  } catch (error) {
+    console.error(error);
+    message = 'Clean aar project failed.';
+    isBuildSuccess = false;
+  }
+  console.log(message);
+  return isBuildSuccess;
+}
+
+function cleanFramework() {
+  console.log('Start clean framework project...');
+  let message = 'Clean framework project successful.';
+  let isCleanSuccess = true;
+  getFrameworkName(projectDir).forEach(frameworkName => {
+    let cmds = [];
+    const frameworkDir = path.join(projectDir, 'ios', frameworkName);
+    cmds.push(`cd ${frameworkDir} && xcodebuild clean`);
+    cmds = cmds.join(' && ');
+    try {
+      exec(cmds, {
+        encoding: 'utf-8',
+        stdio: 'inherit'
+      });
+    } catch (error) {
+      console.error(error);
+      message = 'Clean framework project failed.';
+      isCleanSuccess = false;
+    }
+  });
+  console.log(message);
+  return isCleanSuccess;
 }
 
 module.exports = clean;

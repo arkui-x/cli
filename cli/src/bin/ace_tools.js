@@ -20,6 +20,8 @@ const { create } = require('../ace-create/project');
 const createModule = require('../ace-create/module');
 const createComponent = require('../ace-create/component');
 const createAbility = require('../ace-create/ability');
+const createAar = require('../ace-create/aar');
+const createFramework = require('../ace-create/framework');
 const { setConfig } = require('../ace-config');
 const check = require('../ace-check');
 const devices = require('../ace-devices');
@@ -70,7 +72,7 @@ function isProjectNameQualified(name) {
 
 function parseCreate() {
   program.command('create [subcommand]')
-    .description(`create ace project/module/component/ability`)
+    .description(`create ace project/module/component/ability/framework/aar`)
     .action((subcommand, cmd) => {
       if (!subcommand || subcommand === 'project') {
         inquirer.prompt([{
@@ -171,8 +173,12 @@ function parseCreate() {
         createComponent();
       } else if (subcommand === 'ability') {
         createAbility();
+      } else if (subcommand === 'framework') {
+        createFramework();
+      } else if (subcommand === 'aar') {
+        createAar();
       } else {
-        console.log(`Please use ace create with subcommand : project/module/component/ability.`);
+        console.log(`Please use ace create with subcommand : project/module/component/ability/framework/aar.`);
       }
     });
 }
@@ -233,14 +239,15 @@ function parseBuild() {
     .option('--target [moduleName]', 'name of module to be built')
     .option('-r --release', 'build as release')
     .option('--nosign', 'build without sign')
-    .description('build hap/apk/app of moduleName')
+    .description('build hap/apk/app/aar/framework/xcframework of moduleName')
     .action((fileType, cmd) => {
       if (fileType === 'hap' || typeof fileType === 'undefined') {
         compiler('hap', cmd);
-      } else if (fileType === 'apk' || fileType === 'app') {
+      } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
+        fileType === 'framework' || fileType === 'xcframework') {
         build(fileType, cmd);
       } else {
-        console.log(`Please use ace build with subcommand : hap, apk or app.`);
+        console.log(`Please use ace build with subcommand : hap, apk, aar, app, framework or xcframework.`);
       }
     });
 }
