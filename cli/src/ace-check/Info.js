@@ -15,6 +15,7 @@
 
 class Info {
   constructor() {
+    this.noarkuiXSdk = `ArkUI-X SDK is not installed`;
     this.noOpenHarmonySdk = `OpenHarmony SDK is not installed`;
     this.noHarmonyOsSdk = `HarmonyOS SDK is not installed`;
     this.noAndroidSdk = `Android SDK is not installed if you want to develop Android APP`;
@@ -22,6 +23,7 @@ class Info {
     this.noJavaSdk = `Java SDK is not found`;
     this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com`;
     this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio`;
+    this.arkuiXSdkTitle = `ArkUI-X toolchains - develop for ArkUI-X devices`;
     this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices`;
     this.harmonyOsTitle = `HarmonyOS toolchains - develop for HarmonyOS devices`;
     this.androidTitle = `Android toolchains - develop for Android devices`;
@@ -34,7 +36,9 @@ class Info {
     this.noIdeviceVersion = 'libimobiledevice not installed. To install, run: brew install libimobiledevice';
     this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
   }
-
+  hasarkuiXSdk(arkuiXSdkDir) {
+    return `ArkUI-X SDK at ${arkuiXSdkDir}`;
+  }
   hasSdk(ohSdkDir) {
     return `OpenHarmony SDK at ${ohSdkDir}`;
   }
@@ -62,7 +66,9 @@ class Info {
   hasAndroidStudio(androidStudioDir) {
     return `Android Studio at ${androidStudioDir}`;
   }
-
+  arkuiXSdkInfo(arkuiXSdkDir) {
+    return arkuiXSdkDir ? this.hasarkuiXSdk(arkuiXSdkDir) : this.noarkuiXSdk;
+  }
   openHarmonySdkInfo(openHarmonySdkDir) {
     return openHarmonySdkDir ? this.hasSdk(openHarmonySdkDir) : this.noOpenHarmonySdk;
   }

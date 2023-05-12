@@ -31,6 +31,7 @@ const { isProjectRootDir, getModuleList, isStageProject, getCurrentProjectSystem
 let projectDir;
 let openHarmonySdkDir;
 let harmonyOsSdkDir;
+let arkuiXSdkDir;
 let nodejsDir;
 let uiSyntax;
 let currentSystem;
@@ -41,6 +42,9 @@ function readConfig() {
       if (Object.prototype.hasOwnProperty.call(config, 'openharmony-sdk')) {
         openHarmonySdkDir = config['openharmony-sdk'];
       }
+      if (Object.prototype.hasOwnProperty.call(config, 'arkui-x-sdk')) {
+        arkuiXSdkDir = config['arkui-x-sdk'];
+      }
       if (Object.prototype.hasOwnProperty.call(config, 'harmonyos-sdk')) {
         harmonyOsSdkDir = config['harmonyos-sdk'];
       }
@@ -49,13 +53,13 @@ function readConfig() {
       }
     }
     if (currentSystem === HarmonyOS) {
-      if (!harmonyOsSdkDir || !nodejsDir) {
-        console.error(`Please check HarmonyOS Sdk and nodejs in your environment.`);
+      if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir) {
+        console.error(`Please check HarmonyOS Sdk and ArkUI-X SDK and nodejs in your environment.`);
         return false;
       }
     } else {
-      if (!openHarmonySdkDir || !nodejsDir) {
-        console.error(`Please check OpenHarmony Sdk and nodejs in your environment.`);
+      if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir) {
+        console.error(`Please check OpenHarmony Sdk and ArkUI-X SDK and nodejs in your environment.`);
         return false;
       }
     }

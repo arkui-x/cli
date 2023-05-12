@@ -205,19 +205,22 @@ function parseConfig() {
     .option('--build-dir [Build Dir]', 'build-dir path')
     .option('--nodejs-dir [Nodejs Dir]', 'nodejs-dir path')
     .option('--java-sdk [Java Sdk]', 'java-sdk path')
+    .option('--arkui-x-sdk [ArkUI-X SDK]', 'arkui-x-sdk path')
     .description(`
-        --openharmony-sdk [OpenHarmony SDK]
-        --harmonyos-sdk  [HarmonyOS SDK]
-        --android-sdk   [Android Sdk]
-        --deveco-studio-path [DevEco Studio Path]
+        --openharmony-sdk     [OpenHarmony SDK]
+        --harmonyos-sdk       [HarmonyOS SDK]
+        --android-sdk         [Android Sdk]
+        --deveco-studio-path  [DevEco Studio Path]
         --android-studio-path [Android Studio Path]
-        --build-dir     [Build Dir]
-        --nodejs-dir    [Nodejs Dir]
-        --java-sdk      [Java Sdk]`)
+        --build-dir           [Build Dir]
+        --nodejs-dir          [Nodejs Dir]
+        --java-sdk            [Java Sdk]
+        --arkui-x-sdk         [ArkUI-X SDK]`)
+
     .action((cmd, description) => {
       if (cmd.openharmonySdk || cmd.harmonyosSdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath
         || cmd.buildDir ||
-        cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease) {
+        cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease || cmd.arkuiXSdk) {
         setConfig({
           'openharmony-sdk': cmd.openharmonySdk,
           'harmonyos-sdk': cmd.harmonyosSdk,
@@ -226,7 +229,8 @@ function parseConfig() {
           'android-studio-path': cmd.androidStudioPath,
           'build-dir': cmd.buildDir,
           'nodejs-dir': cmd.nodejsDir,
-          'java-sdk': cmd.javaSdk
+          'java-sdk': cmd.javaSdk,
+          'arkui-x-sdk': cmd.arkuiXSdk
         });
       } else {
         console.log('Please use ace config with options :' + description._description);

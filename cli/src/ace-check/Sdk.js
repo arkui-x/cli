@@ -40,7 +40,6 @@ class Sdk {
     this.kSdkRoot = kSdkRoot;
     this.toolchainsName = toolchainsName;
   }
-
   locateSdk() {
     let sdkHomeDir;
     const config = this.checkConfig();
@@ -83,6 +82,45 @@ class Sdk {
       const validSdkPath = path.join(sdkHomeDir, 'sdk');
       if (this.validSdkDir(validSdkPath)) {
         return validSdkPath;
+      }
+    }
+  }
+
+  locateSdkNoSub() {
+    let sdkHomeDir;
+    const config = this.checkConfig();
+    if (config) {
+      sdkHomeDir = config;
+    } else if (this.kSdkHome in environment) {
+      sdkHomeDir = environment[this.kSdkHome].replace(';', '');
+    } else if (this.kSdkRoot in environment) {
+      sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
+    } else if (platform === Platform.Linux) {
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, this.defaultSdkDir[i]);
+        if (fs.existsSync(defaultPath)) {
+          sdkHomeDir = defaultPath;
+        }
+      }
+    } else if (platform === Platform.MacOS) {
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i]);
+        if (fs.existsSync(defaultPath)) {
+          sdkHomeDir = defaultPath;
+        }
+      }
+    } else if (platform === Platform.Windows) {
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, 'AppData', 'Local', this.defaultSdkDir[i]);
+        if (fs.existsSync(defaultPath)) {
+          sdkHomeDir = defaultPath;
+        }
+      }
+    }
+
+    if (sdkHomeDir) {
+      if (this.validSdkDir(sdkHomeDir)) {
+        return sdkHomeDir;
       }
     }
   }
