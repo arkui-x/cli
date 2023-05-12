@@ -34,6 +34,13 @@ const harmonyOsSdk = new Sdk(
   'HarmonyOS',
   'toolchains'
 );
+const arkuiXSdk = new Sdk(
+  'ArkUI-X',
+  ['ArkUI-X'],
+  'ArkUI_X_HOME',
+  'ArkUI-X',
+  'toolchains'
+);
 
 const devEcoStudio = new Ide(
   'DevEco Studio',
@@ -63,6 +70,7 @@ const androidSdk = new Sdk(
 
 const openHarmonySdkDir = openHarmonySdk.locateSdk();
 const harmonyOsSdkDir = harmonyOsSdk.locateSdk();
+const arkuiXSdkDir = arkuiXSdk.locateSdkNoSub();
 const nodejsDir = checkNodejs();
 const devEcoStudioDir = devEcoStudio.locateIde();
 const androidStudioDir = androidStudio.locateIde();
@@ -80,5 +88,6 @@ module.exports = {
   androidSdkDir,
   xCodeVersion,
   iDeviceVersion,
-  deployVersion
+  deployVersion,
+  arkuiXSdkDir
 };

@@ -22,7 +22,8 @@ const {
   androidSdkDir,
   xCodeVersion,
   iDeviceVersion,
-  deployVersion
+  deployVersion,
+  arkuiXSdkDir
 } = require('./configs');
 const checkJavaSdk = require('./checkJavaSdk');
 const { setConfig } = require('../ace-config');
@@ -39,8 +40,11 @@ const {
 const javaSdkDir = checkJavaSdk();
 const { Platform, platform } = require('./platform');
 
-function check() {
-  let errorTimes = 0;
+function checkRequired(errorTimes) {
+  requirementTitle(info.arkuiXSdkTitle, arkuiXSdkDir && nodejsDir && javaSdkDir);
+  requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir);
+  requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
+  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
 
   requirementTitle(info.openHarmonyTitle, openHarmonySdkDir && nodejsDir && javaSdkDir);
   requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
@@ -54,7 +58,7 @@ function check() {
 
   optionTitle(info.androidTitle, androidSdkDir);
   optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
-  if (platform != Platform.Linux) {
+  if (platform !== Platform.Linux) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
     optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
   }
@@ -68,7 +72,15 @@ function check() {
     requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
     errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }
+  return errorTimes;
+}
+function check() {
+  let errorTimes = 0;
+  errorTimes = checkRequired(errorTimes);
 
+  if (arkuiXSdkDir) {
+    setConfig({ 'arkui-x-sdk': arkuiXSdkDir });
+  }
   if (openHarmonySdkDir) {
     setConfig({ 'openharmony-sdk': openHarmonySdkDir });
   }
@@ -90,6 +102,7 @@ function check() {
     setConfig({ 'android-sdk': androidSdkDir });
   }
 
+  errorTimes = !arkuiXSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !openHarmonySdkDir ? errorTimes++ : errorTimes;
   errorTimes = !harmonyOsSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !nodejsDir ? errorTimes++ : errorTimes;
