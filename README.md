@@ -50,7 +50,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 
 ### ace config
 
-设置ACE工具链相关配置，包括OpenHarmony SDK路径，HarmonyOS SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 
+设置ACE工具链相关配置，包括OpenHarmony SDK路径，HarmonyOS SDK路径、ArkUI-X SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 
 
 语法：
 
@@ -68,6 +68,7 @@ ace config [options] <path>
 | --deveco-studio-path | DevEco Studio安装路径（可选参数）。 |
 | --android-studio-path | Android Studio安装路径（可选参数）。 |
 | --java-sdk | JDK路径。 |
+| --arkui-x-sdk | ArkUI-X SDK路径 |
 
 ### ace check
 
@@ -87,6 +88,7 @@ ace config [options] <path>
 | Xcode            | 当前Xcode的版本号            | 否      | 否    | 是   |
 | libimobiledevice | 当前libimobiledevice的版本号 | 否      | 否    | 是   |
 | ios-deploy       | 当前ios-deploy的版本号       | 否      | 否    | 是   |
+| ArkUI-X SDK | ArkUI-X SDK路径 | 是 | 是 | 是 |
 
 语法：
 
@@ -100,6 +102,10 @@ ace check
 
 ```shell
 ohos@user ~ % ace check
+[√] ArkUI-X toolchains - develop for ArkUI-X devices
+  • ArkUI-X SDK at /Users/ohos/ARKUI-X
+  • Node.js Runtime Environment at /usr/local/bin/node
+  • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
 [√] OpenHarmony toolchains - develop for OpenHarmony devices
   • OpenHarmony SDK at /Users/ohos/openharmony/sdk
   • Node.js Runtime Environment at /usr/local/bin/node
@@ -478,6 +484,7 @@ Commands:
           --build-dir     [Build Dir]
           --nodejs-dir    [Nodejs Dir]
           --java-sdk      [Java Sdk]
+          --arkui-x-sdk   [ArkUI-X SDK]
   build [options] [fileType]      build hap/apk/app of moduleName
   install [options] [fileType]    install hap/apk/app on device
   uninstall [options] [fileType]  uninstall hap/apk/app on device
