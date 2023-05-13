@@ -193,6 +193,10 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
     fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
   });
+  const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
+  const iosSystemResPath = path.join(projectDir, '/ios/arkui-x/systemres');
+  const androidSystemResPath = path.join(projectDir, '/android/app/src/main/assets/arkui-x/systemres');
+  isContinue = isContinue && copy(systemResPath, iosSystemResPath) && copy(systemResPath, androidSystemResPath);
   return isContinue;
 }
 
@@ -391,6 +395,9 @@ function copyStageBundleToAAR(moduleList) {
       fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
       fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
     });
+    const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
+    const androidSystemResPath = path.join(aarPath, 'src/main/assets/arkui-x/systemres');
+    isContinue = isContinue && copy(systemResPath, androidSystemResPath);
   });
   return isContinue;
 }
