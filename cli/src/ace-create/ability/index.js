@@ -194,6 +194,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
       'moduleName, abilityName];\n' +
       '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
       'initWithInstanceName:instanceName];\n' +
+      '        entryOtherVC.params = params;\n' +
       '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
       '    } // other ViewController\n';
     const curManifestXmlInfo =
