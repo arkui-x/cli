@@ -41,12 +41,22 @@
     
     NSString *bundleName = url.scheme;
     NSString *moduleName = url.host;
-    NSString *abilityName = url.query;
-    
+    NSString *abilityName, *params;
+
+    NSURLComponents * urlComponents = [NSURLComponents componentsWithString:url.absoluteString];
+    NSArray <NSURLQueryItem *> *array = urlComponents.queryItems;
+    for (NSURLQueryItem * item in array) {
+        if ([item.name isEqualToString:@"abilityName"]) {
+            abilityName = item.value;
+        } else if ([item.name isEqualToString:@"params"]) {
+            params = item.value;
+        }
+    }
+
     [self handleOpenUrlWithBundleName:bundleName
                            moduleName:moduleName
                           abilityName:abilityName
-                               params:@"more parameters", nil];
+                               params:params, nil];
     
     return YES;
 }
@@ -67,6 +77,7 @@
     if ([moduleName isEqualToString:@"entry"] && [abilityName isEqualToString:@"MainAbility"]) {
         NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",bundleName, moduleName, abilityName];
         EntryMainViewController *entryOtherVC = [[EntryMainViewController alloc] initWithInstanceName:instanceName];
+        entryOtherVC.params = params;
         subStageVC = (EntryMainViewController *)entryOtherVC;
     } // other ViewController
     
