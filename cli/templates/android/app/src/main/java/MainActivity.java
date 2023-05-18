@@ -1,12 +1,10 @@
 package packageName;
 
 import android.os.Bundle;
-import android.os.PersistableBundle;
 import android.util.Log;
 
 import ohos.ace.adapter.AceActivity;
 
-import androidx.annotation.Nullable;
 
 /**
  * Example ace activity class, which will load ArkUI-X ability instance.
