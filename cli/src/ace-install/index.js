@@ -126,7 +126,7 @@ function installHap(toolObj, filePathList, device) {
       const filePath = filePathList[index];
       const cmdPush = `${cmdPath} ${deviceOption} ${cmdInstallOption} ${filePath}`;
       const result = exec(`${cmdPush}`).toString().trim();
-      if (result.includes('Failure') || result.toLowerCase().includes('failed')) {
+      if (result.toLowerCase().includes('fail')) {
         console.error(result);
         return false;
       }
