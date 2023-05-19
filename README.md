@@ -1,7 +1,7 @@
 # ACE Tools
 
 ## 简介
-ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，用于构建OpenHarmony/HarmonyOS、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
+ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，支持在Windows/Ubuntu/macOS平台运行，用于构建OpenHarmony/HarmonyOS、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
 **注释：** ACE - 元能力跨平台运行环境 (Ability Cross-platform Environment)。
 
@@ -310,10 +310,11 @@ ace install [options] [fileType]
 
 - options
 
-| 子命令              | 说明               |
-| ------------------- | ------------------ |
-| -d [deviceId]       | 指定安装的设备Id。 |
-| --device [deviceId] | 指定安装的设备Id。 |
+| 子命令                | 说明                     |
+| --------------------- | ------------------------ |
+| -d [deviceId]         | 指定安装的设备Id。       |
+| --device [deviceId]   | 指定安装的设备Id。       |
+| --target [moduleName] | 指定目标模块名进行安装。 |
 
 - fileType
 
