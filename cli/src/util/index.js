@@ -16,6 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
+const uuid = require('uuid');
 const devices = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
@@ -30,6 +31,24 @@ function isProjectRootDir(currentDir) {
   } catch (error) {
     console.error(`Please go to your projectDir and run again.`);
     return false;
+  }
+}
+
+function getUUID(pbxprojFilePath) {
+  if (!fs.existsSync(pbxprojFilePath)) {
+    console.log('pbxproj file path not exit');
+    return;
+  }
+  try {
+    const fileInfo = fs.readFileSync(pbxprojFilePath);
+    const newUUID = uuid.v4().replace(/-/g, '').substr(0, 24).toUpperCase();
+    if (fileInfo.includes(newUUID)) {
+      return getUUID(pbxprojFilePath);
+    } else {
+      return newUUID;
+    }
+  } catch (error) {
+    console.log('read pbxproj file error');
   }
 }
 
@@ -136,7 +155,7 @@ function getCurrentProjectSystem(projDir) {
     console.error(`Please check entry/build-profile.json5 existing.`);
     return null;
   }
-  let buildProfileInfo = JSON5.parse(fs.readFileSync(configFile).toString());
+  const buildProfileInfo = JSON5.parse(fs.readFileSync(configFile).toString());
   for (let index = 0; index < buildProfileInfo.targets.length; index++) {
     if (buildProfileInfo.targets[index].name === 'default') {
       if (buildProfileInfo.targets[index].runtimeOS == HarmonyOS) {
@@ -176,7 +195,7 @@ function getAarName(projectDir) {
   if (!fs.existsSync(aarConfigPath)) {
     return aarName;
   }
-  fs.readFileSync(aarConfigPath).toString().split(/\r\n|\n|\r/gm).forEach(line =>{
+  fs.readFileSync(aarConfigPath).toString().split(/\r\n|\n|\r/gm).forEach(line => {
     if (line.indexOf('include') !== -1 && line.split("'")[1].substring(1) !== 'app') {
       aarName.push(line.split("'")[1].substring(1));
     }
@@ -196,6 +215,56 @@ function getFrameworkName(projectDir) {
   return frameworkName;
 }
 
+function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
+  if (fileType === 'headfile') {
+    const headFileUUID = getUUID(pbxprojFilePath);
+    if (headFileUUID === undefined) {
+      console.log('get UUID Failed');
+      return false;
+    }
+    const addPBXBuildInfo = '\n		' + headFileUUID + ' /* ' + fileName +
+      ' */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ' +
+      fileName + '; sourceTree = "<group>"; };';
+    const addPBXGroupInfo = '\n				' + headFileUUID + ' /* ' + fileName + ' */,';
+    const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
+    const pBXBuildIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.h; sourceTree = "<group>"; };');
+    const pBXGroupIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.h */,');
+    const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, pBXBuildIndex + 41) + addPBXBuildInfo +
+      pbxprojFileInfo.slice(pBXBuildIndex + 41, pBXGroupIndex + 20) +
+      addPBXGroupInfo + pbxprojFileInfo.slice(pBXGroupIndex + 20);
+    fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+  } else if (fileType === 'sourcefile') {
+    const sourceFileFirstUUID = getUUID(pbxprojFilePath);
+    const sourceFileSecondUUID = getUUID(pbxprojFilePath);
+    if (sourceFileFirstUUID === undefined || sourceFileSecondUUID === undefined) {
+      console.log('get UUID Failed');
+      return false;
+    }
+    const addPBXBuildInfo = '\n		' + sourceFileFirstUUID + ' /* ' + fileName +
+      ' in Sources */ = {isa = PBXBuildFile; fileRef = ' + sourceFileSecondUUID + ' /* ' + fileName + ' */; };';
+    const addPBXFileReference = '\n		' + sourceFileSecondUUID + ' /* ' + fileName +
+      ' */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ' + fileName +
+      '; sourceTree = "<group>"; };';
+    const addchildren = '\n				' + sourceFileSecondUUID + ' /* ' + fileName + ' */,';
+    const addPBXSourcesBuildPhase = '\n				' + sourceFileFirstUUID + ' /* ' + fileName + ' in Sources */,';
+    const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
+    const addPBXBuildInfoIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */; };');
+    const addPBXFileReferenceIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m; sourceTree = "<group>"; };');
+    const addchildrenIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */,');
+    const addPBXSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m in Sources */,');
+    const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addPBXBuildInfoIndex + 23) + addPBXBuildInfo +
+      pbxprojFileInfo.slice(addPBXBuildInfoIndex + 23, addPBXFileReferenceIndex + 41) + addPBXFileReference +
+      pbxprojFileInfo.slice(addPBXFileReferenceIndex + 41, addchildrenIndex + 20) + addchildren +
+      pbxprojFileInfo.slice(addchildrenIndex + 20, addPBXSourcesBuildPhaseIndex + 28) + addPBXSourcesBuildPhase +
+      pbxprojFileInfo.slice(addPBXSourcesBuildPhaseIndex + 28);
+    fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+  } else {
+    console.log('filetype error');
+    return false;
+  }
+  return true;
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -207,5 +276,7 @@ module.exports = {
   getCurrentProjectSystem,
   isNativeCppTemplate,
   getAarName,
-  getFrameworkName
+  getFrameworkName,
+  getUUID,
+  addFileToPbxproj
 };

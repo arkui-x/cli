@@ -19,7 +19,7 @@ const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { copy, modifyHarmonyOSConfig } = require('../project');
 const { getModuleList, getCurrentProjectVersion, getManifestPath, isStageProject,
-  getModuleAbilityList, getCurrentProjectSystem, isNativeCppTemplate } = require('../../util');
+  getModuleAbilityList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj } = require('../../util');
 
 let projectDir;
 let currentSystem;
@@ -497,6 +497,11 @@ function createStageInIOS(moduleName, moduleList, templateDir) {
     createViewControlInfo +
       curManifestXmlInfo.slice(insertIndex + 26);
     fs.writeFileSync(path.join(projectDir, 'ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    const pbxprojFilePath = path.join(projectDir, 'ios/app.xcodeproj/project.pbxproj');
+    if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
+      !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
+      return false;
+    }
     return true;
   } catch (error) {
     console.error('Error occurs when create in ios', error);
