@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,6 +28,7 @@ const {
 const { isProjectRootDir, getCurrentProjectVersion, isStageProject,
   getAarName, getFrameworkName } = require('../../util');
 const projectDir = process.cwd();
+const {copyLibraryToProject} = require('./copyLibraryToProject');
 let androidOSSdkDir;
 
 function getAndroidSdkDir() {
@@ -77,6 +78,7 @@ function copyLibraryToOutput(fileType) {
 }
 
 function buildAPK(cmd) {
+  copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
   const androidDir = path.join(projectDir, 'android');
   if (platform !== Platform.Windows) {
@@ -109,6 +111,7 @@ function buildAPK(cmd) {
 }
 
 function buildAAR(cmd) {
+  copyLibraryToProject('aar', cmd, projectDir, 'android');
   const cmds = [];
   const aarDir = path.join(projectDir, 'android');
   const aarNameList = getAarName(projectDir);
@@ -155,6 +158,7 @@ function buildAAR(cmd) {
 }
 
 function buildFramework(cmd) {
+  copyLibraryToProject('framework', cmd, projectDir, 'ios');
   let mode = 'Debug';
   if (cmd.release) {
     mode = 'Release';
@@ -183,6 +187,7 @@ function buildFramework(cmd) {
 }
 
 function buildXcFramework(cmd) {
+  copyLibraryToProject('xcframework', cmd, projectDir, 'ios');
   const cmds = [];
   let mode = 'Debug';
   if (cmd.release) {
@@ -253,6 +258,7 @@ function packager(target, cmd) {
 }
 
 function buildAPP(cmd) {
+  copyLibraryToProject('app', cmd, projectDir, 'ios');
   const cmds = [];
   let mode = 'debug';
   if (cmd.release) {
@@ -263,13 +269,13 @@ function buildAPP(cmd) {
   if (!isStageProject(path.join(currentDir, 'source'))) {
     version = getCurrentProjectVersion(currentDir);
   }
-  let projectDir = path.join(currentDir, 'ios', version + 'app.xcodeproj');
+  let projectSettingDir = path.join(currentDir, 'ios', version + 'app.xcodeproj');
   let exportPath = path.join(currentDir, 'ios', 'build/outputs/app/');
   let signCmd = "";
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
   }
-  let cmdStr = `xcodebuild -project ${projectDir} -sdk iphoneos -configuration "${mode}" `
+  let cmdStr = `xcodebuild -project ${projectSettingDir} -sdk iphoneos -configuration "${mode}" `
     + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
   let message = 'Build app successful.';
