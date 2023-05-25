@@ -52,14 +52,18 @@ function log(fileType, device) {
   if (!validPid(pid)) {
     return;
   }
-  logCmd(toolObj, device, pid);
+  logCmd(toolObj, device, pid, currentSystem);
 }
 
-function logCmd(toolObj, device, pid) {
+function logCmd(toolObj, device, pid, currentSystem) {
   let hilog;
   if (device) {
     if ('hdc' in toolObj) {
-      hilog = spawn(toolObj['hdc'], ['-t', device, 'shell', 'hilog', `--pid=${pid}`]);
+      if (currentSystem === HarmonyOS) {
+        hilog = spawn(toolObj['hdc'], ['-t', device, 'hilog', `pid=${pid}`]);
+      } else {
+        hilog = spawn(toolObj['hdc'], ['-t', device, 'shell', 'hilog', `--pid=${pid}`]);
+      }
     } else if ('adb' in toolObj) {
       hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
     } else if ('idevicesyslog' in toolObj) {
@@ -67,7 +71,11 @@ function logCmd(toolObj, device, pid) {
     }
   } else {
     if ('hdc' in toolObj) {
-      hilog = spawn(toolObj['hdc'], ['shell', 'hilog', `--pid=${pid}`]);
+      if (currentSystem === HarmonyOS) {
+        hilog = spawn(toolObj['hdc'], ['hilog', `pid=${pid}`]);
+      } else {
+        hilog = spawn(toolObj['hdc'], ['shell', 'hilog', `--pid=${pid}`]);
+      }
     } else if ('adb' in toolObj) {
       hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
     } else if ('idevicesyslog' in toolObj) {
