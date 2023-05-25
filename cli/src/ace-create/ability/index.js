@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy } = require('../project');
-const { getModuleList, getModuleAbilityList, isStageProject } = require('../../util');
+const { getModuleList, getModuleAbilityList, isStageProject, addFileToPbxproj } = require('../../util');
 
 let projectDir;
 
@@ -207,6 +207,11 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
     createViewControlInfo +
       curManifestXmlInfo.slice(insertIndex + 26);
     fs.writeFileSync(path.join(projectDir, '../../ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    const pbxprojFilePath = path.join(projectDir, '../../ios/app.xcodeproj/project.pbxproj');
+    if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
+      !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
+      return false;
+    }
     return true;
   } catch (error) {
     console.error('Error occurs when create in ios', error);
