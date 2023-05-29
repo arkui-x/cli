@@ -1,0 +1,10 @@
+{
+  "name": "module_name",
+  "version": "1.0.0",
+ 
+  "description": "example description",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {}
+}

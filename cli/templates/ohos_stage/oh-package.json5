@@ -1,0 +1,12 @@
+{
+  "name": "packageInfo",
+  "version": "1.0.0",
+  "description": "example description",
+  "main":"",
+  "license": "ISC",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@ohos/hypium": "1.0.6"
+  }
+}

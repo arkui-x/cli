@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const { isProjectRootDir, getModuleList, getFrameworkName, getAarName } = require('../util');
+const { isProjectRootDir, getModuleList, getFrameworkName, getAarName, isStageProject } = require('../util');
 const { Platform, platform } = require('../ace-check/platform');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
@@ -23,7 +23,12 @@ const path = require('path');
 let projectDir;
 
 function isNeedClean() {
-  const nodeModulePath = path.join(projectDir, 'ohos/node_modules');
+  let nodeModulePath = '';
+  if (isStageProject(path.join(projectDir,'source/'))) {
+    nodeModulePath = path.join(projectDir, 'ohos/oh_modules');     
+  } else {
+    nodeModulePath = path.join(projectDir, 'ohos/node_modules');
+  }
   return fs.existsSync(nodeModulePath);
 }
 
@@ -139,7 +144,11 @@ function cleanOHOS() {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
   cmds.push(`npm install`);
-  cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js clean`);
+  if(isStageProject(path.join(projectDir,'source/'))) {
+    cmds.push(`./hvigorw  clean`);
+  } else {
+    cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js clean`);
+  }
   let message = 'Clean ohos project successful.';
   let isBuildSuccess = true;
   console.log('Start clean ohos project...');

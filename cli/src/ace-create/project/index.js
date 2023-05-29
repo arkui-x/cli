@@ -112,7 +112,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   files.push(path.join(projectPath, 'ohos/AppScope/app.json5'));
   replaceInfos.push('appBunduleName');
   strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/package.json'));
+  files.push(path.join(projectPath, 'ohos/oh-package.json5'));
   replaceInfos.push('packageInfo');
   strs.push(project);
   files.push(path.join(projectPath, 'source/entry/src/main/resources/base/element/string.json'));
@@ -136,7 +136,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   files.push(path.join(projectPath, 'source/entry/src/ohosTest/resources/base/element/string.json'));
   replaceInfos.push('module_test_name');
   strs.push('entry_test_desc');
-  files.push(path.join(projectPath, 'source/entry/package.json'));
+  files.push(path.join(projectPath, 'source/entry/oh-package.json5'));
   replaceInfos.push('module_name');
   strs.push('entry');
 
@@ -354,7 +354,7 @@ function replaceProjectInfo(projectPath, packages, project, system, template, ve
   files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
   replaceInfos.push('appIDValue');
   strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/package.json'));
+  files.push(path.join(projectPath, 'ohos/oh-package.json5'));
   replaceInfos.push('jsapp');
   strs.push(project);
   files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
