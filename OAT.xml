@@ -56,21 +56,6 @@ Note:If the text contains special characters, please escape them according to th
         <licensefile></licensefile>
         <filefilterlist>
             <filefilter name="binaryFileTypePolicyFilter" desc="eTSHelloWorld二进制文件校验策略的过滤条件" >
-                <filteritem type="filepath" name="cli/templates/android/app/libs/ace_android_adapter.jar" desc="来源于代码仓foundation/ace/ace_engine/adapter/android"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libace_android.so" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/android"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libace_napi_quickjs.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libace_napi.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libace_ndk.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libconfiguration.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libdevice.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libgrid.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libmediaquery.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libprompt.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/librouter.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libglobal_resmgr.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libhmicui18n.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libhmicuuc.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
-                <filteritem type="filepath" name="cli/templates/android/app/libs/arm64-v8a/libsec_shared.so" desc="来源于代码仓foundation/arkui/ace_engine"/>
                 <filteritem type="filepath" name="cli/templates/android/gradle/wrapper/gradle-wrapper.jar" desc="Android工程模版自带的打包工具"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.xcuserstate" desc="iOS工程固定配置文件"/>
                 <filteritem type="filepath" name="cli/templates/framework/.*.xcuserstate" desc="iOS工程固定配置文件"/>
@@ -78,6 +63,11 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/libace_ios" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/ios"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Copyright文件头校验策略的过滤条件" >
+                <filteritem type="filename" name="oh-package.json5" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
+                <filteritem type="filename" name="hvigorw" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
+                <filteritem type="filename" name="hvigorw.bat" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
+                <filteritem type="filename" name="hvigor-config.json5" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
+                <filteritem type="filename" name="hvigor-wrapper.js" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
@@ -125,6 +115,11 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/framework/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加版权头"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="License文件头校验策略的过滤条件" >
+                <filteritem type="filename" name="oh-package.json5" desc="OpenHarmony工程编译入口脚本，无需添加License头"/>
+                <filteritem type="filename" name="hvigorw" desc="OpenHarmony工程编译入口脚本，无需添加License头"/>
+                <filteritem type="filename" name="hvigorw.bat" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
+                <filteritem type="filename" name="hvigor-config.json5" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
+                <filteritem type="filename" name="hvigor-wrapper.js" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>

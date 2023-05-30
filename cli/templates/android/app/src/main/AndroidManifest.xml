@@ -9,6 +9,7 @@
         android:icon="@drawable/arkuix"
         android:label="@string/app_name"
         android:supportsRtl="true"
+        android:extractNativeLibs="true"
         android:theme="@android:style/Theme.Light.NoTitleBar">
 	<activity android:exported="true" android:name=".MainActivity"
 		android:windowSoftInputMode="adjustResize |stateHidden"
