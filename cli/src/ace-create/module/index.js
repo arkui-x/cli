@@ -299,7 +299,7 @@ function getAppNameForModule(appVer, type) {
       const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
       return manifestJsonObj.appName;
     } else {
-      const manifestPath = path.join(projectDir, 'ohos/package.json');
+      const manifestPath = path.join(projectDir, 'ohos/oh-package.json5');
       const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
       return manifestJsonObj.name;
     }
@@ -444,7 +444,7 @@ function replaceStageProjectInfo(moduleName) {
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/module.json5'));
     replaceInfos.push('module_test_name');
     strs.push(moduleName + '_test');
-    files.push(path.join(projectDir, 'source/' + moduleName + '/package.json'));
+    files.push(path.join(projectDir, 'source/' + moduleName + '/oh-package.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);
     files.forEach((filePath, index) => {
@@ -605,7 +605,7 @@ function replaceNativeCppTemplate(moduleName, appName, moduleType) {
     const moduleToLower = moduleName.toLowerCase();
     const baseModulePath = path.join(projectDir, 'source', moduleName);
     if (moduleType === 'stage') {
-      packageJsonPath = path.join(baseModulePath, 'package.json');
+      packageJsonPath = path.join(baseModulePath, 'oh-package.json5');
     } else {
       packageJsonPath = path.join(projectDir, 'ohos', moduleName, 'package.json');
     }

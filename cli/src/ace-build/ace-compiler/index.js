@@ -123,7 +123,7 @@ function copyStageSourceToOhos(moduleList) {
     fs.mkdirSync(resourcesSrc, { recursive: true });
     fs.mkdirSync(resourcesDist, { recursive: true });
     isContinue = isContinue && copy(resourcesSrc, resourcesDist);
-    const fileList = ['build-profile.json5', 'hvigorfile.ts', 'package.json', 'src/main/module.json5'];
+    const fileList = ['build-profile.json5', 'hvigorfile.ts', 'oh-package.json5', 'src/main/module.json5'];
     fileList.forEach(file => {
       const fileSrc = path.join(projectDir, 'source', module, file);
       const fileDst = path.join(projectDir, 'ohos', module, file);
@@ -298,29 +298,38 @@ function syncBundleName(moduleList) {
 function runGradle(fileType, cmd, moduleList, moduleType) {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
-  cmds.push(`npm install`);
+  let buildCmd = '';
+  if (moduleType === 'Stage') {
+    cmds.push(`ohpm install`);
+    buildCmd = './hvigorw';
+  } else {
+    cmds.push(`npm install`);
+    buildCmd = 'node ./node_modules/@ohos/hvigor/bin/hvigor.js';
+  }
   let gradleMessage;
   if (fileType === 'hap' || !fileType) {
     let moduleStr = '';
     if (moduleList) {
       moduleStr = '-p module=' + moduleList.join(',');
     }
+    let debugStr = '';
     if (cmd.release) {
-      const debugStr = '-p product=default -p debuggable=false';
-      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js ${debugStr} --mode module ${moduleStr} assembleHap`);
-    } else {
-      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js --mode module ${moduleStr} assembleHap`);
+      debugStr = '-p product=default -p debuggable=false';
     }
+    cmds.push(`${buildCmd} ${debugStr} --mode module ${moduleStr} assembleHap`);
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
     fileType === 'framework' || fileType === 'xcframework') {
+      let buildType = '';
     if (moduleType === 'Stage') {
-      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js default@CompileArkTS`);
+      buildType = 'default@CompileArkTS';
     } else if (uiSyntax === 'ets') {
-      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js default@LegacyCompileArkTS`);
+      buildType = 'default@LegacyCompileArkTS';
     } else {
-      cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js default@LegacyCompileJS`);
+      buildType = 'default@LegacyCompileJS';
     }
+    cmds.push(`${buildCmd} ${buildType}`);
+    console.log(`linzhen: ${buildCmd} ${buildType}`);
     gradleMessage = 'Start compiling jsBundle...';
   }
   cmds = cmds.join(' && ');
