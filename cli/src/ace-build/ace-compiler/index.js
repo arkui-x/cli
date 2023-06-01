@@ -301,7 +301,10 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
   let buildCmd = '';
   if (moduleType === 'Stage') {
     cmds.push(`ohpm install`);
-    buildCmd = './hvigorw';
+    if (platform !== Platform.Windows) {
+      cmds.push(`chmod 755 hvigorw`);
+    }
+    buildCmd = `./hvigorw`;
   } else {
     cmds.push(`npm install`);
     buildCmd = 'node ./node_modules/@ohos/hvigor/bin/hvigor.js';
@@ -329,7 +332,6 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
       buildType = 'default@LegacyCompileJS';
     }
     cmds.push(`${buildCmd} ${buildType}`);
-    console.log(`linzhen: ${buildCmd} ${buildType}`);
     gradleMessage = 'Start compiling jsBundle...';
   }
   cmds = cmds.join(' && ');
