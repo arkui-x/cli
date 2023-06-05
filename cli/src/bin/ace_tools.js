@@ -34,6 +34,7 @@ const launch = require('../ace-launch');
 const run = require('../ace-run');
 const clean = require('../ace-clean');
 const inquirer = require('inquirer');
+const test = require('../ace-test');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 
@@ -54,6 +55,7 @@ function parseCommander() {
   parseLaunch();
   parseLog();
   parseClean();
+  parseTest();
 
   program.parse(process.argv);
 }
@@ -311,7 +313,7 @@ function parseLaunch() {
       if (fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
         console.log(`Please use ace launch with subcommand : hap or apk.`);
       } else {
-        launch(fileType, cmd.parent._optionValues.device, options.target);
+        launch(fileType, cmd.parent._optionValues.device, options.target, options);
       }
     });
 }
@@ -334,4 +336,29 @@ function parseClean() {
   program.command('clean').description('clean project').action(() => {
     clean();
   });
+}
+
+function parseTest() {
+  program.command('test [fileType]')
+    .description('test apk/app on device')
+    .option('--target [moduleName]', 'name of module to be installed')
+    .option('--b [testBundleName]', 'name of bundleName to be test')
+    .option('--m [testModuleName]', 'name of moduleName to be test')
+    .option('--unittest [testRunner]', 'name of testRunner to be test')
+    .option('--class [class]', 'name of testClass to be test')
+    .option('--timeout [timeout]', 'time of timeout to be test')
+    .description(`
+    --b                   [Test BundleName]
+    --m                   [Test ModuleName]
+    --unittest            [TestRunner]
+    --class               [Test Class]
+    --timeout             [Test timeout]`)
+    .action((fileType, options, cmd) => {
+      options.test = 'test';
+      if (fileType === 'apk' || fileType === 'app') {
+        test(fileType, cmd.parent._optionValues.device, options);
+      } else {
+        console.log(`Please use ace test with subcommand : apk or app.`);
+      }
+    });
 }

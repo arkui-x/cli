@@ -267,7 +267,11 @@ function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
     const testJsonObj = JSON.parse(fs.readFileSync(testJsonPath));
     testJsonObj.module.bundleName = bundleName;
     testJsonObj.module.package = packageName;
-    testJsonObj.module.distro.moduleName = moduleName + '_test';
+    if (type === 'stage') {
+      testJsonObj.module.distro.moduleName = moduleName + 'Test';
+    } else {
+      testJsonObj.module.distro.moduleName = moduleName + '_test';
+    }
     fs.writeFileSync(testJsonPath, JSON.stringify(testJsonObj, '', '  '));
   }
   if (moduleName != 'entry' && isNativeCppTemplate(projectDir)) {
@@ -443,7 +447,7 @@ function replaceStageProjectInfo(moduleName) {
     strs.push(capitalize(moduleName) + 'Ability');
     files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/module.json5'));
     replaceInfos.push('module_test_name');
-    strs.push(moduleName + '_test');
+    strs.push(moduleName + 'Test');
     files.push(path.join(projectDir, 'source/' + moduleName + '/oh-package.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);

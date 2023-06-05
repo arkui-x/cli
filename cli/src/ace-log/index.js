@@ -23,7 +23,9 @@ const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProj
 
 let toolObj;
 let projectDir;
-function log(fileType, device) {
+let test;
+function log(fileType, device, cmdTest) {
+  test = cmdTest;
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
@@ -65,9 +67,17 @@ function logCmd(toolObj, device, pid, currentSystem) {
         hilog = spawn(toolObj['hdc'], ['-t', device, 'shell', 'hilog', `--pid=${pid}`]);
       }
     } else if ('adb' in toolObj) {
-      hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
+      if (test) {
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`, '| grep -E "OHOS_REPORT|TestFinished-ResultMsg"']);
+      } else {
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
+      }
     } else if ('idevicesyslog' in toolObj) {
-      hilog = spawn(toolObj['idevicesyslog'], ['-p', pid], ['-u', device]);
+      if (test) {
+        hilog = spawn(toolObj['idevicesyslog'], ['-u', device]);
+      } else {
+        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid], ['-u', device]);
+      }
     }
   } else {
     if ('hdc' in toolObj) {
@@ -77,13 +87,32 @@ function logCmd(toolObj, device, pid, currentSystem) {
         hilog = spawn(toolObj['hdc'], ['shell', 'hilog', `--pid=${pid}`]);
       }
     } else if ('adb' in toolObj) {
-      hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
+      if (test) {
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`, '| grep -E "OHOS_REPORT|TestFinished-ResultMsg"']);
+      } else {
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
+      }
     } else if ('idevicesyslog' in toolObj) {
-      hilog = spawn(toolObj['idevicesyslog'], ['-p', pid]);
+      if (test) {
+        hilog = spawn(toolObj['idevicesyslog']);
+      } else {
+        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid]);
+      }
     }
   }
   hilog.stdout.on('data', data => {
-    console.log(data.toString());
+    const output = data.toString();
+    if (test) {
+      if ((output.includes("OHOS_REPORT"))) {
+        console.log(data.toString());
+      }
+      if(output.includes("TestFinished-ResultMsg")){
+        console.log(data.toString());
+        exit()
+      }
+    } else {
+      console.log(data.toString());
+    }
   });
   hilog.stderr.on('error', error => {
     console.error(error);

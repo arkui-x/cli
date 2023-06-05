@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 
+const log = require('../ace-log');
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectVersion, isStageProject,
   getCurrentProjectSystem } = require('../util');
@@ -136,7 +137,7 @@ function getNamesApk(projectDir, moduleName) {
       });
       if (isStageProject(path.join(projectDir, 'ohos'))) {
         bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
-        androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
+        androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
           return l.toUpperCase();
         }) + 'MainActivity';
       } else {
@@ -181,7 +182,7 @@ function isPackageInAndroid(toolObj, device) {
   }
 }
 
-function launch(fileType, device, moduleName) {
+function launch(fileType, device, moduleName, options) {
   const projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
@@ -201,15 +202,21 @@ function launch(fileType, device, moduleName) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;
     }
-    const cmdLaunch = getCmdLaunch(projectDir, toolObj, device);
+    const cmdLaunch = getCmdLaunch(projectDir, toolObj, device, options);
     if (!cmdLaunch) {
       return false;
     }
     try {
+      if (options.test && 'ios-deploy' in toolObj) {
+        log(fileType, device, 'test');
+      }
       const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
       if (result.toLowerCase().includes('fail')) {
         console.error(result);
         return false;
+      }
+      if (options.test && 'adb' in toolObj) {
+        log(fileType, device, 'test');
       }
       console.log(`Launch ${fileType.toUpperCase()} successfully.`);
       return true;
@@ -223,7 +230,7 @@ function launch(fileType, device, moduleName) {
   }
 }
 
-function getCmdLaunch(projectDir, toolObj, device) {
+function getCmdLaunch(projectDir, toolObj, device, options) {
   let cmdLaunch = '';
   if ('hdc' in toolObj) {
     const cmdPath = toolObj['hdc'];
@@ -236,16 +243,64 @@ function getCmdLaunch(projectDir, toolObj, device) {
   } else if ('adb' in toolObj) {
     const cmdPath = toolObj['adb'];
     const deviceOption = device ? `-s ${device}` : '';
-    cmdLaunch =
-      `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+    if (options.test) {
+      if (getAndroidTestOption(options)) {
+        cmdLaunch =
+          `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${getAndroidTestOption(options)}`;
+      }
+    } else {
+      cmdLaunch =
+        `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+    }
   } else if ('ios-deploy' in toolObj) {
     const cmdPath = toolObj['ios-deploy'];
     const deviceOption = device ? `--id ${device}` : '';
-    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} --no-wifi --justlaunch`;
+    if (options.test) {
+      if (getIOSTestOption(options)) {
+        cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${getIOSTestOption(options)} --no-wifi --justlaunch`;
+      }
+    } else {
+      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} --no-wifi --justlaunch`;
+    }
   } else {
     console.error('Internal error with hdc and adb checking.');
   }
   return cmdLaunch;
+}
+
+
+function getAndroidTestOption(options) {
+  if (!options.m) {
+    console.error("test moduleName not found， please use '--m <testModuleName>'");
+    return false;
+  }
+  if (!options.unittest) {
+    console.error("test unittest not found， please use '--unittest <unittest>'");
+    return false;
+  }
+  const testClass = options.class ? ` --es class "${options.class}"` : ''
+  const timeout = options.timeout ? ` --es timeout "${options.timeout}"` : ''
+  const testOption = `--es test "test" --es bundleName "${bundleName}" --es moduleName "${options.m}" --es unittest "${options.unittest}"${testClass}${timeout} `;
+  return testOption;
+}
+
+function getIOSTestOption(options) {
+  if (!options.b) {
+    console.error("test bundleName not found， please use '--b <testBundleName>'");
+    return false;
+  }
+  if (!options.m) {
+    console.error("test moduleName not found， please use '--m <testModuleName>'");
+    return false;
+  }
+  if (!options.unittest) {
+    console.error("test unittest not found， please use '--unittest <unittest>'");
+    return false;
+  }
+  const testClass = options.class ? ` class "${options.class}"` : ''
+  const timeout = options.timeout ? ` timeout ${options.timeout}` : ''
+  const testOption = `--args "test bundleName ${options.b} moduleName ${options.m} unittest ${options.unittest}${testClass}${timeout}"`;
+  return testOption;
 }
 
 module.exports = launch;
