@@ -45,6 +45,7 @@ const appCpu2SdkLibMap = {
     }
   }
 };
+
 const appCpu2DestLibDir = {
   'android': {
     'arm64-v8a': {'so': '/android/{subdir}/libs/arm64-v8a', 'jar': '/android/{subdir}/libs'},

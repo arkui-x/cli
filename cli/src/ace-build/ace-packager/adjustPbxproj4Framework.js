@@ -16,9 +16,15 @@
 const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid');
-global.HarmonyOS = 'HarmonyOS';
-global.OpenHarmony = 'OpenHarmony';
 const { Platform, platform } = require('../../ace-check/platform');
+const xBuildFileStart = '/* Begin PBXBuildFile section */';
+const xBuildFileEnd = '/* End PBXBuildFile section */';
+const xCopyFilesBuildPhaseStart = '/* Begin PBXCopyFilesBuildPhase section */';
+const xFileReferenceStart = '/* Begin PBXFileReference section */';
+const xFileReferenceEnd = '/* End PBXFileReference section */';
+const xFrameworksBuildPhaseStart = '/* Begin PBXFrameworksBuildPhase section */';
+const xGroupStart = '/* Begin PBXGroup section */';
+const itemLineStartTab = '\t\t';
 
 /**
  * load project.pbxproj file and return content string
@@ -41,40 +47,29 @@ function setPbxprojConfig(projectDir, updatepbxprojFileInfo) {
   fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
 }
 
-const addLibStart = '/* start auto copy library configs */';
-const addLibEnd = '/* end auto copy library configs */';
-const xBuildFileStart = '/* Begin PBXBuildFile section */';
-const xBuildFileEnd = '/* End PBXBuildFile section */';
-const xCopyFilesBuildPhaseStart = '/* Begin PBXCopyFilesBuildPhase section */';
-const xFileReferenceStart = '/* Begin PBXFileReference section */';
-const xFileReferenceEnd = '/* End PBXFileReference section */';
-const xFrameworksBuildPhaseStart = '/* Begin PBXFrameworksBuildPhase section */';
-const xGroupStart = '/* Begin PBXGroup section */';
-const itemLineStartTab = '\t\t';
-function getTypeSettingSection(sectionDefStart, sectionDefEnd, addStart, addEnd, pbxprojFileInfo,
+function getTypeSettingSection(sectionDefStartList, sectionDefEnd, pbxprojFileInfo,
   existProcessor) {
   const result = {};
   let startInd = 0;
   let found;
-  for (const i in sectionDefStart) {
-    startInd = pbxprojFileInfo.indexOf(sectionDefStart[i], startInd);
+  for (const i in sectionDefStartList) {
+    startInd = pbxprojFileInfo.indexOf(sectionDefStartList[i], startInd);
     if (startInd < 0) {
       if (!found) {
-        found = '"' + sectionDefStart[i] + '"';
+        found = '"' + sectionDefStartList[i] + '"';
       } else {
-        found += '>>"' + sectionDefStart[i] + '"';
+        found += '>>"' + sectionDefStartList[i] + '"';
       }
       throw new Error('could not found:' + found);
     }
     if (!found) {
-      found = '"' + sectionDefStart[i] + '"';
+      found = '"' + sectionDefStartList[i] + '"';
     } else {
-      found += '>>"' + sectionDefStart[i] + '"';
+      found += '>>"' + sectionDefStartList[i] + '"';
     }
-    startInd += sectionDefStart[i].length;
+    startInd += sectionDefStartList[i].length;
   }
   const endInd = pbxprojFileInfo.indexOf(sectionDefEnd, startInd);
-
   if (endInd < 0) {
     throw new Error('could not found end(' + sectionDefEnd + ') for start of:' + found);
   }
@@ -137,8 +132,7 @@ function pbxGetExistLibsFromList(existLibList, removeUnused, depLibMap, allLibMa
         existLibData = existLibData + lib.lineData + '\n';
       }
     }
-  }
-  );
+  });
   return existLibData;
 }
 
@@ -167,10 +161,9 @@ function pbxListParserForExistFromText(existLibData, libNameRange) {
       }
     }
     if (i < 0 && libline && libline.length > 0) {
-      existLibList.push({lineData: libline, libname: libName});
+      existLibList.push({ lineData: libline, libname: libName });
     }
-  }
-  );
+  });
   return existLibList;
 }
 
@@ -183,12 +176,11 @@ function pbxCheckIfLibExistsFromList(existLibList, checkForLib) {
     if (checkForLib === lib.libname) {
       found = true;
     }
-  }
-  );
+  });
   return found;
 }
 
-function addLibToProjecStr(indResult, pbxprojFileInfo, addContent,
+function adjustLibInfoInPbxproj(indResult, pbxprojFileInfo, addContent,
   removeUnused, depLibMap, allLibMap, funcOnRemoved) {
   let existContent = indResult.existRebuilder(indResult.existData,
     removeUnused, depLibMap, allLibMap, funcOnRemoved);
@@ -206,6 +198,7 @@ function addLibToProjecStr(indResult, pbxprojFileInfo, addContent,
     pbxprojFileInfo.slice(indResult.endInd);
   return pbxprojFileInfo;
 }
+
 function getUUID(pbxprojFileInfo, uuidSet) {
   try {
     const newUUID = uuid.v4().replace(/-/g, '').slice(0, 24).toUpperCase();
@@ -264,6 +257,7 @@ function makeXBuildFileContent(xcframeworkMap, existData) {
   }
   return content;
 }
+
 function makeXCopyFilesBuildPhaseContent(xcframeworkMap, existData) {
   const lines = '{buildembeduuid} /* {xcframework} in Embed Frameworks */,\n';
   let content = '';
@@ -278,6 +272,7 @@ function makeXCopyFilesBuildPhaseContent(xcframeworkMap, existData) {
   }
   return content;
 }
+
 function makeXFileReferenceContent(xcframeworkMap, existData) {
   let line = '{fileRefUuid} /* {xcframework} */ = {isa = PBXFileReference; lastKnownFileType = ';
   line = line + 'wrapper.xcframework; name = {xcframework}; ';
@@ -294,6 +289,7 @@ function makeXFileReferenceContent(xcframeworkMap, existData) {
   }
   return content;
 }
+
 function makeXFrameworksBuildPhaseContent(xcframeworkMap, existData) {
   const line = '{buildfileuuid} /* {xcframework} in Frameworks */,\n';
   let content = '';
@@ -308,6 +304,7 @@ function makeXFrameworksBuildPhaseContent(xcframeworkMap, existData) {
   }
   return content;
 }
+
 function makeXGroupContent(xcframeworkMap, existData) {
   const line = '{fileRefUuid} /* {xcframework} */,\n';
   let content = '';
@@ -323,74 +320,65 @@ function makeXGroupContent(xcframeworkMap, existData) {
   return content;
 }
 
+const existLibInfoProcessor = {
+  parserForExist: pbxListParserForExistFromText,
+  checkIfLibExists: pbxCheckIfLibExistsFromList,
+  existRebuilder: pbxGetExistLibsFromList,
+  libNameRange: { startOf: '/* ', endOf: ' in ' }
+};
+const existLibInfoProcessor2 = {
+  parserForExist: pbxListParserForExistFromText,
+  checkIfLibExists: pbxCheckIfLibExistsFromList,
+  existRebuilder: pbxGetExistLibsFromList,
+  libNameRange: { startOf: '/* ', endOf: ' */' }
+};
+
 function updateXBuildFileContent(xcframework, pbxprojFileInfo,
   removeUnused, allLibSet, funcOnRemoved) {
-  const result = getTypeSettingSection([xBuildFileStart], xBuildFileEnd,
-    addLibStart, addLibEnd, pbxprojFileInfo,
-    { parserForExist: pbxListParserForExistFromText,
-      checkIfLibExists: pbxCheckIfLibExistsFromList,
-      existRebuilder: pbxGetExistLibsFromList,
-      libNameRange: {startOf: '/* ', endOf: ' in '}
-    });
+  const result = getTypeSettingSection([xBuildFileStart], xBuildFileEnd, pbxprojFileInfo,
+    existLibInfoProcessor);
   const content = makeXBuildFileContent(xcframework, result);
-  return addLibToProjecStr(result, pbxprojFileInfo, content,
+  return adjustLibInfoInPbxproj(result, pbxprojFileInfo, content,
     removeUnused, xcframework, allLibSet, funcOnRemoved);
 }
+
 function updateXCopyFilesBuildPhaseContent(xcframework, pbxprojFileInfo,
   removeUnused, allLibSet, funcOnRemoved) {
   const result = getTypeSettingSection([xCopyFilesBuildPhaseStart, 'files = ('], ');',
-    addLibStart, addLibEnd, pbxprojFileInfo,
-    { parserForExist: pbxListParserForExistFromText,
-      checkIfLibExists: pbxCheckIfLibExistsFromList,
-      existRebuilder: pbxGetExistLibsFromList,
-      libNameRange: {startOf: '/* ', endOf: ' in '}
-    });
+    pbxprojFileInfo,
+    existLibInfoProcessor);
   const content = makeXCopyFilesBuildPhaseContent(xcframework, result);
-  return addLibToProjecStr(result, pbxprojFileInfo, content,
+  return adjustLibInfoInPbxproj(result, pbxprojFileInfo, content,
     removeUnused, xcframework, allLibSet, funcOnRemoved);
 }
+
 function updateXFileReferenceContent(xcframework, pbxprojFileInfo,
   removeUnused, allLibSet, funcOnRemoved) {
   const result = getTypeSettingSection([xFileReferenceStart], xFileReferenceEnd,
-    addLibStart, addLibEnd, pbxprojFileInfo,
-    { parserForExist: pbxListParserForExistFromText,
-      checkIfLibExists: pbxCheckIfLibExistsFromList,
-      existRebuilder: pbxGetExistLibsFromList,
-      libNameRange: {startOf: '/* ', endOf: ' */'}
-    });
+    pbxprojFileInfo, existLibInfoProcessor2);
   const content = makeXFileReferenceContent(xcframework, result);
-  return addLibToProjecStr(result, pbxprojFileInfo, content,
+  return adjustLibInfoInPbxproj(result, pbxprojFileInfo, content,
     removeUnused, xcframework, allLibSet, funcOnRemoved);
 }
+
 function updateXFrameworksBuildPhaseContent(xcframework, pbxprojFileInfo,
   removeUnused, allLibSet, funcOnRemoved) {
   const result = getTypeSettingSection([xFrameworksBuildPhaseStart, 'files = ('], ');',
-    addLibStart, addLibEnd, pbxprojFileInfo,
-    { parserForExist: pbxListParserForExistFromText,
-      checkIfLibExists: pbxCheckIfLibExistsFromList,
-      existRebuilder: pbxGetExistLibsFromList,
-      libNameRange: {startOf: '/* ', endOf: ' in '}
-    });
-
+    pbxprojFileInfo, existLibInfoProcessor);
   const content = makeXFrameworksBuildPhaseContent(xcframework, result);
-  return addLibToProjecStr(result, pbxprojFileInfo, content,
+  return adjustLibInfoInPbxproj(result, pbxprojFileInfo, content,
     removeUnused, xcframework, allLibSet, funcOnRemoved);
 }
+
 function updateXGroupContent(xcframework, pbxprojFileInfo, removeUnused, allLibSet, funcOnRemoved) {
   const result = getTypeSettingSection([xGroupStart, '/* Frameworks */ = {', 'children = ('], ');',
-    addLibStart, addLibEnd, pbxprojFileInfo,
-    { parserForExist: pbxListParserForExistFromText,
-      checkIfLibExists: pbxCheckIfLibExistsFromList,
-      existRebuilder: pbxGetExistLibsFromList,
-      libNameRange: {startOf: '/* ', endOf: ' */'}
-    });
-
+    pbxprojFileInfo, existLibInfoProcessor2);
   const content = makeXGroupContent(xcframework, result);
-  return addLibToProjecStr(result, pbxprojFileInfo, content,
+  return adjustLibInfoInPbxproj(result, pbxprojFileInfo, content,
     removeUnused, xcframework, allLibSet, funcOnRemoved);
 }
 
-function updateIosProjectPbxproj(project, libpath, depMap, system, removeUnused, funcOnRemoved, allLibSet) {
+function updateIosProjectPbxproj(project, depMap, system, removeUnused, funcOnRemoved, allLibSet) {
   let pbxprojFileInfo = getPbxprojConfig(project);
   const xcframeworkList = getXcframeworkList(depMap, system, pbxprojFileInfo);
   pbxprojFileInfo = updateXBuildFileContent(xcframeworkList, pbxprojFileInfo,
