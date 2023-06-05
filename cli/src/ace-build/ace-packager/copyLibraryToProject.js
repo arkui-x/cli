@@ -20,7 +20,7 @@ const { copy } = require('../../ace-create/project');
 const { getAarName } = require('../../util');
 const { arkuiXSdkDir } = require('../../ace-check/configs');
 const { appCpu2SdkLibMap, appCpu2DestLibDir, clearLibBeforeCopy } = require('./globalConfig');
-const { updateIosProjectPbxproj } = require('./iospbxproj');
+const { updateIosProjectPbxproj } = require('./adjustPbxproj4Framework');
 const arkUIXSdkName = 'arkui-x';
 let arkUIXSdkRootLen = 0;
 let projectRootLen = 0;
@@ -58,7 +58,7 @@ function printLog() {
 * 1 --- ignore current error and  continue
 * 2 --- ignore all not found error on libfiles and continue
  */
-function processOnNotFound(libraryPath) {
+function processOnNotFound() {
   return 2;
 }
 
@@ -94,8 +94,7 @@ function getCpuList(buildProject, projectDir, system) {
           ndkList = '[' + element.replace(`abiFilters`, '') + ']';
           ndkList = JSON.parse(ndkList);
         }
-      }
-      );
+      });
       if (!ndkList) {
         console.log('could not find  abiFilters , please check');
       }
@@ -136,33 +135,33 @@ function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap)
   subProjectNameList.forEach(buildProject => {
     const cpuList = getCpuList(buildProject, projectDir, system);
     printLog('\nbuildSubProject : ', buildProject, '  Cpu List : ', cpuList);
-    for (const cpu in cpuList) {
-      const archType = appCpu2SdkLibMap[system][cpuList[cpu]][compileType][0];
-      const destLibDir = appCpu2DestLibDir[system][cpuList[cpu]];
+    for (const cpuIndex in cpuList) {
+      const archType = appCpu2SdkLibMap[system][cpuList[cpuIndex]][compileType][0];
+      const destLibDirMap = appCpu2DestLibDir[system][cpuList[cpuIndex]];
       depCheckMap = copyLibrary(projectDir, archType, depMap, depCheckMap, system,
-        destLibDir, buildProject);
+        destLibDirMap, buildProject);
       allCheckMap = makeAllLibraryCheckMap(projectDir, archType, apiConfigMap, system,
-        destLibDir, allCheckMap, buildProject);
+        destLibDirMap, allCheckMap, buildProject);
     }
   });
   return {allCheckMap: allCheckMap, depCheckMap: depCheckMap};
 }
 
 let ignoreAll = false;
-function autoMakeDir(projectDir, destLibDir, buildProject) {
-  Object.keys(destLibDir).forEach((fileType) => {
-    let filePath = path.join(projectDir, destLibDir[fileType]);
+
+function autoMakeDir(projectDir, destLibDirMap, buildProject) {
+  Object.keys(destLibDirMap).forEach((fileType) => {
+    let filePath = path.join(projectDir, destLibDirMap[fileType]);
     filePath = filePath.replace('{subdir}', buildProject);
     if (!fs.existsSync(filePath)) {
       fs.mkdirSync(filePath, { recursive: true });
     }
-  }
-  );
+  });
 }
 
-function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDir, buildProject) {
+function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDirMap, buildProject) {
   system = system.replace('-simulator', '');
-  autoMakeDir(projectDir, destLibDir, buildProject);
+  autoMakeDir(projectDir, destLibDirMap, buildProject);
   depMap.forEach(function(value, key) {
     const paths = value['library'][system];
     for (let libraryPath in paths) {
@@ -173,7 +172,7 @@ function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDi
         let guestOption = 1;
         printLog('\t', key, ':Error ==> cannot find library:', libraryPath);
         if (!ignoreAll) {
-          guestOption = processOnNotFound(libraryPath);
+          guestOption = processOnNotFound();
         }
         if (!guestOption || guestOption === 0) {
           throw new Error('library not found: ' + libraryPath);
@@ -181,11 +180,11 @@ function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDi
           ignoreAll = true;
         }
       }
-      if (!destLibDir[fileType]) {
+      if (!destLibDirMap[fileType]) {
         throw new Error('Unkown Target Path in Project for File Type:' + fileType +
         ',check appCpu2DestLibDir in configuration file :globalConfig.js ,Please!');
       }
-      let filePath = path.join(projectDir, destLibDir[fileType]);
+      let filePath = path.join(projectDir, destLibDirMap[fileType]);
       filePath = filePath.replace('{subdir}', buildProject);
       let usedSet = depFileMap.get(filePath);
       if (!usedSet) {
@@ -208,7 +207,7 @@ function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDi
   return depFileMap;
 }
 
-function makeAllLibraryCheckMap(projectDir, archType, srcMap, system, destLibDir, outMap, buildProject) {
+function makeAllLibraryCheckMap(projectDir, archType, srcMap, system, destLibDirMap, outMap, buildProject) {
   system = system.replace('-simulator', '');
   if (!outMap) {
     outMap = new Map();
@@ -225,8 +224,8 @@ function makeAllLibraryCheckMap(projectDir, archType, srcMap, system, destLibDir
         } else {
           libraryName = libraryPath.split('/').pop();
         }
-        if (destLibDir[fileType]) {
-          let filePath = path.join(projectDir, destLibDir[fileType]);
+        if (destLibDirMap[fileType]) {
+          let filePath = path.join(projectDir, destLibDirMap[fileType]);
           filePath = filePath.replace('{subdir}', buildProject);
           let outset = outMap.get(filePath);
           if (!outset) {
@@ -269,6 +268,7 @@ function copyOneLibrary(moduleName, src, dest) {
     copy(src, dest);
   }
 }
+
 function processLib(libpath, depLibSet, allLibSet, removeUnused) {
   if (fs.existsSync(libpath)) {
     const files = fs.readdirSync(libpath);
@@ -293,7 +293,6 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   const collectionSet = loadCollectionJson(projectDir);
   arkUIXSdkRootLen = arkuiXSdkDir.length;
   projectRootLen = projectDir.length;
-
   let moduleNameList;
   collectionSet.forEach(moduleName => {
     if (!moduleNameList) {
@@ -305,17 +304,14 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   if (!moduleNameList) {
     moduleNameList = '';
   }
-
   printLog('source dependent modules: [', moduleNameList, ']');
   let depMap = new Map();
   depMap = finddeps(collectionSet, depMap, apiConfigMap, system);
-
   const checkMap = loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap);
-
   checkMap.depCheckMap.forEach(function(depCheckSet, libpath) {
     const allLibSet = checkMap.allCheckMap.get(libpath);
     if (system === 'ios') {
-      updateIosProjectPbxproj(projectDir, libpath, depMap, system,
+      updateIosProjectPbxproj(projectDir, depMap, system,
         true, function(libname) { }, allLibSet);
     }
     processLib(libpath, depCheckSet, allLibSet, clearLibBeforeCopy);
@@ -358,14 +354,11 @@ function loadApiConfigJson(arkuiXSdkDir) {
     'android': path.join(arkuiXSdkDir, '/plugins/api'),
     'ios': path.join(arkuiXSdkDir, '/plugins/api')
   };
-
   apiConfigMap = loadApiConfig(rootpath, pluginsApiConfig, apiConfigMap);
-
   rootpath = {
     'android': path.join(arkuiXSdkDir, '/plugins/component'),
     'ios': path.join(arkuiXSdkDir, '/plugins/component')
   };
-
   apiConfigMap = loadApiConfig(rootpath, pluginsComponentApiConfig, apiConfigMap);
   return apiConfigMap;
 }
@@ -419,51 +412,20 @@ function loadCollection(collection, collectionSet) {
 }
 
 function loadApiConfig(RootPath, ApiConfig, apiConfigMap) {
-  let couldNotFound;
   ApiConfig.forEach(element => {
     let temppath = element.library.android;
-    let found = false;
-    if (temppath[0]) {
-      found = true;
-    }
-    if (element.deps && element.deps.android && element.deps.android[0]) {
-      found = true;
-    }
-    if (!found) {
-      if (!couldNotFound) {
-        couldNotFound = 'android:' + element.module;
-      } else {
-        couldNotFound = couldNotFound + ' , android:' + element.module;
-      }
-    }
     for (let i = 0; i < temppath.length; i++) {
       temppath[i] = path.join(RootPath.android, temppath[i]);
     }
     element.library.android = temppath;
     apiConfigMap.set(element.module, element);
-
     temppath = element.library.ios;
-    found = false;
-    if (temppath[0]) {
-      found = true;
-    }
-    if (element.deps && element.deps.ios && element.deps.ios[0]) {
-      found = true;
-    }
-    if (!found) {
-      if (!couldNotFound) {
-        couldNotFound = 'ios:' + element.module;
-      } else {
-        couldNotFound = couldNotFound + ' , ' + 'ios:' + element.module;
-      }
-    }
     for (let i = 0; i < temppath.length; i++) {
       temppath[i] = path.join(RootPath.ios, temppath[i]);
     }
     element.library.ios = temppath;
     apiConfigMap.set(element.module, element);
-  }
-  );
+  });
   return apiConfigMap;
 }
 
