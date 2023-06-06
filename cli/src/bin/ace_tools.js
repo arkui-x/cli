@@ -340,19 +340,17 @@ function parseClean() {
 
 function parseTest() {
   program.command('test [fileType]')
-    .description('test apk/app on device')
     .option('--target [moduleName]', 'name of module to be installed')
     .option('--b [testBundleName]', 'name of bundleName to be test')
     .option('--m [testModuleName]', 'name of moduleName to be test')
     .option('--unittest [testRunner]', 'name of testRunner to be test')
     .option('--class [class]', 'name of testClass to be test')
     .option('--timeout [timeout]', 'time of timeout to be test')
-    .description(`
-    --b                   [Test BundleName]
-    --m                   [Test ModuleName]
-    --unittest            [TestRunner]
-    --class               [Test Class]
-    --timeout             [Test timeout]`)
+    .description(`test apk/app on device
+      --b                   [Test BundleName]
+      --m                   [Test ModuleName]
+      --unittest            [TestRunner]
+      --timeout             [Test timeout]`)
     .action((fileType, options, cmd) => {
       options.test = 'test';
       if (fileType === 'apk' || fileType === 'app') {

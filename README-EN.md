@@ -27,6 +27,7 @@ For details about the source code structure of the ArkUI-X project, see [ArkUI-X
 │   ├── ace-launch              # ArkUI-X application launch
 │   ├── ace-log                 #  ArkUI-X application run log
 │   ├── ace-run                 # ArkUI-X application build and run
+|   ├── ace-test                # ArkUI-X application build and excute unitTest
 │   ├── ace-uninstall           # ArkUI-X application uninstall
 │   ├── bin                     # Device entry scripts
 │   └── util                    # Utilities
@@ -367,6 +368,39 @@ ace run [options] [fileType]
 | apk  | APK package of the Android application.                                 |
 | app  | App package of the iOS application.                                  |
 
+
+### ace test
+
+ArkUI-X application build and excute unitTest.
+
+This command checks whether the target device is connected, determines the device type, and then performs operations such as building, installing, and excute an ArkUI-X unitTest, and output test reports.
+
+On Windows and Linux, you can build, install, and test APK packages. On Mac, you can build, install, and test APK, and App packages.
+
+Syntax:
+
+```shell
+ace run [options] [fileType]
+```
+
+- options
+
+| Option             | Description                  |
+| ------------------- | ---------------------- |
+| -d [deviceId]       | Specifies the ID of the device on which the ArkUI-X application is run.|
+| --device [deviceId] | Specifies the ID of the device on which the ArkUI-X application is run.|
+| --b [testBundleName] | Specifies the Test BundleName on which the ArkUI-X application excute.|
+| --m [testModuleName] | Specifies the Test ModuleName on which the ArkUI-X application excute. |
+| --unittest [testRunner] | Specifies the Test testRunner on which the ArkUI-X application excute. |
+| --timeout [timeout] | Specifies the timeout on which the ArkUI-X application excute. |
+
+- fileType
+
+| Parameter| Description                                                        |
+| ---- | ------------------------------------------------------------ |
+| apk  | APK package of the Android application.                                 |
+| app  | App package of the iOS application.    
+
 ### ace clean
 
 Clears the build results of an ArkUI-X application.
@@ -438,5 +472,10 @@ Commands:
   launch [options] [fileType]     launch hap/apk on device
   log [fileType]                  show debug log
   clean                           clean project
+    test [options] [fileType]       test apk/app on device
+        --b                   [Test BundleName]
+        --m                   [Test ModuleName]
+        --unittest            [TestRunner]
+        --timeout             [Test timeout]
   help [command]                  display help for command
 ```

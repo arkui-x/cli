@@ -27,6 +27,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 │   ├── ace-launch              # 在设备上运行ArkUI跨平台应用
 │   ├── ace-log                 # 展示正在运行的跨平台应用的日志
 │   ├── ace-run                 # 编译并在设备上运行ArkUI跨平台应用
+|   ├── ace-test                # 执行跨平台应用包单元测试
 │   ├── ace-uninstall           # 将跨平台应用从连接的设备上卸载
 │   ├── bin                     # 各终端入口脚本
 │   └── util                    # 工具模块
@@ -420,6 +421,37 @@ ace run [options] [fileType]
 | apk  | 构建并运行Android应用 apk 包。                                  |
 | app  | 构建并运行iOS应用 app 包。                                   |
 
+### ace test
+执行跨平台应用包单元测试。
+
+ace test 先检查设备是否连接，确定设备类型，然后执行跨平台应用构建、安装、启动、执行单元测试、输出单元测试结果等操作。
+
+在Windows平台上可以构建安装并测试Apk，在Linux平台上可以构建安装并测试Apk，在Mac平台上可以构建安装并测试Apk和App。
+
+语法：
+
+```shell
+ace test [options] [fileType]
+```
+
+- options
+
+| 子命令              | 说明                   |
+| ------------------- | ---------------------- |
+| -d [deviceId]       | 指定运行应用的设备Id。 |
+| --device [deviceId] | 指定运行应用的设备Id。 |
+| --b [testBundleName] | 指定测试应用的BundleName。 |
+| --m [testModuleName] | 指定测试应用的ModuleName。 |
+| --unittest [testRunner] | 指定测试应用的testRunner。 |
+| --timeout [timeout] | 指定测试应用的单条用例的超时时间。 |
+
+- fileType
+
+| 参数 | 说明                                                         |
+| ---- | ------------------------------------------------------------ |
+| apk  | 构建并运行Android应用 apk 包。                                  |
+| app  | 构建并运行iOS应用 app 包。                   
+
 ### ace clean
 
 清理跨平台应用编译结果。
@@ -458,6 +490,7 @@ ace help <subcommand>
 | launch    | 在设备上运行跨平台应用。                                     |
 | log       | 滚动展示正在运行的跨平台应用的日志。                         |
 | run       | 运行跨平台应用包。                                           |
+| test      | 执行跨平台应用包单元测试。                                   |
 | clean     | 清理跨平台应用编译结果。                                     |
 | help      | 跨平台应用命令行工具帮助。                                   |
 
@@ -493,5 +526,10 @@ Commands:
   launch [options] [fileType]     launch hap/apk on device
   log [fileType]                  show debug log
   clean                           clean project
+  test [options] [fileType]       test apk/app on device
+        --b                   [Test BundleName]
+        --m                   [Test ModuleName]
+        --unittest            [TestRunner]
+        --timeout             [Test timeout]
   help [command]                  display help for command
 ```

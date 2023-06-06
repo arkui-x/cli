@@ -39,6 +39,10 @@ function log(fileType, device, cmdTest) {
   if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath()) {
     return;
   }
+  if (test) {
+    logCmd(toolObj, device, false, currentSystem);
+    return;
+  }
   let pid = getPid(device, fileType);
   const sleepTime = 1000;
   const timeOutCount = 5;
@@ -68,7 +72,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     } else if ('adb' in toolObj) {
       if (test) {
-        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`, '| grep -E "OHOS_REPORT|TestFinished-ResultMsg"']);
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', '| grep -E "StageApplicationDelegate|TestFinished"']);
       } else {
         hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
       }
@@ -88,7 +92,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     } else if ('adb' in toolObj) {
       if (test) {
-        hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`, '| grep -E "OHOS_REPORT|TestFinished-ResultMsg"']);
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat', '| grep -E "StageApplicationDelegate|TestFinished"']);
       } else {
         hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
       }
@@ -101,15 +105,8 @@ function logCmd(toolObj, device, pid, currentSystem) {
     }
   }
   hilog.stdout.on('data', data => {
-    const output = data.toString();
     if (test) {
-      if ((output.includes("OHOS_REPORT"))) {
-        console.log(data.toString());
-      }
-      if(output.includes("TestFinished-ResultMsg")){
-        console.log(data.toString());
-        exit()
-      }
+      logTestCmd(data, toolObj);
     } else {
       console.log(data.toString());
     }
@@ -120,6 +117,35 @@ function logCmd(toolObj, device, pid, currentSystem) {
   hilog.on('exit code', code => {
     console.log('exit code: ', code.toString());
   });
+}
+
+function logTestCmd(data) {
+  const output = data.toString();
+  if ('adb' in toolObj) {
+    output.split('\r').forEach(module => {
+      try {
+        let identifyStr = 'StageApplicationDelegate';
+        const index = module.lastIndexOf(identifyStr);
+        let subString = module.substring(index + identifyStr.length + 1);
+        testReport(subString);
+      } catch {
+        testReport(output);
+      }
+    });
+  } else {
+    testReport(output);
+  }
+}
+
+function testReport(data) {
+  if ((data.includes("OHOS_REPORT"))) {
+    console.log(data);
+  }
+  if (data.includes("TestFinished")) {
+    console.log(data);
+    console.log(' user test finished.');
+    exit()
+  }
 }
 
 function validTool(toolObj) {
