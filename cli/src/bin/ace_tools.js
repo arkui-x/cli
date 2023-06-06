@@ -352,8 +352,20 @@ function parseTest() {
       --unittest            [TestRunner]
       --timeout             [Test timeout]`)
     .action((fileType, options, cmd) => {
-      options.test = 'test';
+      if (!options.b) {
+        console.log("test bundleName not found， please use '--b <testBundleName>'");
+        return false;
+      }
+      if (!options.m) {
+        console.log("test moduleName not found， please use '--m <testModuleName>'");
+        return false;
+      }
+      if (!options.unittest) {
+        console.log("test unittest not found， please use '--unittest <unittest>'");
+        return false;
+      }
       if (fileType === 'apk' || fileType === 'app') {
+        options.test = 'test';
         test(fileType, cmd.parent._optionValues.device, options);
       } else {
         console.log(`Please use ace test with subcommand : apk or app.`);

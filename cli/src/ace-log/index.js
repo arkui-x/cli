@@ -20,6 +20,7 @@ const { spawn, execSync } = require('child_process');
 const { getToolByType } = require('../ace-check/getTool');
 const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProject,
   isProjectRootDir, getCurrentProjectSystem } = require('../util');
+const { exit } = require('process');
 
 let toolObj;
 let projectDir;
@@ -72,7 +73,8 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     } else if ('adb' in toolObj) {
       if (test) {
-        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', '| grep -E "StageApplicationDelegate|TestFinished"']);
+        const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', grepOption]);
       } else {
         hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
       }
@@ -92,7 +94,8 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     } else if ('adb' in toolObj) {
       if (test) {
-        hilog = spawn(toolObj['adb'], ['shell', 'logcat', '| grep -E "StageApplicationDelegate|TestFinished"']);
+        const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat', grepOption]);
       } else {
         hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
       }
@@ -104,6 +107,10 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     }
   }
+  handleHilog(hilog);
+}
+
+function handleHilog(hilog) {
   hilog.stdout.on('data', data => {
     if (test) {
       logTestCmd(data, toolObj);
@@ -122,16 +129,16 @@ function logCmd(toolObj, device, pid, currentSystem) {
 function logTestCmd(data) {
   const output = data.toString();
   if ('adb' in toolObj) {
-    output.split('\r').forEach(module => {
-      try {
+    try {
+      output.split('\r').forEach(module => {
         let identifyStr = 'StageApplicationDelegate';
         const index = module.lastIndexOf(identifyStr);
         let subString = module.substring(index + identifyStr.length + 1);
         testReport(subString);
-      } catch {
-        testReport(output);
-      }
-    });
+      });
+    } catch {
+      testReport(output);
+    }
   } else {
     testReport(output);
   }

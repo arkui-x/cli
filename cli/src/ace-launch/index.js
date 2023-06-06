@@ -137,7 +137,7 @@ function getNamesApk(projectDir, moduleName) {
       });
       if (isStageProject(path.join(projectDir, 'ohos'))) {
         bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
-        androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
+        androidclassName = '.' + moduleName.replace(/\b\w/g, function (l){
           return l.toUpperCase();
         }) + 'MainActivity';
       } else {
@@ -240,63 +240,45 @@ function getCmdLaunch(projectDir, toolObj, device, options) {
   } else if ('adb' in toolObj) {
     const cmdPath = toolObj['adb'];
     const deviceOption = device ? `-s ${device}` : '';
+    let testOption = '';
     if (options.test) {
-      if (getAndroidTestOption(options)) {
-        cmdLaunch =
-          `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${getAndroidTestOption(options)}`;
-      }
-    } else {
-      cmdLaunch =
-        `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+      testOption = getAndroidTestOption(options);
     }
+    cmdLaunch =
+      `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
+      console.error('cmdLaunch：'+cmdLaunch);
   } else if ('ios-deploy' in toolObj) {
     const cmdPath = toolObj['ios-deploy'];
     const deviceOption = device ? `--id ${device}` : '';
+    let testOption = '';
     if (options.test) {
-      if (getIOSTestOption(options)) {
-        cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${getIOSTestOption(options)} --no-wifi --justlaunch`;
-      }
-    } else {
-      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} --no-wifi --justlaunch`;
+      testOption = getIOSTestOption(options);
     }
+    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch`;
+    console.error('cmdLaunch：'+cmdLaunch);
   } else {
     console.error('Internal error with hdc and adb checking.');
   }
   return cmdLaunch;
 }
 
-
 function getAndroidTestOption(options) {
-  if (!options.m) {
-    console.error("test moduleName not found， please use '--m <testModuleName>'");
-    return false;
-  }
-  if (!options.unittest) {
-    console.error("test unittest not found， please use '--unittest <unittest>'");
-    return false;
-  }
-  const testClass = options.class ? ` --es class "${options.class}"` : ''
-  const timeout = options.timeout ? ` --es timeout "${options.timeout}"` : ''
-  const testOption = `--es test "test" --es bundleName "${bundleName}" --es moduleName "${options.m}" --es unittest "${options.unittest}"${testClass}${timeout} `;
+  const testBundleName = `--es bundleName "${options.b}"`;
+  const testModuleName = `--es moduleName "${options.m}"`;
+  const unittest =`--es unittest "${options.unittest}"`;
+  const testClass = options.class ? `--es class "${options.class}"` : ''
+  const timeout = options.timeout ? `--es timeout "${options.timeout}"` : ''
+  const testOption = `--es test "test" ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout} `;
   return testOption;
 }
 
 function getIOSTestOption(options) {
-  if (!options.b) {
-    console.error("test bundleName not found， please use '--b <testBundleName>'");
-    return false;
-  }
-  if (!options.m) {
-    console.error("test moduleName not found， please use '--m <testModuleName>'");
-    return false;
-  }
-  if (!options.unittest) {
-    console.error("test unittest not found， please use '--unittest <unittest>'");
-    return false;
-  }
-  const testClass = options.class ? ` class "${options.class}"` : ''
-  const timeout = options.timeout ? ` timeout ${options.timeout}` : ''
-  const testOption = `--args "test bundleName ${options.b} moduleName ${options.m} unittest ${options.unittest}${testClass}${timeout}"`;
+  const testBundleName = `bundleName ${options.b}`;
+  const testModuleName = `moduleName ${options.m}`;
+  const unittest =`unittest ${options.unittest}`;
+  const testClass = options.class ? `class "${options.class}"` : ''
+  const timeout = options.timeout ? `timeout ${options.timeout}` : ''
+  const testOption = `--args "test ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout}"`;
   return testOption;
 }
 

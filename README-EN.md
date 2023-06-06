@@ -27,7 +27,7 @@ For details about the source code structure of the ArkUI-X project, see [ArkUI-X
 │   ├── ace-launch              # ArkUI-X application launch
 │   ├── ace-log                 #  ArkUI-X application run log
 │   ├── ace-run                 # ArkUI-X application build and run
-|   ├── ace-test                # ArkUI-X application build and excute unitTest
+|   ├── ace-test                # ArkUI-X application build and excute test case like unitTest or uiTest
 │   ├── ace-uninstall           # ArkUI-X application uninstall
 │   ├── bin                     # Device entry scripts
 │   └── util                    # Utilities
@@ -371,9 +371,9 @@ ace run [options] [fileType]
 
 ### ace test
 
-ArkUI-X application build and excute unitTest.
+ArkUI-X application build and excute test case like unitTest or uiTest.
 
-This command checks whether the target device is connected, determines the device type, and then performs operations such as building, installing, and excute an ArkUI-X unitTest, and output test reports.
+This command checks whether the target device is connected, determines the device type, and then performs operations such as building, installing, and excute an ArkUI-X  test case, and output test reports.
 
 On Windows and Linux, you can build, install, and test APK packages. On Mac, you can build, install, and test APK, and App packages.
 

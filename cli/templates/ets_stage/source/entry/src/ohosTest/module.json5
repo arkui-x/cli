@@ -3,7 +3,7 @@
     "name": "module_test_name",
     "type": "feature",
     "description": "$string:module_test_desc",
-    "srcEntrance": "./ets/Application/AbilityStage.ts",
+    "srcEntry": "./ets/Application/AbilityStage.ts",
     "mainElement": "TestAbility",
     "deviceTypes": [
       "default",
@@ -16,7 +16,7 @@
     "abilities": [
       {
         "name": "TestAbility",
-        "srcEntrance": "./ets/testability/TestAbility.ets",
+        "srcEntry": "./ets/testability/TestAbility.ets",
         "description": "$string:TestAbility_desc",
         "icon": "$media:icon",
         "label": "$string:TestAbility_label",
