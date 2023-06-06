@@ -369,7 +369,6 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
     } else {
       cmds.push(`${buildCmd} ${buildType}`);
     }
-    console.log(`linzhen: ${buildCmd} ${buildType}`);
     gradleMessage = 'Start compiling jsBundle...';
   }
   cmds = cmds.join(' && ');
