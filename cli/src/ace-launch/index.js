@@ -207,16 +207,13 @@ function launch(fileType, device, moduleName, options) {
       return false;
     }
     try {
-      if (options.test && 'ios-deploy' in toolObj) {
+      if (options.test) {
         log(fileType, device, 'test');
       }
       const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
       if (result.toLowerCase().includes('fail')) {
         console.error(result);
         return false;
-      }
-      if (options.test && 'adb' in toolObj) {
-        log(fileType, device, 'test');
       }
       console.log(`Launch ${fileType.toUpperCase()} successfully.`);
       return true;
