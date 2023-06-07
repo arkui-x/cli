@@ -351,23 +351,23 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
     fileType === 'framework' || fileType === 'xcframework') {
-    let buildType = '';
-    let testBuildType = '';
+    let buildtarget = '';
+    let testbBuildtarget = '';
     if (moduleType === 'Stage') {
-      buildType = 'default@CompileArkTS';
+      buildtarget = 'default@CompileArkTS';
       if (!cmd.release && moduleList) {
         let moduleTestStr = '-p module=' + moduleList.join('@ohosTest,') + '@ohosTest';
-        testBuildType = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS`;
+        testbBuildtarget = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS`;
       }
     } else if (uiSyntax === 'ets') {
-      buildType = 'default@LegacyCompileArkTS';
+      buildtarget = 'default@LegacyCompileArkTS';
     } else {
-      buildType = 'default@LegacyCompileJS';
+      buildtarget = 'default@LegacyCompileJS';
     }
     if (!cmd.release) {
-      cmds.push(`${buildCmd} ${buildType}`, `${buildCmd} ${testBuildType}`);
+      cmds.push(`${buildCmd} ${buildtarget}`, `${buildCmd} ${testbBuildtarget}`);
     } else {
-      cmds.push(`${buildCmd} ${buildType}`);
+      cmds.push(`${buildCmd} ${buildtarget}`);
     }
     gradleMessage = 'Start compiling jsBundle...';
   }

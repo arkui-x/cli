@@ -73,6 +73,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     } else if ('adb' in toolObj) {
       if (test) {
+        execSync(`${toolObj['adb']} shell logcat -c`);
         const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
         hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', grepOption]);
       } else {
@@ -94,6 +95,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     } else if ('adb' in toolObj) {
       if (test) {
+        execSync(`${toolObj['adb']} shell logcat -c`);
         const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
         hilog = spawn(toolObj['adb'], ['shell', 'logcat', grepOption]);
       } else {
@@ -128,18 +130,23 @@ function handleHilog(hilog) {
 
 function logTestCmd(data) {
   const output = data.toString();
-  if ('adb' in toolObj) {
-    try {
-      output.split('\r').forEach(module => {
+  try {
+    if ('adb' in toolObj) {
+      output.split('\r').forEach(item => {
         let identifyStr = 'StageApplicationDelegate';
-        const index = module.lastIndexOf(identifyStr);
-        let subString = module.substring(index + identifyStr.length + 1);
+        const index = item.lastIndexOf(identifyStr);
+        let subString = item.substring(index + identifyStr.length + 1);
         testReport(subString);
       });
-    } catch {
-      testReport(output);
+    } else {
+      let identifyStr = 'AbilityContextAdapter';
+      if (output.includes(identifyStr)) {
+        const index = output.lastIndexOf(identifyStr);
+        let subString = output.substring(index + identifyStr.length + 13);
+        testReport(subString);
+      }
     }
-  } else {
+  } catch (error) {
     testReport(output);
   }
 }
@@ -150,7 +157,7 @@ function testReport(data) {
   }
   if (data.includes("TestFinished")) {
     console.log(data);
-    console.log(' user test finished.');
+    console.log('user test finished.');
     exit()
   }
 }
