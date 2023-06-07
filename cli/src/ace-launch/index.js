@@ -137,7 +137,7 @@ function getNamesApk(projectDir, moduleName) {
       });
       if (isStageProject(path.join(projectDir, 'ohos'))) {
         bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
-        androidclassName = '.' + moduleName.replace(/\b\w/g, function (l){
+        androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
           return l.toUpperCase();
         }) + 'MainActivity';
       } else {
@@ -242,44 +242,37 @@ function getCmdLaunch(projectDir, toolObj, device, options) {
     const deviceOption = device ? `-s ${device}` : '';
     let testOption = '';
     if (options.test) {
-      testOption = getAndroidTestOption(options);
+      testOption = getTestOption(options, '--es ');
     }
     cmdLaunch =
       `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
-      console.error('cmdLaunch：'+cmdLaunch);
   } else if ('ios-deploy' in toolObj) {
     const cmdPath = toolObj['ios-deploy'];
     const deviceOption = device ? `--id ${device}` : '';
     let testOption = '';
     if (options.test) {
-      testOption = getIOSTestOption(options);
+      testOption = getTestOption(options, '');
     }
     cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch`;
-    console.error('cmdLaunch：'+cmdLaunch);
   } else {
     console.error('Internal error with hdc and adb checking.');
   }
   return cmdLaunch;
 }
 
-function getAndroidTestOption(options) {
-  const testBundleName = `--es bundleName "${options.b}"`;
-  const testModuleName = `--es moduleName "${options.m}"`;
-  const unittest =`--es unittest "${options.unittest}"`;
-  const testClass = options.class ? `--es class "${options.class}"` : ''
-  const timeout = options.timeout ? `--es timeout "${options.timeout}"` : ''
-  const testOption = `--es test "test" ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout} `;
+function getTestOption(options, esOption) {
+  const cmdPrefix = esOption ? 'test test' : '--args "test';
+  const cmdSuffix = esOption ? '' : '"';
+  const testBundleName = `${esOption}bundleName ${options.b}`;
+  const testModuleName = `${esOption}moduleName ${options.m}`;
+  const unittest = `${esOption}unittest ${options.unittest}`;
+  const testClass = options.class ? `${esOption}class ${options.class}` : ''
+  const timeout = options.timeout ? `${esOption}timeout ${options.timeout}` : ''
+  const testOption =
+    `${esOption}${cmdPrefix} ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout}${cmdSuffix}`;
   return testOption;
 }
 
-function getIOSTestOption(options) {
-  const testBundleName = `bundleName ${options.b}`;
-  const testModuleName = `moduleName ${options.m}`;
-  const unittest =`unittest ${options.unittest}`;
-  const testClass = options.class ? `class "${options.class}"` : ''
-  const timeout = options.timeout ? `timeout ${options.timeout}` : ''
-  const testOption = `--args "test ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout}"`;
-  return testOption;
-}
+
 
 module.exports = launch;

@@ -132,7 +132,7 @@ function logTestCmd(data) {
   const output = data.toString();
   try {
     if ('adb' in toolObj) {
-      output.split('\r').forEach(item => {
+      output.split('\n').forEach(item => {
         let identifyStr = 'StageApplicationDelegate';
         const index = item.lastIndexOf(identifyStr);
         let subString = item.substring(index + identifyStr.length + 1);
@@ -155,8 +155,7 @@ function testReport(data) {
   if ((data.includes("OHOS_REPORT"))) {
     console.log(data);
   }
-  if (data.includes("TestFinished")) {
-    console.log(data);
+  if (data.includes("Tests run")) {
     console.log('user test finished.');
     exit()
   }

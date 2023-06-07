@@ -341,7 +341,7 @@ function parseClean() {
 function parseTest() {
   program.command('test [fileType]')
     .option('--target [moduleName]', 'name of module to be installed')
-    .option('--b [testBundleName]', 'name of bundleName to be test')
+    .option('--b [bundleName]', 'name of bundleName to be test')
     .option('--m [testModuleName]', 'name of moduleName to be test')
     .option('--unittest [testRunner]', 'name of testRunner to be test')
     .option('--class [class]', 'name of testClass to be test')

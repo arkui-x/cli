@@ -267,11 +267,7 @@ function replaceInOhos(moduleName, appName, packageName, bundleName, appVer) {
     const testJsonObj = JSON.parse(fs.readFileSync(testJsonPath));
     testJsonObj.module.bundleName = bundleName;
     testJsonObj.module.package = packageName;
-    if (type === 'stage') {
-      testJsonObj.module.distro.moduleName = moduleName + 'Test';
-    } else {
-      testJsonObj.module.distro.moduleName = moduleName + '_test';
-    }
+    testJsonObj.module.distro.moduleName = moduleName + '_test';
     fs.writeFileSync(testJsonPath, JSON.stringify(testJsonObj, '', '  '));
   }
   if (moduleName != 'entry' && isNativeCppTemplate(projectDir)) {

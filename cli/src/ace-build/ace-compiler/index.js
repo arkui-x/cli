@@ -106,10 +106,8 @@ function copyStageSourceToOhos(moduleList, fileName) {
   let isContinue = true;
   uiSyntax = 'ets';
   moduleList.forEach(module => {
- 
-      deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}`, uiSyntax));
-      deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}/resources`));
- 
+    deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}`, uiSyntax));
+    deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}/resources`));
     // copy ets
     const src = path.join(projectDir, 'source', module);
     const dist = path.join(projectDir, 'ohos', module);
@@ -144,7 +142,6 @@ function copyTestStageSourceToOhos(moduleList, fileType, cmd) {
   if (cmd.release || fileType === 'hap' || !fileType) {
     return true;
   }
-  // moduledir is 'ohosTest'
   return copyStageSourceToOhos(moduleList, 'ohosTest');
 }
 
@@ -181,7 +178,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   deleteOldFile(path.join(projectDir, 'ios/arkui-x'));
   deleteOldFile(path.join(projectDir, 'android/app/src/main/assets/arkui-x'));
-  isContinue = copyStageBundleToAndroidAndIOSByModule(moduleList, 'default', '');
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '');
   const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
   const iosSystemResPath = path.join(projectDir, '/ios/arkui-x/systemres');
   const androidSystemResPath = path.join(projectDir, '/android/app/src/main/assets/arkui-x/systemres');
@@ -194,16 +191,17 @@ function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
   if (cmd.release || fileType === 'hap' || !fileType) {
     return isContinue;
   }
-  isContinue = copyStageBundleToAndroidAndIOSByModule(moduleList, 'ohosTest', 'Test');
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', 'Test');
   return isContinue;
 }
 
-function copyStageBundleToAndroidAndIOSByModule(moduleList, fileName, moduleOption) {
+function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOption) {
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
     const src = path.join(projectDir, '/ohos', module, `build/default/intermediates/loader_out/${fileName}/ets`);
-    const resindex = path.join(projectDir, '/ohos', module, `build/default/intermediates/res/${fileName}/resources.index`);
+    const resindex = path.join(projectDir, '/ohos', module,
+      `build/default/intermediates/res/${fileName}/resources.index`);
     const resPath = path.join(projectDir, '/ohos', module, `build/default/intermediates/res/${fileName}/resources`);
     const moduleJsonPath = path.join(projectDir, '/ohos', module,
       `build/default/intermediates/res/${fileName}/module.json`);
@@ -332,7 +330,10 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
   let buildCmd = '';
   if (moduleType === 'Stage') {
     cmds.push(`ohpm install`);
-    buildCmd = './hvigorw';
+    if (platform !== Platform.Windows) {
+      cmds.push(`chmod 755 hvigorw`);
+    }
+    buildCmd = `./hvigorw`;
   } else {
     cmds.push(`npm install`);
     buildCmd = 'node ./node_modules/@ohos/hvigor/bin/hvigor.js';
@@ -364,11 +365,10 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
     } else {
       buildtarget = 'default@LegacyCompileJS';
     }
+    cmds.push(`${buildCmd} ${buildtarget}`);
     if (!cmd.release) {
-      cmds.push(`${buildCmd} ${buildtarget}`, `${buildCmd} ${testbBuildtarget}`);
-    } else {
-      cmds.push(`${buildCmd} ${buildtarget}`);
-    }
+      cmds.push(`${buildCmd} ${testbBuildtarget}`);
+    } 
     gradleMessage = 'Start compiling jsBundle...';
   }
   cmds = cmds.join(' && ');
@@ -484,7 +484,6 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
   if (isStageProject(path.join(projectDir, 'source/'))) {
     if (readConfig()
       && writeLocalProperties()
-      // moduledir is 'main'
       && copyStageSourceToOhos(moduleListAll, 'main')
       && copyTestStageSourceToOhos(moduleListAll, fileType, cmd)
       && runGradle(fileType, cmd, moduleListSpecified, 'Stage')
