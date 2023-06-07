@@ -87,119 +87,71 @@ function install(fileType, device, moduleListInput) {
     console.error('There is no install tool, please check');
     return false;
   }
-  if (validInputDevice(device)) {
-    let successFlag;
-    if (fileType == 'hap') {
-      successFlag = installHap(toolObj, filePathList, device);
-    } else if (fileType == 'apk') {
-      successFlag = installApk(toolObj, filePathList, device);
-    } else if (fileType == 'app') {
-      successFlag = installApp(toolObj, filePathList, device);
-    }
-    if (successFlag) {
-      console.log(`Install ${fileType.toUpperCase()} successfully.`);
-    } else {
-      console.log(`Install ${fileType.toUpperCase()} failed.`);
-    }
-    return successFlag;
+  if (!validInputDevice(device)) {
+    return false;
   }
-  return false;
+  let installCmd = installCmdConstruct(fileType, toolObj, device);
+  let isInstalled = true;
+  if(installCmd) {
+    try {
+      for (let index = 0; index < filePathList.length; index++) {
+        const filePath = filePathList[index];
+        const result = exec(`${installCmd} ${filePath}`).toString().trim();
+        if (result.toLowerCase().includes('fail')) {
+          console.error(result);
+          isInstalled = false;
+        }
+      }
+    } catch (error) {
+      console.error(`Internal error with installing ${fileType}`);
+      isInstalled = false;
+    }
+  } else {
+    isInstalled = false;
+  }
+  let stateStr = 'successfully';
+  if (!isInstalled) {
+    stateStr = 'failed';
+  }
+  console.log(`Install ${fileType.toUpperCase()} ${stateStr}.`);
+  return isInstalled;
 }
-function installHap(toolObj, filePathList, device) {
+
+function installCmdConstruct(fileType, toolObj, device) {
   let cmdPath;
-  let cmdInstallOption;
-  let deviceOption;
-  if ('hdc' in toolObj) {
+  let cmdInstallOption = '';
+  let deviceOption = '';
+  if (fileType == 'hap') {
+    if (!('hdc' in toolObj)) {
+      console.error('Internal error with hdc checking');
+      return undefined;
+    }
     cmdPath = toolObj['hdc'];
     cmdInstallOption = 'app install -r';
     if (device) {
       deviceOption = `-t ${device}`;
-    } else {
-      deviceOption = '';
     }
-  } else {
-    console.error('Internal error with hdc checking');
-    return false;
-  }
-  try {
-    for (let index = 0; index < filePathList.length; index++) {
-      const filePath = filePathList[index];
-      const cmdPush = `${cmdPath} ${deviceOption} ${cmdInstallOption} ${filePath}`;
-      const result = exec(`${cmdPush}`).toString().trim();
-      if (result.toLowerCase().includes('fail')) {
-        console.error(result);
-        return false;
-      }
+  } else if (fileType == 'apk') {
+    if (!('adb' in toolObj)) {
+      console.error('Internal error with adb checking');
+      return undefined;
     }
-    return true;
-  } catch (error) {
-    console.error('Internal error with installing hap');
-    return false;
-  }
-}
-
-function installApk(toolObj, filePathList, device) {
-  let cmdPath;
-  let cmdInstallOption;
-  let deviceOption;
-  if ('adb' in toolObj) {
     cmdPath = toolObj['adb'];
     cmdInstallOption = 'install';
     if (device) {
       deviceOption = `-s ${device}`;
-    } else {
-      deviceOption = '';
     }
-  } else {
-    console.error('Internal error with adb checking');
-    return false;
-  }
-  try {
-    for (let index = 0; index < filePathList.length; index++) {
-      const filePath = filePathList[index];
-      const cmdInstall = `${cmdPath} ${deviceOption} ${cmdInstallOption} ${filePath}`;
-      const result = exec(`${cmdInstall}`).toString().trim();
-      if (result.includes('Failure')) {
-        console.error(result);
-        return false;
-      }
+  } else if (fileType == 'app') {
+    if (!('ios-deploy' in toolObj)) {
+      console.error('Internal error with ios-deploy checking');
+      return undefined;
     }
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function installApp(toolObj, filePathList, device) {
-  let cmdPath;
-  let cmdInstallOption;
-  let deviceOption;
-  if ('ios-deploy' in toolObj) {
     cmdPath = toolObj['ios-deploy'];
-    cmdInstallOption = '--no-wifi';
+    cmdInstallOption = '--no-wifi --bundle';
     if (device) {
       deviceOption = `--id ${device}`;
-    } else {
-      deviceOption = '';
     }
-  } else {
-    console.error('Internal error with ios-deploy checking');
-    return false;
   }
-  try {
-    for (let index = 0; index < filePathList.length; index++) {
-      const filePath = filePathList[index];
-      const cmdInstall = `${cmdPath} ${deviceOption} --bundle ${filePath} ${cmdInstallOption}`;
-      const result = exec(`${cmdInstall}`).toString().trim();
-      if (result.includes('Failure')) {
-        console.error(result);
-        return false;
-      }
-    }
-    return true;
-  } catch (error) {
-    console.error('Internal error with installing app');
-    return false;
-  }
+  return `${cmdPath} ${deviceOption} ${cmdInstallOption}`;
 }
 module.exports = install;
