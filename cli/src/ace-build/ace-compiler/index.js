@@ -106,10 +106,10 @@ function copyStageSourceToOhos(moduleList, fileName) {
   let isContinue = true;
   uiSyntax = 'ets';
   moduleList.forEach(module => {
-    if (fileName === 'main') {
+ 
       deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}`, uiSyntax));
       deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}/resources`));
-    }
+ 
     // copy ets
     const src = path.join(projectDir, 'source', module);
     const dist = path.join(projectDir, 'ohos', module);
