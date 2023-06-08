@@ -143,10 +143,11 @@ function cleanIOS() {
 function cleanOHOS() {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
-  cmds.push(`npm install`);
   if(isStageProject(path.join(projectDir,'source/'))) {
+    cmds.push(`ohpm install`);
     cmds.push(`./hvigorw  clean`);
   } else {
+    cmds.push(`npm install`);
     cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js clean`);
   }
   let message = 'Clean ohos project successful.';
