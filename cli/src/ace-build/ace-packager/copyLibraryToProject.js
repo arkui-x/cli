@@ -318,22 +318,57 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   });
 }
 
+/*
+specifications for callbackFunction
+fullname ---absolute path ,
+fileName ---current file or directory,
+isDir   --true --directory，false file
+args   ---user define argument
+return true--continue traverse, false --end traversing
+ callbackFunction(fullname , fileName,isDir)
+*/
+function traversalDir(dir, callbackFunction, args) {
+  const readlist = fs.readdirSync(dir);
+  for (const key in readlist) {
+    const fullname = path.join(dir, readlist[key]);
+    const isDir = fs.statSync(fullname).isDirectory();
+    const goonProc = callbackFunction(fullname, readlist[key], isDir, args);
+    if (!goonProc) {
+      return args;
+    }
+    if (isDir) {
+      traversalDir(fullname, callbackFunction, args);
+    }
+  }
+  return args;
+}
+
+const defaultDir = 'ohos/entry/build/default/cache/';
+
 function loadCollectionJson(projectDir) {
   printLog('load dependent modules from project:');
-  let collectionSet = new Set();
+  const loadState = {};
+  loadState.collectionSet = new Set();
+  loadState.moduleFound = false;
+  loadState.componentFound = false;
   try {
-    collectionSet = loadCollection(getJsonConfig(path.join(projectDir,
-      'ohos/entry/build/default/cache/component_collection.json')), collectionSet);
+    traversalDir(defaultDir, (fullname, fileName, isDir, loadState) => {
+      if (fileName === 'component_collection.json') {
+        loadState.collectionSet = loadCollection(getJsonConfig(fullname), loadState.collectionSet);
+        loadState.componentFound = true;
+      } else if (fileName === 'module_collection.json') {
+        loadState.collectionSet = loadCollection(getJsonConfig(fullname), loadState.collectionSet);
+        loadState.moduleFound = true;
+      }
+      if (loadState.componentFound && loadState.moduleFound) {
+        return false;
+      }
+      return true;
+    }, loadState);
   } catch (err) {
     printLog('get componentCollection data failed');
   }
-  try {
-    collectionSet = loadCollection(getJsonConfig(path.join(projectDir,
-      'ohos/entry/build/default/cache/module_collection.json')), collectionSet);
-  } catch (err) {
-    printLog('get moduleCollection data failed');
-  }
-  return collectionSet;
+  return loadState.collectionSet;
 }
 
 function loadApiConfigJson(arkuiXSdkDir) {
