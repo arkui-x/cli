@@ -52,6 +52,29 @@ function getUUID(pbxprojFilePath) {
   }
 }
 
+/**
+ * function generateUUID
+ *  if new UUID exists in pbxprojFileContent or generatedIdSet
+ *  generateUUID will auto generate a New one
+ * @param {*} pbxprojFileContent project.pbxproj content
+ * @param {*} generatedIdSet Set Object to keep the generated UUID,
+ *              call new Set() to create Set Object before call generateUUID
+ * @returns new UUID String
+ */
+function generateUUID(pbxprojFileContent, generatedIdSet) {
+  try {
+    const newUUID = uuid.v4().replace(/-/g, '').slice(0, 24).toUpperCase();
+    if (pbxprojFileContent.includes(newUUID) || generatedIdSet && generatedIdSet.has(newUUID)) {
+      return generateUUID(pbxprojFileContent, generatedIdSet);
+    } else {
+      generatedIdSet.add(newUUID);
+      return newUUID;
+    }
+  } catch (error) {
+    console.log('generateUUID error', error);
+  }
+}
+
 function getModuleList(settingPath) {
   try {
     const moduleList = [];
@@ -278,5 +301,6 @@ module.exports = {
   getAarName,
   getFrameworkName,
   getUUID,
+  generateUUID,
   addFileToPbxproj
 };
