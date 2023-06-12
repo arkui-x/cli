@@ -39,21 +39,21 @@ export default class OpenHarmonyTestRunner implements TestRunner {
         console.log('onRun');
         abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments()
         abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator()
-        var testAbilityName = abilityDelegatorArguments.bundleName + '.TestAbility'
+        var bundleName = abilityDelegatorArguments.bundleName
+        var parameters = abilityDelegatorArguments.parameters
+        let moduleName = parameters["moduleName"]
         let lMonitor = {
-            abilityName: testAbilityName,
+            abilityName: "TestAbility",
             onAbilityCreate: onAbilityCreateCallback,
         };
         abilityDelegator.addAbilityMonitor(lMonitor, addAbilityMonitorCallback)
-        var cmd = 'aa start -d 0 -a TestAbility' + ' -b ' + abilityDelegatorArguments.bundleName
-        var debug = abilityDelegatorArguments.parameters['-D']
-        if (debug == 'true')
-        {
-            cmd += ' -D'
-        }
-        abilityDelegator.executeShellCommand(cmd,
-            (err: any, d: any) => {
-                console.log('executeShellCommand' + err + d);
-        })
+        let want = {
+            abilityName: "TestAbility",
+            bundleName: bundleName,
+            moduleName: moduleName
+        };
+        abilityDelegator.startAbility(want, (err: any, data: any) => {
+            console.log('startAbility' + err + data);
+        });
     }
 }

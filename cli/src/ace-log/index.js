@@ -20,10 +20,13 @@ const { spawn, execSync } = require('child_process');
 const { getToolByType } = require('../ace-check/getTool');
 const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProject,
   isProjectRootDir, getCurrentProjectSystem } = require('../util');
+const { exit } = require('process');
 
 let toolObj;
 let projectDir;
-function log(fileType, device) {
+let test;
+function log(fileType, device, cmdTest) {
+  test = cmdTest;
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
@@ -35,6 +38,10 @@ function log(fileType, device) {
   }
   toolObj = getToolByType(fileType, currentSystem, true);
   if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath()) {
+    return;
+  }
+  if (test) {
+    logCmd(toolObj, device, false, currentSystem);
     return;
   }
   let pid = getPid(device, fileType);
@@ -65,9 +72,19 @@ function logCmd(toolObj, device, pid, currentSystem) {
         hilog = spawn(toolObj['hdc'], ['-t', device, 'shell', 'hilog', `--pid=${pid}`]);
       }
     } else if ('adb' in toolObj) {
-      hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
+      if (test) {
+        execSync(`${toolObj['adb']} shell logcat -c`);
+        const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', grepOption]);
+      } else {
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
+      }
     } else if ('idevicesyslog' in toolObj) {
-      hilog = spawn(toolObj['idevicesyslog'], ['-p', pid], ['-u', device]);
+      if (test) {
+        hilog = spawn(toolObj['idevicesyslog'], ['-u', device]);
+      } else {
+        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid], ['-u', device]);
+      }
     }
   } else {
     if ('hdc' in toolObj) {
@@ -77,13 +94,31 @@ function logCmd(toolObj, device, pid, currentSystem) {
         hilog = spawn(toolObj['hdc'], ['shell', 'hilog', `--pid=${pid}`]);
       }
     } else if ('adb' in toolObj) {
-      hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
+      if (test) {
+        execSync(`${toolObj['adb']} shell logcat -c`);
+        const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat', grepOption]);
+      } else {
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
+      }
     } else if ('idevicesyslog' in toolObj) {
-      hilog = spawn(toolObj['idevicesyslog'], ['-p', pid]);
+      if (test) {
+        hilog = spawn(toolObj['idevicesyslog']);
+      } else {
+        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid]);
+      }
     }
   }
+  handleHilog(hilog);
+}
+
+function handleHilog(hilog) {
   hilog.stdout.on('data', data => {
-    console.log(data.toString());
+    if (test) {
+      logTestCmd(data, toolObj);
+    } else {
+      console.log(data.toString());
+    }
   });
   hilog.stderr.on('error', error => {
     console.error(error);
@@ -91,6 +126,39 @@ function logCmd(toolObj, device, pid, currentSystem) {
   hilog.on('exit code', code => {
     console.log('exit code: ', code.toString());
   });
+}
+
+function logTestCmd(data) {
+  const output = data.toString();
+  try {
+    if ('adb' in toolObj) {
+      output.split('\n').forEach(item => {
+        let identifyStr = 'StageApplicationDelegate';
+        const index = item.lastIndexOf(identifyStr);
+        let subString = item.substring(index + identifyStr.length + 1);
+        testReport(subString);
+      });
+    } else {
+      let identifyStr = 'AbilityContextAdapter';
+      if (output.includes(identifyStr)) {
+        const index = output.lastIndexOf(identifyStr);
+        let subString = output.substring(index + identifyStr.length + 13);
+        testReport(subString);
+      }
+    }
+  } catch (error) {
+    testReport(output);
+  }
+}
+
+function testReport(data) {
+  if ((data.includes("OHOS_REPORT"))) {
+    console.log(data);
+  }
+  if (data.includes("Tests run")) {
+    console.log('user test finished.');
+    exit()
+  }
 }
 
 function validTool(toolObj) {

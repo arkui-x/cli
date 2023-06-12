@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 
+const log = require('../ace-log');
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectVersion, isStageProject,
   getCurrentProjectSystem } = require('../util');
@@ -181,7 +182,7 @@ function isPackageInAndroid(toolObj, device) {
   }
 }
 
-function launch(fileType, device, moduleName) {
+function launch(fileType, device, moduleName, options) {
   const projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
@@ -201,11 +202,14 @@ function launch(fileType, device, moduleName) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;
     }
-    const cmdLaunch = getCmdLaunch(projectDir, toolObj, device);
+    const cmdLaunch = getCmdLaunch(projectDir, toolObj, device, options);
     if (!cmdLaunch) {
       return false;
     }
     try {
+      if (options.test) {
+        log(fileType, device, 'test');
+      }
       const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
       if (result.toLowerCase().includes('fail')) {
         console.error(result);
@@ -223,7 +227,7 @@ function launch(fileType, device, moduleName) {
   }
 }
 
-function getCmdLaunch(projectDir, toolObj, device) {
+function getCmdLaunch(projectDir, toolObj, device, options) {
   let cmdLaunch = '';
   if ('hdc' in toolObj) {
     const cmdPath = toolObj['hdc'];
@@ -236,16 +240,39 @@ function getCmdLaunch(projectDir, toolObj, device) {
   } else if ('adb' in toolObj) {
     const cmdPath = toolObj['adb'];
     const deviceOption = device ? `-s ${device}` : '';
+    let testOption = '';
+    if (options.test) {
+      testOption = getTestOption(options, '--es ');
+    }
     cmdLaunch =
-      `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption}`;
+      `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
   } else if ('ios-deploy' in toolObj) {
     const cmdPath = toolObj['ios-deploy'];
     const deviceOption = device ? `--id ${device}` : '';
-    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} --no-wifi --justlaunch`;
+    let testOption = '';
+    if (options.test) {
+      testOption = getTestOption(options, '');
+    }
+    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch`;
   } else {
     console.error('Internal error with hdc and adb checking.');
   }
   return cmdLaunch;
 }
+
+function getTestOption(options, esOption) {
+  const cmdPrefix = esOption ? 'test test' : '--args "test';
+  const cmdSuffix = esOption ? '' : '"';
+  const testBundleName = `${esOption}bundleName ${options.b}`;
+  const testModuleName = `${esOption}moduleName ${options.m}`;
+  const unittest = `${esOption}unittest ${options.unittest}`;
+  const testClass = options.class ? `${esOption}class ${options.class}` : ''
+  const timeout = options.timeout ? `${esOption}timeout ${options.timeout}` : ''
+  const testOption =
+    `${esOption}${cmdPrefix} ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout}${cmdSuffix}`;
+  return testOption;
+}
+
+
 
 module.exports = launch;

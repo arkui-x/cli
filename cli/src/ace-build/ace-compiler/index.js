@@ -102,28 +102,33 @@ function copySourceToOhos(moduleList) {
   return isContinue;
 }
 
-function copyStageSourceToOhos(moduleList) {
+function copyStageSourceToOhos(moduleList, fileName) {
   let isContinue = true;
   uiSyntax = 'ets';
   moduleList.forEach(module => {
-    deleteOldFile(path.join(projectDir, 'ohos', module, 'src/main', uiSyntax));
-    deleteOldFile(path.join(projectDir, 'ohos', module, 'src/main/resources'));
+    deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}`, uiSyntax));
+    deleteOldFile(path.join(projectDir, 'ohos', module, `src/${fileName}/resources`));
+    // copy ets
     const src = path.join(projectDir, 'source', module);
     const dist = path.join(projectDir, 'ohos', module);
     fs.mkdirSync(src, { recursive: true });
     fs.mkdirSync(dist, { recursive: true });
-    const uiSyntaxSrc = path.join(projectDir, 'source', module, '/src/main/' + uiSyntax);
-    const uiSyntaxDist = path.join(projectDir, 'ohos', module, '/src/main/' + uiSyntax);
+    const uiSyntaxSrc = path.join(projectDir, 'source', module, `/src/${fileName}/` + uiSyntax);
+    const uiSyntaxDist = path.join(projectDir, 'ohos', module, `/src/${fileName}/` + uiSyntax);
     fs.mkdirSync(uiSyntaxSrc, { recursive: true });
     fs.mkdirSync(uiSyntaxDist, { recursive: true });
     isContinue = isContinue && copy(uiSyntaxSrc, uiSyntaxDist);
-    //copy resources
-    const resourcesSrc = path.join(projectDir, 'source', module, '/src/main/resources');
-    const resourcesDist = path.join(projectDir, 'ohos', module, '/src/main/resources');
+    // copy resources
+    const resourcesSrc = path.join(projectDir, 'source', module, `/src/${fileName}/resources`);
+    const resourcesDist = path.join(projectDir, 'ohos', module, `/src/${fileName}/resources`);
     fs.mkdirSync(resourcesSrc, { recursive: true });
     fs.mkdirSync(resourcesDist, { recursive: true });
     isContinue = isContinue && copy(resourcesSrc, resourcesDist);
-    const fileList = ['build-profile.json5', 'hvigorfile.ts', 'oh-package.json5', 'src/main/module.json5'];
+    // copy config
+    let fileList = [`src/${fileName}/module.json5`];
+    if (fileName === 'main') {
+      fileList = fileList.concat(['build-profile.json5', 'hvigorfile.ts', 'oh-package.json5']);
+    }
     fileList.forEach(file => {
       const fileSrc = path.join(projectDir, 'source', module, file);
       const fileDst = path.join(projectDir, 'ohos', module, file);
@@ -132,6 +137,14 @@ function copyStageSourceToOhos(moduleList) {
   });
   return isContinue;
 }
+
+function copyTestStageSourceToOhos(moduleList, fileType, cmd) {
+  if (cmd.release || fileType === 'hap' || !fileType) {
+    return true;
+  }
+  return copyStageSourceToOhos(moduleList, 'ohosTest');
+}
+
 
 function copyBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
@@ -165,14 +178,34 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   deleteOldFile(path.join(projectDir, 'ios/arkui-x'));
   deleteOldFile(path.join(projectDir, 'android/app/src/main/assets/arkui-x'));
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '');
+  const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
+  const iosSystemResPath = path.join(projectDir, '/ios/arkui-x/systemres');
+  const androidSystemResPath = path.join(projectDir, '/android/app/src/main/assets/arkui-x/systemres');
+  isContinue = isContinue && copy(systemResPath, iosSystemResPath) && copy(systemResPath, androidSystemResPath);
+  return isContinue;
+}
+
+function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
+  let isContinue = true;
+  if (cmd.release || fileType === 'hap' || !fileType) {
+    return isContinue;
+  }
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', 'Test');
+  return isContinue;
+}
+
+function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOption) {
+  let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
-    const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/ets');
-    const resindex = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources.index');
-    const resPath = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources');
+    const src = path.join(projectDir, '/ohos', module, `build/default/intermediates/loader_out/${fileName}/ets`);
+    const resindex = path.join(projectDir, '/ohos', module,
+      `build/default/intermediates/res/${fileName}/resources.index`);
+    const resPath = path.join(projectDir, '/ohos', module, `build/default/intermediates/res/${fileName}/resources`);
     const moduleJsonPath = path.join(projectDir, '/ohos', module,
-      'build/default/intermediates/res/default/module.json');
-    const destClassName = module;
+      `build/default/intermediates/res/${fileName}/module.json`);
+    const destClassName = module + moduleOption;
     const distAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/', destClassName + '/ets');
     const distIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/ets');
     const resindexAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',
@@ -193,10 +226,6 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
     fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
   });
-  const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
-  const iosSystemResPath = path.join(projectDir, '/ios/arkui-x/systemres');
-  const androidSystemResPath = path.join(projectDir, '/android/app/src/main/assets/arkui-x/systemres');
-  isContinue = isContinue && copy(systemResPath, iosSystemResPath) && copy(systemResPath, androidSystemResPath);
   return isContinue;
 }
 
@@ -323,15 +352,23 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
     fileType === 'framework' || fileType === 'xcframework') {
-      let buildType = '';
+    let buildtarget = '';
+    let testbBuildtarget = '';
     if (moduleType === 'Stage') {
-      buildType = 'default@CompileArkTS';
+      buildtarget = 'default@CompileArkTS';
+      if (!cmd.release && moduleList) {
+        let moduleTestStr = '-p module=' + moduleList.join('@ohosTest,') + '@ohosTest';
+        testbBuildtarget = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS`;
+      }
     } else if (uiSyntax === 'ets') {
-      buildType = 'default@LegacyCompileArkTS';
+      buildtarget = 'default@LegacyCompileArkTS';
     } else {
-      buildType = 'default@LegacyCompileJS';
+      buildtarget = 'default@LegacyCompileJS';
     }
-    cmds.push(`${buildCmd} ${buildType}`);
+    cmds.push(`${buildCmd} ${buildtarget}`);
+    if (!cmd.release) {
+      cmds.push(`${buildCmd} ${testbBuildtarget}`);
+    } 
     gradleMessage = 'Start compiling jsBundle...';
   }
   cmds = cmds.join(' && ');
@@ -447,9 +484,11 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
   if (isStageProject(path.join(projectDir, 'source/'))) {
     if (readConfig()
       && writeLocalProperties()
-      && copyStageSourceToOhos(moduleListAll)
+      && copyStageSourceToOhos(moduleListAll, 'main')
+      && copyTestStageSourceToOhos(moduleListAll, fileType, cmd)
       && runGradle(fileType, cmd, moduleListSpecified, 'Stage')
-      && copyStageBundleToAndroidAndIOS(moduleListSpecified)) {
+      && copyStageBundleToAndroidAndIOS(moduleListSpecified)
+      && copyTestStageBundleToAndroidAndIOS(moduleListSpecified, fileType, cmd)) {
       return compilerModuleType(moduleListAll, fileType, moduleListSpecified, 'Stage');
     }
   } else {
