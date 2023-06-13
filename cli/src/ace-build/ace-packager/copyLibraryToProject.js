@@ -125,7 +125,10 @@ function deleteOldFile(deleteFilePath) {
 }
 
 function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap) {
-  let compileType = 'debug';
+  let compileType = 'release';
+  if (cmd.debug) {
+    compileType = 'debug';
+  }
   if (cmd.release) {
     compileType = 'release';
   }
@@ -166,6 +169,7 @@ function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDi
     const paths = value['library'][system];
     for (let libraryPath in paths) {
       libraryPath = paths[libraryPath].replace('arch_type', archType);
+      libraryPath = libraryPath.replace('build_modes', archType);
       const fileType = libraryPath.split('.').pop();
       const checkResult = checkLibraryPath(libraryPath);
       if (!checkResult) {
@@ -216,6 +220,7 @@ function makeAllLibraryCheckMap(projectDir, archType, srcMap, system, destLibDir
     const paths = value['library'][system];
     for (let libraryPath in paths) {
       libraryPath = paths[libraryPath].replace('arch_type', archType);
+      libraryPath = libraryPath.replace('build_modes', archType);
       const fileType = libraryPath.split('.').pop();
       if (checkLibraryPath(libraryPath)) {
         let libraryName;
