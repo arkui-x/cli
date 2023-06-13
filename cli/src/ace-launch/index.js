@@ -139,7 +139,7 @@ function getNamesApk(projectDir, moduleName) {
         bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
         androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
           return l.toUpperCase();
-        }) + 'MainActivity';
+        }) + 'MainAbilityActivity';
       } else {
         bundleName = JSON.parse(fs.readFileSync(manifestPath)).appID;
       }

@@ -199,7 +199,7 @@ function createStageInAndroid(moduleName, templateDir, appVer, type) {
     const templateFileName = 'MainActivity.java';
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + 'MainActivity';
+    }) + 'MainAbilityActivity';
     let dest = path.join(projectDir, 'android/app/src/main/java');
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
