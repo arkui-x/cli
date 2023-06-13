@@ -125,7 +125,7 @@ function deleteOldFile(deleteFilePath) {
 }
 
 function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap) {
-  let compileType = 'debug';
+  let compileType = 'release';
   if (cmd.debug) {
     compileType = 'debug';
   }
