@@ -311,7 +311,7 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   checkMap.depCheckMap.forEach(function(depCheckSet, libpath) {
     const allLibSet = checkMap.allCheckMap.get(libpath);
     if (system === 'ios') {
-      updateIosProjectPbxproj(projectDir, depMap, system,
+      updateIosProjectPbxproj(fileType, projectDir, depMap, system,
         true, function(libname) { }, allLibSet);
     }
     processLib(libpath, depCheckSet, allLibSet, clearLibBeforeCopy);
