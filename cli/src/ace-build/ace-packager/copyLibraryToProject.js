@@ -310,12 +310,14 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   const checkMap = loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap);
   checkMap.depCheckMap.forEach(function(depCheckSet, libpath) {
     const allLibSet = checkMap.allCheckMap.get(libpath);
-    if (system === 'ios') {
-      updateIosProjectPbxproj(fileType, projectDir, depMap, system,
-        true, function(libname) { }, allLibSet);
-    }
     processLib(libpath, depCheckSet, allLibSet, clearLibBeforeCopy);
   });
+  if (system === 'ios') {
+    checkMap.allCheckMap.forEach(function(allLibSet, libpath) {
+      updateIosProjectPbxproj(fileType, projectDir, depMap, system,
+        true, function(libname) { }, allLibSet);
+    });
+  }
 }
 
 /*

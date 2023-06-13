@@ -54,20 +54,23 @@ function getUUID(pbxprojFilePath) {
 
 /**
  * function generateUUID
- *  if new UUID exists in pbxprojFileContent or generatedIdSet
+ *  if new UUID exists in textWithUUIDs or generatedIdSet
  *  generateUUID will auto generate a New one
- * @param {*} pbxprojFileContent project.pbxproj content
+ * @param {*} textWithUUIDs text string With UUID
  * @param {*} generatedIdSet Set Object to keep the generated UUID,
  *              call new Set() to create Set Object before call generateUUID
  * @returns new UUID String
  */
-function generateUUID(pbxprojFileContent, generatedIdSet) {
+function generateUUID(textWithUUIDs, generatedIdSet) {
   try {
     const newUUID = uuid.v4().replace(/-/g, '').slice(0, 24).toUpperCase();
-    if (pbxprojFileContent.includes(newUUID) || generatedIdSet && generatedIdSet.has(newUUID)) {
-      return generateUUID(pbxprojFileContent, generatedIdSet);
+    if (textWithUUIDs && textWithUUIDs.includes(newUUID) ||
+      generatedIdSet && generatedIdSet.has(newUUID)) {
+      return generateUUID(textWithUUIDs, generatedIdSet);
     } else {
-      generatedIdSet.add(newUUID);
+      if (generatedIdSet) {
+        generatedIdSet.add(newUUID);
+      }
       return newUUID;
     }
   } catch (error) {
