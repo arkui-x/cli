@@ -30,18 +30,18 @@ const appCpu2SdkLibMap = {
   },
   'ios': {
     'arm64': {
-      'debug': ['ios-arm64'],
-      'release': ['ios-arm64-release']
+      'debug': ['ios'],
+      'release': ['ios-release']
     }
   },
   'ios-simulator': {
     'arm64': {
-      'debug': ['ios-arm64-simulator'],
-      'release': ['ios-arm64-simulator']
+      'debug': ['ios'],
+      'release': ['ios-release']
     },
     'x86_64': {
-      'debug': ['ios-x86_64-simulator'],
-      'release': ['ios-x86_64-simulator']
+      'debug': ['ios'],
+      'release': ['ios-release']
     }
   }
 };
