@@ -59,7 +59,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
     const srcFile = path.join(src, templateFileName);
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + abilityName.replace('Ability', 'Activity');
+    }) + abilityName + 'Activity';
     const destFileName = destClassName + '.java';
     const destFilePath = path.join(dest, destFileName);
     fs.writeFileSync(destFilePath, fs.readFileSync(srcFile));
@@ -158,13 +158,12 @@ function updateManifest(abilityName) {
     moduleJson.module.abilities.push(
       {
         name: abilityName,
-        srcEntrance: './ets/' + abilityName + '/' + abilityName + '.ts',
+        srcEntry: './ets/' + abilityName + '/' + abilityName + '.ts',
         description: '$string:' + abilityName + '_desc',
         icon: '$media:icon',
         label: '$string:' + abilityName + '_label',
         startWindowIcon: '$media:icon',
-        startWindowBackground: '$color:start_window_background',
-        visible: true
+        startWindowBackground: '$color:start_window_background'
       }
     );
     fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJson, '', '  '));

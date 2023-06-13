@@ -182,7 +182,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   strs.push('StageActivity');
   files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('MainActivity');
-  strs.push('EntryMainActivity');
+  strs.push('EntryMainAbilityActivity');
   files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('ohos.ace.adapter.AceApplication');
   strs.push('ohos.stage.ability.adapter.StageApplication');
@@ -191,7 +191,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   strs.push('StageApplication');
   files.push(path.join(projectPath, 'android/app/src/main/AndroidManifest.xml'));
   replaceInfos.push('MainActivity');
-  strs.push('EntryMainActivity');
+  strs.push('EntryMainAbilityActivity');
 
   files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
   replaceInfos.push('bundleIdentifier');
@@ -220,7 +220,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   replaceInfo(files, replaceInfos, strs);
   replaceIOSRbxprojInfo(projectPath);
   fs.renameSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'), path.join(projectPath,
-    'android/app/src/main/java/EntryMainActivity.java'));
+    'android/app/src/main/java/EntryMainAbilityActivity.java'));
   if (system == aceHarmonyOS) {
     modifyHarmonyOSConfig(projectPath, 'entry', 'stage');
   }
