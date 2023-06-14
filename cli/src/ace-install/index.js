@@ -19,6 +19,7 @@ const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
+const installHapPackage = [];
 function checkInstallFile(projectDir, fileType, moduleList) {
   try {
     const filePathList = [];
@@ -34,11 +35,18 @@ function checkInstallFile(projectDir, fileType, moduleList) {
         const fileList = fs.readdirSync(buildDir).filter(function (file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
         });
+        let modulePackageName = '';
+        if (module !== 'entry') {
+          modulePackageName = module + '-entry';
+        } else {
+          modulePackageName = module;
+        }
+        if (fileList.length === 1 && fileList[0] === `${modulePackageName}-default-unsigned.${fileType}`) {
+          console.log('WARN: Before installing the [' + module + '] hap,please complete the signature.');
+        }
         fileList.forEach(file => {
-          if (module !== 'entry') {
-            module = module + '-entry';
-          }
-          if (file === `${module}-default-signed.${fileType}`) {
+          if (file === `${modulePackageName}-default-signed.${fileType}`) {
+            installHapPackage.push(module);
             filePathList.push(path.join(buildDir, file));
           }
         });
@@ -113,7 +121,11 @@ function install(fileType, device, moduleListInput) {
   if (!isInstalled) {
     stateStr = 'failed';
   }
-  console.log(`Install ${fileType.toUpperCase()} ${stateStr}.`);
+  if(fileType === 'hap') {
+    console.log(`Install ${fileType.toUpperCase()} ` + `[${installHapPackage.join('/')}]` + ` ${stateStr}.`);
+  } else {
+    console.log(`Install ${fileType.toUpperCase()} ${stateStr}.`);
+  }
   return isInstalled;
 }
 
