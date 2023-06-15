@@ -82,7 +82,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
         console.log('\x1B[31m%s\x1B[0m',
         'Warning: Before installing the apk, please sign and rebuild, or build the debug version.');
       }
-      if (fileList.includes(`app-release.${fileType}`)) {
+      if (fileList.includes(`release/app-release.${fileType}`)) {
         filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
         packageType = 'Release';
       } else if (fileList.includes(`debug/app-debug.${fileType}`)) {
