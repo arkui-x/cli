@@ -144,6 +144,10 @@ function replaceFrameworkInfo(frameworkPath, frameworkName, appVer) {
                 path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.h'));
             fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate_stage.m'),
                 path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
+            fs.writeFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'),
+                fs.readFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m')).toString().
+                replace('BUNDLE_DIRECTORY];',
+                ` [NSString stringWithFormat:@"%@%@",@"/Frameworks/${frameworkName}.framework/",BUNDLE_DIRECTORY]];`));
             files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
             replaceInfos.push('packageName');
             strs.push(`com.example.${frameworkName}`);
