@@ -22,6 +22,11 @@ import window from '@ohos.window';
 export default class TestAbility extends UIAbility {
     onCreate(want, launchParam) {
         console.log('onCreate');
+        var abilityDelegator: any
+        abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator()
+        var abilityDelegatorArguments: any
+        abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments()
+        Hypium.hypiumTest(abilityDelegator, abilityDelegatorArguments, testsuite)
     }
 
     onDestroy() {
