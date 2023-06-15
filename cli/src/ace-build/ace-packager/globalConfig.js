@@ -16,31 +16,31 @@
 const appCpu2SdkLibMap = {
   'android': {
     'arm64-v8a': {
-      'debug': ['android-arm64'],
+      'debug': ['android-arm64-release'],
       'release': ['android-arm64-release']
     },
     'armeabi-v7a': {
-      'debug': ['android-arm'],
+      'debug': ['android-arm-release'],
       'release': ['android-arm-release', 'android-arm']
     },
     'x86_64': {
-      'debug': ['android-x86_64'],
+      'debug': ['android-x86_64-release'],
       'release': ['android-x86_64-release', 'android-x86_64']
     }
   },
   'ios': {
     'arm64': {
-      'debug': ['ios'],
+      'debug': ['ios-release'],
       'release': ['ios-release']
     }
   },
   'ios-simulator': {
     'arm64': {
-      'debug': ['ios'],
+      'debug': ['ios-release'],
       'release': ['ios-release']
     },
     'x86_64': {
-      'debug': ['ios'],
+      'debug': ['ios-release'],
       'release': ['ios-release']
     }
   }
