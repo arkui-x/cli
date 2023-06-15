@@ -345,10 +345,10 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
       moduleStr = '-p module=' + moduleList.join(',');
     }
     let debugStr = '';
-    if (cmd.release) {
-      debugStr = '-p product=default -p debuggable=false';
+    if (cmd.debug) {
+      debugStr = '-p buildMode=debug';
     }
-    cmds.push(`${buildCmd} ${debugStr} --mode module ${moduleStr} assembleHap`);
+    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap`);
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
     fileType === 'framework' || fileType === 'xcframework') {

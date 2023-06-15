@@ -20,6 +20,7 @@ const exec = require('child_process').execSync;
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
 const installHapPackage = [];
+let packageType = '';
 function checkInstallFile(projectDir, fileType, moduleList) {
   try {
     const filePathList = [];
@@ -53,9 +54,8 @@ function checkInstallFile(projectDir, fileType, moduleList) {
       });
     }
     //android and ios only have one apk or app
-    if (fileType === 'apk' || fileType === 'app') {
-      buildDir = fileType == "apk" ? path.join(projectDir, 'android', 'app/build/outputs/apk/debug/') :
-        path.join(projectDir, 'ios', 'build/outputs/app/');
+    if (fileType === 'app') {
+      buildDir = path.join(projectDir, 'ios', 'build/outputs/app/');
       const fileList = fs.readdirSync(buildDir).filter(file => {
         return path.extname(file).toLowerCase() === `.${fileType}`;
       });
@@ -66,6 +66,29 @@ function checkInstallFile(projectDir, fileType, moduleList) {
       fileList.forEach(file => {
         filePathList.push(path.join(buildDir, file));
       });
+    }
+
+    if (fileType === 'apk') {
+      buildDir = path.join(projectDir, 'android', 'app/build/outputs/apk/');
+      let fileList = [];
+      fs.readdirSync(buildDir).forEach(dir => {
+        if (dir === 'debug' || dir === 'release') {
+          fileList.push(`${dir}/` + fs.readdirSync(path.join(buildDir, dir)).filter(file => {
+            return path.extname(file).toLowerCase() === `.${fileType}`;
+          }))
+        }
+      });
+      if (fileList.length === 1 && fileList[0] === `release/app-release-unsigned.${fileType}`) {
+        console.log('\x1B[31m%s\x1B[0m',
+        'Warning: Before installing the apk, please sign and rebuild, or build the debug version.');
+      }
+      if (fileList.includes(`app-release.${fileType}`)) {
+        filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
+        packageType = 'Release';
+      } else if (fileList.includes(`debug/app-debug.${fileType}`)) {
+        filePathList.push(path.join(buildDir, `debug/app-debug.${fileType}`));
+        packageType = 'Debug';
+      }
     }
     return filePathList;
   } catch (error) {
@@ -100,7 +123,7 @@ function install(fileType, device, moduleListInput) {
   }
   let installCmd = installCmdConstruct(fileType, toolObj, device);
   let isInstalled = true;
-  if(installCmd) {
+  if (installCmd) {
     try {
       for (let index = 0; index < filePathList.length; index++) {
         const filePath = filePathList[index];
@@ -123,6 +146,8 @@ function install(fileType, device, moduleListInput) {
   }
   if(fileType === 'hap') {
     console.log(`Install ${fileType.toUpperCase()} ` + `[${installHapPackage.join('/')}]` + ` ${stateStr}.`);
+  } else if (fileType === 'apk') {
+    console.log(`Install ${packageType} ${fileType.toUpperCase()} ${stateStr}.`);
   } else {
     console.log(`Install ${fileType.toUpperCase()} ${stateStr}.`);
   }

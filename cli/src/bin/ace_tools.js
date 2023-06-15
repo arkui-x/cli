@@ -244,6 +244,7 @@ function parseBuild() {
   program.command('build [fileType]')
     .option('--target [moduleName]', 'name of module to be built')
     .option('-r --release', 'build as release')
+    .option('--debug', 'build as debug')
     .option('--nosign', 'build without sign')
     .description('build hap/apk/app/aar/framework/xcframework of moduleName')
     .action((fileType, cmd) => {
