@@ -84,10 +84,10 @@ function buildAPK(cmd) {
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
-  if (cmd.release) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
-  } else {
+  if (cmd.debug) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
+  } else {
+    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
   }
   let gradleMessage = 'Build apk successful.';
   let isBuildSuccess = true;
@@ -119,18 +119,18 @@ function buildAAR(cmd) {
     cmds.push(`cd ${aarDir} && chmod 755 gradlew`);
   }
   if (aarNameList.length == 1) {
-    if (cmd.release) {
-      cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleRelease`);
-    } else {
+    if (cmd.debug) {
       cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleDebug`);
+    } else {
+      cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleRelease`);
     }
   } else if (aarNameList.length > 1) {
     let cmdStr = `cd ${aarDir} && ./gradlew :`;
     aarNameList.forEach(aarName => {
-      if (cmd.release) {
-        cmdStr = cmdStr + `${aarName}:assembleRelease `;
-      } else {
+      if (cmd.debug) {
         cmdStr = cmdStr + `${aarName}:assembleDebug `;
+      } else {
+        cmdStr = cmdStr + `${aarName}:assembleRelease `;
       }
     });
     cmds.push(cmdStr);
@@ -159,9 +159,9 @@ function buildAAR(cmd) {
 
 function buildFramework(cmd) {
   copyLibraryToProject('framework', cmd, projectDir, 'ios');
-  let mode = 'Debug';
-  if (cmd.release) {
-    mode = 'Release';
+  let mode = 'Release';
+  if (cmd.debug) {
+    mode = 'Debug';
   }
   let gradleMessage = 'Build framework successful.';
   let isBuildSuccess = true;
@@ -189,9 +189,9 @@ function buildFramework(cmd) {
 function buildXcFramework(cmd) {
   copyLibraryToProject('xcframework', cmd, projectDir, 'ios');
   const cmds = [];
-  let mode = 'Debug';
-  if (cmd.release) {
-    mode = 'Release';
+  let mode = 'Release';
+  if (cmd.debug) {
+    mode = 'Debug';
   }
   let gradleMessage = 'Build xcframework successful.';
   let isBuildSuccess = true;
@@ -260,9 +260,9 @@ function packager(target, cmd) {
 function buildAPP(cmd) {
   copyLibraryToProject('app', cmd, projectDir, 'ios');
   const cmds = [];
-  let mode = 'debug';
-  if (cmd.release) {
-    mode = 'release';
+  let mode = 'Release';
+  if (cmd.debug) {
+    mode = 'Debug';
   }
   let currentDir = process.cwd();
   let version = '';

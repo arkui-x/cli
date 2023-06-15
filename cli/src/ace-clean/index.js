@@ -154,7 +154,6 @@ function cleanOHOS() {
   let isBuildSuccess = true;
   console.log('Start clean ohos project...');
   cmds = cmds.join(' && ');
-  console.log(cmds);
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
