@@ -139,7 +139,7 @@ function copyStageSourceToOhos(moduleList, fileName) {
 }
 
 function copyTestStageSourceToOhos(moduleList, fileType, cmd) {
-  if (cmd.release || fileType === 'hap' || !fileType) {
+  if (!cmd.debug || fileType === 'hap' || !fileType) {
     return true;
   }
   return copyStageSourceToOhos(moduleList, 'ohosTest');
@@ -188,7 +188,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
 
 function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
   let isContinue = true;
-  if (cmd.release || fileType === 'hap' || !fileType) {
+  if (!cmd.debug || fileType === 'hap' || !fileType) {
     return isContinue;
   }
   isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', 'Test');
@@ -356,7 +356,7 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
     let testbBuildtarget = '';
     if (moduleType === 'Stage') {
       buildtarget = 'default@CompileArkTS';
-      if (!cmd.release && moduleList) {
+      if (cmd.debug && moduleList) {
         let moduleTestStr = '-p module=' + moduleList.join('@ohosTest,') + '@ohosTest';
         testbBuildtarget = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS`;
       }
@@ -366,9 +366,9 @@ function runGradle(fileType, cmd, moduleList, moduleType) {
       buildtarget = 'default@LegacyCompileJS';
     }
     cmds.push(`${buildCmd} ${buildtarget}`);
-    if (!cmd.release) {
+    if (cmd.debug) {
       cmds.push(`${buildCmd} ${testbBuildtarget}`);
-    } 
+    }
     gradleMessage = 'Start compiling jsBundle...';
   }
   cmds = cmds.join(' && ');

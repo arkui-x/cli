@@ -371,6 +371,7 @@ function parseTest() {
       }
       if (fileType === 'apk' || fileType === 'app') {
         options.test = 'test';
+        options.debug = true;
         test(fileType, cmd.parent._optionValues.device, options);
       } else {
         console.log(`Please use ace test with subcommand : apk or app.`);
