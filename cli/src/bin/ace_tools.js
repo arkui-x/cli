@@ -248,6 +248,10 @@ function parseBuild() {
     .option('--nosign', 'build without sign')
     .description('build hap/apk/app/aar/framework/xcframework of moduleName')
     .action((fileType, cmd) => {
+      if (cmd.release && cmd.debug) {
+        console.log('\x1B[31m%s\x1B[0m', 'Warning: Release and debug are not allowed to exist at the same time.');
+        return false;
+      }
       if (fileType === 'hap' || typeof fileType === 'undefined') {
         compiler('hap', cmd);
       } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
