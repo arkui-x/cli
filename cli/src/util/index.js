@@ -115,32 +115,6 @@ function getModuleAbilityList(projDir, moduleList) {
   }
 }
 
-function getCurrentProjectVersion(projDir) {
-  let templateVer = '';
-  const checkDir = path.join(projDir, 'source/entry/src/main');
-  if (!fs.existsSync(checkDir)) {
-    return templateVer;
-  }
-  const paths = fs.readdirSync(checkDir);
-  paths.forEach(childDir => {
-    if (childDir == 'ets') {
-      templateVer = 'ets';
-    } else if (childDir == 'js') {
-      templateVer = 'js';
-    }
-  });
-  return templateVer;
-}
-
-function isStageProject(projDir) {
-  const checkFile = path.join(projDir, 'entry/build-profile.json5');
-  if (!fs.existsSync(checkFile)) {
-    return false;
-  }
-  const fileInfo = fs.readFileSync(checkFile).toString();
-  return fileInfo.includes('stageMode');
-}
-
 function validInputDevice(device) {
   const devicesArr = devices();
   if (!device) {
@@ -164,19 +138,9 @@ function validInputDevice(device) {
   }
 }
 
-function getManifestPath(projectDir) {
-  const version = getCurrentProjectVersion(projectDir);
-  if (version == '') {
-    console.log('project is not exists');
-    return false;
-  }
-  return path.join(projectDir, 'source/entry/src/main', version, 'MainAbility/manifest.json');
-}
-
 function getCurrentProjectSystem(projDir) {
   let currentSystem = '';
-  let configFile = path.join(projDir, 'ohos/entry/build-profile.json5');
-  configFile = fs.existsSync(configFile) ? configFile : path.join(projDir, 'source/entry/build-profile.json5');
+  const configFile = path.join(projDir, 'source/entry/build-profile.json5')
   if (!fs.existsSync(configFile)) {
     console.error(`Please check entry/build-profile.json5 existing.`);
     return null;
@@ -196,8 +160,7 @@ function getCurrentProjectSystem(projDir) {
 }
 
 function isNativeCppTemplate(projDir) {
-  let checkFile = path.join(projDir, 'ohos/entry/build-profile.json5');
-  checkFile = fs.existsSync(checkFile) ? checkFile : path.join(projDir, 'source/entry/build-profile.json5');
+  const checkFile = path.join(projDir, 'source/entry/build-profile.json5');
   if (!fs.existsSync(checkFile)) {
     return false;
   }
@@ -294,10 +257,7 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
 module.exports = {
   isProjectRootDir,
   getModuleList,
-  getCurrentProjectVersion,
   validInputDevice,
-  getManifestPath,
-  isStageProject,
   getModuleAbilityList,
   getCurrentProjectSystem,
   isNativeCppTemplate,

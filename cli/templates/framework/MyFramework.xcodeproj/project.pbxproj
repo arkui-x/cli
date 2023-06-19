@@ -12,7 +12,6 @@
 		22FAD4D129E6A63E00729313 /* ArkUIAppDelegate.h in Headers */ = {isa = PBXBuildFile; fileRef = 22FAD4D029E6A63E00729313 /* ArkUIAppDelegate.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		22FAD4D329E6A64500729313 /* ArkUIAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FAD4D229E6A64500729313 /* ArkUIAppDelegate.m */; };
 		22FAD50229F12AFC00729313 /* libarkui_ios.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */; };
-		22FAD4D829E6A68F00729313 /* js in Resources */ = {isa = PBXBuildFile; fileRef = 22FAD4D729E6A68F00729313 /* js */; };
 		22FAD50429F12BFA00729313 /* arkui-x in Resources */ = {isa = PBXBuildFile; fileRef = 22FAD50329F12BF900729313 /* arkui-x */; };
 		22FAD50629F12CA500729313 /* EntryMainViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 22FAD50529F12CA400729313 /* EntryMainViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		22FAD50829F12CAB00729313 /* EntryMainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 22FAD50729F12CAB00729313 /* EntryMainViewController.m */; };
@@ -25,7 +24,6 @@
 		22FAD4D029E6A63E00729313 /* ArkUIAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArkUIAppDelegate.h; sourceTree = "<group>"; };
 		22FAD4D229E6A64500729313 /* ArkUIAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArkUIAppDelegate.m; sourceTree = "<group>"; };
 		22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libarkui_ios.xcframework; path = ../frameworks/libarkui_ios.xcframework; sourceTree = "<group>"; };
-		22FAD4D729E6A68F00729313 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../js; sourceTree = "<group>"; };
 		22FAD50329F12BF900729313 /* arkui-x */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../arkui-x"; sourceTree = "<group>"; };
 		22FAD50529F12CA400729313 /* EntryMainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryMainViewController.h; sourceTree = "<group>"; };
 		22FAD50729F12CAB00729313 /* EntryMainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryMainViewController.m; sourceTree = "<group>"; };
@@ -47,7 +45,6 @@
 			isa = PBXGroup;
 			children = (
 				22FAD50329F12BF900729313 /* arkui-x */,
-				22FAD4D729E6A68F00729313 /* js */,
 				22FAD4C829E6A45C00729313 /* MyFramework */,
 				22FAD4C729E6A45C00729313 /* Products */,
 				22FAD4D429E6A65700729313 /* Frameworks */,
@@ -155,7 +152,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				22FAD50429F12BFA00729313 /* arkui-x in Resources */,
-				22FAD4D829E6A68F00729313 /* js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

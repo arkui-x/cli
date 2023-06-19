@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy, rmdir, replaceInfo } = require('../project');
-const { isProjectRootDir, getCurrentProjectVersion, isStageProject, isNativeCppTemplate } = require('../../util');
+const { isProjectRootDir, isNativeCppTemplate } = require('../../util');
 const {
     Platform,
     platform
@@ -87,19 +87,14 @@ function createFrameworkPkg(frameworkPath, frameworkName) {
 
 function findFrameworkTemplate(frameworkPath, frameworkName) {
     let templatePath = path.join(__dirname, 'template');
-    const appVer = getCurrentProjectVersion(projectDir);
-    if (appVer == '') {
-        console.log('project is not exists');
-        return false;
-    }
     if (fs.existsSync(templatePath)) {
         copyTemplate(templatePath, frameworkPath);
-        replaceFrameworkInfo(frameworkPath, frameworkName, appVer);
+        replaceFrameworkInfo(frameworkPath, frameworkName);
     } else {
         templatePath = path.join(__dirname, '../../../templates');
         if (fs.existsSync(templatePath)) {
             copyTemplate(templatePath, frameworkPath);
-            replaceFrameworkInfo(frameworkPath, frameworkName, appVer);
+            replaceFrameworkInfo(frameworkPath, frameworkName);
         } else {
             console.log('Error: Template is not exist!');
         }
@@ -108,14 +103,9 @@ function findFrameworkTemplate(frameworkPath, frameworkName) {
 
 function copyTemplate(templatePath, frameworkPath) {
     try {
-        let files;
+        const files = ['AppDelegate_stage.h', 'AppDelegate_stage.m',
+        'EntryMainViewController.h', 'EntryMainViewController.m'];
         copy(path.join(templatePath, 'framework'), path.join(frameworkPath));
-        if (isStageProject(path.join(projectDir, 'source'))) {
-            files = ['AppDelegate_stage.h', 'AppDelegate_stage.m',
-                'EntryMainViewController.h', 'EntryMainViewController.m'];
-        } else {
-            files = ['AppDelegate.h', 'AppDelegate.mm'];
-        }
         files.forEach(fileName => {
             fs.copyFileSync(path.join(templatePath, 'ios/etsapp', fileName),
                 path.join(frameworkPath, 'MyFramework', fileName));
@@ -125,12 +115,10 @@ function copyTemplate(templatePath, frameworkPath) {
     }
 }
 
-function replaceFrameworkInfo(frameworkPath, frameworkName, appVer) {
-    const aceVersion = appVer == 'js' ? 'ACE_VERSION_JS' : 'ACE_VERSION_ETS';
+function replaceFrameworkInfo(frameworkPath, frameworkName) {
     const files = [];
     const replaceInfos = [];
     const strs = [];
-    let moduleType;
     try {
         files.push(path.join(frameworkPath, 'MyFramework.xcodeproj/project.pbxproj'));
         replaceInfos.push('MyFramework');
@@ -138,29 +126,17 @@ function replaceFrameworkInfo(frameworkPath, frameworkName, appVer) {
         files.push(path.join(frameworkPath, 'MyFramework/MyFramework.h'));
         replaceInfos.push('MyFramework');
         strs.push(frameworkName);
-        if (isStageProject(path.join(projectDir, 'source'))) {
-            moduleType = 'stage';
-            fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate_stage.h'),
-                path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.h'));
-            fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate_stage.m'),
-                path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
-            fs.writeFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'),
-                fs.readFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m')).toString().
+        fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate_stage.h'),
+            path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.h'));
+        fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate_stage.m'),
+            path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
+        fs.writeFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'),
+            fs.readFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m')).toString().
                 replace('BUNDLE_DIRECTORY];',
                 ` [NSString stringWithFormat:@"%@%@",@"/Frameworks/${frameworkName}.framework/",BUNDLE_DIRECTORY]];`));
-            files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
-            replaceInfos.push('packageName');
-            strs.push(`com.example.${frameworkName}`);
-        } else {
-            moduleType = 'fa';
-            fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate.h'),
-                path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.h'));
-            fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate.mm'),
-                path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
-            files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
-            replaceInfos.push('ACE_VERSION');
-            strs.push(aceVersion);
-        }
+        files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
+        replaceInfos.push('packageName');
+        strs.push(`com.example.${frameworkName}`);
 
         files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.h'));
         replaceInfos.push('AppDelegate');
@@ -170,7 +146,7 @@ function replaceFrameworkInfo(frameworkPath, frameworkName, appVer) {
         strs.push('ArkUIAppDelegate');
         replaceInfo(files, replaceInfos, strs);
 
-        modifyXcodeProj(frameworkPath, moduleType);
+        modifyXcodeProj(frameworkPath);
         fs.renameSync(path.join(frameworkPath, 'MyFramework/MyFramework.h'),
             path.join(frameworkPath, `MyFramework/${frameworkName}.h`));
         fs.renameSync(path.join(frameworkPath, 'MyFramework.xcodeproj'),
@@ -181,22 +157,11 @@ function replaceFrameworkInfo(frameworkPath, frameworkName, appVer) {
     }
 }
 
-function modifyXcodeProj(frameworkPath, moduleType) {
+function modifyXcodeProj(frameworkPath) {
     const xcodeProjFile = path.join(frameworkPath, 'MyFramework.xcodeproj/project.pbxproj');
     const xcodeProjInfo = fs.readFileSync(xcodeProjFile, 'utf8').split(/\r\n|\n|\r/gm);
-    for (let i = 0; i < xcodeProjInfo.length; i++) {
-        if (moduleType === 'stage') {
-            if (xcodeProjInfo[i].indexOf(`/* js`) !== -1) {
-                xcodeProjInfo.splice(i, 1);
-                i--;
-            }
-        } else {
-            if (xcodeProjInfo[i].indexOf(`/* arkui-x`) !== -1 || xcodeProjInfo[i].indexOf(`/* EntryMain`) !== -1) {
-                xcodeProjInfo.splice(i, 1);
-                i--;
-            }
-        }
-        if (!isNativeCppTemplate(projectDir)) {
+    if (!isNativeCppTemplate(projectDir)) {
+        for (let i = 0; i < xcodeProjInfo.length; i++) {
             if (xcodeProjInfo[i].indexOf(`/* hello`) !== -1 || xcodeProjInfo[i].indexOf('USER_HEADER') !== -1) {
                 xcodeProjInfo.splice(i, 1);
                 i--;
@@ -216,8 +181,7 @@ function isMacOSPlatform() {
 
 function validateIllegalName(name) {
     const nameStr = name.match(/^[a-zA-Z_][a-zA-Z0-9_]*/g);
-    if (nameStr != name || nameStr == 'null' || nameStr == 'app' || nameStr == 'frameworks' ||
-    nameStr == 'etsapp'|| nameStr == 'jsapp') {
+    if (nameStr != name || nameStr == 'null' || nameStr == 'app' || nameStr == 'frameworks') {
         console.error('Illegal name, create failed.');
         return false;
     }

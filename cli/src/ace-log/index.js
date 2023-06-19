@@ -18,8 +18,7 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice, getManifestPath, getCurrentProjectVersion, isStageProject,
-  isProjectRootDir, getCurrentProjectSystem } = require('../util');
+const { validInputDevice, isProjectRootDir, getCurrentProjectSystem } = require('../util');
 const { exit } = require('process');
 
 let toolObj;
@@ -170,15 +169,7 @@ function validTool(toolObj) {
 }
 
 function validManifestPath() {
-  if (isStageProject(path.join(projectDir, 'ohos'))) {
-    if (!fs.existsSync(path.join(projectDir, 'ohos/AppScope/app.json5'))) {
-      console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
-      return false;
-    }
-    return true;
-  }
-  const bundleNamePath = getManifestPath(projectDir);
-  if (!bundleNamePath || !fs.existsSync(bundleNamePath)) {
+  if (!fs.existsSync(path.join(projectDir, 'ohos/AppScope/app.json5'))) {
     console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
     return false;
   }
@@ -248,7 +239,7 @@ function getAppPid(device, fileType, bundleName) {
   try {
     const deviceStr = device ? '--id ' + device : '';
     const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
-    const result = output.indexOf('true') == -1 ? undefined : getPName();
+    const result = output.indexOf('true') == -1 ? undefined : 'app';
     return result;
   } catch (err) {
     return undefined;
@@ -256,30 +247,13 @@ function getAppPid(device, fileType, bundleName) {
 }
 
 function getBundleName() {
-  let bundleNamePath;
   try {
-    if (isStageProject(path.join(projectDir, 'ohos'))) {
-      return JSON.parse(fs.readFileSync(path.join(projectDir, 'ohos/AppScope/app.json5'))).app.bundleName;
-    }
-    bundleNamePath = getManifestPath(projectDir);
-    if (bundleNamePath) {
-      return JSON.parse(fs.readFileSync(bundleNamePath)).appID;
-    }
+    return JSON.parse(fs.readFileSync(path.join(projectDir, 'ohos/AppScope/app.json5'))).app.bundleName;
   } catch (err) {
     console.log('Get bundle name failed');
   }
 }
 
-function getPName() {
-  if (isStageProject(path.join(projectDir, 'ohos'))) {
-    return 'app';
-  }
-  if (getCurrentProjectVersion(projectDir) == 'ets') {
-    return 'etsapp';
-  } else {
-    return 'jsapp';
-  }
-}
 function sleep(sleepTime) {
   const beginTime = new Date().getTime();
   while (true) {

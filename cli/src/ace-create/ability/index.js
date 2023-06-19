@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy } = require('../project');
-const { getModuleList, getModuleAbilityList, isStageProject, addFileToPbxproj } = require('../../util');
+const { getModuleList, getModuleAbilityList, addFileToPbxproj } = require('../../util');
 
 let projectDir;
 
@@ -251,10 +251,6 @@ function createAbility() {
   }
   if (!moduleListForAbility.includes(path.basename(projectDir))) {
     console.error(`Please go to your ${path.join('projectName', 'source', 'ModuleName')} and create ability again.`);
-    return false;
-  }
-  if (!isStageProject(path.join(projectDir, '../../source'))) {
-    console.error('The Project is not stage Module');
     return false;
   }
   const templateDir = getTemplatePath(projectDir);

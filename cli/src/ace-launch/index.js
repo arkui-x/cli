@@ -19,8 +19,7 @@ const exec = require('child_process').execSync;
 
 const log = require('../ace-log');
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice, getCurrentProjectVersion, isStageProject,
-  getCurrentProjectSystem } = require('../util');
+const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
 let bundleName;
 let packageName;
 let ohosclassName;
@@ -31,7 +30,7 @@ let appPackagePath;
 function getNames(projectDir, fileType, moduleName) {
   moduleName = moduleName || 'entry';
   if (fileType === 'hap') {
-    return getNamesHaps(projectDir, moduleName);
+    return getNameStageHaps(projectDir, moduleName);
   } else if (fileType === 'apk') {
     return getNamesApk(projectDir, moduleName);
   } else if (fileType === 'app') {
@@ -40,17 +39,7 @@ function getNames(projectDir, fileType, moduleName) {
 }
 
 function getNamesApp(projectDir) {
-  const version = getCurrentProjectVersion(projectDir);
-  if (version == '') {
-    console.log('project is not exists');
-    return false;
-  }
-  let appName = '';
-  if (isStageProject(path.join(projectDir, 'ohos'))) {
-    appName = 'app.app';
-  } else {
-    appName = version == 'js' ? 'jsapp.app' : 'etsapp.app';
-  }
+  const appName = 'app.app';
   appPackagePath = path.join(projectDir, '/ios/build/outputs/app/', appName);
   return true;
 }
@@ -79,51 +68,11 @@ function getNameStageHaps(projectDir, moduleName) {
   }
 }
 
-function getNameFaHaps(projectDir, moduleName) {
-  try {
-    const ohosJsonPath = path.join(projectDir, '/ohos', moduleName, 'src/main/config.json');
-    if (fs.existsSync(ohosJsonPath)) {
-      const ohosJson = JSON.parse(fs.readFileSync(ohosJsonPath));
-      bundleName = ohosJson.app.bundleName;
-      packageName = ohosJson.module.package;
-      ohosclassName = ohosJson.module.abilities[0].name;
-      if (!bundleName || !packageName || !ohosclassName) {
-        console.error(`Please check bundleName, packageName and className in ${ohosJsonPath}.`);
-        return false;
-      }
-      cmdOption = ``;
-      className = ohosclassName;
-      return true;
-    }
-    console.error(`Please check ${ohosJsonPath}.`);
-    return false;
-  } catch (err) {
-    console.error('Read config.json failed.\n' + err);
-    return false;
-  }
-}
-
-function getNamesHaps(projectDir, moduleName) {
-  if (isStageProject(path.join(projectDir, 'ohos'))) {
-    return getNameStageHaps(projectDir, moduleName);
-  } else {
-    return getNameFaHaps(projectDir, moduleName);
-  }
-}
-
 function getNamesApk(projectDir, moduleName) {
   try {
     const androidXmlPath =
       path.join(projectDir, '/android/app/src/main/AndroidManifest.xml');
-    let manifestPath;
-    if (isStageProject(path.join(projectDir, 'ohos'))) {
-      manifestPath =
-        path.join(projectDir, 'ohos/AppScope/app.json5');
-    } else {
-      manifestPath =
-        path.join(projectDir, '/source/entry/src/main',
-          getCurrentProjectVersion(projectDir), 'MainAbility/manifest.json');
-    }
+    const manifestPath = path.join(projectDir, 'ohos/AppScope/app.json5');
     if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
       let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
       xmldata = xmldata.trim().split('\n');
@@ -135,14 +84,10 @@ function getNamesApk(projectDir, moduleName) {
           androidclassName = element.split('"')[1];
         }
       });
-      if (isStageProject(path.join(projectDir, 'ohos'))) {
-        bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
-        androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
-          return l.toUpperCase();
-        }) + 'MainAbilityActivity';
-      } else {
-        bundleName = JSON.parse(fs.readFileSync(manifestPath)).appID;
-      }
+      bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
+      androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
+        return l.toUpperCase();
+      }) + 'MainAbilityActivity';
       if (!bundleName || !packageName || !androidclassName) {
         console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
         return false;
@@ -202,7 +147,7 @@ function launch(fileType, device, moduleName, options) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;
     }
-    const cmdLaunch = getCmdLaunch(projectDir, toolObj, device, options);
+    const cmdLaunch = getCmdLaunch(toolObj, device, options);
     if (!cmdLaunch) {
       return false;
     }
@@ -227,16 +172,12 @@ function launch(fileType, device, moduleName, options) {
   }
 }
 
-function getCmdLaunch(projectDir, toolObj, device, options) {
+function getCmdLaunch(toolObj, device, options) {
   let cmdLaunch = '';
   if ('hdc' in toolObj) {
     const cmdPath = toolObj['hdc'];
     const deviceOption = device ? `-t ${device}` : '';
-    if (isStageProject(path.join(projectDir, 'ohos'))) {
-      cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${className} -m ${packageName} -b ${bundleName}`;
-    } else {
-      cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${packageName}${className} -b ${bundleName}`;
-    }
+    cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${className} -m ${packageName} -b ${bundleName}`;
   } else if ('adb' in toolObj) {
     const cmdPath = toolObj['adb'];
     const deviceOption = device ? `-s ${device}` : '';
