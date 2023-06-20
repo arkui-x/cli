@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const { isProjectRootDir, getModuleList, getFrameworkName, getAarName, isStageProject } = require('../util');
+const { isProjectRootDir, getModuleList, getFrameworkName, getAarName } = require('../util');
 const { Platform, platform } = require('../ace-check/platform');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
@@ -22,22 +22,12 @@ const fs = require('fs');
 const path = require('path');
 let projectDir;
 
-function isNeedClean() {
-  let nodeModulePath = '';
-  if (isStageProject(path.join(projectDir,'source/'))) {
-    nodeModulePath = path.join(projectDir, 'ohos/oh_modules');     
-  } else {
-    nodeModulePath = path.join(projectDir, 'ohos/node_modules');
-  }
-  return fs.existsSync(nodeModulePath);
-}
-
 function clean() {
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  if (!isNeedClean()) {
+  if (!fs.existsSync(path.join(projectDir, 'ohos/oh_modules'))) {
     console.log('Clean project successfully');
     return;
   }
@@ -143,13 +133,8 @@ function cleanIOS() {
 function cleanOHOS() {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
-  if(isStageProject(path.join(projectDir,'source/'))) {
-    cmds.push(`ohpm install`);
-    cmds.push(`./hvigorw  clean`);
-  } else {
-    cmds.push(`npm install`);
-    cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js clean`);
-  }
+  cmds.push(`ohpm install`);
+  cmds.push(`./hvigorw  clean`);
   let message = 'Clean ohos project successful.';
   let isBuildSuccess = true;
   console.log('Start clean ohos project...');
@@ -181,25 +166,13 @@ function cleanJSBundle() {
     const ohosSource = path.join(projectDir, 'ohos', module, '/src/main/');
     // This time, ohos resources is created by merging with source resources, should not be deleted.
     // Wait for the processing of resources to be modified.
-    if (!removeDir(ohosSource, ['resources', 'config.json', 'module.json5'], true)) {
+    if (!removeDir(ohosSource, ['resources', 'module.json5'], true)) {
       console.error('ohos code file delete failed');
       isContinue = false;
     }
   });
   if (!isContinue) {
     console.error('Ohos build file delete failed');
-    isContinue = false;
-  }
-  const jsAndroid = path.join(projectDir, '/android/app/src/main/assets/js');
-  const jsIOS = path.join(projectDir, '/ios/js');
-  if (!removeDir(jsAndroid, [], true) || !removeDir(jsIOS, [], true)) {
-    console.error('android or ios js file delete failed');
-    isContinue = false;
-  }
-  const resourceAndroid = path.join(projectDir, '/android/app/src/main/assets/res/appres');
-  const resourceIOS = path.join(projectDir, '/ios/res/appres');
-  if (!removeDir(resourceAndroid, [], true) || !removeDir(resourceIOS, [], true)) {
-    console.error('android or ios resource file delete failed');
     isContinue = false;
   }
   return isContinue;
@@ -249,12 +222,12 @@ function cleanAAR() {
   const aarDir = path.join(projectDir, 'android');
   let message = 'Clean aar project successful.';
   let needClean = false;
-  getAarName(projectDir).forEach(aarName =>{
+  getAarName(projectDir).forEach(aarName => {
     if (fs.existsSync(path.join(projectDir, `android/${aarName}/build`))) {
       needClean = true;
     }
   });
- 
+
   if (!needClean) {
     console.log(message);
     return true;

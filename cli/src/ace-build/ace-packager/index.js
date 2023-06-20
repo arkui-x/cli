@@ -25,10 +25,9 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { isProjectRootDir, getCurrentProjectVersion, isStageProject,
-  getAarName, getFrameworkName } = require('../../util');
+const { isProjectRootDir, getAarName, getFrameworkName } = require('../../util');
 const projectDir = process.cwd();
-const {copyLibraryToProject} = require('./copyLibraryToProject');
+const { copyLibraryToProject } = require('./copyLibraryToProject');
 let androidOSSdkDir;
 
 function getAndroidSdkDir() {
@@ -265,11 +264,7 @@ function buildAPP(cmd) {
     mode = 'Debug';
   }
   let currentDir = process.cwd();
-  let version = '';
-  if (!isStageProject(path.join(currentDir, 'source'))) {
-    version = getCurrentProjectVersion(currentDir);
-  }
-  let projectSettingDir = path.join(currentDir, 'ios', version + 'app.xcodeproj');
+  let projectSettingDir = path.join(currentDir, 'ios', 'app.xcodeproj');
   let exportPath = path.join(currentDir, 'ios', 'build/outputs/app/');
   let signCmd = "";
   if (cmd.nosign) {

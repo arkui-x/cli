@@ -1,5 +1,0 @@
-<div class="container">
-    <text class="title" onclick="onClick">
-        {{ $t('strings.hello') }} {{ title }}
-    </text>
-</div>

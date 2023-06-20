@@ -25,7 +25,6 @@ const {
   platform,
   homeDir
 } = require('../../ace-check/platform');
-const aceVersionJs = '2';
 const aceHarmonyOS = '2';
 const aceTemplateNC = '2';
 
@@ -43,7 +42,7 @@ function create(args) {
       }
     }
   }];
-  const { project, packages, system, template, version, sdkVersion, moduleType } = args;
+  const { project, packages, system, template, sdkVersion } = args;
   const projectPath = path.join(process.cwd(), project);
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
@@ -55,24 +54,20 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, packages, project, system, template, version, sdkVersion, moduleType);
+        createProject(projectPath, packages, project, system, template, sdkVersion);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, packages, project, system, template, version, sdkVersion, moduleType);
+    createProject(projectPath, packages, project, system, template, sdkVersion);
   }
 }
 
-function createProject(projectPath, packages, project, system, template, version, sdkVersion, moduleType) {
+function createProject(projectPath, packages, project, system, template, sdkVersion) {
   try {
     fs.mkdirSync(projectPath);
-    if (moduleType === '2') {
-      findTemplate(projectPath, packages, project, system, template, version, sdkVersion);
-    } else {
-      findStageTemplate(projectPath, packages, project, system, template, sdkVersion);
-    }
+    findStageTemplate(projectPath, packages, project, system, template, sdkVersion);
     console.log('Project created successfully! Target directory：' + projectPath + ' .');
   } catch (error) {
     console.log('Project created failed! Target directory：' + projectPath + ' .' + error);
@@ -222,7 +217,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, templat
   fs.renameSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'), path.join(projectPath,
     'android/app/src/main/java/EntryMainAbilityActivity.java'));
   if (system == aceHarmonyOS) {
-    modifyHarmonyOSConfig(projectPath, 'entry', 'stage');
+    modifyHarmonyOSConfig(projectPath, 'entry');
   }
   const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
   const testAospJavaPath = path.join(projectPath, 'android/app/src/test/java');
@@ -274,22 +269,6 @@ function copyStageTemplate(templatePath, projectPath, template) {
   return true;
 }
 
-function findTemplate(projectPath, packages, project, system, template, version, sdkVersion) {
-  let pathTemplate = path.join(__dirname, 'template');
-  if (fs.existsSync(pathTemplate)) {
-    copyTemplateToProject(pathTemplate, projectPath, template, version);
-    replaceProjectInfo(projectPath, packages, project, system, template, version, sdkVersion);
-  } else {
-    pathTemplate = path.join(__dirname, '../../../templates');
-    if (fs.existsSync(pathTemplate)) {
-      copyTemplateToProject(pathTemplate, projectPath, template, version);
-      replaceProjectInfo(projectPath, packages, project, system, template, version, sdkVersion);
-    } else {
-      console.log('Error: Template is not exist!');
-    }
-  }
-}
-
 function replaceIOSRbxprojInfo(projectPath) {
   const rbxprojInfoPath = path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj');
   const rl = readline.createInterface({
@@ -311,158 +290,6 @@ function replaceIOSRbxprojInfo(projectPath) {
       fs.renameSync(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj.temp'), rbxprojInfoPath);
     });
   });
-}
-
-function replaceFAIOSRbxprojInfo(aceType, projectPath) {
-  const rbxprojInfoPath = path.join(projectPath, 'ios/' + aceType + 'app.xcodeproj/project.pbxproj');
-  const rl = readline.createInterface({
-    input: fs.createReadStream(rbxprojInfoPath)
-  });
-
-  const fileStream = fs.createWriteStream(path.join(projectPath, 'ios/' +
-    aceType + 'app.xcodeproj/project.pbxproj.temp'), { autoClose: true });
-
-  rl.on('line', function(line) {
-    if (!line.includes('EntryMainViewController')) {
-      fileStream.write(line + '\n');
-    }
-  });
-  rl.on('close', function() {
-    fileStream.end(function() {
-      fs.fsyncSync(fileStream.fd);
-      fs.unlinkSync(rbxprojInfoPath);
-      fs.renameSync(path.join(projectPath, 'ios/' + aceType + 'app.xcodeproj/project.pbxproj.temp'), rbxprojInfoPath);
-    });
-  });
-}
-
-function replaceProjectInfo(projectPath, packages, project, system, template, version, sdkVersion) {
-  if (!packages) {
-    packages = 'com.example.arkuicross';
-  }
-  let jsName = 'ets';
-  if (version == aceVersionJs) {
-    jsName = 'js';
-  }
-  const packageArray = packages.split('.');
-  const files = [];
-  const replaceInfos = [];
-  const strs = [];
-  let aceVersion;
-  let srcLanguage;
-
-  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
-  replaceInfos.push('appIDValue');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/oh-package.json5'));
-  replaceInfos.push('jsapp');
-  strs.push(project);
-  files.push(path.join(projectPath, 'source/entry/src/main/' + jsName + '/MainAbility/manifest.json'));
-  replaceInfos.push('appNameValue');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/settings.gradle'));
-  replaceInfos.push('appName');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/settings.gradle'));
-  replaceInfos.push('appIDValueHi');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'android/settings.gradle'));
-  replaceInfos.push('appNameValueHi');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/res/values/strings.xml'));
-  replaceInfos.push('appName');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/AndroidManifest.xml'));
-  replaceInfos.push('packageName');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'android/app/build.gradle'));
-  replaceInfos.push('packageName');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
-  replaceInfos.push('packageInfo');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
-  replaceInfos.push('bundleNameValue');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
-  replaceInfos.push('appNameValue');
-  strs.push(project);
-  files.push(path.join(projectPath, 'source/entry/src/ohosTest/config.json'));
-  replaceInfos.push('bundleNameValue');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/entry/src/main/resources/base/element/string.json'));
-  replaceInfos.push('appName');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
-  replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
-  replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
-  replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java'));
-  replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
-  replaceInfos.push('ArkUIInstanceName');
-  strs.push('entry_MainAbility');
-  files.push(path.join(projectPath, 'ohos/build-profile.json5'));
-  replaceInfos.push('appSdkVersion');
-  strs.push(sdkVersion);
-  files.push(path.join(projectPath, 'source/entry/src/main/resources/base/element/string.json'));
-  replaceInfos.push('appName');
-  strs.push(project);
-
-  if (jsName === 'ets') {
-    aceVersion = 'VERSION_ETS';
-    srcLanguage = 'ets';
-    files.push(path.join(projectPath, 'ios/etsapp.xcodeproj/project.pbxproj'));
-    replaceInfos.push('bundleIdentifier');
-    strs.push(packages);
-    files.push(path.join(projectPath, 'ios/etsapp/AppDelegate.mm'));
-    replaceInfos.push('ACE_VERSION');
-    strs.push('ACE_VERSION_ETS');
-  } else {
-    aceVersion = 'VERSION_JS';
-    srcLanguage = 'js';
-    files.push(path.join(projectPath, 'ios/jsapp.xcodeproj/project.pbxproj'));
-    replaceInfos.push('bundleIdentifier');
-    strs.push(packages);
-    files.push(path.join(projectPath, 'ios/jsapp.xcodeproj/project.pbxproj'));
-    replaceInfos.push('etsapp');
-    strs.push('jsapp');
-    files.push(path.join(projectPath, 'ios/jsapp/AppDelegate.mm'));
-    replaceInfos.push('ACE_VERSION');
-    strs.push('ACE_VERSION_JS');
-  }
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
-  replaceInfos.push('ACE_VERSION');
-  strs.push(aceVersion);
-  files.push(path.join(projectPath, 'ohos/entry/src/main/config.json'));
-  replaceInfos.push('srcLanguageValue');
-  strs.push(srcLanguage);
-  if (template == aceTemplateNC) {
-    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
-  }
-  replaceInfo(files, replaceInfos, strs);
-  replaceFAIOSRbxprojInfo(jsName, projectPath);
-  if (system == aceHarmonyOS) {
-    modifyHarmonyOSConfig(projectPath, 'entry');
-  }
-  if (jsName === 'js') {
-    const configJsonPath = path.join(projectPath, 'ohos/entry/src/main/config.json');
-    const configJsonObj = JSON.parse(fs.readFileSync(configJsonPath));
-    delete configJsonObj.module.js[0]['mode'];
-    fs.writeFileSync(configJsonPath, JSON.stringify(configJsonObj, '', '  '));
-  }
-
-  const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
-  const testAospJavaPath = path.join(projectPath, 'android/app/src/test/java');
-  const androidTestAospJavaPath = path.join(projectPath, 'android/app/src/androidTest/java');
-  const packagePaths = [aospJavaPath, testAospJavaPath, androidTestAospJavaPath];
-  createPackageFile(packagePaths, packageArray);
 }
 
 function createPackageFile(packagePaths, packageArray) {
@@ -533,93 +360,11 @@ function copy(src, dst) {
   return true;
 }
 
-function copySourceTemplate(templatePath, projectPath, template, version) {
-  let sourcePath;
-  if (template == aceTemplateNC) {
-    // copy cpp
-    if (version == aceVersionJs) {
-      sourcePath = path.join(templatePath, '/cpp_js_fa/source');
-    } else {
-      sourcePath = path.join(templatePath, '/cpp_ets_fa/source');
-    }
-  } else {
-    if (version == aceVersionJs) {
-      sourcePath = path.join(templatePath, '/js_fa/source');
-    } else {
-      sourcePath = path.join(templatePath, '/ets_fa/source');
-    }
-  }
-  return copy(sourcePath, path.join(projectPath, '/source'));
-}
-
-function copyIosTemplate(templatePath, projectPath, template, version) {
-  copy(path.join(templatePath, '/ios'), path.join(projectPath, '/ios'));
-  if (template == aceTemplateNC) {
-    copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '/ios/etsapp.xcodeproj'));
-  }
-  if (version == aceVersionJs) {
-    fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/jsapp.xcodeproj'));
-    fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/jsapp'));
-    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/AppDelegate_stage.m'));
-    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/AppDelegate_stage.h'));
-    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainViewController.m'));
-    fs.unlinkSync(path.join(projectPath, '/ios/jsapp/EntryMainViewController.h'));
-  } else {
-    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/AppDelegate_stage.m'));
-    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/AppDelegate_stage.h'));
-    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainViewController.m'));
-    fs.unlinkSync(path.join(projectPath, '/ios/etsapp/EntryMainViewController.h'));
-  }
-  return true;
-}
-
-function copyTemplateToProject(templatePath, projectPath, template, version) {
-  if (!copySourceTemplate(templatePath, projectPath, template, version)) {
-    return false;
-  }
-  // copy cpp
-  if (template == aceTemplateNC) {
-    if (!copy(path.join(templatePath, '/cpp/cpp_src'), path.join(projectPath, '/source/entry/src/main/cpp'))) {
-      return false;
-    }
-    if (!copy(path.join(templatePath, '/cpp_ohos_fa'), path.join(projectPath, '/ohos'))) {
-      return false;
-    }
-    if (!copy(path.join(templatePath, '/cpp/cpp_ohos'), path.join(projectPath, '/ohos/entry/src/main/cpp'))) {
-      return false;
-    }
-    if (!copy(path.join(templatePath, '/cpp/cpp_android'), path.join(projectPath, '/android/app/src/main/cpp'))) {
-      return false;
-    }
-  } else {
-    if (!copy(path.join(templatePath, '/ohos_fa'), path.join(projectPath, '/ohos'))) {
-      return false;
-    }
-  }
-  if (!copy(path.join(templatePath, '/android'), path.join(projectPath, '/android'))) {
-    return false;
-  }
-  if (!copyIosTemplate(templatePath, projectPath, template, version)) {
-    return false;
-  }
-  return true;
-}
-
-function modifyHarmonyOSConfig(projectPath, moduleName, type) {
-  let buildProfile;
-  let configFile;
-  let deviceTypeName;
-  if (type === 'stage') {
-    buildProfile = path.join(projectPath, 'source', moduleName, '/build-profile.json5');
-    configFile = [path.join(projectPath, 'source', moduleName, 'src/main/module.json5'),
-      path.join(projectPath, 'source', moduleName, 'src/ohosTest/module.json5')];
-    deviceTypeName = 'deviceTypes';
-  } else {
-    buildProfile = path.join(projectPath, 'ohos', moduleName, '/build-profile.json5');
-    configFile = [path.join(projectPath, 'ohos', moduleName, 'src/main/config.json'),
-      path.join(projectPath, 'source', moduleName, 'src/ohosTest/config.json')];
-    deviceTypeName = 'deviceType';
-  }
+function modifyHarmonyOSConfig(projectPath, moduleName) {
+  const buildProfile = path.join(projectPath, 'source', moduleName, '/build-profile.json5');
+  const configFile = [path.join(projectPath, 'source', moduleName, 'src/main/module.json5'),
+  path.join(projectPath, 'source', moduleName, 'src/ohosTest/module.json5')];
+  const deviceTypeName = 'deviceTypes';
 
   if (fs.existsSync(buildProfile)) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));

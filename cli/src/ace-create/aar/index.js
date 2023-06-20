@@ -17,8 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy, rmdir, createPackageFile, replaceInfo, getIncludePath } = require('../project');
-const { isProjectRootDir, getCurrentProjectVersion, getCurrentProjectSystem,
-    isNativeCppTemplate, isStageProject } = require('../../util');
+const { isProjectRootDir, getCurrentProjectSystem, isNativeCppTemplate, } = require('../../util');
 const projectDir = process.cwd();
 
 function createAar() {
@@ -84,21 +83,16 @@ function createAarPkg(aarPath, aarName) {
 
 function findAarTemplate(aarPath, aarName) {
     let templatePath = path.join(__dirname, 'template');
-    const appVer = getCurrentProjectVersion(projectDir);
-    if (appVer == '') {
-        console.log('project is not exists');
-        return false;
-    }
     if (fs.existsSync(templatePath)) {
         copyTemplateToAAR(templatePath, aarPath);
         modifyAarConfig(aarPath, aarName);
-        replaceAarInfo(aarPath, aarName, appVer);
+        replaceAarInfo(aarPath, aarName);
     } else {
         templatePath = path.join(__dirname, '../../../templates');
         if (fs.existsSync(templatePath)) {
             copyTemplateToAAR(templatePath, aarPath);
             modifyAarConfig(aarPath, aarName);
-            replaceAarInfo(aarPath, aarName, appVer);
+            replaceAarInfo(aarPath, aarName);
         } else {
             console.log('Error: Template is not exist!');
         }
@@ -146,10 +140,9 @@ function modifyAarConfig(aarPath, aarName) {
     fs.writeFileSync(path.join(aarPath, 'src/main/AndroidManifest.xml'), updateManifestXmlInfo);
 }
 
-function replaceAarInfo(aarPath, aarName, appVer) {
+function replaceAarInfo(aarPath, aarName) {
     const aarPackage = 'com.example.' + aarName;
     const packageArray = aarPackage.split('.');
-    const aceVersion = appVer == 'js' ? 'VERSION_JS' : 'VERSION_ETS';
     const files = [];
     const replaceInfos = [];
     const strs = [];
@@ -181,44 +174,33 @@ function replaceAarInfo(aarPath, aarName, appVer) {
     replaceInfos.push('package packageName');
     strs.push('package ' + aarPackage);
 
-    if (isStageProject(path.join(projectDir, 'source'))) {
-        fs.writeFileSync(path.join(aarPath, 'src/main/java/MainActivity.java'),
-            fs.readFileSync(path.join(aarPath, 'src/main/java/MainActivity.java')).
-                toString().replace(/setVersion\([^\)]*\);/g, ''));
-        files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-        replaceInfos.push('MainActivity');
-        strs.push('EntryMainActivity');
-        files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-        replaceInfos.push('ArkUIInstanceName');
-        strs.push(aarPackage + ':entry:MainAbility:');
-        files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-        replaceInfos.push('ohos.ace.adapter.AceActivity');
-        strs.push('ohos.stage.ability.adapter.StageActivity');
-        files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-        replaceInfos.push('AceActivity');
-        strs.push('StageActivity');
-        files.push(path.join(aarPath, 'src/main/java/MyApplication.java'));
-        replaceInfos.push('ohos.ace.adapter.AceApplication');
-        strs.push('ohos.stage.ability.adapter.StageApplication');
-        files.push(path.join(aarPath, 'src/main/java/MyApplication.java'));
-        replaceInfos.push('AceApplication');
-        strs.push('StageApplication');
-    } else {
-        files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-        replaceInfos.push('ArkUIInstanceName');
-        strs.push('entry_MainAbility');
-        files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-        replaceInfos.push('ACE_VERSION');
-        strs.push(aceVersion);
-    }
+    fs.writeFileSync(path.join(aarPath, 'src/main/java/MainActivity.java'),
+        fs.readFileSync(path.join(aarPath, 'src/main/java/MainActivity.java')).
+            toString().replace(/setVersion\([^\)]*\);/g, ''));
+    files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
+    replaceInfos.push('MainActivity');
+    strs.push('EntryMainActivity');
+    files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
+    replaceInfos.push('ArkUIInstanceName');
+    strs.push(aarPackage + ':entry:MainAbility:');
+    files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
+    replaceInfos.push('ohos.ace.adapter.AceActivity');
+    strs.push('ohos.stage.ability.adapter.StageActivity');
+    files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
+    replaceInfos.push('AceActivity');
+    strs.push('StageActivity');
+    files.push(path.join(aarPath, 'src/main/java/MyApplication.java'));
+    replaceInfos.push('ohos.ace.adapter.AceApplication');
+    strs.push('ohos.stage.ability.adapter.StageApplication');
+    files.push(path.join(aarPath, 'src/main/java/MyApplication.java'));
+    replaceInfos.push('AceApplication');
+    strs.push('StageApplication');
     if (isNativeCppTemplate(projectDir)) {
         modifyNativeAAR(aarPath, aarName, files, replaceInfos, strs);
     }
     replaceInfo(files, replaceInfos, strs);
-    if (isStageProject(path.join(projectDir, 'source'))) {
-        fs.renameSync(path.join(aarPath, 'src/main/java/MainActivity.java'), path.join(aarPath,
-            'src/main/java/EntryMainActivity.java'));
-    }
+    fs.renameSync(path.join(aarPath, 'src/main/java/MainActivity.java'), path.join(aarPath,
+        'src/main/java/EntryMainActivity.java'));
     const aospJavaPath = path.join(aarPath, 'src/main/java/');
     const testAospJavaPath = path.join(aarPath, 'src/test/java');
     const androidTestAospJavaPath = path.join(aarPath, 'src/androidTest/java');
