@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const uuid = require('uuid');
+const crypto = require('crypto');
 const devices = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
@@ -41,7 +41,8 @@ function getUUID(pbxprojFilePath) {
   }
   try {
     const fileInfo = fs.readFileSync(pbxprojFilePath);
-    const newUUID = uuid.v4().replace(/-/g, '').substr(0, 24).toUpperCase();
+    const newUUID = crypto.randomUUID().replace(/-/g, '').slice(0, 24).toUpperCase();
+
     if (fileInfo.includes(newUUID)) {
       return getUUID(pbxprojFilePath);
     } else {
@@ -63,7 +64,7 @@ function getUUID(pbxprojFilePath) {
  */
 function generateUUID(textWithUUIDs, generatedIdSet) {
   try {
-    const newUUID = uuid.v4().replace(/-/g, '').slice(0, 24).toUpperCase();
+    const newUUID = crypto.randomUUID().replace(/-/g, '').slice(0, 24).toUpperCase();
     if (textWithUUIDs && textWithUUIDs.includes(newUUID) ||
       generatedIdSet && generatedIdSet.has(newUUID)) {
       return generateUUID(textWithUUIDs, generatedIdSet);
