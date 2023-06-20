@@ -17,6 +17,7 @@ const { isProjectRootDir, getModuleList, getFrameworkName, getAarName } = requir
 const { Platform, platform } = require('../ace-check/platform');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
+const { getOhpmTools } = require('../ace-check/getTool');
 const config = getConfig();
 const fs = require('fs');
 const path = require('path');
@@ -133,7 +134,15 @@ function cleanIOS() {
 function cleanOHOS() {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
-  cmds.push(`ohpm install`);
+  const ohpmPath = getOhpmTools();
+  if (!ohpmPath) {
+    console.log('\x1B[31m%s\x1B[0m', "Error: Ohpm tool is not available.")
+    return false;
+  }
+  cmds.push(`${ohpmPath} install`);
+  if (platform !== Platform.Windows) {
+    cmds.push(`chmod 755 hvigorw`);
+  }
   cmds.push(`./hvigorw  clean`);
   let message = 'Clean ohos project successful.';
   let isBuildSuccess = true;

@@ -16,7 +16,8 @@
 const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('./platform');
-const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion } = require('../ace-check/configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir } = require('../ace-check/configs');
+const exec = require('child_process').execSync;
 function getTools() {
   let toolPaths = [];
   let hdcPath = {};
@@ -142,7 +143,21 @@ function getVaildToolPath(vaildToolPath) {
   return '';
 }
 
+function getOhpmTools() {
+  if (!ohpmDir) {
+    return '';
+  }
+  if (fs.existsSync(path.join(ohpmDir, 'ohpm')) && fs.statSync(path.join(ohpmDir, 'ohpm')).isFile()) {
+    return path.join(ohpmDir, 'ohpm');
+  } else if (fs.existsSync(path.join(ohpmDir, 'bin/ohpm')) && fs.statSync(path.join(ohpmDir, 'bin/ohpm')).isFile()) {
+    return path.join(ohpmDir, 'bin/ohpm');
+  }
+  return '';
+}
+
+
 module.exports = {
   getTools,
-  getToolByType
+  getToolByType,
+  getOhpmTools
 };
