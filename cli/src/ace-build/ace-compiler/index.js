@@ -28,6 +28,7 @@ const {
 const { copy } = require('../../ace-create/project');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName,
   getFrameworkName } = require('../../util');
+const { getOhpmTools } = require('../../ace-check/getTool');
 let projectDir;
 let openHarmonySdkDir;
 let harmonyOsSdkDir;
@@ -35,6 +36,7 @@ let arkuiXSdkDir;
 let nodejsDir;
 let uiSyntax;
 let currentSystem;
+let ohpmDir;
 
 function readConfig() {
   try {
@@ -51,15 +53,18 @@ function readConfig() {
       if (Object.prototype.hasOwnProperty.call(config, 'nodejs-dir')) {
         nodejsDir = config['nodejs-dir'];
       }
+      if (Object.prototype.hasOwnProperty.call(config, 'ohpm-dir')) {
+        ohpmDir = config['ohpm-dir'];
+      }
     }
     if (currentSystem === HarmonyOS) {
-      if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir) {
-        console.error(`Please check HarmonyOS Sdk and ArkUI-X SDK and nodejs in your environment.`);
+      if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
+        console.error(`Please check HarmonyOS Sdk, ArkUI-X SDK, nodejs and ohpm in your environment.`);
         return false;
       }
     } else {
-      if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir) {
-        console.error(`Please check OpenHarmony Sdk and ArkUI-X SDK and nodejs in your environment.`);
+      if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
+        console.error(`Please check OpenHarmony Sdk, ArkUI-X SDK, nodejs and ohpm in your environment.`);
         return false;
       }
     }
@@ -211,8 +216,13 @@ function copyHaptoOutput(moduleListSpecified) {
 function runGradle(fileType, cmd, moduleList) {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
-  let buildCmd = `./hvigorw`;
-  cmds.push(`ohpm install`);
+  const buildCmd = `./hvigorw`;
+  const ohpmPath = getOhpmTools();
+  if (!ohpmPath) {
+    console.log('\x1B[31m%s\x1B[0m', "Error: Ohpm tool is not available.")
+    return false;
+  }
+  cmds.push(`${ohpmPath} install`);
   if (platform !== Platform.Windows) {
     cmds.push(`chmod 755 hvigorw`);
   }
@@ -254,7 +264,7 @@ function runGradle(fileType, cmd, moduleList) {
     });
     return true;
   } catch (error) {
-    console.error('Run tasks failed.');
+    console.error('Run tasks failed.\n', error);
     return false;
   }
 }
@@ -333,6 +343,11 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
 
 function compiler(fileType, cmd) {
   const moduleListInput = cmd.target;
+  if ((platform !== Platform.MacOS) &&
+  (fileType === 'app' || fileType === 'framework' || fileType === 'xcframework')) {
+    console.error(`Please go to your MacOS and build ${fileType}.`);
+    return false;
+  }
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;

@@ -15,6 +15,7 @@
 
 class Info {
   constructor() {
+    this.noOhpmDir = `Ohpm tool is not found`;
     this.noarkuiXSdk = `ArkUI-X SDK is not installed`;
     this.noOpenHarmonySdk = `OpenHarmony SDK is not installed`;
     this.noHarmonyOsSdk = `HarmonyOS SDK is not installed`;
@@ -36,9 +37,15 @@ class Info {
     this.noIdeviceVersion = 'libimobiledevice not installed. To install, run: brew install libimobiledevice';
     this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
   }
+
+  hasOhpm(ohpmDir) {
+    return `Ohpm at ${ohpmDir}`;
+  }
+
   hasarkuiXSdk(arkuiXSdkDir) {
     return `ArkUI-X SDK at ${arkuiXSdkDir}`;
   }
+
   hasSdk(ohSdkDir) {
     return `OpenHarmony SDK at ${ohSdkDir}`;
   }
@@ -66,9 +73,15 @@ class Info {
   hasAndroidStudio(androidStudioDir) {
     return `Android Studio at ${androidStudioDir}`;
   }
+
+  ohpmToolInfo(OhpmDir) {
+    return OhpmDir ? this.hasOhpm(OhpmDir) : this.noOhpmDir;
+  }
+
   arkuiXSdkInfo(arkuiXSdkDir) {
     return arkuiXSdkDir ? this.hasarkuiXSdk(arkuiXSdkDir) : this.noarkuiXSdk;
   }
+
   openHarmonySdkInfo(openHarmonySdkDir) {
     return openHarmonySdkDir ? this.hasSdk(openHarmonySdkDir) : this.noOpenHarmonySdk;
   }

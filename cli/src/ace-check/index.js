@@ -23,7 +23,8 @@ const {
   xCodeVersion,
   iDeviceVersion,
   deployVersion,
-  arkuiXSdkDir
+  arkuiXSdkDir,
+  ohpmDir
 } = require('./configs');
 const checkJavaSdk = require('./checkJavaSdk');
 const { setConfig } = require('../ace-config');
@@ -45,16 +46,19 @@ function checkRequired(errorTimes) {
   requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir);
   requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
   requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
 
   requirementTitle(info.openHarmonyTitle, openHarmonySdkDir && nodejsDir && javaSdkDir);
   requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
   requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
   requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
 
   requirementTitle(info.harmonyOsTitle, harmonyOsSdkDir && nodejsDir && javaSdkDir);
   requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir);
   requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
   requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
 
   optionTitle(info.androidTitle, androidSdkDir);
   optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
@@ -78,9 +82,14 @@ function check() {
   let errorTimes = 0;
   errorTimes = checkRequired(errorTimes);
 
+  if (ohpmDir) {
+    setConfig({ 'ohpm-dir': ohpmDir });
+  }
+
   if (arkuiXSdkDir) {
     setConfig({ 'arkui-x-sdk': arkuiXSdkDir });
   }
+
   if (openHarmonySdkDir) {
     setConfig({ 'openharmony-sdk': openHarmonySdkDir });
   }

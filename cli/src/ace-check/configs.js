@@ -17,6 +17,7 @@ const { homeDir } = require('./platform');
 const Sdk = require('./Sdk');
 const Ide = require('./Ide');
 const checkNodejs = require('./checkNodejs');
+const checkOhpm = require('./checkOhpm');
 const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion } = require('./checkAppVersion');
 
 const openHarmonySdk = new Sdk(
@@ -72,6 +73,7 @@ const openHarmonySdkDir = openHarmonySdk.locateSdk();
 const harmonyOsSdkDir = harmonyOsSdk.locateSdk();
 const arkuiXSdkDir = arkuiXSdk.locateSdkNoSub();
 const nodejsDir = checkNodejs();
+const ohpmDir = checkOhpm();
 const devEcoStudioDir = devEcoStudio.locateIde();
 const androidStudioDir = androidStudio.locateIde();
 const androidSdkDir = androidSdk.locateSdk();
@@ -89,5 +91,6 @@ module.exports = {
   xCodeVersion,
   iDeviceVersion,
   deployVersion,
-  arkuiXSdkDir
+  arkuiXSdkDir,
+  ohpmDir
 };
