@@ -73,8 +73,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
     } else if ('adb' in toolObj) {
       if (test) {
         execSync(`${toolObj['adb']} shell logcat -c`);
-        const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
-        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', grepOption]);
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat']);
       } else {
         hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
       }
@@ -95,8 +94,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
     } else if ('adb' in toolObj) {
       if (test) {
         execSync(`${toolObj['adb']} shell logcat -c`);
-        const grepOption = '| grep -E "StageApplicationDelegate|TestFinished"'
-        hilog = spawn(toolObj['adb'], ['shell', 'logcat', grepOption]);
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat']);
       } else {
         hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
       }
@@ -133,9 +131,11 @@ function logTestCmd(data) {
     if ('adb' in toolObj) {
       output.split('\n').forEach(item => {
         let identifyStr = 'StageApplicationDelegate';
-        const index = item.lastIndexOf(identifyStr);
-        let subString = item.substring(index + identifyStr.length + 1);
-        testReport(subString);
+        if (item.includes(identifyStr)) {
+          const index = item.lastIndexOf(identifyStr);
+          let subString = item.substring(index + identifyStr.length + 1);
+          testReport(subString);
+        }
       });
     } else {
       let identifyStr = 'AbilityContextAdapter';
