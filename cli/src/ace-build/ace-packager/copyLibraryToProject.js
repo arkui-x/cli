@@ -315,6 +315,10 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   const checkMap = loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap);
   checkMap.depCheckMap.forEach(function(depCheckSet, libpath) {
     const allLibSet = checkMap.allCheckMap.get(libpath);
+    if (!allLibSet) {
+      throw new Error('Could not find any lib for ' + system +
+        ',in ['+arkuiXSdkDir+'], Check config for ArkUI-X SDK,Please!');
+    }
     processLib(libpath, depCheckSet, allLibSet, clearLibBeforeCopy);
   });
   if (system === 'ios') {
@@ -454,20 +458,26 @@ function loadCollection(collection, collectionSet) {
 }
 
 function loadApiConfig(RootPath, ApiConfig, apiConfigMap) {
-  ApiConfig.forEach(element => {
-    let temppath = element.library.android;
-    for (let i = 0; i < temppath.length; i++) {
-      temppath[i] = path.join(RootPath.android, temppath[i]);
+  if(ApiConfig) {
+    try {
+      ApiConfig.forEach(element => {
+        let temppath = element.library.android;
+        for (let i = 0; i < temppath.length; i++) {
+          temppath[i] = path.join(RootPath.android, temppath[i]);
+        }
+        element.library.android = temppath;
+        apiConfigMap.set(element.module, element);
+        temppath = element.library.ios;
+        for (let i = 0; i < temppath.length; i++) {
+          temppath[i] = path.join(RootPath.ios, temppath[i]);
+        }
+        element.library.ios = temppath;
+        apiConfigMap.set(element.module, element);
+      });
+    } catch (err) {
+      throw new Error('Error apiConfig:'+err);
     }
-    element.library.android = temppath;
-    apiConfigMap.set(element.module, element);
-    temppath = element.library.ios;
-    for (let i = 0; i < temppath.length; i++) {
-      temppath[i] = path.join(RootPath.ios, temppath[i]);
-    }
-    element.library.ios = temppath;
-    apiConfigMap.set(element.module, element);
-  });
+  }
   return apiConfigMap;
 }
 
