@@ -17,7 +17,6 @@ const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('./platform');
 const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir } = require('../ace-check/configs');
-const exec = require('child_process').execSync;
 function getTools() {
   let toolPaths = [];
   let hdcPath = {};

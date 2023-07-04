@@ -36,6 +36,27 @@ class Info {
     this.noXcodeVersion = 'xcodebuild not installed. To install, run: xcode-select --install';
     this.noIdeviceVersion = 'libimobiledevice not installed. To install, run: brew install libimobiledevice';
     this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
+
+    this.warnOpenHarmonySdk =
+      'OpenHarmony sdk is required, please refer to the HarmonyOS Developer to download and install it.';
+    this.warnHarmonyOsSdk =
+      'HarmonyOS Sdk is required, please refer to the HarmonyOS Developer to download and install it.';
+    this.warnNodejs =
+      'Node is required, please download versions between v14.19.1 and v16.';
+    this.warnOhpm =
+      'Ohpm is required, please download it with DevEco Studio.';
+    this.warnJavaSdk =
+      'Java Sdk is required, please use the JDK 17 version that comes with DevEco Studio.';
+    this.warnArkuiXSdk =
+      'ArkUI-X Sdk is required, please download the latest version.';
+    this.warnAndroidSdk =
+      'Android Sdk is required, please download it with Android Studio.';
+    this.warnAndroidStudio =
+      'Android Studio is required, visit https://developer.android.google.cn/studio to download it.';
+    this.warnDevEcoStudio =
+      'DevEco Studio is required, visit https://developer.harmonyos.com/cn/develop/deveco-studio to download latest.';
+    this.warnMacTools =
+      'Xcode, libimobiledevice, ios-deploy tools is required, please download and install them by yourself.';
   }
 
   hasOhpm(ohpmDir) {
