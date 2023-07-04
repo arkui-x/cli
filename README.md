@@ -33,16 +33,11 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 │   └── util                    # 工具模块
 └── templates                   # 模板相关
     ├── android                 # Android工程模板
-    ├── cpp                     # Native C++配置模板                           
-    ├── cpp_ets_fa              # 基于ArkTS的声明式开发范式Native C++模板
+    ├── cpp                     # Native C++配置模板
     ├── cpp_ets_stage           # Stage Native C++开发模板
-    ├── cpp_js_fa               # 兼容JS的类Web开发范式Native C++模板
-    ├── cpp_ohos_fa             # Fa ohos工程模板
-    ├── ets_fa                  # 基于ArkTS的声明式开发范式模板
     ├── ets_stage               # Stage开发模板
+    ├── framework               # framework工程模板
     ├── ios                     # iOS工程模板
-    ├── js_fa                   # 兼容JS的类Web开发范式模板
-    ├── ohos_fa                 # ohos Fa工程模板
     ├── ohos_stage              # ohos Stage工程模板
 
 ```
@@ -70,6 +65,7 @@ ace config [options] <path>
 | --android-studio-path | Android Studio安装路径（可选参数）。 |
 | --java-sdk | JDK路径。 |
 | --arkui-x-sdk | ArkUI-X SDK路径 |
+| --ohpm-dir  | Ohpm路径 |
 
 ### ace check
 
@@ -89,7 +85,8 @@ ace config [options] <path>
 | Xcode            | 当前Xcode的版本号            | 否      | 否    | 是   |
 | libimobiledevice | 当前libimobiledevice的版本号 | 否      | 否    | 是   |
 | ios-deploy       | 当前ios-deploy的版本号       | 否      | 否    | 是   |
-| ArkUI-X SDK | ArkUI-X SDK路径 | 是 | 是 | 是 |
+| ArkUI-X SDK      | ArkUI-X SDK路径             | 是      | 是     | 是 |
+| ohpm             | ohpm路径                    | 是      | 是     | 是 |
 
 语法：
 
@@ -107,17 +104,20 @@ ohos@user ~ % ace check
   • ArkUI-X SDK at /Users/ohos/ARKUI-X
   • Node.js Runtime Environment at /usr/local/bin/node
   • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
+  • Ohpm at /Users/ohos/Library/Huawei/ohpm/bin
 [√] OpenHarmony toolchains - develop for OpenHarmony devices
   • OpenHarmony SDK at /Users/ohos/openharmony/sdk
   • Node.js Runtime Environment at /usr/local/bin/node
   • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
+  • Ohpm at /Users/ohos/Library/Huawei/ohpm/bin
 [√] HarmonyOS toolchains - develop for HarmonyOS devices
   • HarmonyOS SDK at /Users/ohos/harmonyos/sdk
   • Node.js Runtime Environment at /usr/local/bin/node
   • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
+  • Ohpm at /Users/ohos/Library/Huawei/ohpm/bin
 [√] Android toolchains - develop for Android devices
   • Android SDK at /Users/ohos/Library/Android/sdk
-[√] DevEco Studio [Requires DevEco Studio 3.1 Beta1, API Version 9+]
+[√] DevEco Studio [Requires DevEco Studio 3.1 Release, API Version 9+]
   • DevEco Studio at /Applications/deveco-studio.app
 [!] Android Studio
   ! Android Studio is not installed, you can install in https://developer.android.google.cn/studio
@@ -214,18 +214,6 @@ Please enter the system (1: OpenHarmony, 2: HarmonyOS):
 Please enter the template (1: Empty Ability, 2: Native C++):
 ```
 
-提示输入Ability类型：
-
-```shell
-Please enter the Ability Model Type (1: Stage, 2: FA):
-```
-
-提示输入项目版本：
-
-```shell
-Please enter the ACE version (1: 基于ArkTS的声明式开发范式, 2: 兼容JS的类Web开发范式):
-```
-
 创建完成:
 
 ```shell
@@ -258,6 +246,32 @@ Please enter the ability name:
 
 如果此abilityname已存在，会提示开发者abilityName name already exists!.，开发者修改名称后，回车确认，可以成功新建出跨平台应用Ability。
 
+### ace create aar
+
+新建Android应用模块(aar)
+
+
+需要在新建的跨平台应用工程目录下执行，提示输入aar名称：
+
+```shell
+Please enter the AAR name:
+```
+
+如果此aar name已存在，会提示开发者${aar name} already exists.，开发者修改名称后，回车确认，可以成功新建出Android应用模块(aar)。
+
+### ace create framework
+
+新建iOS应用模块(framework)
+
+
+需要在新建的跨平台应用工程目录下执行，提示输入framework名称：
+
+```shell
+Please enter the framework name:
+```
+
+如果此framework name已存在，会提示开发者${framework name} already exists.，开发者修改名称后，回车确认，可以成功新建出iOS应用模块(framework)。
+
 ### ace build
 
 构建跨平台应用安装包。
@@ -277,7 +291,8 @@ ace build [options] [fileType]
 | 子命令                | 说明                                       |
 | --------------------- | ------------------------------------------ |
 | --target [moduleName] | 指定目标模块名进行构建。                   |
-| -r --release          | 构建应用程序的类型为release(默认为Debug)。 |
+| -r --release          | 构建应用程序的类型为release(默认为release)。 |
+| --debug               | 构建应用程序的类型为debug。               |
 | --nosign              | 构建出未签名的应用程序（仅App）。          |
 | -h --help             | 显示帮助信息。                             |
 
@@ -288,6 +303,9 @@ ace build [options] [fileType]
 | hap  | 生成OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
 | apk  | 生成Android应用 apk 包。                                  |
 | app  | 生成iOS应用 app 包。                                   |
+| aar  | 生成Android应用 aar 包。                                   |
+| framework  | 生成iOS应用 framework 包。                                   |
+| xcframework  | 生成iOS应用 xcframework 包。                                   |
 
 构建完成，提示包生成路径:
 
@@ -308,6 +326,7 @@ ace install [options] [fileType]
 ```
 
 在Windows和Linux平台上可以安装Hap和Apk应用包，在Mac平台上可以安装Hap、Apk和App应用包。
+注：编译Release版本的Apk需要签名才能安装，请通过Android Studio完成签名或者编译Debug版本Apk安装。
 
 - options
 
@@ -450,7 +469,7 @@ ace test [options] [fileType]
 | 参数 | 说明                                                         |
 | ---- | ------------------------------------------------------------ |
 | apk  | 构建并运行Android应用 apk 包。                                  |
-| app  | 构建并运行iOS应用 app 包。                   
+| app  | 构建并运行iOS应用 app 包。                                    |
 
 ### ace clean
 
@@ -506,10 +525,10 @@ Options:
   -h, --help                      display help for command
 
 Commands:
-  create [subcommand]             create ace project/module/component/ability
+  create [subcommand]             create ace project/module/component/ability/framework/aar
   check                           check sdk environment
   devices                         list the connected devices.
-  config [options]                
+  config [options]
           --openharmony-sdk [OpenHarmony SDK]
           --harmonyos-sdk  [HarmonyOS SDK]
           --android-sdk   [Android Sdk]
@@ -519,7 +538,8 @@ Commands:
           --nodejs-dir    [Nodejs Dir]
           --java-sdk      [Java Sdk]
           --arkui-x-sdk   [ArkUI-X SDK]
-  build [options] [fileType]      build hap/apk/app of moduleName
+          --ohpm-dir      [Ohpm Dir]
+  build [options] [fileType]      build hap/apk/app/aar/framework/xcframework of moduleName
   install [options] [fileType]    install hap/apk/app on device
   uninstall [options] [fileType]  uninstall hap/apk/app on device
   run [options] [fileType]        run hap/apk on device
