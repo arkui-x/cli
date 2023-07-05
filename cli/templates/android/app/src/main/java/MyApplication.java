@@ -4,6 +4,13 @@ import android.util.Log;
 
 import ohos.ace.adapter.AceApplication;
 
+/**
+ * Example ace application class, which will load ArkUI-X application instance.
+ * AceApplication is provided by ArkUI-X
+ * @see <a href=
+ * "https://gitee.com/arkui-crossplatform/doc/blob/master/contribute/tutorial/how-to-build-Android-app.md">
+ * to build android library</a>
+ */
 public class MyApplication extends AceApplication {
     private static final String LOG_TAG = "HiHelloWorld";
 

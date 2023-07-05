@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,12 +18,29 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice, getManifestPath, getCurrentProjectVersion } = require('../util');
+const { validInputDevice, isProjectRootDir, getCurrentProjectSystem } = require('../util');
+const { exit } = require('process');
 
 let toolObj;
-function log(fileType, device) {
-  toolObj = getToolByType(fileType, true);
+let projectDir;
+let test;
+function log(fileType, device, cmdTest) {
+  test = cmdTest;
+  projectDir = process.cwd();
+  if (!isProjectRootDir(projectDir)) {
+    return false;
+  }
+  const currentSystem = getCurrentProjectSystem(projectDir);
+  if (!currentSystem) {
+    console.error('current system is unknown.');
+    return false;
+  }
+  toolObj = getToolByType(fileType, currentSystem, true);
   if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath()) {
+    return;
+  }
+  if (test) {
+    logCmd(toolObj, device, false, currentSystem);
     return;
   }
   let pid = getPid(device, fileType);
@@ -31,7 +48,7 @@ function log(fileType, device) {
   const timeOutCount = 5;
   if (!pid) {
     for (let i = 0; i < timeOutCount; i++) {
-      sleep(sleepTime)
+      sleep(sleepTime);
       pid = getPid(device, fileType);
       if (pid) {
         break;
@@ -41,27 +58,64 @@ function log(fileType, device) {
   if (!validPid(pid)) {
     return;
   }
+  logCmd(toolObj, device, pid, currentSystem);
+}
 
+function logCmd(toolObj, device, pid, currentSystem) {
   let hilog;
   if (device) {
     if ('hdc' in toolObj) {
-      hilog = spawn(toolObj['hdc'], ['-t', device, 'shell', 'hilog', `--pid=${pid}`]);
+      if (currentSystem === HarmonyOS) {
+        hilog = spawn(toolObj['hdc'], ['-t', device, 'hilog', `pid=${pid}`]);
+      } else {
+        hilog = spawn(toolObj['hdc'], ['-t', device, 'shell', 'hilog', `--pid=${pid}`]);
+      }
     } else if ('adb' in toolObj) {
-      hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
+      if (test) {
+        execSync(`${toolObj['adb']} shell logcat -c`);
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat']);
+      } else {
+        hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
+      }
     } else if ('idevicesyslog' in toolObj) {
-      hilog = spawn(toolObj['idevicesyslog'], ['-p', pid], ['-u', device]);
+      if (test) {
+        hilog = spawn(toolObj['idevicesyslog'], ['-u', device]);
+      } else {
+        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid], ['-u', device]);
+      }
     }
   } else {
     if ('hdc' in toolObj) {
-      hilog = spawn(toolObj['hdc'], ['shell', 'hilog', `--pid=${pid}`]);
+      if (currentSystem === HarmonyOS) {
+        hilog = spawn(toolObj['hdc'], ['hilog', `pid=${pid}`]);
+      } else {
+        hilog = spawn(toolObj['hdc'], ['shell', 'hilog', `--pid=${pid}`]);
+      }
     } else if ('adb' in toolObj) {
-      hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
+      if (test) {
+        execSync(`${toolObj['adb']} shell logcat -c`);
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat']);
+      } else {
+        hilog = spawn(toolObj['adb'], ['shell', 'logcat', `--pid=${pid}`]);
+      }
     } else if ('idevicesyslog' in toolObj) {
-      hilog = spawn(toolObj['idevicesyslog'], ['-p', pid]);
+      if (test) {
+        hilog = spawn(toolObj['idevicesyslog']);
+      } else {
+        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid]);
+      }
     }
   }
+  handleHilog(hilog);
+}
+
+function handleHilog(hilog) {
   hilog.stdout.on('data', data => {
-    console.log(data.toString());
+    if (test) {
+      logTestCmd(data, toolObj);
+    } else {
+      console.log(data.toString());
+    }
   });
   hilog.stderr.on('error', error => {
     console.error(error);
@@ -69,6 +123,41 @@ function log(fileType, device) {
   hilog.on('exit code', code => {
     console.log('exit code: ', code.toString());
   });
+}
+
+function logTestCmd(data) {
+  const output = data.toString();
+  try {
+    if ('adb' in toolObj) {
+      output.split('\n').forEach(item => {
+        let identifyStr = 'StageApplicationDelegate';
+        if (item.includes(identifyStr)) {
+          const index = item.lastIndexOf(identifyStr);
+          let subString = item.substring(index + identifyStr.length + 1);
+          testReport(subString);
+        }
+      });
+    } else {
+      let identifyStr = 'AbilityContextAdapter';
+      if (output.includes(identifyStr)) {
+        const index = output.lastIndexOf(identifyStr);
+        let subString = output.substring(index + identifyStr.length + 13);
+        testReport(subString);
+      }
+    }
+  } catch (error) {
+    testReport(output);
+  }
+}
+
+function testReport(data) {
+  if ((data.includes("OHOS_REPORT"))) {
+    console.log(data);
+  }
+  if (data.includes("Tests run")) {
+    console.log('user test finished.');
+    exit()
+  }
 }
 
 function validTool(toolObj) {
@@ -80,8 +169,7 @@ function validTool(toolObj) {
 }
 
 function validManifestPath() {
-  const bundleNamePath = getManifestPath(process.cwd());
-  if (!bundleNamePath || !fs.existsSync(bundleNamePath)) {
+  if (!fs.existsSync(path.join(projectDir, 'ohos/AppScope/app.json5'))) {
     console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
     return false;
   }
@@ -102,41 +190,38 @@ function getPid(device, fileType) {
   if (!bundleName) {
     return;
   }
-  if (fileType === "app") {
-    let toolIosDeploy = getToolByType(fileType);
-    if (!validTool(toolIosDeploy)) {
+  if (fileType === 'app') {
+    return getAppPid(device, fileType, bundleName);
+  } else {
+    try {
+      if (device) {
+        if ('hdc' in toolObj) {
+          hilog = execSync(`${toolObj['hdc']} -t ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else if ('adb' in toolObj) {
+          hilog = execSync(`${toolObj['adb']} -s ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else {
+          return undefined;
+        }
+      } else {
+        if ('hdc' in toolObj) {
+          hilog = execSync(`${toolObj['hdc']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else if ('adb' in toolObj) {
+          hilog = execSync(`${toolObj['adb']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
+        } else {
+          return undefined;
+        }
+      }
+    } catch (err) {
       return undefined;
     }
-    let deviceStr = device ? "--id " + device : "";
-    let output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
-    let result = output.indexOf("true") == -1 ? undefined : getPName();
-    return result;
-  } else {
-    if (device) {
-      if ('hdc' in toolObj) {
-        hilog = execSync(`${toolObj['hdc']} -t ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
-      } else if ('adb' in toolObj) {
-        hilog = execSync(`${toolObj['adb']} -s ${device} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
-      } else {
-        return undefined;
-      }
-    } else {
-      if ('hdc' in toolObj) {
-        hilog = execSync(`${toolObj['hdc']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
-      } else if ('adb' in toolObj) {
-        hilog = execSync(`${toolObj['adb']} shell "ps -ef|grep ${bundleName} |grep -v grep"`);
-      } else {
-        return undefined;
-      }
-    }
     const PID_REG = new RegExp(`\\S+\\s+(\\d+).+${bundleName}`, 'g');
-    let dataArr = hilog.toString().split("\r\n");
+    const dataArr = hilog.toString().split('\r\n');
     for (let i = 0; i < dataArr.length; i++) {
-      let dataItem = dataArr[i];
+      const dataItem = dataArr[i];
       if (PID_REG.test(dataItem)) {
         let pidData = dataItem.match(PID_REG)[0];
-        pidData = pidData.replace(/\s+/ig, " ");
-        let dataItemArr = pidData.split(" ");
+        pidData = pidData.replace(/\s+/ig, ' ');
+        const dataItemArr = pidData.split(' ');
         const bundleIndex = 7;
         if (dataItemArr[bundleIndex] == bundleName) {
           return dataItemArr[1];
@@ -146,27 +231,31 @@ function getPid(device, fileType) {
   }
 }
 
-function getBundleName() {
-  let bundleNamePath;
+function getAppPid(device, fileType, bundleName) {
+  const toolIosDeploy = getToolByType(fileType);
+  if (!validTool(toolIosDeploy)) {
+    return undefined;
+  }
   try {
-    bundleNamePath = getManifestPath(process.cwd());
-    if (bundleNamePath) {
-      return JSON.parse(fs.readFileSync(bundleNamePath)).appID;
-    }
+    const deviceStr = device ? '--id ' + device : '';
+    const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
+    const result = output.indexOf('true') == -1 ? undefined : 'app';
+    return result;
+  } catch (err) {
+    return undefined;
+  }
+}
+
+function getBundleName() {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(projectDir, 'ohos/AppScope/app.json5'))).app.bundleName;
   } catch (err) {
     console.log('Get bundle name failed');
   }
 }
 
-function getPName() {
-  if (getCurrentProjectVersion(process.cwd()) == 'ets') {
-    return "etsapp";
-  } else {
-    return "jsapp";
-  }
-}
 function sleep(sleepTime) {
-  let beginTime = new Date().getTime();
+  const beginTime = new Date().getTime();
   while (true) {
     if (new Date().getTime() - beginTime > sleepTime) {
       break;

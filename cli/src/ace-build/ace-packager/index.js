@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,8 +25,9 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { isProjectRootDir, getCurrentProjectVersion } = require('../../util');
+const { isProjectRootDir, getAarName, getFrameworkName } = require('../../util');
 const projectDir = process.cwd();
+const { copyLibraryToProject } = require('./copyLibraryToProject');
 let androidOSSdkDir;
 
 function getAndroidSdkDir() {
@@ -51,22 +52,41 @@ function writeLocalProperties() {
 }
 
 function copyToOutput(fileType) {
-  let type = fileType == "apk" ? "android" : "ios";
-  let src = path.join(projectDir, `/${type}/build/outputs/${fileType}/`);
+  let typePath = fileType == "apk" ? "android/app" : "ios";
+  let src = path.join(projectDir, `/${typePath}/build/outputs/${fileType}/`);
   let filePath = copyToBuildDir(src);
   console.log(`filepath: ${filePath}`);
 }
 
+function copyLibraryToOutput(fileType) {
+  if (fileType == 'aar') {
+    const aarNameList = getAarName(projectDir);
+    aarNameList.forEach(aarName => {
+      let src = path.join(projectDir, `android/${aarName}/build/outputs/${fileType}/`);
+      let filePath = copyToBuildDir(src);
+      console.log(`filepath: ${filePath}`);
+    });
+  } else if (fileType == 'framework' || fileType == 'xcframework') {
+    const frameworkNameList = getFrameworkName(projectDir);
+    frameworkNameList.forEach(frameworkName => {
+      let src = path.join(projectDir, `ios/${frameworkName}/build/outputs/${fileType}/`);
+      let filePath = copyToBuildDir(src);
+      console.log(`filepath: ${filePath}`);
+    });
+  }
+}
+
 function buildAPK(cmd) {
+  copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
   const androidDir = path.join(projectDir, 'android');
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
-  if (cmd.release) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
-  } else {
+  if (cmd.debug) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
+  } else {
+    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
   }
   let gradleMessage = 'Build apk successful.';
   let isBuildSuccess = true;
@@ -76,9 +96,122 @@ function buildAPK(cmd) {
       cmd = cmd.replace(/\//g, '\\');
     }
     try {
-      exec(cmd);
+      exec(cmd, {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
     } catch (error) {
       gradleMessage = 'Build apk failed.';
+      isBuildSuccess = false;
+    }
+  });
+  console.log(gradleMessage);
+  return isBuildSuccess;
+}
+
+function buildAAR(cmd) {
+  copyLibraryToProject('aar', cmd, projectDir, 'android');
+  const cmds = [];
+  const aarDir = path.join(projectDir, 'android');
+  const aarNameList = getAarName(projectDir);
+  if (platform !== Platform.Windows) {
+    cmds.push(`cd ${aarDir} && chmod 755 gradlew`);
+  }
+  if (aarNameList.length == 1) {
+    if (cmd.debug) {
+      cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleDebug`);
+    } else {
+      cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleRelease`);
+    }
+  } else if (aarNameList.length > 1) {
+    let cmdStr = `cd ${aarDir} && ./gradlew :`;
+    aarNameList.forEach(aarName => {
+      if (cmd.debug) {
+        cmdStr = cmdStr + `${aarName}:assembleDebug `;
+      } else {
+        cmdStr = cmdStr + `${aarName}:assembleRelease `;
+      }
+    });
+    cmds.push(cmdStr);
+  }
+
+  let gradleMessage = 'Build aar successful.';
+  let isBuildSuccess = true;
+  console.log('Start building aar...');
+  cmds.forEach(cmd => {
+    if (platform === Platform.Windows) {
+      cmd = cmd.replace(/\//g, '\\');
+    }
+    try {
+      exec(cmd, {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
+    } catch (error) {
+      gradleMessage = 'Build aar failed.';
+      isBuildSuccess = false;
+    }
+  });
+  console.log(gradleMessage);
+  return isBuildSuccess;
+}
+
+function buildFramework(cmd) {
+  copyLibraryToProject('framework', cmd, projectDir, 'ios');
+  let mode = 'Release';
+  if (cmd.debug) {
+    mode = 'Debug';
+  }
+  let gradleMessage = 'Build framework successful.';
+  let isBuildSuccess = true;
+  const frameworkNameList = getFrameworkName(projectDir);
+  const frameworkDir = path.join(projectDir, 'ios');
+  frameworkNameList.forEach(frameworkName => {
+    const frameworkProj = path.join(frameworkDir, `${frameworkName}/${frameworkName}.xcodeproj`);
+    const exportPath = path.join(frameworkDir, `${frameworkName}/build/outputs/framework`);
+    const cmdStr = `xcodebuild -project ${frameworkProj} -sdk iphoneos -configuration "${mode}" `
+      + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
+    try {
+      exec(cmdStr, {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
+    } catch (error) {
+      gradleMessage = 'Build framework failed.';
+      isBuildSuccess = false;
+    }
+  });
+  console.log(gradleMessage);
+  return isBuildSuccess;
+}
+
+function buildXcFramework(cmd) {
+  copyLibraryToProject('xcframework', cmd, projectDir, 'ios');
+  const cmds = [];
+  let mode = 'Release';
+  if (cmd.debug) {
+    mode = 'Debug';
+  }
+  let gradleMessage = 'Build xcframework successful.';
+  let isBuildSuccess = true;
+  const frameworkNameList = getFrameworkName(projectDir);
+  const frameworkDir = path.join(projectDir, 'ios');
+  frameworkNameList.forEach(frameworkName => {
+    const frameworkProj = path.join(frameworkDir, `${frameworkName}/${frameworkName}.xcodeproj`);
+    const myFramework = path.join(frameworkDir, `${frameworkName}/build/${mode}-iphoneos/${frameworkName}.framework`);
+    const exportPath = path.join(frameworkDir, `${frameworkName}/build/outputs/xcframework`);
+    const xcFrameworkName = path.join(exportPath, `${frameworkName}.xcframework`);
+    cmds.push(`xcodebuild -project ${frameworkProj} -sdk iphoneos -configuration "${mode}" clean build`);
+    cmds.push(`xcodebuild -create-xcframework -framework ${myFramework} -output ${xcFrameworkName}`);
+    try {
+      cmds.forEach(cmdStr => {
+        exec(cmdStr, {
+          encoding: 'utf-8',
+          stdio: 'inherit',
+        });
+      });
+    } catch (error) {
+      gradleMessage = 'Build xcframework failed.';
       isBuildSuccess = false;
     }
   });
@@ -97,33 +230,47 @@ function packager(target, cmd) {
         return true;
       }
     }
+  } else if (target == "aar") {
+    if (getAndroidSdkDir() && writeLocalProperties()) {
+      if (buildAAR(cmd)) {
+        copyLibraryToOutput(target);
+        return true;
+      }
+    }
   } else if (target == "app") {
     if (buildAPP(cmd)) {
       copyToOutput(target);
       return true;
     }
+  } else if (target == "framework") {
+    if (buildFramework(cmd)) {
+      copyLibraryToOutput(target);
+      return true;
+    }
+  } else if (target == "xcframework") {
+    if (buildXcFramework(cmd)) {
+      copyLibraryToOutput(target);
+      return true;
+    }
   }
   return false;
 }
+
 function buildAPP(cmd) {
+  copyLibraryToProject('app', cmd, projectDir, 'ios');
   const cmds = [];
-  let mode = 'debug';
-  if (cmd.release) {
-    mode = 'release';
+  let mode = 'Release';
+  if (cmd.debug) {
+    mode = 'Debug';
   }
   let currentDir = process.cwd();
-  let version = getCurrentProjectVersion(currentDir);
-  if (version == "") {
-    console.log("project is not exists");
-    return false;
-  }
-  let projectDir = path.join(currentDir, 'ios', version + 'app.xcodeproj');
+  let projectSettingDir = path.join(currentDir, 'ios', 'app.xcodeproj');
   let exportPath = path.join(currentDir, 'ios', 'build/outputs/app/');
   let signCmd = "";
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
   }
-  let cmdStr = `xcodebuild -project ${projectDir} -sdk iphoneos -configuration "${mode}" `
+  let cmdStr = `xcodebuild -project ${projectSettingDir} -sdk iphoneos -configuration "${mode}" `
     + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
   let message = 'Build app successful.';
@@ -131,7 +278,10 @@ function buildAPP(cmd) {
   console.log('Start building app...');
   cmds.forEach(cmd => {
     try {
-      exec(cmd);
+      exec(cmd, {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
     } catch (error) {
       message = 'Build app failed.';
       isBuildSuccess = false;
@@ -140,4 +290,5 @@ function buildAPP(cmd) {
   console.log(message);
   return isBuildSuccess;
 }
+
 module.exports = packager;

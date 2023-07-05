@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,8 +17,16 @@ const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
 const { validInputDevice } = require('../util');
+const { openHarmonySdkDir, harmonyOsSdkDir } = require('../ace-check/configs');
 function uninstall(fileType, device, bundle) {
-  const toolObj = getToolByType(fileType);
+  let toolObj;
+  if (openHarmonySdkDir) {
+    toolObj = getToolByType(fileType, OpenHarmony);
+  } else if (harmonyOsSdkDir) {
+    toolObj = getToolByType(fileType, HarmonyOS);
+  } else {
+    toolObj = getToolByType(fileType);
+  }
   if (!toolObj) {
     console.error('There are not install tool, please check');
     return false;
@@ -27,6 +35,10 @@ function uninstall(fileType, device, bundle) {
     let successFlag;
     if (fileType == 'hap') {
       successFlag = uninstallHap(toolObj, device, bundle);
+      if (!successFlag && openHarmonySdkDir && harmonyOsSdkDir) {
+        toolObj = getToolByType(fileType, HarmonyOS);
+        successFlag = uninstallHap(toolObj, device, bundle);
+      }
     } else if (fileType == 'apk') {
       successFlag = uninstallApk(toolObj, device, bundle);
     } else if (fileType == 'app') {
@@ -73,7 +85,7 @@ function uninstallApk(toolObj, device, bundle) {
   if ('adb' in toolObj) {
     cmdPath = toolObj['adb'];
     cmdUninstallOption = 'uninstall';
-    deviceOption = device ? `-s ${device}`: '';
+    deviceOption = device ? `-s ${device}` : '';
   } else {
     console.error('Internal error with adb checking');
     return false;
@@ -99,16 +111,16 @@ function uninstallHap(toolObj, device, bundle) {
   if ('hdc' in toolObj) {
     cmdPath = toolObj['hdc'];
     cmdUninstallOption = 'app uninstall';
-    deviceOption = device? `-t ${device}` : '';
+    deviceOption = device ? `-t ${device}` : '';
   } else {
-    console.error('Internal error with adb checking');
+    console.error('Internal error with hdc checking');
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
   commands.push(`${cmdUninstall}`);
   try {
     const result = exec(`${commands}`).toString().trim();
-    if ((result.includes('Fail')) || (result.includes('failed'))) {
+    if (result.toLowerCase().includes('fail')) {
       return false;
     }
     return true;

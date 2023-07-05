@@ -13,41 +13,55 @@
  * limitations under the License.
  */
 
-const { isProjectRootDir, getModuleList } = require('../util');
+const { isProjectRootDir, getModuleList, getFrameworkName, getAarName } = require('../util');
 const { Platform, platform } = require('../ace-check/platform');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
+const { getOhpmTools } = require('../ace-check/getTool');
 const config = getConfig();
 const fs = require('fs');
 const path = require('path');
 let projectDir;
+
 function clean() {
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
+  if (!fs.existsSync(path.join(projectDir, 'ohos/oh_modules'))) {
+    console.log('Clean project successfully');
+    return;
+  }
   let successFlag = true;
-  let failedMsg = "Clean faild:"
+  let failedMsg = 'Clean failed:';
   if (!cleanOHOS()) {
-    failedMsg += "\tcleanOHOS";
+    failedMsg += '\tcleanOHOS';
     successFlag = false;
   }
   if (!cleanAndroid()) {
-    failedMsg += "\tcleanAndroid";
+    failedMsg += '\tcleanAndroid';
+    successFlag = false;
+  }
+  if (getAarName(projectDir).length !== 0 && !cleanAAR()) {
+    failedMsg += '\tcleanAAR';
     successFlag = false;
   }
   if (platform == Platform.MacOS) {
     if (!cleanIOS()) {
-      failedMsg += "\tcleanIOS";
+      failedMsg += '\tcleanIOS';
+      successFlag = false;
+    }
+    if (getFrameworkName(projectDir).length !== 0 && !cleanFramework()) {
+      failedMsg += '\tcleanFramework';
       successFlag = false;
     }
   }
   if (!cleanOutputPath()) {
-    failedMsg += "\tcleanOutputPath";
+    failedMsg += '\tcleanOutputPath';
     successFlag = false;
   }
   if (!cleanJSBundle()) {
-    failedMsg += "\tcleanJSBundle";
+    failedMsg += '\tcleanJSBundle';
     successFlag = false;
   }
   if (successFlag) {
@@ -61,22 +75,29 @@ function clean() {
 function cleanAndroid() {
   let cmds = [];
   const androidDir = path.join(projectDir, 'android');
+  let message = 'Clean android project successful.';
+  if (!fs.existsSync(path.join(projectDir, 'android/app/build'))) {
+    console.log(message);
+    return true;
+  }
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
   cmds.push(`cd ${androidDir} && ./gradlew clean`);
-  let message = 'Clean android project successful.';
   let isBuildSuccess = true;
   console.log('Start clean android project...');
   cmds = cmds.join(' && ');
-  console.log(cmds)
+  console.log(cmds);
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
-    exec(cmds);
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit'
+    });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     message = 'Clean android project failed.';
     isBuildSuccess = false;
   }
@@ -92,14 +113,17 @@ function cleanIOS() {
   let isBuildSuccess = true;
   console.log('Start clean ios project...');
   cmds = cmds.join(' && ');
-  console.log(cmds)
+  console.log(cmds);
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
-    exec(cmds);
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit'
+    });
   } catch (error) {
-    console.error(error)
+    console.error(error);
     message = 'Clean ios project failed.';
     isBuildSuccess = false;
   }
@@ -110,20 +134,30 @@ function cleanIOS() {
 function cleanOHOS() {
   const ohosDir = path.join(projectDir, '/ohos');
   let cmds = [`cd ${ohosDir}`];
-  cmds.push(`npm install`);
-  cmds.push(`node ./node_modules/@ohos/hvigor/bin/hvigor.js clean`);
+  const ohpmPath = getOhpmTools();
+  if (!ohpmPath) {
+    console.log('\x1B[31m%s\x1B[0m', "Error: Ohpm tool is not available.")
+    return false;
+  }
+  cmds.push(`${ohpmPath} install`);
+  if (platform !== Platform.Windows) {
+    cmds.push(`chmod 755 hvigorw`);
+  }
+  cmds.push(`./hvigorw  clean`);
   let message = 'Clean ohos project successful.';
   let isBuildSuccess = true;
   console.log('Start clean ohos project...');
   cmds = cmds.join(' && ');
-  console.log(cmds)
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
   try {
-    exec(cmds);
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit'
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     message = 'Clean ohos project failed.';
     isBuildSuccess = false;
   }
@@ -139,27 +173,15 @@ function cleanJSBundle() {
     const src = path.join(projectDir, '/ohos', module, 'build');
     isContinue = removeDir(src, [], true);
     const ohosSource = path.join(projectDir, 'ohos', module, '/src/main/');
-    //This time, ohos resources is created by merging with source resources, should not be deleted.
-    //Wait for the processing of resources to be modified.
-    if (!removeDir(ohosSource, ['resources', 'config.json'], true)) {
-      console.error("ohos code file delete failed");
+    // This time, ohos resources is created by merging with source resources, should not be deleted.
+    // Wait for the processing of resources to be modified.
+    if (!removeDir(ohosSource, ['resources', 'module.json5'], true)) {
+      console.error('ohos code file delete failed');
       isContinue = false;
     }
   });
   if (!isContinue) {
-    console.error("Ohos build file delete failed");
-    isContinue = false;
-  }
-  const jsAndroid = path.join(projectDir, '/android/app/src/main/assets/js');
-  const jsIOS = path.join(projectDir, '/ios/js');
-  if (!removeDir(jsAndroid, [], true) || !removeDir(jsIOS, [], true)) {
-    console.error("android or ios js file delete failed");
-    isContinue = false;
-  }
-  const resourceAndroid = path.join(projectDir, '/android/app/src/main/assets/resources/appres');
-  const resourcehIOS = path.join(projectDir, '/ios/resources/appres');
-  if (!removeDir(resourceAndroid, [], true) || !removeDir(resourcehIOS, [], true)) {
-    console.error("android or ios resource file delete failed");
+    console.error('Ohos build file delete failed');
     isContinue = false;
   }
   return isContinue;
@@ -172,7 +194,7 @@ function cleanOutputPath() {
       removeDir(buildDir);
     }
   } catch (error) {
-    console.error(error)
+    console.error(error);
     return false;
   }
   return true;
@@ -185,7 +207,7 @@ function removeDir(path, ignoreDirArr, saveDirectory) {
       files = fs.readdirSync(path);
       files.forEach((file) => {
         if (ignoreDirArr.indexOf(file) == -1) {
-          let curPath = path + "/" + file;
+          const curPath = path + '/' + file;
           if (fs.statSync(curPath).isDirectory()) {
             removeDir(curPath, ignoreDirArr, false);
           } else {
@@ -202,6 +224,69 @@ function removeDir(path, ignoreDirArr, saveDirectory) {
     return false;
   }
   return true;
+}
+
+function cleanAAR() {
+  let cmds = [];
+  const aarDir = path.join(projectDir, 'android');
+  let message = 'Clean aar project successful.';
+  let needClean = false;
+  getAarName(projectDir).forEach(aarName => {
+    if (fs.existsSync(path.join(projectDir, `android/${aarName}/build`))) {
+      needClean = true;
+    }
+  });
+
+  if (!needClean) {
+    console.log(message);
+    return true;
+  }
+  if (platform !== Platform.Windows) {
+    cmds.push(`cd ${aarDir} && chmod 755 gradlew`);
+  }
+  cmds.push(`cd ${aarDir} && ./gradlew clean`);
+  let isBuildSuccess = true;
+  console.log('Start clean aar project...');
+  cmds = cmds.join(' && ');
+  if (platform === Platform.Windows) {
+    cmds = cmds.replace(/\//g, '\\');
+  }
+  try {
+    exec(cmds, {
+      encoding: 'utf-8',
+      stdio: 'inherit'
+    });
+  } catch (error) {
+    console.error(error);
+    message = 'Clean aar project failed.';
+    isBuildSuccess = false;
+  }
+  console.log(message);
+  return isBuildSuccess;
+}
+
+function cleanFramework() {
+  console.log('Start clean framework project...');
+  let message = 'Clean framework project successful.';
+  let isCleanSuccess = true;
+  getFrameworkName(projectDir).forEach(frameworkName => {
+    let cmds = [];
+    const frameworkDir = path.join(projectDir, 'ios', frameworkName);
+    cmds.push(`cd ${frameworkDir} && xcodebuild clean`);
+    cmds = cmds.join(' && ');
+    try {
+      exec(cmds, {
+        encoding: 'utf-8',
+        stdio: 'inherit'
+      });
+    } catch (error) {
+      console.error(error);
+      message = 'Clean framework project failed.';
+      isCleanSuccess = false;
+    }
+  });
+  console.log(message);
+  return isCleanSuccess;
 }
 
 module.exports = clean;

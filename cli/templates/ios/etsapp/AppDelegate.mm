@@ -14,11 +14,18 @@
  */
  
 #import "AppDelegate.h"
-#import <libace_ios/Ace.h>
+#import <libarkui_ios/Ace.h>
 
 @implementation AppDelegate
 @synthesize window = _window;
 
+/**
+ * Example ace view controller, which will load ArkUI-X ability instance.
+ * AceViewController is provided by ArkUI-X
+ *
+ * @see <a href="https://gitee.com/arkui-crossplatform/doc/blob/master/contribute/tutorial/how-to-build-iOS-app.md">
+ * to build ios library</a>
+ */
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
     AceViewController *controller = [[AceViewController alloc] initWithVersion:(ACE_VERSION) instanceName:@"entry_MainAbility"];

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,12 +34,13 @@ function run(fileType, device, cmd) {
     build(fileType, cmd);
   }
   let installFlag = true;
-  //ios launch command contain install
-  if (fileType != "app") {
+  cmd.target = cmd.target || 'entry';
+  // ios launch command contain install
+  if (fileType != 'app') {
     installFlag = install(fileType, device, cmd.target);
   }
-  if (installFlag && launch(fileType, device, cmd.target)) {
-    log(fileType, device);
+  if (installFlag && launch(fileType, device, cmd.target, cmd)) {
+    log(fileType, device, cmd.test);
     console.log('Run successful.');
     return;
   }

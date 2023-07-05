@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -40,7 +40,6 @@ class Sdk {
     this.kSdkRoot = kSdkRoot;
     this.toolchainsName = toolchainsName;
   }
-
   locateSdk() {
     let sdkHomeDir;
     const config = this.checkConfig();
@@ -59,7 +58,7 @@ class Sdk {
       }
     } else if (platform === Platform.MacOS) {
       for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i], 'sdk');
+        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i], 'Sdk');
         if (fs.existsSync(defaultPath)) {
           sdkHomeDir = defaultPath;
         }
@@ -83,6 +82,45 @@ class Sdk {
       const validSdkPath = path.join(sdkHomeDir, 'sdk');
       if (this.validSdkDir(validSdkPath)) {
         return validSdkPath;
+      }
+    }
+  }
+
+  locateSdkNoSub() {
+    let sdkHomeDir;
+    const config = this.checkConfig();
+    if (config) {
+      sdkHomeDir = config;
+    } else if (this.kSdkHome in environment) {
+      sdkHomeDir = environment[this.kSdkHome].replace(';', '');
+    } else if (this.kSdkRoot in environment) {
+      sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
+    } else if (platform === Platform.Linux) {
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, this.defaultSdkDir[i]);
+        if (fs.existsSync(defaultPath)) {
+          sdkHomeDir = defaultPath;
+        }
+      }
+    } else if (platform === Platform.MacOS) {
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i]);
+        if (fs.existsSync(defaultPath)) {
+          sdkHomeDir = defaultPath;
+        }
+      }
+    } else if (platform === Platform.Windows) {
+      for (const i in this.defaultSdkDir) {
+        const defaultPath = path.join(homeDir, 'AppData', 'Local', this.defaultSdkDir[i]);
+        if (fs.existsSync(defaultPath)) {
+          sdkHomeDir = defaultPath;
+        }
+      }
+    }
+
+    if (sdkHomeDir) {
+      if (this.validSdkDir(sdkHomeDir)) {
+        return sdkHomeDir;
       }
     }
   }

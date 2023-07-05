@@ -15,18 +15,22 @@
 
 const {
   openHarmonySdkDir,
+  harmonyOsSdkDir,
   nodejsDir,
   devEcoStudioDir,
   androidStudioDir,
   androidSdkDir,
   xCodeVersion,
   iDeviceVersion,
-  deployVersion
+  deployVersion,
+  arkuiXSdkDir,
+  ohpmDir
 } = require('./configs');
 const checkJavaSdk = require('./checkJavaSdk');
 const { setConfig } = require('../ace-config');
 const devices = require('../ace-devices');
 const info = require('./Info');
+const process = require('child_process');
 const {
   requirementTitle,
   optionTitle,
@@ -37,22 +41,34 @@ const {
 const javaSdkDir = checkJavaSdk();
 const { Platform, platform } = require('./platform');
 
-function check() {
-  let errorTimes = 0;
+function checkRequired(errorTimes) {
+  requirementTitle(info.arkuiXSdkTitle, arkuiXSdkDir && nodejsDir && javaSdkDir);
+  requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir);
+  requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
+  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
 
   requirementTitle(info.openHarmonyTitle, openHarmonySdkDir && nodejsDir && javaSdkDir);
   requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
   requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
   requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
+
+  requirementTitle(info.harmonyOsTitle, harmonyOsSdkDir && nodejsDir && javaSdkDir);
+  requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir);
+  requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
+  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
+  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
 
   optionTitle(info.androidTitle, androidSdkDir);
   optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
-  if (platform != Platform.Linux) {
+  if (platform !== Platform.Linux) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
     optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
   }
   optionTitle(info.androidStudioTitle, androidStudioDir);
   optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
+
   if (platform === Platform.MacOS) {
     requirementTitle(info.iosXcodeTitle, xCodeVersion && iDeviceVersion && deployVersion);
     requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion);
@@ -60,13 +76,31 @@ function check() {
     requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
     errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }
+  return errorTimes;
+}
+function check() {
+  let errorTimes = 0;
+  errorTimes = checkRequired(errorTimes);
+
+  if (ohpmDir) {
+    setConfig({ 'ohpm-dir': ohpmDir });
+  }
+
+  if (arkuiXSdkDir) {
+    setConfig({ 'arkui-x-sdk': arkuiXSdkDir });
+  }
 
   if (openHarmonySdkDir) {
     setConfig({ 'openharmony-sdk': openHarmonySdkDir });
   }
 
+  if (harmonyOsSdkDir) {
+    setConfig({ 'harmonyos-sdk': harmonyOsSdkDir });
+  }
+
   if (nodejsDir) {
     setConfig({ 'nodejs-dir': nodejsDir });
+    process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
   }
 
   if (javaSdkDir) {
@@ -77,14 +111,16 @@ function check() {
     setConfig({ 'android-sdk': androidSdkDir });
   }
 
+  errorTimes = !arkuiXSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !openHarmonySdkDir ? errorTimes++ : errorTimes;
+  errorTimes = !harmonyOsSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !nodejsDir ? errorTimes++ : errorTimes;
   errorTimes = !javaSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !androidSdkDir ? errorTimes++ : errorTimes;
   errorTimes = !devEcoStudioDir ? errorTimes++ : errorTimes;
   errorTimes = !androidStudioDir ? errorTimes++ : errorTimes;
 
-  if (openHarmonySdkDir || androidSdkDir || deployVersion) {
+  if (openHarmonySdkDir || harmonyOsSdkDir || androidSdkDir || deployVersion) {
     const validDevice = devices(true);
     if (validDevice.all.length === 0) {
       errorTimes += 1;

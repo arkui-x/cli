@@ -18,7 +18,7 @@ const { getTools } = require('../ace-check/getTool');
 const { Platform, platform } = require('../ace-check/platform');
 function devices(logFlag) {
   let tools = getTools();
-  if (tools.length == 0) {
+  if (tools && tools.length == 0) {
     console.info(`No such debug tools (hdc/adb/ios-deploy).`);
     return {
       'all': [],
@@ -27,16 +27,7 @@ function devices(logFlag) {
     };
   }
   if (logFlag) {
-    let [hdcTitle, adbTitle, iosDeployTitle] =
-      ["[×] hdc is not installed", "[×] adb is not installed", "[×] ios-deploy is not installed"];
-    for (let i = 0; i < tools.length; i++) {
-      hdcTitle = tools[i]["hdc"] ? "[√] hdc installed" : hdcTitle;
-      adbTitle = tools[i]["adb"] ? "[√] adb installed" : adbTitle;
-      iosDeployTitle = tools[i]["ios-deploy"] ? "[√] ios-deploy installed" : iosDeployTitle;
-    }
-    iosDeployTitle = (platform != Platform.MacOS) ? "" : iosDeployTitle;
-    let toolMsg = hdcTitle + " " + adbTitle + " " + iosDeployTitle;
-    console.log('Tools info :' + toolMsg);
+    showTools(tools);
   }
   const devices = checkDevices() || [];
   let [availableDevices, unavailableDevices] = [[], []];
@@ -65,6 +56,21 @@ function devices(logFlag) {
     'available': availableDevices,
     'unavailable': unavailableDevices
   };
+}
+
+function showTools(tools) {
+  let [ohHdcTitle, hoHdcTitle, adbTitle, iosDeployTitle] =
+    ["[×] OpenHarmony hdc is not installed", "[×] HarmonyOS hdc is not installed",
+    "[×] adb is not installed", "[×] ios-deploy is not installed"];
+  for (let i = 0; i < tools.length; i++) {
+    ohHdcTitle = tools[i]["hdc"] ? "[√] OpenHarmony hdc installed" : ohHdcTitle;
+    hoHdcTitle = tools[i]["hohdc"] ? "[√] HarmonyOS hdc installed" : hoHdcTitle;
+    adbTitle = tools[i]["adb"] ? "[√] adb installed" : adbTitle;
+    iosDeployTitle = tools[i]["ios-deploy"] ? "[√] ios-deploy installed" : iosDeployTitle;
+  }
+  iosDeployTitle = (platform != Platform.MacOS) ? "" : iosDeployTitle;
+  let toolMsg = ohHdcTitle + " " + hoHdcTitle + " " + adbTitle + " " + iosDeployTitle;
+  console.log('Tools info :' + toolMsg);
 }
 
 module.exports = devices;

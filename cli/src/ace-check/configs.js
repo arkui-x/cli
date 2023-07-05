@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@ const { homeDir } = require('./platform');
 const Sdk = require('./Sdk');
 const Ide = require('./Ide');
 const checkNodejs = require('./checkNodejs');
+const checkOhpm = require('./checkOhpm');
 const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion } = require('./checkAppVersion');
 
 const openHarmonySdk = new Sdk(
@@ -24,6 +25,21 @@ const openHarmonySdk = new Sdk(
   ['OpenHarmony'],
   'OpenHarmony_HOME',
   'OpenHarmony',
+  'toolchains'
+);
+
+const harmonyOsSdk = new Sdk(
+  'HarmonyOS',
+  ['Huawei'],
+  'HarmonyOS_HOME',
+  'HarmonyOS',
+  'toolchains'
+);
+const arkuiXSdk = new Sdk(
+  'ArkUI-X',
+  ['arkui-x'],
+  'ArkUI_X_HOME',
+  'ArkUI-X',
   'toolchains'
 );
 
@@ -54,7 +70,10 @@ const androidSdk = new Sdk(
 );
 
 const openHarmonySdkDir = openHarmonySdk.locateSdk();
+const harmonyOsSdkDir = harmonyOsSdk.locateSdk();
+const arkuiXSdkDir = arkuiXSdk.locateSdkNoSub();
 const nodejsDir = checkNodejs();
+const ohpmDir = checkOhpm();
 const devEcoStudioDir = devEcoStudio.locateIde();
 const androidStudioDir = androidStudio.locateIde();
 const androidSdkDir = androidSdk.locateSdk();
@@ -64,11 +83,14 @@ const deployVersion = checkDeployVersion();
 
 module.exports = {
   openHarmonySdkDir,
+  harmonyOsSdkDir,
   nodejsDir,
   devEcoStudioDir,
   androidStudioDir,
   androidSdkDir,
   xCodeVersion,
   iDeviceVersion,
-  deployVersion
+  deployVersion,
+  arkuiXSdkDir,
+  ohpmDir
 };

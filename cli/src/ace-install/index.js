@@ -18,7 +18,9 @@ const path = require('path');
 const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice } = require('../util');
+const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
+const installHapPackage = [];
+let packageType = '';
 function checkInstallFile(projectDir, fileType, moduleList) {
   try {
     const filePathList = [];
@@ -34,20 +36,26 @@ function checkInstallFile(projectDir, fileType, moduleList) {
         const fileList = fs.readdirSync(buildDir).filter(function (file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
         });
+        let modulePackageName = '';
+        if (module !== 'entry') {
+          modulePackageName = module + '-entry';
+        } else {
+          modulePackageName = module;
+        }
+        if (fileList.length === 1 && fileList[0] === `${modulePackageName}-default-unsigned.${fileType}`) {
+          console.log('WARN: Before installing the [' + module + '] hap,please complete the signature.');
+        }
         fileList.forEach(file => {
-          if (module !== 'entry') {
-            module = module + '-entry';
-          }
-          if (file === `${module}-default-signed.${fileType}`) {
+          if (file === `${modulePackageName}-default-signed.${fileType}`) {
+            installHapPackage.push(module);
             filePathList.push(path.join(buildDir, file));
           }
         });
       });
     }
     //android and ios only have one apk or app
-    if (fileType === 'apk' || fileType === 'app') {
-      buildDir = fileType == "apk" ? path.join(projectDir, 'android', 'app/build/outputs/apk/debug/') :
-        path.join(projectDir, 'ios', 'build/outputs/app/');
+    if (fileType === 'app') {
+      buildDir = path.join(projectDir, 'ios', 'build/outputs/app/');
       const fileList = fs.readdirSync(buildDir).filter(file => {
         return path.extname(file).toLowerCase() === `.${fileType}`;
       });
@@ -58,6 +66,29 @@ function checkInstallFile(projectDir, fileType, moduleList) {
       fileList.forEach(file => {
         filePathList.push(path.join(buildDir, file));
       });
+    }
+
+    if (fileType === 'apk') {
+      buildDir = path.join(projectDir, 'android', 'app/build/outputs/apk/');
+      let fileList = [];
+      fs.readdirSync(buildDir).forEach(dir => {
+        if (dir === 'debug' || dir === 'release') {
+          fileList.push(`${dir}/` + fs.readdirSync(path.join(buildDir, dir)).filter(file => {
+            return path.extname(file).toLowerCase() === `.${fileType}`;
+          }))
+        }
+      });
+      if (fileList.length === 1 && fileList[0] === `release/app-release-unsigned.${fileType}`) {
+        console.log('\x1B[31m%s\x1B[0m',
+        'Warning: Before installing the apk, please sign and rebuild, or build the debug version.');
+      }
+      if (fileList.includes(`release/app-release.${fileType}`)) {
+        filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
+        packageType = 'Release';
+      } else if (fileList.includes(`debug/app-debug.${fileType}`)) {
+        filePathList.push(path.join(buildDir, `debug/app-debug.${fileType}`));
+        packageType = 'Debug';
+      }
     }
     return filePathList;
   } catch (error) {
@@ -77,123 +108,87 @@ function install(fileType, device, moduleListInput) {
     console.error('There is no file to install');
     return false;
   }
-
-  const toolObj = getToolByType(fileType);
+  const currentSystem = getCurrentProjectSystem(projectDir);
+  if (!currentSystem) {
+    console.error('current system is unknown.');
+    return false;
+  }
+  const toolObj = getToolByType(fileType, currentSystem);
   if (!toolObj) {
     console.error('There is no install tool, please check');
     return false;
   }
-  if (validInputDevice(device)) {
-    let successFlag;
-    if (fileType == 'hap') {
-      successFlag = installHap(toolObj, filePathList, device);
-    } else if (fileType == 'apk') {
-      successFlag = installApk(toolObj, filePathList, device);
-    } else if (fileType == 'app') {
-      successFlag = installApp(toolObj, filePathList, device);
-    }
-    if (successFlag) {
-      console.log(`Install ${fileType.toUpperCase()} successfully.`);
-    } else {
-      console.log(`Install ${fileType.toUpperCase()} failed.`);
-    }
-    return successFlag;
+  if (!validInputDevice(device)) {
+    return false;
   }
-  return false;
-}
-function installHap(toolObj, filePathList, device) {
-  let cmdPath;
-  let cmdInstallOption;
-  let deviceOption;
-  if ('hdc' in toolObj) {
-    cmdPath = toolObj['hdc'];
-    cmdInstallOption = 'install -r';
-    if (device) {
-      deviceOption = `-t ${device}`;
-    } else {
-      deviceOption = '';
+  let installCmd = installCmdConstruct(fileType, toolObj, device);
+  let isInstalled = true;
+  if (installCmd) {
+    try {
+      for (let index = 0; index < filePathList.length; index++) {
+        const filePath = filePathList[index];
+        const result = exec(`${installCmd} ${filePath}`).toString().trim();
+        if (result.toLowerCase().includes('fail')) {
+          console.error(result);
+          isInstalled = false;
+        }
+      }
+    } catch (error) {
+      console.error(`Internal error with installing ${fileType}`);
+      isInstalled = false;
     }
   } else {
-    console.error('Internal error with hdc checking');
-    return false;
+    isInstalled = false;
   }
-  try {
-    for (let index = 0; index < filePathList.length; index++) {
-      const filePath = filePathList[index];
-      const cmdPush = `${cmdPath} ${deviceOption} ${cmdInstallOption} ${filePath}`;
-      const result = exec(`${cmdPush}`).toString().trim();
-      if (result.includes('failed')) {
-        console.error(result);
-        return false;
-      }
-    }
-    return true;
-  } catch (error) {
-    return false;
+  let stateStr = 'successfully';
+  if (!isInstalled) {
+    stateStr = 'failed';
   }
+  if(fileType === 'hap') {
+    console.log(`Install ${fileType.toUpperCase()} ` + `[${installHapPackage.join('/')}]` + ` ${stateStr}.`);
+  } else if (fileType === 'apk') {
+    console.log(`Install ${packageType} ${fileType.toUpperCase()} ${stateStr}.`);
+  } else {
+    console.log(`Install ${fileType.toUpperCase()} ${stateStr}.`);
+  }
+  return isInstalled;
 }
 
-function installApk(toolObj, filePathList, device) {
+function installCmdConstruct(fileType, toolObj, device) {
   let cmdPath;
-  let cmdInstallOption;
-  let deviceOption;
-  if ('adb' in toolObj) {
+  let cmdInstallOption = '';
+  let deviceOption = '';
+  if (fileType == 'hap') {
+    if (!('hdc' in toolObj)) {
+      console.error('Internal error with hdc checking');
+      return undefined;
+    }
+    cmdPath = toolObj['hdc'];
+    cmdInstallOption = 'app install -r';
+    if (device) {
+      deviceOption = `-t ${device}`;
+    }
+  } else if (fileType == 'apk') {
+    if (!('adb' in toolObj)) {
+      console.error('Internal error with adb checking');
+      return undefined;
+    }
     cmdPath = toolObj['adb'];
     cmdInstallOption = 'install';
     if (device) {
       deviceOption = `-s ${device}`;
-    } else {
-      deviceOption = '';
     }
-  } else {
-    console.error('Internal error with adb checking');
-    return false;
-  }
-  try {
-    for (let index = 0; index < filePathList.length; index++) {
-      const filePath = filePathList[index];
-      const cmdInstall = `${cmdPath} ${deviceOption} ${cmdInstallOption} ${filePath}`;
-      const result = exec(`${cmdInstall}`).toString().trim();
-      if (result.includes('Failure')) {
-        console.error(result);
-        return false;
-      }
+  } else if (fileType == 'app') {
+    if (!('ios-deploy' in toolObj)) {
+      console.error('Internal error with ios-deploy checking');
+      return undefined;
     }
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
-function installApp(toolObj, filePathList, device) {
-  let cmdPath;
-  let cmdInstallOption;
-  let deviceOption;
-  if ('ios-deploy' in toolObj) {
     cmdPath = toolObj['ios-deploy'];
-    cmdInstallOption = '--no-wifi';
+    cmdInstallOption = '--no-wifi --bundle';
     if (device) {
       deviceOption = `--id ${device}`;
-    } else {
-      deviceOption = '';
     }
-  } else {
-    console.error('Internal error with ios-deploy checking');
-    return false;
   }
-  try {
-    for (let index = 0; index < filePathList.length; index++) {
-      const filePath = filePathList[index];
-      const cmdInstall = `${cmdPath} ${deviceOption} --bundle ${filePath} ${cmdInstallOption}`;
-      const result = exec(`${cmdInstall}`).toString().trim();
-      if (result.includes('Failure')) {
-        console.error(result);
-        return false;
-      }
-    }
-    return true;
-  } catch (error) {
-    return false;
-  }
+  return `${cmdPath} ${deviceOption} ${cmdInstallOption}`;
 }
 module.exports = install;
