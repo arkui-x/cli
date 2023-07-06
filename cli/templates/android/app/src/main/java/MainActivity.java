@@ -17,7 +17,6 @@ public class MainActivity extends AceActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.e("HiHelloWorld", "MainActivity");
-        setVersion(ACE_VERSION);
         setInstanceName("ArkUIInstanceName");
         super.onCreate(savedInstanceState);
     }
