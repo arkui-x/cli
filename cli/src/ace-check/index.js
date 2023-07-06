@@ -35,7 +35,8 @@ const {
   requirementTitle,
   optionTitle,
   requirementInfo,
-  optionInfo
+  optionInfo,
+  showWarningInfo
 } = require('./util');
 
 const javaSdkDir = checkJavaSdk();
@@ -76,8 +77,51 @@ function checkRequired(errorTimes) {
     requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
     errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }
+  showWarning();
   return errorTimes;
 }
+
+function showWarning() {
+  const needSdks = [
+    openHarmonySdkDir,
+    harmonyOsSdkDir,
+    nodejsDir,
+    ohpmDir,
+    javaSdkDir,
+    arkuiXSdkDir,
+    androidSdkDir,
+    androidStudioDir
+  ];
+
+  const warningInfo = [
+    info.warnOpenHarmonySdk,
+    info.warnHarmonyOsSdk,
+    info.warnNodejs,
+    info.warnOhpm,
+    info.warnJavaSdk,
+    info.warnArkuiXSdk,
+    info.warnAndroidSdk,
+    info.warnAndroidStudio,
+    info.warnDevEcoStudio,
+    info.warnMacTools
+  ];
+  let msgs = [];
+  if (platform !== Platform.Linux) {
+    needSdks.push(devEcoStudioDir);
+  }
+  if (platform === Platform.MacOS) {
+    needSdks.push(xCodeVersion && iDeviceVersion && deployVersion);
+  }
+  needSdks.forEach((sdk, index) => {
+    if (!sdk) {
+      msgs.push(warningInfo[index]);
+    }
+  });
+  if (msgs.length !== 0) {
+    showWarningInfo(msgs);
+  }
+}
+
 function check() {
   let errorTimes = 0;
   errorTimes = checkRequired(errorTimes);

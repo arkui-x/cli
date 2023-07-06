@@ -68,7 +68,7 @@ function processOnNotFound() {
 function getJsonConfig(apiConfigPath) {
   if (fs.existsSync(apiConfigPath)) {
     try {
-      printLog('load:', apiConfigPath);
+      printLog('\tload:', apiConfigPath);
       return JSON.parse(fs.readFileSync(apiConfigPath));
     } catch (err) {
       printLog('\tload error:', apiConfigPath, '::', err);
@@ -334,48 +334,79 @@ specifications for callbackFunction
 fullname ---absolute path ,
 fileName ---current file or directory,
 isDir   --true --directory，false file
+fileProcessRule --user defined file process rule
 args   ---user define argument
 return true--continue traverse, false --end traversing
- callbackFunction(fullname , fileName,isDir)
+ callbackFunction(fullname , fileName, isDir, fileProcessRule, args)
+
+specification for ruleCheckerFunction
+fullname ---absolute path ,
+fileName ---current file or directory,
+isDir   --true --directory，false file
+dirProcessRule --user defined file process rule
+return  ---new rule for file fileName
+  ruleCheckerFunction(fullname, fileName, isDir, dirProcessRule)
 */
-function traversalDir(dir, callbackFunction, args) {
+function traversalDir(dir, callbackFunction, args, ruleCheckerFunction, dirProcessRule) {
+  if (!callbackFunction) {
+    return args;
+  }
   const readlist = fs.readdirSync(dir);
   for (const key in readlist) {
     const fullname = path.join(dir, readlist[key]);
     const isDir = fs.statSync(fullname).isDirectory();
-    const goonProc = callbackFunction(fullname, readlist[key], isDir, args);
+    let fileProcessRule = dirProcessRule;
+    if(ruleCheckerFunction) {
+      fileProcessRule = ruleCheckerFunction(fullname, readlist[key], isDir, dirProcessRule);
+    }
+
+    const goonProc = callbackFunction(fullname, readlist[key], isDir, fileProcessRule, args);
     if (!goonProc) {
       return args;
     }
     if (isDir) {
-      traversalDir(fullname, callbackFunction, args);
+      args = traversalDir(fullname, callbackFunction, args, ruleCheckerFunction, fileProcessRule);
     }
   }
   return args;
 }
 
-const defaultDir = 'ohos/entry/build/default/cache/';
+const defaultDir = 'ohos/';
 
 function loadCollectionJson(projectDir) {
   printLog('load dependent modules from project:');
   const loadState = {};
   loadState.collectionSet = new Set();
-  loadState.moduleFound = false;
-  loadState.componentFound = false;
+  loadState.moduleCount = 0;
+  loadState.componentCount = 0;
+  const startProcess = false;
+  
+  /**
+   * start to load json file after a subdir named 'build' was found
+   */
   try {
-    traversalDir(defaultDir, (fullname, fileName, isDir, loadState) => {
+    traversalDir(defaultDir, (fullname, fileName, isDir, startProcess0, loadState) => {
+      if (!startProcess0) {
+        return true;
+      }
       if (fileName === 'component_collection.json') {
         loadState.collectionSet = loadCollection(getJsonConfig(fullname), loadState.collectionSet);
-        loadState.componentFound = true;
+        loadState.componentCount += 1;
       } else if (fileName === 'module_collection.json') {
         loadState.collectionSet = loadCollection(getJsonConfig(fullname), loadState.collectionSet);
-        loadState.moduleFound = true;
-      }
-      if (loadState.componentFound && loadState.moduleFound) {
-        return false;
+        loadState.moduleCount += 1;
       }
       return true;
-    }, loadState);
+    }, loadState,
+    (fullname, fileName, isDir, startProcess0) => {
+      if(startProcess0 || fileName === 'build') {
+        return true;
+      } else {
+        return false;
+      }
+    } , startProcess);
+    printLog('\t\t' + loadState.componentCount + ' component_collection.json file(s) loaded!');
+    printLog('\t\t' + loadState.moduleCount + ' module_collection.json file(s) loaded!');
   } catch (err) {
     printLog('get componentCollection data failed');
   }
