@@ -39,7 +39,8 @@ function checkIdeviceVersion() {
 function checkDeployVersion() {
     try {
         if (platform === Platform.MacOS) {
-            return process.execSync(`ios-deploy -V`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+            const iosDeployVersion = process.execSync(`ios-deploy -V`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+            return iosDeployVersion ? 'ios-deploy ' + iosDeployVersion : iosDeployVersion;
         }
         return "";
     } catch (err) {

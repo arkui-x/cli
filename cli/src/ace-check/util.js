@@ -40,10 +40,18 @@ function addPrefix(message, valid, correctPrefix, errorPrefix) {
   return prefix + message;
 }
 
+function showWarningInfo(msgs) {
+  console.warn('\x1B[31m%s\x1B[0m', 'Warning: ');
+  msgs.forEach(msg => {
+    console.warn('\x1B[31m    %s\x1B[0m', msg);
+  });
+}
+
 module.exports = {
   requirementTitle,
   optionTitle,
   requirementInfo,
   optionInfo,
-  reletedInfo
+  reletedInfo,
+  showWarningInfo
 };
