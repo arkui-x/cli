@@ -372,6 +372,7 @@ function traversalDir(dir, callbackFunction, args, ruleCheckerFunction, dirProce
 }
 
 const defaultDir = 'ohos/';
+const matchNameList = ["build","cache"];
 
 function loadCollectionJson(projectDir) {
   printLog('load dependent modules from project:');
@@ -379,14 +380,14 @@ function loadCollectionJson(projectDir) {
   loadState.collectionSet = new Set();
   loadState.moduleCount = 0;
   loadState.componentCount = 0;
-  const startProcess = false;
-  
+  let nextMatchIndex = 0;
+
   /**
-   * start to load json file after a subdir named 'build' was found
+   * start to load json file after  subdirs named 'build' and 'cache' were found
    */
   try {
-    traversalDir(defaultDir, (fullname, fileName, isDir, startProcess0, loadState) => {
-      if (!startProcess0) {
+    traversalDir(defaultDir, (fullname, fileName, isDir, nextMatchIndex0, loadState) => {
+      if (nextMatchIndex0 < matchNameList.length) {
         return true;
       }
       if (fileName === 'component_collection.json') {
@@ -398,13 +399,15 @@ function loadCollectionJson(projectDir) {
       }
       return true;
     }, loadState,
-    (fullname, fileName, isDir, startProcess0) => {
-      if(startProcess0 || fileName === 'build') {
-        return true;
+    (fullname, fileName, isDir, nextMatchIndex0) => {
+      if(nextMatchIndex0 >= matchNameList.length) {
+        return nextMatchIndex0;
+      } else if (fileName === matchNameList[nextMatchIndex0]) {
+        return nextMatchIndex0+1;
       } else {
-        return false;
+        return nextMatchIndex0;
       }
-    } , startProcess);
+    } , nextMatchIndex);
     printLog('\t\t' + loadState.componentCount + ' component_collection.json file(s) loaded!');
     printLog('\t\t' + loadState.moduleCount + ' module_collection.json file(s) loaded!');
   } catch (err) {
