@@ -102,7 +102,7 @@ function getModuleAbilityList(projDir, moduleList) {
   try {
     const moduleAbilityList = [];
     for (let index = 0; index < moduleList.length; index++) {
-      const moduleJsonPath = path.join(projDir, 'source', moduleList[index],
+      const moduleJsonPath = path.join(projDir, moduleList[index],
         'src/main/module.json5');
       const moduleJsonFile = JSON.parse(fs.readFileSync(moduleJsonPath));
       moduleJsonFile.module.abilities.forEach(component => {
@@ -141,7 +141,7 @@ function validInputDevice(device) {
 
 function getCurrentProjectSystem(projDir) {
   let currentSystem = '';
-  const configFile = path.join(projDir, 'source/entry/build-profile.json5')
+  const configFile = path.join(projDir, 'entry/build-profile.json5')
   if (!fs.existsSync(configFile)) {
     console.error(`Please check entry/build-profile.json5 existing.`);
     return null;
@@ -161,7 +161,7 @@ function getCurrentProjectSystem(projDir) {
 }
 
 function isNativeCppTemplate(projDir) {
-  const checkFile = path.join(projDir, 'source/entry/build-profile.json5');
+  const checkFile = path.join(projDir, 'entry/build-profile.json5');
   if (!fs.existsSync(checkFile)) {
     return false;
   }

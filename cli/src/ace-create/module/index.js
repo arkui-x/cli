@@ -23,12 +23,6 @@ const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPb
 let projectDir;
 let currentSystem;
 
-function checkCurrentDir(currentDir) {
-  if (path.basename(currentDir) === 'source') {
-    return true;
-  }
-  return false;
-}
 
 function capitalize(str) {
   if (/^[A-Z]/.test(str)) {
@@ -55,7 +49,7 @@ function checkModuleName(moduleList, moduleName) {
     console.error('Module name must be required!');
     return false;
   }
-  const sensitiveWords = ['ohos', 'android', 'source'];
+  const sensitiveWords = ['ohos', 'android', 'ios'];
   if (sensitiveWords.includes(moduleName)) {
     console.error('Module name is invalid');
     return false;
@@ -68,8 +62,8 @@ function checkModuleName(moduleList, moduleName) {
     console.error('The Module name can contain only letters, digits, and underscores(_).');
     return false;
   }
-  if (fs.existsSync(path.join(projectDir, 'ohos', moduleName)) ||
-    fs.existsSync(path.join(projectDir, 'source', moduleName))) {
+  if (fs.existsSync(path.join(projectDir, moduleName)) ||
+    fs.existsSync(path.join(projectDir, moduleName))) {
     console.error(`\n${moduleName} already exists.`);
     return false;
   }
@@ -91,7 +85,7 @@ function createStageInAndroid(moduleName, templateDir) {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + 'MainAbilityActivity';
-    let dest = path.join(projectDir, 'android/app/src/main/java');
+    let dest = path.join(projectDir, '.arkui-x/android/app/src/main/java');
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
     });
@@ -118,12 +112,12 @@ function createStageInAndroid(moduleName, templateDir) {
       '            android:name=".' + destClassName + '"\n' +
       '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
     const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml')).toString();
+      fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
       createActivityXmlInfo +
       curManifestXmlInfo.slice(insertIndex);
-    fs.writeFileSync(path.join(projectDir, 'android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    fs.writeFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
 
     return true;
   } catch (error) {
@@ -134,7 +128,7 @@ function createStageInAndroid(moduleName, templateDir) {
 
 function getPackageName() {
   try {
-    const manifestPath = path.join(projectDir, 'ohos/AppScope/app.json5');
+    const manifestPath = path.join(projectDir, 'AppScope/app.json5');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
     return manifestJsonObj.app.bundleName;
   } catch (error) {
@@ -145,7 +139,7 @@ function getPackageName() {
 
 function getAppNameForModule() {
   try {
-    const manifestPath = path.join(projectDir, 'ohos/oh-package.json5');
+    const manifestPath = path.join(projectDir, 'oh-package.json5');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
     return manifestJsonObj.name;
   } catch (error) {
@@ -155,7 +149,7 @@ function getAppNameForModule() {
 }
 
 function createStageModuleInSource(moduleName, templateDir) {
-  const dest = path.join(projectDir, 'source', moduleName);
+  const dest = path.join(projectDir,  moduleName);
   let src = path.join(templateDir, 'ets_stage/source/entry');
   try {
     fs.mkdirSync(dest, { recursive: true });
@@ -173,7 +167,7 @@ function createStageModuleInSource(moduleName, templateDir) {
 function replaceStageProfile(moduleName) {
   try {
     if (moduleName != 'entry') {
-      const srcModulePath = path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5');
+      const srcModulePath = path.join(projectDir, moduleName, 'src/main/module.json5');
       const modulePathJson = JSON.parse(fs.readFileSync(srcModulePath).toString());
       delete modulePathJson.module.abilities[0].skills;
       fs.writeFileSync(srcModulePath, JSON.stringify(modulePathJson, '', '  '));
@@ -186,8 +180,8 @@ function replaceStageProfile(moduleName) {
         replaceNativeCppTemplate(moduleName, appName);
       }
     }
-
-    const srcBuildPath = path.join(projectDir, 'ohos/build-profile.json5');
+    console.log(moduleName);
+    const srcBuildPath = path.join(projectDir, 'build-profile.json5');
     const buildPathJson = JSON.parse(fs.readFileSync(srcBuildPath).toString());
     const moduleInfo = {
       'name': moduleName,
@@ -215,33 +209,33 @@ function replaceStageProjectInfo(moduleName) {
     const files = [];
     const replaceInfos = [];
     const strs = [];
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/resources/base/element/string.json'));
+    files.push(path.join(projectDir, moduleName, '/src/main/resources/base/element/string.json'));
     replaceInfos.push('module_ability_name');
     strs.push(capitalize(moduleName) + 'Ability');
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/resources/en_US/element/string.json'));
+    files.push(path.join(projectDir, moduleName, '/src/main/resources/en_US/element/string.json'));
     replaceInfos.push('module_ability_name');
     strs.push(capitalize(moduleName) + 'Ability');
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/resources/zh_CN/element/string.json'));
+    files.push(path.join(projectDir, moduleName, '/src/main/resources/zh_CN/element/string.json'));
     replaceInfos.push('module_ability_name');
     strs.push(capitalize(moduleName) + 'Ability');
     if (moduleName != 'entry') {
-      files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+      files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
       replaceInfos.push('entry');
       strs.push('feature');
     }
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+    files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
     replaceInfos.push('module_path_name');
     strs.push(moduleName.toLowerCase());
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+    files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/main/module.json5'));
+    files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
     replaceInfos.push('module_ability_name');
     strs.push(capitalize(moduleName) + 'Ability');
-    files.push(path.join(projectDir, 'source/' + moduleName + '/src/ohosTest/module.json5'));
+    files.push(path.join(projectDir, moduleName, '/src/ohosTest/module.json5'));
     replaceInfos.push('module_test_name');
     strs.push(moduleName + 'Test');
-    files.push(path.join(projectDir, 'source/' + moduleName + '/oh-package.json5'));
+    files.push(path.join(projectDir, moduleName, '/oh-package.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);
     files.forEach((filePath, index) => {
@@ -268,10 +262,10 @@ function createStageInIOS(moduleName, templateDir) {
       return l.toUpperCase();
     }) + 'MainViewController';
     const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainViewController');
-    fs.writeFileSync(path.join(projectDir, 'ios/app/' + destClassName + '.h'),
+    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.h'),
       fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
-    fs.writeFileSync(path.join(projectDir, 'ios/app/' + destClassName + '.m'),
+    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.m'),
       fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
     const createViewControlInfo =
@@ -285,7 +279,7 @@ function createStageInIOS(moduleName, templateDir) {
       '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
       '    } // other ViewController\n';
     const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, 'ios/app/AppDelegate.m')).toString();
+      fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
     const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainViewController.h"');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
@@ -293,8 +287,8 @@ function createStageInIOS(moduleName, templateDir) {
     curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
     createViewControlInfo +
       curManifestXmlInfo.slice(insertIndex + 26);
-    fs.writeFileSync(path.join(projectDir, 'ios/app/AppDelegate.m'), updateManifestXmlInfo);
-    const pbxprojFilePath = path.join(projectDir, 'ios/app.xcodeproj/project.pbxproj');
+    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
     if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
       !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
       return false;
@@ -337,7 +331,7 @@ function createStageModule(moduleList, templateDir) {
 }
 
 function modifyModuleBuildProfile(projectDir, moduleName) {
-  const moduleBuildProfile = path.join(projectDir, 'source', moduleName, '/build-profile.json5');
+  const moduleBuildProfile = path.join(projectDir, moduleName, '/build-profile.json5');
   if (moduleName != 'entry' && fs.existsSync(moduleBuildProfile)) {
     const moduleBuildProfileInfo = JSON5.parse(fs.readFileSync(moduleBuildProfile));
     moduleBuildProfileInfo.entryModules = ['entry'];
@@ -346,10 +340,7 @@ function modifyModuleBuildProfile(projectDir, moduleName) {
 }
 
 function copyNativeToModule(moduleName, templateDir) {
-  if (!copy(path.join(templateDir, '/cpp/cpp_src'), path.join(projectDir, `/source/${moduleName}/src/main/cpp`))) {
-    return false;
-  }
-  if (!copy(path.join(templateDir, '/cpp/cpp_ohos'), path.join(projectDir, `/ohos/${moduleName}/src/main/cpp`))) {
+  if (!copy(path.join(templateDir, '/cpp'), path.join(projectDir, `/${moduleName}/src/main/cpp`))) {
     return false;
   }
   return true;
@@ -357,10 +348,10 @@ function copyNativeToModule(moduleName, templateDir) {
 
 function replaceNativeCppTemplate(moduleName, appName) {
   try {
-    const baseModulePath = path.join(projectDir, 'source', moduleName);
+    const baseModulePath = path.join(projectDir, moduleName);
     const packageJsonPath = path.join(baseModulePath, 'oh-package.json5');
     const moduleToLower = moduleName.toLowerCase();
-    const cMakeFile = path.join(projectDir, `ohos/${moduleName}/src/main/cpp/CMakeLists.txt`);
+    const cMakeFile = path.join(projectDir, `${moduleName}/src/main/cpp/CMakeLists.txt`);
     const cPackageFile = path.join(baseModulePath, 'src/main/cpp/types/libentry/package.json');
     const oldPath = path.join(baseModulePath, 'src/main/cpp/types/libentry');
     const newPath = path.join(baseModulePath, `src/main/cpp/types/lib${moduleToLower}`);
@@ -387,17 +378,18 @@ function replaceFileString(file, oldString, newString) {
 
 
 function createModule() {
-  if (!checkCurrentDir(process.cwd())) {
-    console.error(`Please go to source directory under ace project path and create module again.`);
+  projectDir = process.cwd();
+  if (!fs.existsSync(path.join(projectDir, 'hvigorfile.ts'))) {
+    console.error(`Please go to project directory under ace project path and create module again.`);
     return false;
   }
-  projectDir = path.join(process.cwd(), '..');
+
   currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
     console.error('current system is unknown.');
     return false;
   }
-  const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
+  const settingPath = path.join(projectDir, 'build-profile.json5');
   const moduleList = getModuleList(settingPath);
   if (moduleList == null) {
     console.error('Create module failed');
