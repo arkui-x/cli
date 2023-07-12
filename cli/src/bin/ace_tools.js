@@ -16,12 +16,10 @@
 
 const path = require('path');
 const program = require('commander');
-const { create } = require('../ace-create/project');
+const create = require('../ace-create/project');
 const createModule = require('../ace-create/module');
 const createComponent = require('../ace-create/component');
 const createAbility = require('../ace-create/ability');
-const createAar = require('../ace-create/aar');
-const createFramework = require('../ace-create/framework');
 const { setConfig } = require('../ace-config');
 const check = require('../ace-check');
 const devices = require('../ace-devices');
@@ -74,7 +72,7 @@ function isProjectNameQualified(name) {
 
 function parseCreate() {
   program.command('create [subcommand]')
-    .description(`create ace project/module/component/ability/framework/aar`)
+    .description(`create ace project/module/component/ability`)
     .action((subcommand, cmd) => {
       if (!subcommand || subcommand === 'project') {
         inquirer.prompt([{
@@ -118,20 +116,34 @@ function parseCreate() {
             }]).then(answers => {
               initInfo.system = answers.system;
               inquirer.prompt([{
-                name: 'template',
+                name: 'proType',
                 type: 'input',
-                message: 'Please enter the template (1: Empty Ability, 2: Native C++):',
+                message: 'Please enter the project type (1: Application, 2: Library):',
                 validate(val) {
                   if (val === '1' || val === '2') {
                     return true;
                   } else {
-                    return 'template must be an integer: 1 or 2.';
+                    return 'project type must be an integer: 1 or 2.';
                   }
                 }
               }]).then(answers => {
-                initInfo.template = answers.template;
-                initInfo.sdkVersion = '9';
-                create(initInfo);
+                initInfo.proType = answers.proType;
+                inquirer.prompt([{
+                  name: 'template',
+                  type: 'input',
+                  message: 'Please enter the template (1: Empty Ability, 2: Native C++):',
+                  validate(val) {
+                    if (val === '1' || val === '2') {
+                      return true;
+                    } else {
+                      return 'template must be an integer: 1 or 2.';
+                    }
+                  }
+                }]).then(answers => {
+                  initInfo.template = answers.template;
+                  initInfo.sdkVersion = '9';
+                  create(initInfo);
+                });
               });
             });
           });
@@ -142,12 +154,8 @@ function parseCreate() {
         createComponent();
       } else if (subcommand === 'ability') {
         createAbility();
-      } else if (subcommand === 'framework') {
-        createFramework();
-      } else if (subcommand === 'aar') {
-        createAar();
       } else {
-        console.log(`Please use ace create with subcommand : project/module/component/ability/framework/aar.`);
+        console.log(`Please use ace create with subcommand : project/module/component/ability.`);
       }
     });
 }

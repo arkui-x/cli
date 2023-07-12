@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
-const { copy, modifyHarmonyOSConfig } = require('../project');
+const { copy, modifyHarmonyOSConfig } = require('../util');
 const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj } = require('../../util');
 
 let projectDir;

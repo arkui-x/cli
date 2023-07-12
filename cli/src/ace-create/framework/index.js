@@ -16,99 +16,51 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const { copy, rmdir, replaceInfo } = require('../project');
+const { copy, rmdir, replaceInfo } = require('../util');
 const { isProjectRootDir, isNativeCppTemplate } = require('../../util');
 const {
     Platform,
     platform
 } = require('../../ace-check/platform');
-const projectDir = process.cwd();
+let projectDir;
 
-function createFramework() {
-    if (!isProjectRootDir(projectDir) || !isMacOSPlatform()) {
+function createFramework(projectPath, frameworkName) {
+    try {
+        projectDir = projectPath;
+        libraryPath = path.join(projectDir, '.arkui-x/ios');
+        fs.mkdirSync(libraryPath, { recursive: true });
+        findFrameworkTemplate(libraryPath, frameworkName);
+        return true;
+    } catch (error) {
+        console.log('framework created failed! Target directory：' + projectPath + ' .' + error);
         return false;
     }
-    inquirer.prompt([{
-        name: 'frameworkName',
-        type: 'input',
-        message: 'Please enter the framework name:',
-        validate(val) {
-            if (val === '') {
-                return 'framework name must be required!';
-            }
-            return true;
-        }
-    }]).then(answers => {
-        const frameworkName = answers.frameworkName;
-        if (!validateIllegalName(frameworkName)) {
-            return false;
-        }
-        const frameworkPath = path.join(projectDir, 'ios', frameworkName);
-        if (fs.existsSync(frameworkPath)) {
-            inquirer.prompt([{
-                name: 'delete',
-                type: 'input',
-                message: 'The framework directory already exists. Do you want to delete the directory (y / n):',
-                validate(val) {
-                    if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
-                        return 'Please enter y / n!';
-                    } else {
-                        return true;
-                    }
-                }
-            }]).then(answers => {
-                if (answers.delete === 'y') {
-                    try {
-                        rmdir(frameworkPath);
-                        console.log('Delete directory successfully, creating new framework.');
-                    } catch (err) {
-                        console.log(`Failed to delete ${frameworkPath}, please delete it do yourself.`);
-                    }
-                    createFrameworkPkg(frameworkPath, frameworkName);
-                } else {
-                    console.log('Failed to create framework, framework directory already exists.');
-                }
-            });
-        } else {
-            createFrameworkPkg(frameworkPath, frameworkName);
-        }
-    });
 }
 
-function createFrameworkPkg(frameworkPath, frameworkName) {
-    try {
-        fs.mkdirSync(frameworkPath);
-        findFrameworkTemplate(frameworkPath, frameworkName);
-        console.log('framework created successfully! Target directory：' + frameworkPath + ' .');
-    } catch (error) {
-        console.log('framework created failed! Target directory：' + frameworkPath + ' .' + error);
-    }
-}
-
-function findFrameworkTemplate(frameworkPath, frameworkName) {
+function findFrameworkTemplate(libraryPath, frameworkName) {
     let templatePath = path.join(__dirname, 'template');
     if (fs.existsSync(templatePath)) {
-        copyTemplate(templatePath, frameworkPath);
-        replaceFrameworkInfo(frameworkPath, frameworkName);
+        copyTemplate(templatePath, libraryPath);
+        replaceFrameworkInfo(libraryPath, frameworkName);
     } else {
         templatePath = path.join(__dirname, '../../../templates');
         if (fs.existsSync(templatePath)) {
-            copyTemplate(templatePath, frameworkPath);
-            replaceFrameworkInfo(frameworkPath, frameworkName);
+            copyTemplate(templatePath, libraryPath);
+            replaceFrameworkInfo(libraryPath, frameworkName);
         } else {
             console.log('Error: Template is not exist!');
         }
     }
 }
 
-function copyTemplate(templatePath, frameworkPath) {
+function copyTemplate(templatePath, libraryPath) {
     try {
         const files = ['AppDelegate_stage.h', 'AppDelegate_stage.m',
-        'EntryMainViewController.h', 'EntryMainViewController.m'];
-        copy(path.join(templatePath, 'framework'), path.join(frameworkPath));
+            'EntryMainViewController.h', 'EntryMainViewController.m'];
+        copy(path.join(templatePath, 'framework'), path.join(libraryPath));
         files.forEach(fileName => {
             fs.copyFileSync(path.join(templatePath, 'ios/etsapp', fileName),
-                path.join(frameworkPath, 'MyFramework', fileName));
+                path.join(libraryPath, 'MyFramework', fileName));
         });
     } catch (err) {
         console.error('Error: Copy template failed!\n', err);
@@ -169,23 +121,6 @@ function modifyXcodeProj(frameworkPath) {
         }
     }
     fs.writeFileSync(xcodeProjFile, xcodeProjInfo.join('\r\n'));
-}
-
-function isMacOSPlatform() {
-    if (platform === Platform.MacOS) {
-        return true;
-    }
-    console.error(`Please go to your MacOS and create framework.`);
-    return false;
-}
-
-function validateIllegalName(name) {
-    const nameStr = name.match(/^[a-zA-Z_][a-zA-Z0-9_]*/g);
-    if (nameStr != name || nameStr == 'null' || nameStr == 'app' || nameStr == 'frameworks') {
-        console.error('Illegal name, create failed.');
-        return false;
-    }
-    return true;
 }
 
 module.exports = createFramework;
