@@ -22,8 +22,8 @@ global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
 function isProjectRootDir(currentDir) {
-  const ohosBuildProfilePath = path.join(currentDir, 'ohos/build-profile.json5');
-  const androidGradlePath = path.join(currentDir, 'android/settings.gradle');
+  const ohosBuildProfilePath = path.join(currentDir, 'build-profile.json5');
+  const androidGradlePath = path.join(currentDir, '.arkui-x/android/settings.gradle');
   try {
     fs.accessSync(ohosBuildProfilePath);
     fs.accessSync(androidGradlePath);
@@ -181,7 +181,7 @@ function getDeviceID(device) {
 
 function getAarName(projectDir) {
   const aarName = [];
-  const aarConfigPath = path.join(projectDir, 'android/settings.gradle');
+  const aarConfigPath = path.join(projectDir, '.arkui-x/android/settings.gradle');
   if (!fs.existsSync(aarConfigPath)) {
     return aarName;
   }
@@ -195,7 +195,7 @@ function getAarName(projectDir) {
 
 function getFrameworkName(projectDir) {
   const frameworkName = [];
-  const frameworkPath = path.join(projectDir, 'ios/');
+  const frameworkPath = path.join(projectDir, '.arkui-x/ios/');
   fs.readdirSync(frameworkPath).forEach(dir => {
     if (fs.statSync(path.join(frameworkPath, dir)).isDirectory() &&
       fs.readdirSync(path.join(frameworkPath, dir)).includes(`${dir}.xcodeproj`)) {

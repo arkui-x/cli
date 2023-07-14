@@ -40,14 +40,14 @@ function getNames(projectDir, fileType, moduleName) {
 
 function getNamesApp(projectDir) {
   const appName = 'app.app';
-  appPackagePath = path.join(projectDir, '/ios/build/outputs/app/', appName);
+  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/app/', appName);
   return true;
 }
 
 function getNameStageHaps(projectDir, moduleName) {
   try {
-    const ohosJsonPath = path.join(projectDir, '/ohos', moduleName, 'src/main/module.json5');
-    const appJsonPath = path.join(projectDir, '/ohos/AppScope/app.json5');
+    const ohosJsonPath = path.join(projectDir, moduleName, 'src/main/module.json5');
+    const appJsonPath = path.join(projectDir, '/AppScope/app.json5');
     if (fs.existsSync(ohosJsonPath) && fs.existsSync(appJsonPath)) {
       ohosclassName = JSON.parse(fs.readFileSync(ohosJsonPath)).module.abilities[0].name;
       bundleName = JSON.parse(fs.readFileSync(appJsonPath)).app.bundleName;
@@ -71,8 +71,8 @@ function getNameStageHaps(projectDir, moduleName) {
 function getNamesApk(projectDir, moduleName) {
   try {
     const androidXmlPath =
-      path.join(projectDir, '/android/app/src/main/AndroidManifest.xml');
-    const manifestPath = path.join(projectDir, 'ohos/AppScope/app.json5');
+      path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml');
+    const manifestPath = path.join(projectDir, 'AppScope/app.json5');
     if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
       let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
       xmldata = xmldata.trim().split('\n');

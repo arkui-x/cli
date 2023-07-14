@@ -169,7 +169,7 @@ function validTool(toolObj) {
 }
 
 function validManifestPath() {
-  if (!fs.existsSync(path.join(projectDir, 'ohos/AppScope/app.json5'))) {
+  if (!fs.existsSync(path.join(projectDir, 'AppScope/app.json5'))) {
     console.error(`Error: run 'ace log' in the project root directory. no such file, '${bundleNamePath}'.`);
     return false;
   }
@@ -248,7 +248,7 @@ function getAppPid(device, fileType, bundleName) {
 
 function getBundleName() {
   try {
-    return JSON.parse(fs.readFileSync(path.join(projectDir, 'ohos/AppScope/app.json5'))).app.bundleName;
+    return JSON.parse(fs.readFileSync(path.join(projectDir, 'AppScope/app.json5'))).app.bundleName;
   } catch (err) {
     console.log('Get bundle name failed');
   }

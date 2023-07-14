@@ -32,7 +32,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
     //ohos will install all module hap
     if (fileType === 'hap') {
       moduleList.forEach(module => {
-        buildDir = path.join(projectDir, 'ohos', module, 'build/default/outputs/default');
+        buildDir = path.join(projectDir, module, 'build/default/outputs/default');
         const fileList = fs.readdirSync(buildDir).filter(function (file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
         });
@@ -55,7 +55,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
     }
     //android and ios only have one apk or app
     if (fileType === 'app') {
-      buildDir = path.join(projectDir, 'ios', 'build/outputs/app/');
+      buildDir = path.join(projectDir, '.arkui-x','ios', 'build/outputs/app/');
       const fileList = fs.readdirSync(buildDir).filter(file => {
         return path.extname(file).toLowerCase() === `.${fileType}`;
       });
@@ -69,7 +69,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
     }
 
     if (fileType === 'apk') {
-      buildDir = path.join(projectDir, 'android', 'app/build/outputs/apk/');
+      buildDir = path.join(projectDir, '.arkui-x', 'android', 'app/build/outputs/apk/');
       let fileList = [];
       fs.readdirSync(buildDir).forEach(dir => {
         if (dir === 'debug' || dir === 'release') {
