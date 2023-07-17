@@ -51,17 +51,9 @@ function clean() {
       failedMsg += '\tcleanIOS';
       successFlag = false;
     }
-    if (getFrameworkName(projectDir).length !== 0 && !cleanFramework()) {
-      failedMsg += '\tcleanFramework';
-      successFlag = false;
-    }
   }
   if (!cleanOutputPath()) {
     failedMsg += '\tcleanOutputPath';
-    successFlag = false;
-  }
-  if (!cleanJSBundle()) {
-    failedMsg += '\tcleanJSBundle';
     successFlag = false;
   }
   if (successFlag) {
@@ -165,28 +157,6 @@ function cleanOHOS() {
   return isBuildSuccess;
 }
 
-function cleanJSBundle() {
-  let isContinue = true;
-  const settingPath = path.join(projectDir, 'build-profile.json5');
-  const moduleList = getModuleList(settingPath);
-  moduleList.forEach(module => {
-    const src = path.join(projectDir, module, 'build');
-    isContinue = removeDir(src, [], true);
-    const ohosSource = path.join(projectDir, module, '/src/main/');
-    // This time, ohos resources is created by merging with source resources, should not be deleted.
-    // Wait for the processing of resources to be modified.
-    if (!removeDir(ohosSource, ['resources', 'module.json5'], true)) {
-      console.error('ohos code file delete failed');
-      isContinue = false;
-    }
-  });
-  if (!isContinue) {
-    console.error('Ohos build file delete failed');
-    isContinue = false;
-  }
-  return isContinue;
-}
-
 function cleanOutputPath() {
   try {
     if (config && Object.prototype.hasOwnProperty.call(config, 'build-dir')) {
@@ -271,7 +241,7 @@ function cleanFramework() {
   let isCleanSuccess = true;
   getFrameworkName(projectDir).forEach(frameworkName => {
     let cmds = [];
-    const frameworkDir = path.join(projectDir, '.arkui-x', 'ios', frameworkName);
+    const frameworkDir = path.join(projectDir, '.arkui-x', 'ios');
     cmds.push(`cd ${frameworkDir} && xcodebuild clean`);
     cmds = cmds.join(' && ');
     try {

@@ -213,7 +213,7 @@ function deleteOldFile(deleteFilePath) {
 
 function copyHaptoOutput(moduleListSpecified) {
   moduleListSpecified.forEach(module => {
-    const src = path.join(projectDir, '/ohos/' + module + '/build/default/outputs/default');
+    const src = path.join(projectDir, module, '/build/default/outputs/default');
     const filePath = copyToBuildDir(src);
     console.log(`filepath: ${filePath}`);
   });
