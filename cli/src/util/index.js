@@ -194,15 +194,7 @@ function getAarName(projectDir) {
 }
 
 function getFrameworkName(projectDir) {
-  const frameworkName = [];
-  const frameworkPath = path.join(projectDir, '.arkui-x/ios/');
-  fs.readdirSync(frameworkPath).forEach(dir => {
-    if (fs.statSync(path.join(frameworkPath, dir)).isDirectory() &&
-      fs.readdirSync(path.join(frameworkPath, dir)).includes(`${dir}.xcodeproj`)) {
-      frameworkName.push(dir);
-    }
-  });
-  return frameworkName;
+  return [path.basename(projectDir)];
 }
 
 function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
@@ -255,6 +247,11 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
   return true;
 }
 
+function isAppProject(projectDir) {
+  const settingsGradle = path.join(projectDir, '.arkui-x/android/settings.gradle');
+  return fs.readFileSync(settingsGradle).toString().includes(`include ':app'`);
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -266,5 +263,6 @@ module.exports = {
   getFrameworkName,
   getUUID,
   generateUUID,
-  addFileToPbxproj
+  addFileToPbxproj,
+  isAppProject
 };

@@ -44,7 +44,7 @@ class Info {
     this.warnNodejs =
       'Node is required, please download versions between v14.19.1 and v16.';
     this.warnOhpm =
-      'Ohpm is required, please download it with DevEco Studio.';
+      'Ohpm is required, please download it with DevEco Studio or Command Line Tools.';
     this.warnJavaSdk =
       'Java Sdk is required, please use the JDK 17 version that comes with DevEco Studio.';
     this.warnArkuiXSdk =

@@ -25,9 +25,9 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { copy } = require('../../ace-create/project');
+const { copy } = require('../../ace-create/util');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName,
-  getFrameworkName } = require('../../util');
+  getFrameworkName, isAppProject } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
 let projectDir;
 let openHarmonySdkDir;
@@ -77,7 +77,7 @@ function readConfig() {
 
 function writeLocalProperties() {
   let content;
-  const filePath = path.join(projectDir, '/ohos/local.properties');
+  const filePath = path.join(projectDir, 'local.properties');
   if (currentSystem === HarmonyOS) {
     content = `hwsdk.dir=${harmonyOsSdkDir}\nnodejs.dir=${nodejsDir}`;
   } else {
@@ -131,13 +131,16 @@ function copyTestStageSourceToOhos(moduleList, fileType, cmd) {
 
 function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
-  deleteOldFile(path.join(projectDir, 'ios/arkui-x'));
-  deleteOldFile(path.join(projectDir, 'android/app/src/main/assets/arkui-x'));
+  deleteOldFile(path.join(projectDir, '.arkui-x/ios/arkui-x'));
+  deleteOldFile(path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x'));
   isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '');
   const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
-  const iosSystemResPath = path.join(projectDir, '/ios/arkui-x/systemres');
-  const androidSystemResPath = path.join(projectDir, '/android/app/src/main/assets/arkui-x/systemres');
-  isContinue = isContinue && copy(systemResPath, iosSystemResPath) && copy(systemResPath, androidSystemResPath);
+  const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
+  const androidSystemResPath = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/systemres');
+  isContinue = isContinue && copy(systemResPath, iosSystemResPath);
+  if (isAppProject(projectDir)) {
+    isContinue = isContinue && copy(systemResPath, androidSystemResPath);
+  }
   return isContinue;
 }
 
@@ -154,31 +157,34 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
-    const src = path.join(projectDir, '/ohos', module, `build/default/intermediates/loader_out/${fileName}/ets`);
-    const resindex = path.join(projectDir, '/ohos', module,
+    const src = path.join(projectDir, module, `build/default/intermediates/loader_out/${fileName}/ets`);
+    const resindex = path.join(projectDir, module,
       `build/default/intermediates/res/${fileName}/resources.index`);
-    const resPath = path.join(projectDir, '/ohos', module, `build/default/intermediates/res/${fileName}/resources`);
-    const moduleJsonPath = path.join(projectDir, '/ohos', module,
+    const resPath = path.join(projectDir, module, `build/default/intermediates/res/${fileName}/resources`);
+    const moduleJsonPath = path.join(projectDir, module,
       `build/default/intermediates/res/${fileName}/module.json`);
     const destClassName = module + moduleOption;
-    const distAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/', destClassName + '/ets');
-    const distIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/ets');
-    const resindexAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',
+    const distAndroid = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/', destClassName + '/ets');
+
+    const distIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/ets');
+    const resindexAndroid = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/',
       destClassName + '/resources.index');
-    const resPathAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',
+    const resPathAndroid = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/',
       destClassName + '/resources');
-    const moduleJsonPathAndroid = path.join(projectDir, '/android/app/src/main/assets/arkui-x/',
+    const moduleJsonPathAndroid = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/',
       destClassName + '/module.json');
-    const resindexIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/resources.index');
-    const resPathIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/resources');
-    const moduleJsonPathIOS = path.join(projectDir, '/ios/arkui-x/', destClassName + '/module.json');
-    fs.mkdirSync(distAndroid, { recursive: true });
+    const resindexIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/resources.index');
+    const resPathIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/resources');
+    const moduleJsonPathIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/module.json');
+    if (isAppProject(projectDir)) {
+      fs.mkdirSync(distAndroid, { recursive: true });
+      isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
+      fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
+      fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
+    }
     fs.mkdirSync(distIOS, { recursive: true });
-    isContinue = isContinue && copy(src, distAndroid) && copy(src, distIOS);
-    isContinue = isContinue && copy(resPath, resPathAndroid) && copy(resPath, resPathIOS);
-    fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
+    isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
     fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
-    fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
     fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
   });
   return isContinue;
@@ -214,8 +220,7 @@ function copyHaptoOutput(moduleListSpecified) {
 }
 
 function runGradle(fileType, cmd, moduleList) {
-  const ohosDir = path.join(projectDir, '/ohos');
-  let cmds = [`cd ${ohosDir}`];
+  let cmds = [`cd ${projectDir}`];
   const buildCmd = `./hvigorw`;
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
@@ -273,7 +278,7 @@ function copyStageBundleToAAR(moduleList) {
   const aarNameList = getAarName(projectDir);
   let isContinue = true;
   aarNameList.forEach(aarName => {
-    const aarPath = path.join(projectDir, 'android', aarName);
+    const aarPath = path.join(projectDir, '.arkui-x/android', aarName);
     if (!fs.existsSync(aarPath)) {
       console.error(`Build aar failed.\nPlease check ${aarPath} directory existing.`);
       return false;
@@ -281,11 +286,11 @@ function copyStageBundleToAAR(moduleList) {
     deleteOldFile(path.join(aarPath, 'src/main/assets/arkui-x'));
     moduleList.forEach(module => {
       // Now only consider one ability
-      const src = path.join(projectDir, '/ohos', module, 'build/default/intermediates/loader_out/default/ets');
-      const resindex = path.join(projectDir, '/ohos', module,
+      const src = path.join(projectDir, module, 'build/default/intermediates/loader_out/default/ets');
+      const resindex = path.join(projectDir, module,
         'build/default/intermediates/res/default/resources.index');
-      const resPath = path.join(projectDir, '/ohos', module, 'build/default/intermediates/res/default/resources');
-      const moduleJsonPath = path.join(projectDir, '/ohos', module,
+      const resPath = path.join(projectDir, module, 'build/default/intermediates/res/default/resources');
+      const moduleJsonPath = path.join(projectDir, module,
         'build/default/intermediates/res/default/module.json');
       const destClassName = module.toLowerCase();
       const distAndroid = path.join(aarPath, 'src/main/assets/arkui-x/', destClassName + '/ets');
@@ -321,8 +326,8 @@ function validateLibraryExist(fileType) {
 function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
   if (readConfig()
     && writeLocalProperties()
-    && copyStageSourceToOhos(moduleListAll, 'main')
-    && copyTestStageSourceToOhos(moduleListAll, fileType, cmd)
+    // && copyStageSourceToOhos(moduleListAll, 'main')
+    // && copyTestStageSourceToOhos(moduleListAll, fileType, cmd)
     && runGradle(fileType, cmd, moduleListSpecified)
     && copyStageBundleToAndroidAndIOS(moduleListSpecified)
     && copyTestStageBundleToAndroidAndIOS(moduleListSpecified, fileType, cmd)) {
@@ -359,7 +364,7 @@ function compiler(fileType, cmd) {
       return false;
     }
   }
-  const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
+  const settingPath = path.join(projectDir, 'build-profile.json5');
   const moduleListAll = getModuleList(settingPath);
   if (moduleListAll == null || moduleListAll.length === 0) {
     console.error('There is no module in project.');

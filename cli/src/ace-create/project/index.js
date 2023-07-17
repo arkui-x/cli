@@ -66,12 +66,12 @@ function create(args) {
 function createProject(projectPath, packages, project, system, proType, template, sdkVersion) {
   try {
     fs.mkdirSync(projectPath);
+    findStageTemplate(projectPath, packages, project, system, proType, template, sdkVersion);
     if (proType === aceProType) {
       if (!(createAar(projectPath, project) && createFramework(projectPath, project))) {
         return false;
       }
     }
-    findStageTemplate(projectPath, packages, project, system, proType, template, sdkVersion);
     console.log('Project created successfully! Target directory：' + projectPath + ' .');
   } catch (error) {
     console.log('Project created failed! Target directory：' + projectPath + ' .' + error);
@@ -236,7 +236,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, proType
   }
   replaceInfo(files, replaceInfos, strs);
   if (proType !== aceProType) {
-    replaceAndroidProjectInfo(projectPath, packages, project, template, sdkVersion);
+    replaceAndroidProjectInfo(projectPath, packages, project, system, template, sdkVersion);
     replaceiOSProjectInfo(projectPath, packages);
   }
   if (system == aceHarmonyOS) {

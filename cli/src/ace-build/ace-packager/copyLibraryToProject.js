@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('../../ace-check/platform');
-const { copy } = require('../../ace-create/project');
+const { copy } = require('../../ace-create/util');
 const { getAarName } = require('../../util');
 const { arkuiXSdkDir } = require('../../ace-check/configs');
 const { appCpu2SdkLibMap, appCpu2DestLibDir, clearLibBeforeCopy } = require('./globalConfig');
@@ -83,7 +83,7 @@ function getJsonConfig(apiConfigPath) {
 function getCpuList(buildProject, projectDir, system) {
   if (system === 'android') {
     const androidGradlePath = path.join(projectDir,
-      '/android/' + buildProject + '/build.gradle');
+      '.arkui-x/android/' + buildProject + '/build.gradle');
     console.log('\nandroid Gradle File:', androidGradlePath);
     if (fs.existsSync(androidGradlePath)) {
       let gradleData = fs.readFileSync(androidGradlePath, 'utf-8');

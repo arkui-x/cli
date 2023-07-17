@@ -203,7 +203,7 @@ function getCmakePath() {
         return null;
     }
     const sdkVersion = JSON.parse(fs.readFileSync(
-        path.join(projectDir, 'ohos/build-profile.json5'))).app.compileSdkVersion.toString();
+        path.join(projectDir, 'build-profile.json5'))).app.compileSdkVersion.toString();
     if (currentSystem === HarmonyOS) {
         system = '2';
     } else {

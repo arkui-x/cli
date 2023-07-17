@@ -36,7 +36,7 @@
 /* Begin PBXFileReference section */
 		DF4BEDE729F4F5270060CCEB /* EntryMainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryMainViewController.m; sourceTree = "<group>"; };
 		DF4BEDE829F4F5280060CCEB /* EntryMainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryMainViewController.h; sourceTree = "<group>"; };
-		22BA295A29DEAE9800375D33 /* hello.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = hello.cpp; path = ../source/entry/src/main/cpp/hello.cpp; sourceTree = "<group>"; };
+		22BA295A29DEAE9800375D33 /* hello.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = hello.cpp; path = ../../entry/src/main/cpp/hello.cpp; sourceTree = "<group>"; };
 		DF9C1B5D28B9FC3A005DCF58 /* libarkui_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libarkui_ios.xcframework; path = frameworks/libarkui_ios.xcframework; sourceTree = "<group>"; };
 		DF9C1B6028B9FC4B005DCF58 /* js */ = {isa = PBXFileReference; lastKnownFileType = folder; path = js; sourceTree = "<group>"; };
 		DFFB5DAC28F4429C00E74486 /* res */ = {isa = PBXFileReference; lastKnownFileType = folder; path = res; sourceTree = "<group>"; };
