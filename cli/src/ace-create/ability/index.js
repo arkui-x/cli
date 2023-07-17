@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const { copy } = require('../project');
+const { copy } = require('../util');
 const { getModuleList, getModuleAbilityList, addFileToPbxproj } = require('../../util');
 
 let currentDir;
