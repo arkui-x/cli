@@ -149,7 +149,7 @@ function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
   if (!cmd.debug || fileType === 'hap' || !fileType) {
     return isContinue;
   }
-  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', 'Test');
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', '_test');
   return isContinue;
 }
 

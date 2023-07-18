@@ -45,7 +45,7 @@ function isAbilityNameQualified(name) {
   return true;
 }
 
-function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
+function createStageAbilityInAndroid(moduleName, abilityName, templateDir, currentDir) {
   try {
     const manifestPath = path.join(currentDir, '../AppScope/app.json5');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
@@ -174,7 +174,7 @@ function updateManifest(abilityName) {
   }
 }
 
-function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
+function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDir) {
   try {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
@@ -268,12 +268,12 @@ function createAbility() {
     if (createInSource(answers.abilityName + 'Ability', templateDir) &&
     updateManifest(answers.abilityName + 'Ability') &&
     createStageAbilityInAndroid(path.basename(currentDir), answers.abilityName + 'Ability',
-      path.join(templateDir, '../../../../../../../')) &&
+      path.join(templateDir, '../../../../../../../'), currentDir) &&
       createStageAbilityInIOS(path.basename(currentDir), answers.abilityName + 'Ability',
-        path.join(templateDir, '../../../../../../../'))) {
+        path.join(templateDir, '../../../../../../../'), currentDir)) {
       return true;
     }
   });
 }
 
-module.exports = createAbility;
+module.exports = { createAbility, createStageAbilityInAndroid, createStageAbilityInIOS };

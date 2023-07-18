@@ -234,7 +234,7 @@ function replaceStageProjectInfo(moduleName) {
     strs.push(capitalize(moduleName) + 'Ability');
     files.push(path.join(projectDir, moduleName, '/src/ohosTest/module.json5'));
     replaceInfos.push('module_test_name');
-    strs.push(moduleName + 'Test');
+    strs.push(moduleName + '_test');
     files.push(path.join(projectDir, moduleName, '/oh-package.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);
