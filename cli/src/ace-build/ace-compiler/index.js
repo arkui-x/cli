@@ -26,8 +26,7 @@ const {
   copyToBuildDir
 } = require('../ace-build');
 const { copy } = require('../../ace-create/util');
-const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName,
-  getFrameworkName, isAppProject } = require('../../util');
+const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
 let projectDir;
 let openHarmonySdkDir;
@@ -310,19 +309,6 @@ function copyStageBundleToAAR(moduleList) {
   return isContinue;
 }
 
-function validateLibraryExist(fileType) {
-  if (fileType === 'aar') {
-    if (getAarName(projectDir).length == 0) {
-      return false;
-    }
-  } else {
-    if (getFrameworkName(projectDir).length == 0) {
-      return false;
-    }
-  }
-  return true;
-}
-
 function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
   if (readConfig()
     && writeLocalProperties()
@@ -350,17 +336,21 @@ function compiler(fileType, cmd) {
   const moduleListInput = cmd.target;
   if ((platform !== Platform.MacOS) &&
   (fileType === 'app' || fileType === 'framework' || fileType === 'xcframework')) {
-    console.error(`Please go to your MacOS and build ${fileType}.`);
+    console.warn('\x1B[31m%s\x1B[0m', 'Warning: ' + `Please go to your MacOS and build ${fileType}.`);
     return false;
   }
   projectDir = process.cwd();
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  if (fileType === 'aar' || fileType === 'framework' || fileType === 'xcframework') {
-    const dir = fileType === 'xcframework' ? 'framework' : fileType;
-    if (!validateLibraryExist(fileType)) {
-      console.error(`Build ${fileType} failed.\nPlease check ${dir} existing.`);
+  if (isAppProject(projectDir)) {
+    if (fileType === 'aar' || fileType === 'framework' || fileType === 'xcframework') {
+      console.warn('\x1B[31m%s\x1B[0m', `Build ${fileType} failed, current project is not library project.`);
+      return false;
+    }
+  } else {
+    if ((fileType === 'app' || fileType === 'apk') && (!isAppProject(projectDir))) {
+      console.warn('\x1B[31m%s\x1B[0m', `Build ${fileType} failed, current project is not application project.`);
       return false;
     }
   }
