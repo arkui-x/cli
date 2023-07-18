@@ -3,7 +3,7 @@
     "ace": "src/bin/ace_tools.js"
   },
   "name": "ace_tools",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "ace command-line interface tools",
   "main": "index.js",
   "scripts": {
