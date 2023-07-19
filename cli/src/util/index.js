@@ -83,7 +83,7 @@ function getModuleList(settingPath) {
   try {
     const moduleList = [];
     if (fs.existsSync(settingPath)) {
-      const buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
+      const buildProfileInfo = JSON5.parse(fs.readFileSync(settingPath).toString());
       for (let index = 0; index < buildProfileInfo.modules.length; index++) {
         moduleList.push(buildProfileInfo.modules[index].name);
       }

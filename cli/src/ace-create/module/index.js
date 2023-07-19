@@ -352,7 +352,7 @@ function replaceNativeCppTemplate(moduleName, appName) {
     const packageJsonPath = path.join(baseModulePath, 'oh-package.json5');
     const moduleToLower = moduleName.toLowerCase();
     const cMakeFile = path.join(projectDir, `${moduleName}/src/main/cpp/CMakeLists.txt`);
-    const cPackageFile = path.join(baseModulePath, 'src/main/cpp/types/libentry/package.json');
+    const cPackageFile = path.join(baseModulePath, 'src/main/cpp/types/libentry/oh-package.json5');
     const oldPath = path.join(baseModulePath, 'src/main/cpp/types/libentry');
     const newPath = path.join(baseModulePath, `src/main/cpp/types/lib${moduleToLower}`);
     const helloPath = path.join(baseModulePath, 'src/main/cpp/hello.cpp');
