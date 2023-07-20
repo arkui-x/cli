@@ -75,8 +75,11 @@ function readConfig() {
 }
 
 function writeLocalProperties() {
-  let content;
   const filePath = path.join(projectDir, 'local.properties');
+  if(fs.existsSync(filePath)){
+    return true;
+  }
+  let content;
   if (currentSystem === HarmonyOS) {
     content = `hwsdk.dir=${harmonyOsSdkDir}\nnodejs.dir=${nodejsDir}`;
   } else {
