@@ -3,7 +3,6 @@
     "name": "module_name",
     "type": "entry",
     "description": "$string:module_desc",
-    "srcEntry": "./ets/Application/AbilityStage.ts",
     "mainElement": "EntryAbility",
     "deviceTypes": [
       "default",

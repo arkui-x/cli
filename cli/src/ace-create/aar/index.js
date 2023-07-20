@@ -123,15 +123,12 @@ function replaceAarInfo(libraryPath, aarName) {
     replaceInfos.push('package packageName');
     strs.push('package ' + aarPackage);
 
-    fs.writeFileSync(path.join(aarPath, 'src/main/java/MainActivity.java'),
-        fs.readFileSync(path.join(aarPath, 'src/main/java/MainActivity.java')).
-            toString().replace(/setVersion\([^\)]*\);/g, ''));
     files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
     replaceInfos.push('MainActivity');
-    strs.push('EntryMainAbilityActivity');
+    strs.push('EntryEntryAbilityActivity');
     files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
     replaceInfos.push('ArkUIInstanceName');
-    strs.push(aarPackage + ':entry:MainAbility:');
+    strs.push(aarPackage + ':entry:EntryAbility:');
     files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
     replaceInfos.push('ohos.ace.adapter.AceActivity');
     strs.push('ohos.stage.ability.adapter.StageActivity');
@@ -149,7 +146,7 @@ function replaceAarInfo(libraryPath, aarName) {
     }
     replaceInfo(files, replaceInfos, strs);
     fs.renameSync(path.join(aarPath, 'src/main/java/MainActivity.java'), path.join(aarPath,
-        'src/main/java/EntryMainAbilityActivity.java'));
+        'src/main/java/EntryEntryAbilityActivity.java'));
     const aospJavaPath = path.join(aarPath, 'src/main/java/');
     const testAospJavaPath = path.join(aarPath, 'src/test/java');
     const androidTestAospJavaPath = path.join(aarPath, 'src/androidTest/java');

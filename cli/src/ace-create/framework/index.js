@@ -16,8 +16,8 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const { copy, rmdir, replaceInfo } = require('../util');
-const { isProjectRootDir, isNativeCppTemplate } = require('../../util');
+const { copy, replaceInfo } = require('../util');
+const { isNativeCppTemplate } = require('../../util');
 const {
     Platform,
     platform

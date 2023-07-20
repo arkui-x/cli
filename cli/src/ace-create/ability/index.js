@@ -75,8 +75,6 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
         manifestJsonObj.app.bundleName + ':' + moduleName + ':' + abilityName + ':'));
-    fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(/setVersion\([^\)]*\);/g, ''));
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
@@ -144,10 +142,10 @@ function replaceResourceJson(abilityName) {
 
 function updateManifest(abilityName) {
   try {
-    const newTsFilePath = path.join(currentDir, 'src/main/ets', abilityName, abilityName + '.ts');
-    fs.renameSync(path.join(currentDir, 'src/main/ets', abilityName, 'MainAbility.ts'), newTsFilePath);
+    const newTsFilePath = path.join(currentDir, 'src/main/ets', abilityName, abilityName + '.ets');
+    fs.renameSync(path.join(currentDir, 'src/main/ets', abilityName, 'EntryAbility.ets'), newTsFilePath);
     let content = fs.readFileSync(newTsFilePath, 'utf8');
-    content = content.replace(/MainAbility/g, abilityName);
+    content = content.replace(/EntryAbility/g, abilityName);
     fs.writeFileSync(newTsFilePath, content);
     if (!replaceResourceJson(abilityName)) {
       console.error('Replace resource info error.');
@@ -158,7 +156,7 @@ function updateManifest(abilityName) {
     moduleJson.module.abilities.push(
       {
         name: abilityName,
-        srcEntry: './ets/' + abilityName + '/' + abilityName + '.ts',
+        srcEntry: './ets/' + abilityName + '/' + abilityName + '.ets',
         description: '$string:' + abilityName + '_desc',
         icon: '$media:icon',
         label: '$string:' + abilityName + '_label',
@@ -223,7 +221,7 @@ function getTemplatePath() {
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }
-  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/mainability');
+  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/entryability');
   return templateDir;
 }
 
