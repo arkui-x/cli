@@ -102,7 +102,7 @@ function getModuleAbilityList(projDir, moduleList) {
   try {
     const moduleAbilityList = [];
     for (let index = 0; index < moduleList.length; index++) {
-      const moduleJsonPath = path.join(projDir, moduleList[index],
+      const moduleJsonPath = path5.join(projDir, moduleList[index],
         'src/main/module.json5');
       const moduleJsonFile = JSON.parse(fs.readFileSync(moduleJsonPath));
       moduleJsonFile.module.abilities.forEach(component => {
