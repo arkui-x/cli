@@ -126,7 +126,7 @@ function replaceAndroidProjectInfo(projectPath, packages, project, system, templ
   strs.push('package ' + packages);
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ArkUIInstanceName');
-  strs.push(packages + ':entry:MainAbility:');
+  strs.push(packages + ':entry:EntryAbility:');
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ohos.ace.adapter.AceActivity');
   strs.push('ohos.stage.ability.adapter.StageActivity');
@@ -135,7 +135,7 @@ function replaceAndroidProjectInfo(projectPath, packages, project, system, templ
   strs.push('StageActivity');
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('MainActivity');
-  strs.push('EntryMainAbilityActivity');
+  strs.push('EntryEntryAbilityActivity');
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('ohos.ace.adapter.AceApplication');
   strs.push('ohos.stage.ability.adapter.StageApplication');
@@ -144,14 +144,14 @@ function replaceAndroidProjectInfo(projectPath, packages, project, system, templ
   strs.push('StageApplication');
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/AndroidManifest.xml'));
   replaceInfos.push('MainActivity');
-  strs.push('EntryMainAbilityActivity');
+  strs.push('EntryEntryAbilityActivity');
   if (template == aceTemplateNC) {
     modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
   }
   replaceInfo(files, replaceInfos, strs);
 
   fs.renameSync(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'), path.join(projectPath,
-    '.arkui-x/android/app/src/main/java/EntryMainAbilityActivity.java'));
+    '.arkui-x/android/app/src/main/java/EntryEntryAbilityActivity.java'));
   const aospJavaPath = path.join(projectPath, '.arkui-x/android/app/src/main/java');
   const testAospJavaPath = path.join(projectPath, '.arkui-x/android/app/src/test/java');
   const androidTestAospJavaPath = path.join(projectPath, '.arkui-x/android/app/src/androidTest/java');
@@ -207,16 +207,16 @@ function replaceStageProjectInfo(projectPath, packages, project, system, proType
   strs.push(project);
   files.push(path.join(projectPath, 'entry/src/main/resources/base/element/string.json'));
   replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
+  strs.push('EntryAbility');
   files.push(path.join(projectPath, 'entry/src/main/resources/en_US/element/string.json'));
   replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
+  strs.push('EntryAbility');
   files.push(path.join(projectPath, 'entry/src/main/resources/zh_CN/element/string.json'));
   replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
+  strs.push('EntryAbility');
   files.push(path.join(projectPath, 'entry/src/main/module.json5'));
   replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
+  strs.push('EntryAbility');
   files.push(path.join(projectPath, 'entry/src/main/module.json5'));
   replaceInfos.push('module_name');
   strs.push('entry');

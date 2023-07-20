@@ -1,7 +1,7 @@
 import UIAbility from '@ohos.app.ability.UIAbility';
 import window from '@ohos.window';
 
-export default class MainAbility extends UIAbility {
+export default class EntryAbility extends UIAbility {
     onCreate(want, launchParam) {
         console.log('testTag', '%{public}s', 'Ability onCreate');
     }
