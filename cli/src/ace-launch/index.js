@@ -87,7 +87,7 @@ function getNamesApk(projectDir, moduleName) {
       bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
       androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
         return l.toUpperCase();
-      }) + 'MainAbilityActivity';
+      }) + 'EntryAbilityActivity';
       if (!bundleName || !packageName || !androidclassName) {
         console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
         return false;

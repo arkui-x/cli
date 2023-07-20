@@ -84,7 +84,7 @@ function createStageInAndroid(moduleName, templateDir) {
     const templateFileName = 'MainActivity.java';
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + 'MainAbilityActivity';
+    }) + 'EntryAbilityActivity';
     let dest = path.join(projectDir, '.arkui-x/android/app/src/main/java');
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
@@ -101,12 +101,10 @@ function createStageInAndroid(moduleName, templateDir) {
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ohos.ace.adapter.AceActivity', 'g'),
         'ohos.stage.ability.adapter.StageActivity'));
     fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(/setVersion\([^\)]*\);/g, ''));
-    fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
-      + moduleName + ':MainAbility:'));
+      + moduleName + ':EntryAbility:'));
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
@@ -180,7 +178,6 @@ function replaceStageProfile(moduleName) {
         replaceNativeCppTemplate(moduleName, appName);
       }
     }
-    console.log(moduleName);
     const srcBuildPath = path.join(projectDir, 'build-profile.json5');
     const buildPathJson = JSON.parse(fs.readFileSync(srcBuildPath).toString());
     const moduleInfo = {
@@ -220,8 +217,8 @@ function replaceStageProjectInfo(moduleName) {
     strs.push(capitalize(moduleName) + 'Ability');
     if (moduleName != 'entry') {
       files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
-      replaceInfos.push('entry');
-      strs.push('feature');
+      replaceInfos.push(`"entry"`);
+      strs.push(`"feature"`);
     }
     files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
     replaceInfos.push('module_path_name');
@@ -270,7 +267,7 @@ function createStageInIOS(moduleName, templateDir) {
         destClassName));
     const createViewControlInfo =
       '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName '+
-      '  isEqualToString:@"MainAbility"]) {\n' +
+      '  isEqualToString:@"EntryAbility"]) {\n' +
       '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",'+
       'bundleName, moduleName, abilityName];\n' +
       '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] '+
@@ -340,7 +337,10 @@ function modifyModuleBuildProfile(projectDir, moduleName) {
 }
 
 function copyNativeToModule(moduleName, templateDir) {
-  if (!copy(path.join(templateDir, '/cpp'), path.join(projectDir, `/${moduleName}/src/main/cpp`))) {
+  if (!copy(path.join(templateDir, '/cpp/cpp_src'), path.join(projectDir, `/${moduleName}/src/main/cpp`))) {
+    return false;
+  }
+  if (!copy(path.join(templateDir, '/cpp/cpp_ohos'), path.join(projectDir, `/${moduleName}/src/main/cpp`))) {
     return false;
   }
   return true;
@@ -351,12 +351,12 @@ function replaceNativeCppTemplate(moduleName, appName) {
     const baseModulePath = path.join(projectDir, moduleName);
     const packageJsonPath = path.join(baseModulePath, 'oh-package.json5');
     const moduleToLower = moduleName.toLowerCase();
-    const cMakeFile = path.join(projectDir, `${moduleName}/src/main/cpp/CMakeLists.txt`);
+    const cMakeFile = path.join(baseModulePath, `src/main/cpp/CMakeLists.txt`);
     const cPackageFile = path.join(baseModulePath, 'src/main/cpp/types/libentry/oh-package.json5');
     const oldPath = path.join(baseModulePath, 'src/main/cpp/types/libentry');
     const newPath = path.join(baseModulePath, `src/main/cpp/types/lib${moduleToLower}`);
     const helloPath = path.join(baseModulePath, 'src/main/cpp/hello.cpp');
-
+    replaceFileString(path.join(baseModulePath, 'src/main/ets/pages/Index.ets'), /entry/g, moduleToLower);
     replaceFileString(packageJsonPath, /entry/g, moduleToLower);
     replaceFileString(cMakeFile, /entry/g, moduleToLower);
     replaceFileString(cMakeFile, 'appNameValue', appName);
