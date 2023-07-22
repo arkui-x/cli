@@ -16,12 +16,13 @@
 const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('../../ace-check/platform');
-const { copy } = require('../../ace-create/project');
+const { copy } = require('../../ace-create/util');
 const { getAarName } = require('../../util');
 const { arkuiXSdkDir } = require('../../ace-check/configs');
 const { appCpu2SdkLibMap, appCpu2DestLibDir, clearLibBeforeCopy } = require('./globalConfig');
 const { updateIosProjectPbxproj } = require('./adjustPbxproj4Framework');
 const arkUIXSdkName = 'arkui-x';
+let arkuiXSdkPath = '';
 let arkUIXSdkRootLen = 0;
 let projectRootLen = 0;
 function getSubProjectDir(fileType, projectDir) {
@@ -83,7 +84,7 @@ function getJsonConfig(apiConfigPath) {
 function getCpuList(buildProject, projectDir, system) {
   if (system === 'android') {
     const androidGradlePath = path.join(projectDir,
-      '/android/' + buildProject + '/build.gradle');
+      '.arkui-x/android/' + buildProject + '/build.gradle');
     console.log('\nandroid Gradle File:', androidGradlePath);
     if (fs.existsSync(androidGradlePath)) {
       let gradleData = fs.readFileSync(androidGradlePath, 'utf-8');
@@ -294,9 +295,10 @@ function processLib(libpath, depLibSet, allLibSet, removeUnused) {
  * main function to copy library files into project lib directory
  **/
 function copyLibraryToProject(fileType, cmd, projectDir, system) {
-  const apiConfigMap = loadApiConfigJson(arkuiXSdkDir);
+  arkuiXSdkPath = arkuiXSdkDir +'/10/arkui-x';
+  const apiConfigMap = loadApiConfigJson(arkuiXSdkPath);
   const collectionSet = loadCollectionJson(projectDir);
-  arkUIXSdkRootLen = arkuiXSdkDir.length;
+  arkUIXSdkRootLen = arkuiXSdkPath.length;
   projectRootLen = projectDir.length;
   let moduleNameList;
   collectionSet.forEach(moduleName => {
@@ -317,7 +319,7 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
     const allLibSet = checkMap.allCheckMap.get(libpath);
     if (!allLibSet) {
       throw new Error('Could not find any lib for ' + system +
-        ',in ['+arkuiXSdkDir+'], Check config for ArkUI-X SDK,Please!');
+        ',in ['+arkuiXSdkPath+'], Check config for ArkUI-X SDK,Please!');
     }
     processLib(libpath, depCheckSet, allLibSet, clearLibBeforeCopy);
   });
@@ -371,7 +373,7 @@ function traversalDir(dir, callbackFunction, args, ruleCheckerFunction, dirProce
   return args;
 }
 
-const defaultDir = 'ohos/';
+const defaultDir = './'; //current project dir
 const matchNameList = ["build","cache"];
 
 function loadCollectionJson(projectDir) {
@@ -416,28 +418,28 @@ function loadCollectionJson(projectDir) {
   return loadState.collectionSet;
 }
 
-function loadApiConfigJson(arkuiXSdkDir) {
+function loadApiConfigJson(arkuiXSdkPath) {
   printLog('load apiconfig from SDK');
-  const engineApiConfig = getJsonConfig(path.join(arkuiXSdkDir,
+  const engineApiConfig = getJsonConfig(path.join(arkuiXSdkPath,
     '/engine/apiConfig.json'));
-  const pluginsApiConfig = getJsonConfig(path.join(arkuiXSdkDir,
+  const pluginsApiConfig = getJsonConfig(path.join(arkuiXSdkPath,
     '/plugins/api/apiConfig.json'));
-  const pluginsComponentApiConfig = getJsonConfig(path.join(arkuiXSdkDir,
+  const pluginsComponentApiConfig = getJsonConfig(path.join(arkuiXSdkPath,
     '/plugins/component/apiConfig.json'));
   let apiConfigMap = new Map();
   let rootpath = {
-    'android': path.join(arkuiXSdkDir, '/engine'),
-    'ios': path.join(arkuiXSdkDir, '/engine')
+    'android': path.join(arkuiXSdkPath, '/engine'),
+    'ios': path.join(arkuiXSdkPath, '/engine')
   };
   apiConfigMap = loadApiConfig(rootpath, engineApiConfig, apiConfigMap);
   rootpath = {
-    'android': path.join(arkuiXSdkDir, '/plugins/api'),
-    'ios': path.join(arkuiXSdkDir, '/plugins/api')
+    'android': path.join(arkuiXSdkPath, '/plugins/api'),
+    'ios': path.join(arkuiXSdkPath, '/plugins/api')
   };
   apiConfigMap = loadApiConfig(rootpath, pluginsApiConfig, apiConfigMap);
   rootpath = {
-    'android': path.join(arkuiXSdkDir, '/plugins/component'),
-    'ios': path.join(arkuiXSdkDir, '/plugins/component')
+    'android': path.join(arkuiXSdkPath, '/plugins/component'),
+    'ios': path.join(arkuiXSdkPath, '/plugins/component')
   };
   apiConfigMap = loadApiConfig(rootpath, pluginsComponentApiConfig, apiConfigMap);
   return apiConfigMap;

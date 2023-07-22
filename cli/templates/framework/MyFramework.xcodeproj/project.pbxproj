@@ -18,13 +18,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		2208FD3A29F61C8900D1A1FE /* hello.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = hello.cpp; path = ../../../source/entry/src/main/cpp/hello.cpp; sourceTree = "<group>"; };
+		2208FD3A29F61C8900D1A1FE /* hello.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = hello.cpp; path = ../../../entry/src/main/cpp/hello.cpp; sourceTree = "<group>"; };
 		22FAD4C629E6A45C00729313 /* MyFramework.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MyFramework.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		22FAD4C929E6A45C00729313 /* MyFramework.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MyFramework.h; sourceTree = "<group>"; };
 		22FAD4D029E6A63E00729313 /* ArkUIAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArkUIAppDelegate.h; sourceTree = "<group>"; };
 		22FAD4D229E6A64500729313 /* ArkUIAppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ArkUIAppDelegate.m; sourceTree = "<group>"; };
-		22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libarkui_ios.xcframework; path = ../frameworks/libarkui_ios.xcframework; sourceTree = "<group>"; };
-		22FAD50329F12BF900729313 /* arkui-x */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../arkui-x"; sourceTree = "<group>"; };
+		22FAD50129F12AFC00729313 /* libarkui_ios.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libarkui_ios.xcframework; path = frameworks/libarkui_ios.xcframework; sourceTree = "<group>"; };
+		22FAD50329F12BF900729313 /* arkui-x */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "arkui-x"; sourceTree = "<group>"; };
 		22FAD50529F12CA400729313 /* EntryMainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EntryMainViewController.h; sourceTree = "<group>"; };
 		22FAD50729F12CAB00729313 /* EntryMainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EntryMainViewController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -311,7 +311,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
 			};
 			name = Debug;
 		};
@@ -339,7 +339,7 @@
 				SKIP_INSTALL = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
+				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";
 			};
 			name = Release;
 		};

@@ -17,16 +17,15 @@ const fs = require('fs');
 const readline = require('readline');
 const path = require('path');
 const inquirer = require('inquirer');
-const JSON5 = require('json5');
 const check = require('../../ace-check');
-const { openHarmonySdkDir, harmonyOsSdkDir } = require('../../ace-check/configs');
-const {
-  Platform,
-  platform,
-  homeDir
-} = require('../../ace-check/platform');
+
+const createAar = require('../aar');
+const createFramework = require('../framework');
+const { copy, rmdir, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
+  modifyNativeCppConfig } = require('../util');
 const aceHarmonyOS = '2';
 const aceTemplateNC = '2';
+const aceProType = '2';
 
 function create(args) {
   check();
@@ -42,7 +41,7 @@ function create(args) {
       }
     }
   }];
-  const { project, packages, system, template, sdkVersion } = args;
+  const { project, packages, system, proType, template, sdkVersion } = args;
   const projectPath = path.join(process.cwd(), project);
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
@@ -54,228 +53,259 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, packages, project, system, template, sdkVersion);
+        createProject(projectPath, packages, project, system, proType, template, sdkVersion);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, packages, project, system, template, sdkVersion);
+    createProject(projectPath, packages, project, system, proType, template, sdkVersion);
   }
 }
 
-function createProject(projectPath, packages, project, system, template, sdkVersion) {
+function createProject(projectPath, packages, project, system, proType, template, sdkVersion) {
   try {
     fs.mkdirSync(projectPath);
-    findStageTemplate(projectPath, packages, project, system, template, sdkVersion);
+    findStageTemplate(projectPath, packages, project, system, proType, template, sdkVersion);
+    if (proType === aceProType) {
+      if (!(createAar(projectPath, project) && createFramework(projectPath, project))) {
+        return false;
+      }
+    }
     console.log('Project created successfully! Target directory：' + projectPath + ' .');
   } catch (error) {
     console.log('Project created failed! Target directory：' + projectPath + ' .' + error);
   }
 }
 
-function findStageTemplate(projectPath, packages, project, system, template, sdkVersion) {
+function findStageTemplate(projectPath, packages, project, system, proType, template, sdkVersion) {
+
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
-    copyStageTemplate(pathTemplate, projectPath, template);
-    replaceStageProjectInfo(projectPath, packages, project, system, template, sdkVersion);
+    copyStageTemplate(pathTemplate, projectPath, proType, template);
+    replaceStageProjectInfo(projectPath, packages, project, system, proType, template, sdkVersion);
   } else {
     pathTemplate = path.join(__dirname, '../../../templates');
     if (fs.existsSync(pathTemplate)) {
-      copyStageTemplate(pathTemplate, projectPath, template);
-      replaceStageProjectInfo(projectPath, packages, project, system, template, sdkVersion);
+      copyStageTemplate(pathTemplate, projectPath, proType, template);
+      replaceStageProjectInfo(projectPath, packages, project, system, proType, template, sdkVersion);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceStageProjectInfo(projectPath, packages, project, system, template, sdkVersion) {
-  if (!packages) {
-    packages = 'com.example.arkuicross';
-  }
+function replaceAndroidProjectInfo(projectPath, packages, project, system, template, sdkVersion) {
   const packageArray = packages.split('.');
   const files = [];
   const replaceInfos = [];
   const strs = [];
-  fs.writeFileSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'),
-    fs.readFileSync(path.join(projectPath,
-      'android/app/src/main/java/MainActivity.java')).toString().replace(/setVersion\([^\)]*\);/g, ''));
-  files.push(path.join(projectPath, 'ohos/AppScope/resources/base/element/string.json'));
-  replaceInfos.push('projectName');
-  strs.push(project);
-  files.push(path.join(projectPath, 'ohos/AppScope/app.json5'));
-  replaceInfos.push('appBunduleName');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'ohos/oh-package.json5'));
-  replaceInfos.push('packageInfo');
-  strs.push(project);
-  files.push(path.join(projectPath, 'source/entry/src/main/resources/base/element/string.json'));
-  replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
-  files.push(path.join(projectPath, 'source/entry/src/main/resources/en_US/element/string.json'));
-  replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
-  files.push(path.join(projectPath, 'source/entry/src/main/resources/zh_CN/element/string.json'));
-  replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
-  files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
-  replaceInfos.push('module_ability_name');
-  strs.push('MainAbility');
-  files.push(path.join(projectPath, 'source/entry/src/main/module.json5'));
-  replaceInfos.push('module_name');
-  strs.push('entry');
-  files.push(path.join(projectPath, 'source/entry/src/ohosTest/module.json5'));
-  replaceInfos.push('module_test_name');
-  strs.push('entryTest');
-  files.push(path.join(projectPath, 'source/entry/src/ohosTest/resources/base/element/string.json'));
-  replaceInfos.push('module_test_name');
-  strs.push('entry_test_desc');
-  files.push(path.join(projectPath, 'source/entry/oh-package.json5'));
-  replaceInfos.push('module_name');
-  strs.push('entry');
-
-  files.push(path.join(projectPath, 'android/settings.gradle'));
+  files.push(path.join(projectPath, '.arkui-x/android/settings.gradle'));
   replaceInfos.push('appName');
   strs.push(project);
-  files.push(path.join(projectPath, 'android/settings.gradle'));
-  replaceInfos.push('appIDValueHi');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'android/settings.gradle'));
-  replaceInfos.push('appNameValueHi');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/res/values/strings.xml'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/res/values/strings.xml'));
   replaceInfos.push('appName');
   strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/AndroidManifest.xml'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/AndroidManifest.xml'));
   replaceInfos.push('packageName');
   strs.push(packages);
-  files.push(path.join(projectPath, 'android/app/build.gradle'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/build.gradle'));
   replaceInfos.push('packageName');
   strs.push(packages);
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-  files.push(path.join(projectPath, 'android/app/src/test/java/ExampleUnitTest.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/test/java/ExampleUnitTest.java'));
   replaceInfos.push('package packageName');
   strs.push('package ' + packages);
-
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ArkUIInstanceName');
-  strs.push(packages + ':entry:MainAbility:');
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  strs.push(packages + ':entry:EntryAbility:');
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ohos.ace.adapter.AceActivity');
   strs.push('ohos.stage.ability.adapter.StageActivity');
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('AceActivity');
   strs.push('StageActivity');
-  files.push(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('MainActivity');
-  strs.push('EntryMainAbilityActivity');
-  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
+  strs.push('EntryEntryAbilityActivity');
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('ohos.ace.adapter.AceApplication');
   strs.push('ohos.stage.ability.adapter.StageApplication');
-  files.push(path.join(projectPath, 'android/app/src/main/java/MyApplication.java'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('AceApplication');
   strs.push('StageApplication');
-  files.push(path.join(projectPath, 'android/app/src/main/AndroidManifest.xml'));
+  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/AndroidManifest.xml'));
   replaceInfos.push('MainActivity');
-  strs.push('EntryMainAbilityActivity');
-
-  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('bundleIdentifier');
-  strs.push(packages);
-  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('etsapp');
-  strs.push('app');
-  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('res');
-  strs.push('arkui-x');
-  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('DFFB5DAC28F4429C00E74486');
-  strs.push('DFC5555529D7F36400B63EB3');
-  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('AppDelegate.mm');
-  strs.push('AppDelegate.m');
-  files.push(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('DFFB5DAD28F4429C00E74486');
-  strs.push('DFC5555629D7F36400B63EB3');
-  files.push(path.join(projectPath, 'ios/app/AppDelegate.m'));
-  replaceInfos.push('packageName');
-  strs.push(packages);
+  strs.push('EntryEntryAbilityActivity');
   if (template == aceTemplateNC) {
     modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
   }
   replaceInfo(files, replaceInfos, strs);
-  replaceIOSRbxprojInfo(projectPath);
-  fs.renameSync(path.join(projectPath, 'android/app/src/main/java/MainActivity.java'), path.join(projectPath,
-    'android/app/src/main/java/EntryMainAbilityActivity.java'));
-  if (system == aceHarmonyOS) {
-    modifyHarmonyOSConfig(projectPath, 'entry');
-  }
-  const aospJavaPath = path.join(projectPath, 'android/app/src/main/java');
-  const testAospJavaPath = path.join(projectPath, 'android/app/src/test/java');
-  const androidTestAospJavaPath = path.join(projectPath, 'android/app/src/androidTest/java');
+
+  fs.renameSync(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'), path.join(projectPath,
+    '.arkui-x/android/app/src/main/java/EntryEntryAbilityActivity.java'));
+  const aospJavaPath = path.join(projectPath, '.arkui-x/android/app/src/main/java');
+  const testAospJavaPath = path.join(projectPath, '.arkui-x/android/app/src/test/java');
+  const androidTestAospJavaPath = path.join(projectPath, '.arkui-x/android/app/src/androidTest/java');
   const packagePaths = [aospJavaPath, testAospJavaPath, androidTestAospJavaPath];
   createPackageFile(packagePaths, packageArray);
 }
 
-function copyStageTemplate(templatePath, projectPath, template) {
-  if (!copy(path.join(templatePath, '/ohos_stage'), path.join(projectPath, '/ohos'))) {
-    return false;
+function replaceiOSProjectInfo(projectPath, packages) {
+  const files = [];
+  const replaceInfos = [];
+  const strs = [];
+  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('bundleIdentifier');
+  strs.push(packages);
+  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('etsapp');
+  strs.push('app');
+  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('res');
+  strs.push('arkui-x');
+  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('DFFB5DAC28F4429C00E74486');
+  strs.push('DFC5555529D7F36400B63EB3');
+  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('AppDelegate.mm');
+  strs.push('AppDelegate.m');
+  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  replaceInfos.push('DFFB5DAD28F4429C00E74486');
+  strs.push('DFC5555629D7F36400B63EB3');
+  files.push(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
+  replaceInfos.push('packageName');
+  strs.push(packages);
+  replaceInfo(files, replaceInfos, strs);
+  replaceIOSRbxprojInfo(projectPath);
+}
+
+function replaceStageProjectInfo(projectPath, packages, project, system, proType, template, sdkVersion) {
+  if (!packages) {
+    packages = 'com.example.arkuicross';
   }
-  if (!copy(path.join(templatePath, '/android'), path.join(projectPath, '/android'))) {
-    return false;
-  }
-  if (!copy(path.join(templatePath, '/ios'), path.join(projectPath, '/ios'))) {
-    return false;
-  }
+  const files = [];
+  const replaceInfos = [];
+  const strs = [];
+
+  files.push(path.join(projectPath, 'AppScope/resources/base/element/string.json'));
+  replaceInfos.push('projectName');
+  strs.push(project);
+  files.push(path.join(projectPath, 'AppScope/app.json5'));
+  replaceInfos.push('appBunduleName');
+  strs.push(packages);
+  files.push(path.join(projectPath, 'oh-package.json5'));
+  replaceInfos.push('packageInfo');
+  strs.push(project);
+  files.push(path.join(projectPath, 'entry/src/main/resources/base/element/string.json'));
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
+  files.push(path.join(projectPath, 'entry/src/main/resources/en_US/element/string.json'));
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
+  files.push(path.join(projectPath, 'entry/src/main/resources/zh_CN/element/string.json'));
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
+  files.push(path.join(projectPath, 'entry/src/main/module.json5'));
+  replaceInfos.push('module_ability_name');
+  strs.push('EntryAbility');
+  files.push(path.join(projectPath, 'entry/src/main/module.json5'));
+  replaceInfos.push('module_name');
+  strs.push('entry');
+  files.push(path.join(projectPath, 'entry/src/ohosTest/module.json5'));
+  replaceInfos.push('module_test_name');
+  strs.push('entry_test');
+  files.push(path.join(projectPath, 'entry/src/ohosTest/resources/base/element/string.json'));
+  replaceInfos.push('module_test_name');
+  strs.push('entry_test_desc');
+  files.push(path.join(projectPath, 'entry/oh-package.json5'));
+  replaceInfos.push('module_name');
+  strs.push('entry');
   if (template == aceTemplateNC) {
-    if (!copy(path.join(templatePath, '/cpp_ets_stage/source'), path.join(projectPath, '/source'))) {
+    files.push(path.join(projectPath, 'entry/src/main/cpp/CMakeLists.txt'));
+    replaceInfos.push('appNameValue');
+    strs.push(project);
+  }
+  replaceInfo(files, replaceInfos, strs);
+  if (proType !== aceProType) {
+    replaceAndroidProjectInfo(projectPath, packages, project, system, template, sdkVersion);
+    replaceiOSProjectInfo(projectPath, packages);
+  }
+  if (system == aceHarmonyOS) {
+    modifyHarmonyOSConfig(projectPath, 'entry');
+  }
+}
+
+function copyAndroidiOSTemplate(templatePath, projectPath, template) {
+  if (!copy(path.join(templatePath, '/android'), path.join(projectPath, '.arkui-x/android'))) {
+    return false;
+  }
+  if (!copy(path.join(templatePath, '/ios'), path.join(projectPath, '.arkui-x/ios'))) {
+    return false;
+  }
+  if (template === aceTemplateNC) {
+    if (!copy(path.join(templatePath, '/cpp/cpp_android'), path.join(projectPath, '.arkui-x/android/app/src/main/cpp'))) {
       return false;
     }
-    if (!copy(path.join(templatePath, '/cpp/cpp_src'), path.join(projectPath, '/source/entry/src/main/cpp'))) {
+    if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '.arkui-x/ios/etsapp.xcodeproj'))) {
       return false;
     }
-    if (!copy(path.join(templatePath, '/cpp/cpp_ohos'), path.join(projectPath, '/ohos/entry/src/main/cpp'))) {
+  }
+
+  fs.renameSync(path.join(projectPath, '.arkui-x/ios/etsapp.xcodeproj'), path.join(projectPath, '.arkui-x/ios/app.xcodeproj'));
+  fs.renameSync(path.join(projectPath, '.arkui-x/ios/etsapp'), path.join(projectPath, '.arkui-x/ios/app'));
+  fs.renameSync(path.join(projectPath, '.arkui-x/ios/js'), path.join(projectPath, '.arkui-x/ios/arkui-x'));
+  fs.unlinkSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.mm'));
+  fs.unlinkSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.h'));
+  fs.renameSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate_stage.m'),
+    path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
+  fs.renameSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate_stage.h'),
+    path.join(projectPath, '.arkui-x/ios/app/AppDelegate.h'));
+  return true;
+}
+
+function copyStageTemplate(templatePath, projectPath, proType, template) {
+  if (!copy(path.join(templatePath, '/ohos_stage'), projectPath)) {
+    return false;
+  }
+  if (template === aceTemplateNC) {
+    if (!copy(path.join(templatePath, '/cpp_ets_stage/source'), projectPath)) {
       return false;
     }
-    if (!copy(path.join(templatePath, '/cpp/cpp_android'), path.join(projectPath, '/android/app/src/main/cpp'))) {
+    if (!copy(path.join(templatePath, '/cpp/cpp_src'), path.join(projectPath, 'entry/src/main/cpp'))) {
       return false;
     }
-    if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '/ios/etsapp.xcodeproj'))) {
+    if (!copy(path.join(templatePath, '/cpp/cpp_ohos'), path.join(projectPath, 'entry/src/main/cpp'))) {
       return false;
     }
   } else {
-    if (!copy(path.join(templatePath, '/ets_stage/source'), path.join(projectPath, '/source'))) {
+    if (!copy(path.join(templatePath, '/ets_stage/source'), projectPath)) {
       return false;
     }
   }
-  fs.renameSync(path.join(projectPath, '/ios/etsapp.xcodeproj'), path.join(projectPath, '/ios/app.xcodeproj'));
-  fs.renameSync(path.join(projectPath, '/ios/etsapp'), path.join(projectPath, '/ios/app'));
-  fs.renameSync(path.join(projectPath, '/ios/js'), path.join(projectPath, '/ios/arkui-x'));
-  fs.unlinkSync(path.join(projectPath, '/ios/app/AppDelegate.mm'));
-  fs.unlinkSync(path.join(projectPath, '/ios/app/AppDelegate.h'));
-  fs.renameSync(path.join(projectPath, '/ios/app/AppDelegate_stage.m'),
-    path.join(projectPath, '/ios/app/AppDelegate.m'));
-  fs.renameSync(path.join(projectPath, '/ios/app/AppDelegate_stage.h'),
-    path.join(projectPath, '/ios/app/AppDelegate.h'));
+  if (proType !== aceProType) {
+    if (!copyAndroidiOSTemplate(templatePath, projectPath, template)){
+      return false;
+    }
+  }
   return true;
 }
 
 function replaceIOSRbxprojInfo(projectPath) {
-  const rbxprojInfoPath = path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj');
+  const rbxprojInfoPath = path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
   const rl = readline.createInterface({
     input: fs.createReadStream(rbxprojInfoPath)
   });
 
-  const fileStream = fs.createWriteStream(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj.temp'),
+  const fileStream = fs.createWriteStream(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj.temp'),
     { autoClose: true });
 
   rl.on('line', function(line) {
@@ -287,190 +317,9 @@ function replaceIOSRbxprojInfo(projectPath) {
     fileStream.end(function() {
       fs.fsyncSync(fileStream.fd);
       fs.unlinkSync(rbxprojInfoPath);
-      fs.renameSync(path.join(projectPath, 'ios/app.xcodeproj/project.pbxproj.temp'), rbxprojInfoPath);
+      fs.renameSync(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj.temp'), rbxprojInfoPath);
     });
   });
 }
 
-function createPackageFile(packagePaths, packageArray) {
-  packagePaths.forEach(packagePath => {
-    const files = fs.readdirSync(packagePath);
-    const oldPath = packagePath;
-    packageArray.forEach(packageInfo => {
-      fs.mkdirSync(path.join(packagePath, packageInfo));
-      packagePath = path.join(packagePath, packageInfo);
-    });
-    files.forEach(javaFile => {
-      const srcEle = path.join(oldPath, javaFile);
-      const dstEle = path.join(packagePath, javaFile);
-      if (fs.statSync(srcEle).isFile()) {
-        fs.writeFileSync(dstEle, fs.readFileSync(srcEle));
-        fs.unlinkSync(srcEle);
-      } else {
-        fs.mkdirSync(dstEle);
-        copy(srcEle, dstEle);
-        rmdir(srcEle);
-      }
-    });
-  });
-}
-function replaceInfo(files, replaceInfos, strs) {
-  files.forEach((filePath, index) => {
-    fs.writeFileSync(filePath,
-      fs.readFileSync(filePath).toString().replace(new RegExp(replaceInfos[index], 'g'), strs[index]));
-  });
-}
-
-function rmdir(filePath) {
-  if (fs.statSync(filePath).isFile()) {
-    fs.unlinkSync(filePath);
-  } else {
-    fs.readdirSync(filePath).forEach(file => {
-      const currentPath = path.join(filePath, file);
-      if (fs.statSync(currentPath).isFile()) {
-        fs.unlinkSync(currentPath);
-      } else {
-        rmdir(currentPath);
-      }
-    });
-    fs.rmdirSync(filePath);
-  }
-}
-
-function copy(src, dst) {
-  const paths = fs.readdirSync(src).filter(item => {
-    return item.substring(0, 1) != '.';
-  });
-  paths.forEach(newpath => {
-    const srcEle = path.join(src, newpath);
-    const dstEle = path.join(dst, newpath);
-    if (fs.statSync(srcEle).isFile()) {
-      const parentDir = path.parse(dstEle).dir;
-      if (!fs.existsSync(parentDir)) {
-        fs.mkdirSync(parentDir, { recursive: true });
-      }
-      fs.writeFileSync(dstEle, fs.readFileSync(srcEle));
-    } else {
-      if (!fs.existsSync(dstEle)) {
-        fs.mkdirSync(dstEle, { recursive: true });
-      }
-      copy(srcEle, dstEle);
-    }
-  });
-  return true;
-}
-
-function modifyHarmonyOSConfig(projectPath, moduleName) {
-  const buildProfile = path.join(projectPath, 'source', moduleName, '/build-profile.json5');
-  const configFile = [path.join(projectPath, 'source', moduleName, 'src/main/module.json5'),
-  path.join(projectPath, 'source', moduleName, 'src/ohosTest/module.json5')];
-  const deviceTypeName = 'deviceTypes';
-
-  if (fs.existsSync(buildProfile)) {
-    const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
-    for (let index = 0; index < buildProfileInfo.targets.length; index++) {
-      if (buildProfileInfo.targets[index].name === 'default') {
-        buildProfileInfo.targets[index].runtimeOS = HarmonyOS;
-        break;
-      }
-    }
-    fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
-  }
-
-  configFile.forEach(config => {
-    if (fs.existsSync(config)) {
-      const configFileInfo = JSON.parse(fs.readFileSync(config));
-      configFileInfo.module[deviceTypeName] = ['phone'];
-      fs.writeFileSync(config, JSON.stringify(configFileInfo, '', '  '));
-    }
-  });
-}
-
-function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion) {
-  const nativeIncludePath = getIncludePath(system, sdkVersion);
-  files.push(path.join(projectPath, 'ohos/entry/src/main/cpp/CMakeLists.txt'));
-  replaceInfos.push('appNameValue');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/cpp/CMakeLists.txt'));
-  replaceInfos.push('appNameValue');
-  strs.push(project);
-  files.push(path.join(projectPath, 'android/app/src/main/cpp/CMakeLists.txt'));
-  replaceInfos.push('SDK_INCLUDE_PATH');
-  strs.push(nativeIncludePath);
-  const buildGradle = path.join(projectPath, 'android/app/build.gradle');
-  if (fs.existsSync(buildGradle)) {
-    const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
-    let num;
-    for (let i = 0; i < buildGradleInfo.length; i++) {
-      if (buildGradleInfo[i] == `            abiFilters "arm64-v8a", "armeabi-v7a"`) {
-        buildGradleInfo[i] = `            abiFilters "arm64-v8a"`;
-      }
-      if (buildGradleInfo[i] == '    dynamicFeatures = []') {
-        num = i;
-        break;
-      }
-    }
-    const value = `
-    externalNativeBuild {
-        cmake {
-            path file('src/main/cpp/CMakeLists.txt')
-            version '3.22.1'
-        }
-    }
-
-    packagingOptions {
-        pickFirst 'lib/arm64-v8a/libarkui_android.so'
-    }
-      `;
-    buildGradleInfo.splice(num, 0, value);
-    fs.writeFileSync(buildGradle, buildGradleInfo.join('\r\n'));
-  }
-}
-
-function getIncludePath(system, sdkVersion) {
-  let sdkPath = '';
-  if (system == aceHarmonyOS) {
-    if (harmonyOsSdkDir) {
-      sdkPath = path.join(harmonyOsSdkDir, 'openharmony', sdkVersion);
-    }
-  } else {
-    if (openHarmonySdkDir) {
-      sdkPath = path.join(openHarmonySdkDir, sdkVersion);
-    }
-  }
-  if (!sdkPath) {
-    sdkPath = path.join(getIdeDefaultSdk(system), sdkVersion);
-  }
-  if (platform === Platform.Windows) {
-    sdkPath = sdkPath.replace(/\\/g, '/');
-  }
-  return sdkPath;
-}
-
-function getIdeDefaultSdk(system) {
-  let defaultPath;
-  let defaultString;
-  if (system == aceHarmonyOS) {
-    defaultString = 'Huawei/Sdk/openharmony';
-  } else {
-    defaultString = 'OpenHarmony/Sdk';
-  }
-  if (platform === Platform.Linux) {
-    defaultPath = path.join(homeDir, defaultString);
-  } else if (platform === Platform.MacOS) {
-    defaultPath = path.join(homeDir, 'Library', defaultString);
-  } else if (platform === Platform.Windows) {
-    defaultPath = path.join(homeDir, 'AppData', 'Local', defaultString);
-  }
-  return defaultPath;
-}
-
-module.exports = {
-  create,
-  copy,
-  rmdir,
-  modifyHarmonyOSConfig,
-  createPackageFile,
-  replaceInfo,
-  getIncludePath
-};
+module.exports = create;

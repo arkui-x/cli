@@ -1,9 +1,10 @@
 {
   "name": "packageInfo",
   "version": "1.0.0",
-  "description": "example description",
-  "main":"",
-  "license": "ISC",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
   "dependencies": {
   },
   "devDependencies": {

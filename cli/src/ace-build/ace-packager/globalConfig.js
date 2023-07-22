@@ -48,17 +48,17 @@ const appCpu2SdkLibMap = {
 
 const appCpu2DestLibDir = {
   'android': {
-    'arm64-v8a': {'so': '/android/{subdir}/libs/arm64-v8a', 'jar': '/android/{subdir}/libs'},
-    'armeabi-v7a': {'so': '/android/{subdir}/libs/armeabi-v7a', 'jar': '/android/{subdir}/libs'},
-    'x86_64': {'so': '/android/{subdir}/libs/x86_64', 'jar': '/android/{subdir}/libs'}
+    'arm64-v8a': {'so': '.arkui-x/android/{subdir}/libs/arm64-v8a', 'jar': '.arkui-x/android/{subdir}/libs'},
+    'armeabi-v7a': {'so': '.arkui-x/android/{subdir}/libs/armeabi-v7a', 'jar': '.arkui-x/android/{subdir}/libs'},
+    'x86_64': {'so': '.arkui-x/android/{subdir}/libs/x86_64', 'jar': '.arkui-x/android/{subdir}/libs'}
   },
   'ios': {
-    'arm64': {'xcframework': '/{subdir}/frameworks'},
-    'x86_64': {'xcframework': '/{subdir}/frameworks'}
+    'arm64': {'xcframework': '.arkui-x/{subdir}/frameworks'},
+    'x86_64': {'xcframework': '.arkui-x/{subdir}/frameworks'}
   },
   'ios-simulator': {
-    'arm64': {'xcframework': '/{subdir}/frameworks'},
-    'x86_64': {'xcframework': '/{subdir}/frameworks'}
+    'arm64': {'xcframework': '.arkui-x/{subdir}/frameworks'},
+    'x86_64': {'xcframework': '.arkui-x/{subdir}/frameworks'}
   }
 };
 

@@ -15,115 +15,55 @@
 
 const fs = require('fs');
 const path = require('path');
-const inquirer = require('inquirer');
-const { copy, rmdir, createPackageFile, replaceInfo, getIncludePath } = require('../project');
-const { isProjectRootDir, getCurrentProjectSystem, isNativeCppTemplate, } = require('../../util');
-const projectDir = process.cwd();
+const { copy, createPackageFile, replaceInfo, getIncludePath } = require('../util');
+const { getCurrentProjectSystem, isNativeCppTemplate, } = require('../../util');
+let projectDir;
 
-function createAar() {
-    if (!isProjectRootDir(projectDir)) {
+function createAar(projectPath, aarName) {
+    try {
+        projectDir = projectPath;
+        libraryPath = path.join(projectDir, '.arkui-x/android');
+        fs.mkdirSync(libraryPath, { recursive: true });
+        findAarTemplate(libraryPath, aarName);
+        return true;
+    } catch (error) {
+        console.log('AAR created failed! Target directory：' + libraryPath + ' .' + error);
         return false;
     }
-    inquirer.prompt([{
-        name: 'aarName',
-        type: 'input',
-        message: 'Please enter the AAR name:',
-        validate(val) {
-            if (val === '') {
-                return 'AAR name must be required!';
-            }
-            return true;
-        }
-    }]).then(answers => {
-        const aarName = answers.aarName;
-        if (!validateIllegalName(aarName)) {
-            return false;
-        }
-        const aarPath = path.join(projectDir, 'android', aarName);
-        if (fs.existsSync(aarPath)) {
-            inquirer.prompt([{
-                name: 'delete',
-                type: 'input',
-                message: 'The AAR already exists. Do you want to delete the directory (y / n):',
-                validate(val) {
-                    if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
-                        return 'Please enter y / n!';
-                    } else {
-                        return true;
-                    }
-                }
-            }]).then(answers => {
-                if (answers.delete === 'y') {
-                    try {
-                        rmdir(aarPath);
-                        console.log('Delete directory successfully, creating new AAR.');
-                    } catch (err) {
-                        console.log(`Failed to delete ${aarPath}, please delete it do yourself.`);
-                    }
-                    createAarPkg(aarPath, aarName);
-                } else {
-                    console.log('Failed to create AAR, AAR directory already exists.');
-                }
-            });
-        } else {
-            createAarPkg(aarPath, aarName);
-        }
-    });
 }
 
-function createAarPkg(aarPath, aarName) {
-    try {
-        fs.mkdirSync(aarPath);
-        findAarTemplate(aarPath, aarName);
-        console.log('AAR created successfully! Target directory：' + aarPath + ' .');
-    } catch (error) {
-        console.log('AAR created failed! Target directory：' + aarPath + ' .' + error);
-    }
-}
-
-function findAarTemplate(aarPath, aarName) {
+function findAarTemplate(libraryPath, aarName) {
     let templatePath = path.join(__dirname, 'template');
     if (fs.existsSync(templatePath)) {
-        copyTemplateToAAR(templatePath, aarPath);
-        modifyAarConfig(aarPath, aarName);
-        replaceAarInfo(aarPath, aarName);
+        copyTemplateToAAR(templatePath, libraryPath);
+        modifyAarConfig(libraryPath);
+        replaceAarInfo(libraryPath, aarName);
     } else {
         templatePath = path.join(__dirname, '../../../templates');
         if (fs.existsSync(templatePath)) {
-            copyTemplateToAAR(templatePath, aarPath);
-            modifyAarConfig(aarPath, aarName);
-            replaceAarInfo(aarPath, aarName);
+            copyTemplateToAAR(templatePath, libraryPath);
+            modifyAarConfig(libraryPath);
+            replaceAarInfo(libraryPath, aarName);
         } else {
             console.log('Error: Template is not exist!');
         }
     }
 }
 
-function copyTemplateToAAR(templatePath, aarPath) {
-    if (!copy(path.join(templatePath, 'android/app'), aarPath)) {
+function copyTemplateToAAR(templatePath, libraryPath) {
+    if (!copy(path.join(templatePath, 'android'), libraryPath)) {
         return false;
     }
     if (isNativeCppTemplate(projectDir)) {
-        if (!copy(path.join(templatePath, 'cpp/cpp_android'), path.join(aarPath, 'src/main/cpp'))) {
+        if (!copy(path.join(templatePath, 'cpp/cpp_android'), path.join(libraryPath, 'app/src/main/cpp'))) {
             return false;
         }
     }
     return true;
 }
 
-function modifyAarConfig(aarPath, aarName) {
-    const projectGradle = path.join(projectDir, 'android/settings.gradle');
-    let projectGradleInfo = fs.readFileSync(projectGradle, 'utf8').split(/\r\n|\n|\r/gm);
-    if (!projectGradleInfo.includes(`include ':${aarName}'`)) {
-        for (let i = 0; i < projectGradleInfo.length; i++) {
-            if (projectGradleInfo[i] == `include ':app'`) {
-                projectGradleInfo.splice(i + 1, 0, `include ':${aarName}'`);
-            }
-        }
-        fs.writeFileSync(projectGradle, projectGradleInfo.join('\r\n'));
-    }
-
-    const buildGradle = path.join(aarPath, 'build.gradle');
+function modifyAarConfig(libraryPath) {
+    const buildGradle = path.join(libraryPath, 'app/build.gradle');
     let buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
     for (let i = 0; i < buildGradleInfo.length; i++) {
         if ((buildGradleInfo[i] == `        applicationId "packageName"`) ||
@@ -133,19 +73,28 @@ function modifyAarConfig(aarPath, aarName) {
     }
     fs.writeFileSync(buildGradle, buildGradleInfo.join('\r\n'));
 
-    const curManifestXmlInfo = fs.readFileSync(path.join(aarPath, 'src/main/AndroidManifest.xml')).toString();
+    const curManifestXmlInfo = fs.readFileSync(path.join(libraryPath, 'app/src/main/AndroidManifest.xml')).toString();
     const firstIndex = curManifestXmlInfo.indexOf('    <application');
     const lastIndex = curManifestXmlInfo.lastIndexOf('</manifest>');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, firstIndex) + curManifestXmlInfo.slice(lastIndex);
-    fs.writeFileSync(path.join(aarPath, 'src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    fs.writeFileSync(path.join(libraryPath, 'app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
 }
 
-function replaceAarInfo(aarPath, aarName) {
+function replaceAarInfo(libraryPath, aarName) {
     const aarPackage = 'com.example.' + aarName;
     const packageArray = aarPackage.split('.');
     const files = [];
     const replaceInfos = [];
     const strs = [];
+    const aarPath = path.join(libraryPath, aarName);
+    fs.renameSync(path.join(libraryPath, 'app'), aarPath);
+
+    files.push(path.join(libraryPath, 'settings.gradle'));
+    replaceInfos.push(':app');
+    strs.push(':' + aarName);
+    files.push(path.join(libraryPath, 'settings.gradle'));
+    replaceInfos.push('appName');
+    strs.push(aarName);
 
     files.push(path.join(aarPath, 'src/main/res/values/strings.xml'));
     replaceInfos.push('appName');
@@ -174,15 +123,12 @@ function replaceAarInfo(aarPath, aarName) {
     replaceInfos.push('package packageName');
     strs.push('package ' + aarPackage);
 
-    fs.writeFileSync(path.join(aarPath, 'src/main/java/MainActivity.java'),
-        fs.readFileSync(path.join(aarPath, 'src/main/java/MainActivity.java')).
-            toString().replace(/setVersion\([^\)]*\);/g, ''));
     files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
     replaceInfos.push('MainActivity');
-    strs.push('EntryMainActivity');
+    strs.push('EntryEntryAbilityActivity');
     files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
     replaceInfos.push('ArkUIInstanceName');
-    strs.push(aarPackage + ':entry:MainAbility:');
+    strs.push(aarPackage + ':entry:EntryAbility:');
     files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
     replaceInfos.push('ohos.ace.adapter.AceActivity');
     strs.push('ohos.stage.ability.adapter.StageActivity');
@@ -200,7 +146,7 @@ function replaceAarInfo(aarPath, aarName) {
     }
     replaceInfo(files, replaceInfos, strs);
     fs.renameSync(path.join(aarPath, 'src/main/java/MainActivity.java'), path.join(aarPath,
-        'src/main/java/EntryMainActivity.java'));
+        'src/main/java/EntryEntryAbilityActivity.java'));
     const aospJavaPath = path.join(aarPath, 'src/main/java/');
     const testAospJavaPath = path.join(aarPath, 'src/test/java');
     const androidTestAospJavaPath = path.join(aarPath, 'src/androidTest/java');
@@ -254,7 +200,7 @@ function getCmakePath() {
         return null;
     }
     const sdkVersion = JSON.parse(fs.readFileSync(
-        path.join(projectDir, 'ohos/build-profile.json5'))).app.compileSdkVersion.toString();
+        path.join(projectDir, 'build-profile.json5'))).app.compileSdkVersion.toString();
     if (currentSystem === HarmonyOS) {
         system = '2';
     } else {
@@ -263,12 +209,4 @@ function getCmakePath() {
     return getIncludePath(system, sdkVersion);
 }
 
-function validateIllegalName(name) {
-    const nameStr = name.match(/^[a-zA-Z_][a-zA-Z0-9_]*/g);
-    if (nameStr != name || nameStr == 'app' || nameStr == 'gradle' || nameStr == 'null') {
-        console.error('Illegal name, create failed.');
-        return false;
-    }
-    return true;
-}
 module.exports = createAar;

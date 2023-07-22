@@ -28,6 +28,7 @@ const {
 const { isProjectRootDir, getAarName, getFrameworkName } = require('../../util');
 const projectDir = process.cwd();
 const { copyLibraryToProject } = require('./copyLibraryToProject');
+const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 let androidOSSdkDir;
 
 function getAndroidSdkDir() {
@@ -46,13 +47,13 @@ function getAndroidSdkDir() {
 }
 
 function writeLocalProperties() {
-  const filePath = path.join(projectDir, '/android/local.properties');
+  const filePath = path.join(projectDir, '.arkui-x/android/local.properties');
   const content = `sdk.dir=${androidOSSdkDir}`;
   return createLocalProperties(filePath, content);
 }
 
 function copyToOutput(fileType) {
-  let typePath = fileType == "apk" ? "android/app" : "ios";
+  let typePath = fileType == "apk" ? ".arkui-x/android/app" : ".arkui-x/ios";
   let src = path.join(projectDir, `/${typePath}/build/outputs/${fileType}/`);
   let filePath = copyToBuildDir(src);
   console.log(`filepath: ${filePath}`);
@@ -62,14 +63,14 @@ function copyLibraryToOutput(fileType) {
   if (fileType == 'aar') {
     const aarNameList = getAarName(projectDir);
     aarNameList.forEach(aarName => {
-      let src = path.join(projectDir, `android/${aarName}/build/outputs/${fileType}/`);
+      let src = path.join(projectDir, `.arkui-x/android/${aarName}/build/outputs/${fileType}/`);
       let filePath = copyToBuildDir(src);
       console.log(`filepath: ${filePath}`);
     });
   } else if (fileType == 'framework' || fileType == 'xcframework') {
     const frameworkNameList = getFrameworkName(projectDir);
     frameworkNameList.forEach(frameworkName => {
-      let src = path.join(projectDir, `ios/${frameworkName}/build/outputs/${fileType}/`);
+      let src = path.join(projectDir, `.arkui-x/ios/build/outputs/${fileType}/`);
       let filePath = copyToBuildDir(src);
       console.log(`filepath: ${filePath}`);
     });
@@ -79,9 +80,13 @@ function copyLibraryToOutput(fileType) {
 function buildAPK(cmd) {
   copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
-  const androidDir = path.join(projectDir, 'android');
+  const androidDir = path.join(projectDir, '.arkui-x/android');
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
+  }
+  if (cmd.debug && !createTestTem('apk')) {
+    console.error('createTestTem apk failed.');
+    return false;
   }
   if (cmd.debug) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
@@ -105,6 +110,10 @@ function buildAPK(cmd) {
       isBuildSuccess = false;
     }
   });
+  if (cmd.debug && !recoverTestTem('apk')) {
+    console.error('recoverTestTem apk failed.');
+    return false;
+  }
   console.log(gradleMessage);
   return isBuildSuccess;
 }
@@ -112,7 +121,7 @@ function buildAPK(cmd) {
 function buildAAR(cmd) {
   copyLibraryToProject('aar', cmd, projectDir, 'android');
   const cmds = [];
-  const aarDir = path.join(projectDir, 'android');
+  const aarDir = path.join(projectDir, '.arkui-x/android');
   const aarNameList = getAarName(projectDir);
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${aarDir} && chmod 755 gradlew`);
@@ -165,10 +174,10 @@ function buildFramework(cmd) {
   let gradleMessage = 'Build framework successful.';
   let isBuildSuccess = true;
   const frameworkNameList = getFrameworkName(projectDir);
-  const frameworkDir = path.join(projectDir, 'ios');
+  const frameworkDir = path.join(projectDir, '.arkui-x/ios');
   frameworkNameList.forEach(frameworkName => {
-    const frameworkProj = path.join(frameworkDir, `${frameworkName}/${frameworkName}.xcodeproj`);
-    const exportPath = path.join(frameworkDir, `${frameworkName}/build/outputs/framework`);
+    const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
+    const exportPath = path.join(frameworkDir, `build/outputs/framework`);
     const cmdStr = `xcodebuild -project ${frameworkProj} -sdk iphoneos -configuration "${mode}" `
       + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
     try {
@@ -195,11 +204,11 @@ function buildXcFramework(cmd) {
   let gradleMessage = 'Build xcframework successful.';
   let isBuildSuccess = true;
   const frameworkNameList = getFrameworkName(projectDir);
-  const frameworkDir = path.join(projectDir, 'ios');
+  const frameworkDir = path.join(projectDir, '.arkui-x/ios');
   frameworkNameList.forEach(frameworkName => {
-    const frameworkProj = path.join(frameworkDir, `${frameworkName}/${frameworkName}.xcodeproj`);
-    const myFramework = path.join(frameworkDir, `${frameworkName}/build/${mode}-iphoneos/${frameworkName}.framework`);
-    const exportPath = path.join(frameworkDir, `${frameworkName}/build/outputs/xcframework`);
+    const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
+    const myFramework = path.join(frameworkDir, `build/${mode}-iphoneos/${frameworkName}.framework`);
+    const exportPath = path.join(frameworkDir, `build/outputs/xcframework`);
     const xcFrameworkName = path.join(exportPath, `${frameworkName}.xcframework`);
     cmds.push(`xcodebuild -project ${frameworkProj} -sdk iphoneos -configuration "${mode}" clean build`);
     cmds.push(`xcodebuild -create-xcframework -framework ${myFramework} -output ${xcFrameworkName}`);
@@ -263,9 +272,13 @@ function buildAPP(cmd) {
   if (cmd.debug) {
     mode = 'Debug';
   }
+  if (cmd.debug && !createTestTem('app')) {
+    console.error('createTestTem app failed.');
+    return false;
+  }
   let currentDir = process.cwd();
-  let projectSettingDir = path.join(currentDir, 'ios', 'app.xcodeproj');
-  let exportPath = path.join(currentDir, 'ios', 'build/outputs/app/');
+  let projectSettingDir = path.join(currentDir, '.arkui-x/ios', 'app.xcodeproj');
+  let exportPath = path.join(currentDir, '.arkui-x/ios', 'build/outputs/app/');
   let signCmd = "";
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
@@ -287,6 +300,10 @@ function buildAPP(cmd) {
       isBuildSuccess = false;
     }
   });
+  if (cmd.debug && !recoverTestTem('app')) {
+    console.error('recoverTestTem app failed.');
+    return false;
+  }
   console.log(message);
   return isBuildSuccess;
 }

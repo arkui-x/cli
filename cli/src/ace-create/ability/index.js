@@ -16,10 +16,10 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const { copy } = require('../project');
+const { copy } = require('../util');
 const { getModuleList, getModuleAbilityList, addFileToPbxproj } = require('../../util');
 
-let projectDir;
+let currentDir;
 
 function checkAbilityName(abilityName, abilityList, moduleName) {
   if (!abilityName) {
@@ -45,14 +45,14 @@ function isAbilityNameQualified(name) {
   return true;
 }
 
-function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
+function createStageAbilityInAndroid(moduleName, abilityName, templateDir, currentDir) {
   try {
-    const manifestPath = path.join(projectDir, '../../ohos/AppScope/app.json5');
+    const manifestPath = path.join(currentDir, '../AppScope/app.json5');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
     const packageArray = manifestJsonObj.app.bundleName.split('.');
     const src = path.join(templateDir, 'android/app/src/main/java');
     const templateFileName = 'MainActivity.java';
-    let dest = path.join(projectDir, '../../android/app/src/main/java');
+    let dest = path.join(currentDir, '../.arkui-x/android/app/src/main/java');
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
     });
@@ -75,19 +75,17 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
         manifestJsonObj.app.bundleName + ':' + moduleName + ':' + abilityName + ':'));
-    fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(/setVersion\([^\)]*\);/g, ''));
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
       '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
     const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, '../../android/app/src/main/AndroidManifest.xml')).toString();
+      fs.readFileSync(path.join(currentDir, '../.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
       createActivityXmlInfo +
       curManifestXmlInfo.slice(insertIndex);
-    fs.writeFileSync(path.join(projectDir, '../../android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    fs.writeFileSync(path.join(currentDir, '../.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
     return true;
   } catch (error) {
     console.error('Get package name error.');
@@ -97,7 +95,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir) {
 
 function replaceResourceJson(abilityName) {
   try {
-    const resourceStringPath = path.join(projectDir, 'src/main/resources/base/element/string.json');
+    const resourceStringPath = path.join(currentDir, 'src/main/resources/base/element/string.json');
     const resourceStringJson = JSON.parse(fs.readFileSync(resourceStringPath));
     resourceStringJson.string.push(
       {
@@ -109,7 +107,7 @@ function replaceResourceJson(abilityName) {
         value: 'label'
       }
     );
-    const resourceEnStringPath = path.join(projectDir, 'src/main/resources/en_US/element/string.json');
+    const resourceEnStringPath = path.join(currentDir, 'src/main/resources/en_US/element/string.json');
     const resourceEnStringJson = JSON.parse(fs.readFileSync(resourceEnStringPath));
     resourceEnStringJson.string.push(
       {
@@ -122,7 +120,7 @@ function replaceResourceJson(abilityName) {
       }
     );
     fs.writeFileSync(resourceEnStringPath, JSON.stringify(resourceEnStringJson, '', '  '));
-    const resourceZhStringPath = path.join(projectDir, 'src/main/resources/zh_CN/element/string.json');
+    const resourceZhStringPath = path.join(currentDir, 'src/main/resources/zh_CN/element/string.json');
     const resourceZhStringJson = JSON.parse(fs.readFileSync(resourceZhStringPath));
     resourceZhStringJson.string.push(
       {
@@ -144,21 +142,21 @@ function replaceResourceJson(abilityName) {
 
 function updateManifest(abilityName) {
   try {
-    const newTsFilePath = path.join(projectDir, 'src/main/ets', abilityName, abilityName + '.ts');
-    fs.renameSync(path.join(projectDir, 'src/main/ets', abilityName, 'MainAbility.ts'), newTsFilePath);
+    const newTsFilePath = path.join(currentDir, 'src/main/ets', abilityName, abilityName + '.ets');
+    fs.renameSync(path.join(currentDir, 'src/main/ets', abilityName, 'EntryAbility.ets'), newTsFilePath);
     let content = fs.readFileSync(newTsFilePath, 'utf8');
-    content = content.replace(/MainAbility/g, abilityName);
+    content = content.replace(/EntryAbility/g, abilityName);
     fs.writeFileSync(newTsFilePath, content);
     if (!replaceResourceJson(abilityName)) {
       console.error('Replace resource info error.');
       return false;
     }
-    const moduleJsonPath = path.join(projectDir, 'src/main/module.json5');
+    const moduleJsonPath = path.join(currentDir, 'src/main/module.json5');
     const moduleJson = JSON.parse(fs.readFileSync(moduleJsonPath));
     moduleJson.module.abilities.push(
       {
         name: abilityName,
-        srcEntry: './ets/' + abilityName + '/' + abilityName + '.ts',
+        srcEntry: './ets/' + abilityName + '/' + abilityName + '.ets',
         description: '$string:' + abilityName + '_desc',
         icon: '$media:icon',
         label: '$string:' + abilityName + '_label',
@@ -174,16 +172,16 @@ function updateManifest(abilityName) {
   }
 }
 
-function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
+function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDir) {
   try {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + abilityName.replace('Ability', '') + 'ViewController';
     const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainViewController');
-    fs.writeFileSync(path.join(projectDir, '../../ios/app/' + destClassName + '.h'),
+    fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/' + destClassName + '.h'),
       fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
-    fs.writeFileSync(path.join(projectDir, '../../ios/app/' + destClassName + '.m'),
+    fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/' + destClassName + '.m'),
       fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainViewController', 'g'),
         destClassName));
     const createViewControlInfo =
@@ -197,7 +195,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
       '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
       '    } // other ViewController\n';
     const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, '../../ios/app/AppDelegate.m')).toString();
+      fs.readFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
     const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainViewController.h"');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
@@ -205,8 +203,8 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir) {
     curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
     createViewControlInfo +
       curManifestXmlInfo.slice(insertIndex + 26);
-    fs.writeFileSync(path.join(projectDir, '../../ios/app/AppDelegate.m'), updateManifestXmlInfo);
-    const pbxprojFilePath = path.join(projectDir, '../../ios/app.xcodeproj/project.pbxproj');
+    fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    const pbxprojFilePath = path.join(currentDir, '../.arkui-x/ios/app.xcodeproj/project.pbxproj');
     if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
       !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
       return false;
@@ -223,12 +221,12 @@ function getTemplatePath() {
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }
-  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/mainability');
+  templateDir = path.join(templateDir, 'ets_stage/source/entry/src/main/ets/entryability');
   return templateDir;
 }
 
 function createInSource(abilityName, templateDir) {
-  const dist = path.join(projectDir, 'src/main/ets', abilityName);
+  const dist = path.join(currentDir, 'src/main/ets', abilityName);
   try {
     fs.mkdirSync(dist, { recursive: true });
     return copy(templateDir, dist);
@@ -239,22 +237,18 @@ function createInSource(abilityName, templateDir) {
 }
 
 function createAbility() {
-  projectDir = process.cwd();
-  const buildFilePath = path.join(projectDir, '../../ohos/build-profile.json5');
+  currentDir = process.cwd(); //it should be module directory
+  const buildFilePath = path.join(currentDir, '../build-profile.json5');
   if (!fs.existsSync(buildFilePath)) {
-    console.error(`Please go to your ${path.join('projectName', 'source', 'ModuleName')} and create ability again.`);
+    console.error(`Please go to your module directory and create ability again.`);
     return false;
   }
   const moduleListForAbility = getModuleList(buildFilePath);
   if (moduleListForAbility === null) {
     return false;
   }
-  if (!moduleListForAbility.includes(path.basename(projectDir))) {
-    console.error(`Please go to your ${path.join('projectName', 'source', 'ModuleName')} and create ability again.`);
-    return false;
-  }
-  const templateDir = getTemplatePath(projectDir);
-  const moduleAbilityList = getModuleAbilityList(path.join(projectDir, '../../'), moduleListForAbility);
+  const templateDir = getTemplatePath();
+  const moduleAbilityList = getModuleAbilityList(path.join(currentDir,'../'), moduleListForAbility);
   const question = [{
     name: 'abilityName',
     type: 'input',
@@ -265,19 +259,19 @@ function createAbility() {
           ' and include only letters, digits and underscores (_)');
         return false;
       }
-      return checkAbilityName(val, moduleAbilityList, path.basename(projectDir));
+      return checkAbilityName(val, moduleAbilityList, path.basename(currentDir));
     }
   }];
   inquirer.prompt(question).then(answers => {
     if (createInSource(answers.abilityName + 'Ability', templateDir) &&
     updateManifest(answers.abilityName + 'Ability') &&
-    createStageAbilityInAndroid(path.basename(projectDir), answers.abilityName + 'Ability',
-      path.join(templateDir, '../../../../../../../')) &&
-      createStageAbilityInIOS(path.basename(projectDir), answers.abilityName + 'Ability',
-        path.join(templateDir, '../../../../../../../'))) {
+    createStageAbilityInAndroid(path.basename(currentDir), answers.abilityName + 'Ability',
+      path.join(templateDir, '../../../../../../../'), currentDir) &&
+      createStageAbilityInIOS(path.basename(currentDir), answers.abilityName + 'Ability',
+        path.join(templateDir, '../../../../../../../'), currentDir)) {
       return true;
     }
   });
 }
 
-module.exports = createAbility;
+module.exports = { createAbility, createStageAbilityInAndroid, createStageAbilityInIOS };

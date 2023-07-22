@@ -30,7 +30,7 @@
     [StageApplication configModuleWithBundleDirectory:BUNDLE_DIRECTORY];
     [StageApplication launchApplication];
     
-    NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",BUNDLE_NAME, @"entry", @"MainAbility"];
+    NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",BUNDLE_NAME, @"entry", @"EntryAbility"];
     EntryMainViewController *mainView = [[EntryMainViewController alloc] initWithInstanceName:instanceName];
     [self setNavRootVC:mainView];
     return YES;
@@ -74,7 +74,7 @@
     
     id subStageVC = nil;
     
-    if ([moduleName isEqualToString:@"entry"] && [abilityName isEqualToString:@"MainAbility"]) {
+    if ([moduleName isEqualToString:@"entry"] && [abilityName isEqualToString:@"EntryAbility"]) {
         NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",bundleName, moduleName, abilityName];
         EntryMainViewController *entryOtherVC = [[EntryMainViewController alloc] initWithInstanceName:instanceName];
         entryOtherVC.params = params;

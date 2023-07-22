@@ -28,7 +28,7 @@ function clean() {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
-  if (!fs.existsSync(path.join(projectDir, 'ohos/oh_modules'))) {
+  if (!fs.existsSync(path.join(projectDir, 'oh_modules'))) {
     console.log('Clean project successfully');
     return;
   }
@@ -51,17 +51,9 @@ function clean() {
       failedMsg += '\tcleanIOS';
       successFlag = false;
     }
-    if (getFrameworkName(projectDir).length !== 0 && !cleanFramework()) {
-      failedMsg += '\tcleanFramework';
-      successFlag = false;
-    }
   }
   if (!cleanOutputPath()) {
     failedMsg += '\tcleanOutputPath';
-    successFlag = false;
-  }
-  if (!cleanJSBundle()) {
-    failedMsg += '\tcleanJSBundle';
     successFlag = false;
   }
   if (successFlag) {
@@ -74,7 +66,7 @@ function clean() {
 
 function cleanAndroid() {
   let cmds = [];
-  const androidDir = path.join(projectDir, 'android');
+  const androidDir = path.join(projectDir, '.arkui-x', 'android');
   let message = 'Clean android project successful.';
   if (!fs.existsSync(path.join(projectDir, 'android/app/build'))) {
     console.log(message);
@@ -107,7 +99,7 @@ function cleanAndroid() {
 
 function cleanIOS() {
   let cmds = [];
-  const iosDir = path.join(projectDir, 'ios');
+  const iosDir = path.join(projectDir,'.arkui-x', 'ios');
   cmds.push(`cd ${iosDir} && xcodebuild clean`);
   let message = 'Clean ios project successful.';
   let isBuildSuccess = true;
@@ -132,7 +124,7 @@ function cleanIOS() {
 }
 
 function cleanOHOS() {
-  const ohosDir = path.join(projectDir, '/ohos');
+  const ohosDir = projectDir
   let cmds = [`cd ${ohosDir}`];
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
@@ -163,28 +155,6 @@ function cleanOHOS() {
   }
   console.log(message);
   return isBuildSuccess;
-}
-
-function cleanJSBundle() {
-  let isContinue = true;
-  const settingPath = path.join(projectDir, 'ohos/build-profile.json5');
-  const moduleList = getModuleList(settingPath);
-  moduleList.forEach(module => {
-    const src = path.join(projectDir, '/ohos', module, 'build');
-    isContinue = removeDir(src, [], true);
-    const ohosSource = path.join(projectDir, 'ohos', module, '/src/main/');
-    // This time, ohos resources is created by merging with source resources, should not be deleted.
-    // Wait for the processing of resources to be modified.
-    if (!removeDir(ohosSource, ['resources', 'module.json5'], true)) {
-      console.error('ohos code file delete failed');
-      isContinue = false;
-    }
-  });
-  if (!isContinue) {
-    console.error('Ohos build file delete failed');
-    isContinue = false;
-  }
-  return isContinue;
 }
 
 function cleanOutputPath() {
@@ -228,7 +198,7 @@ function removeDir(path, ignoreDirArr, saveDirectory) {
 
 function cleanAAR() {
   let cmds = [];
-  const aarDir = path.join(projectDir, 'android');
+  const aarDir = path.join(projectDir, '.arkui-x', 'android');
   let message = 'Clean aar project successful.';
   let needClean = false;
   getAarName(projectDir).forEach(aarName => {
@@ -271,7 +241,7 @@ function cleanFramework() {
   let isCleanSuccess = true;
   getFrameworkName(projectDir).forEach(frameworkName => {
     let cmds = [];
-    const frameworkDir = path.join(projectDir, 'ios', frameworkName);
+    const frameworkDir = path.join(projectDir, '.arkui-x', 'ios');
     cmds.push(`cd ${frameworkDir} && xcodebuild clean`);
     cmds = cmds.join(' && ');
     try {

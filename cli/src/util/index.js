@@ -22,8 +22,8 @@ global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
 function isProjectRootDir(currentDir) {
-  const ohosBuildProfilePath = path.join(currentDir, 'ohos/build-profile.json5');
-  const androidGradlePath = path.join(currentDir, 'android/settings.gradle');
+  const ohosBuildProfilePath = path.join(currentDir, 'build-profile.json5');
+  const androidGradlePath = path.join(currentDir, '.arkui-x/android/settings.gradle');
   try {
     fs.accessSync(ohosBuildProfilePath);
     fs.accessSync(androidGradlePath);
@@ -83,7 +83,7 @@ function getModuleList(settingPath) {
   try {
     const moduleList = [];
     if (fs.existsSync(settingPath)) {
-      const buildProfileInfo = JSON.parse(fs.readFileSync(settingPath).toString());
+      const buildProfileInfo = JSON5.parse(fs.readFileSync(settingPath).toString());
       for (let index = 0; index < buildProfileInfo.modules.length; index++) {
         moduleList.push(buildProfileInfo.modules[index].name);
       }
@@ -102,7 +102,7 @@ function getModuleAbilityList(projDir, moduleList) {
   try {
     const moduleAbilityList = [];
     for (let index = 0; index < moduleList.length; index++) {
-      const moduleJsonPath = path.join(projDir, 'source', moduleList[index],
+      const moduleJsonPath = path.join(projDir, moduleList[index],
         'src/main/module.json5');
       const moduleJsonFile = JSON.parse(fs.readFileSync(moduleJsonPath));
       moduleJsonFile.module.abilities.forEach(component => {
@@ -141,7 +141,7 @@ function validInputDevice(device) {
 
 function getCurrentProjectSystem(projDir) {
   let currentSystem = '';
-  const configFile = path.join(projDir, 'source/entry/build-profile.json5')
+  const configFile = path.join(projDir, 'entry/build-profile.json5')
   if (!fs.existsSync(configFile)) {
     console.error(`Please check entry/build-profile.json5 existing.`);
     return null;
@@ -161,7 +161,7 @@ function getCurrentProjectSystem(projDir) {
 }
 
 function isNativeCppTemplate(projDir) {
-  const checkFile = path.join(projDir, 'source/entry/build-profile.json5');
+  const checkFile = path.join(projDir, 'entry/build-profile.json5');
   if (!fs.existsSync(checkFile)) {
     return false;
   }
@@ -181,7 +181,7 @@ function getDeviceID(device) {
 
 function getAarName(projectDir) {
   const aarName = [];
-  const aarConfigPath = path.join(projectDir, 'android/settings.gradle');
+  const aarConfigPath = path.join(projectDir, '.arkui-x/android/settings.gradle');
   if (!fs.existsSync(aarConfigPath)) {
     return aarName;
   }
@@ -194,15 +194,7 @@ function getAarName(projectDir) {
 }
 
 function getFrameworkName(projectDir) {
-  const frameworkName = [];
-  const frameworkPath = path.join(projectDir, 'ios/');
-  fs.readdirSync(frameworkPath).forEach(dir => {
-    if (fs.statSync(path.join(frameworkPath, dir)).isDirectory() &&
-      fs.readdirSync(path.join(frameworkPath, dir)).includes(`${dir}.xcodeproj`)) {
-      frameworkName.push(dir);
-    }
-  });
-  return frameworkName;
+  return [path.basename(projectDir)];
 }
 
 function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
@@ -255,6 +247,11 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
   return true;
 }
 
+function isAppProject(projectDir) {
+  const settingsGradle = path.join(projectDir, '.arkui-x/android/settings.gradle');
+  return fs.readFileSync(settingsGradle).toString().includes(`include ':app'`);
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -266,5 +263,6 @@ module.exports = {
   getFrameworkName,
   getUUID,
   generateUUID,
-  addFileToPbxproj
+  addFileToPbxproj,
+  isAppProject
 };
