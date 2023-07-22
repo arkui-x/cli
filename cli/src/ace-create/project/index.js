@@ -222,7 +222,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, proType
   strs.push('entry');
   files.push(path.join(projectPath, 'entry/src/ohosTest/module.json5'));
   replaceInfos.push('module_test_name');
-  strs.push('entryTest');
+  strs.push('entry_test');
   files.push(path.join(projectPath, 'entry/src/ohosTest/resources/base/element/string.json'));
   replaceInfos.push('module_test_name');
   strs.push('entry_test_desc');

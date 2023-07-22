@@ -28,6 +28,7 @@ const {
 const { isProjectRootDir, getAarName, getFrameworkName } = require('../../util');
 const projectDir = process.cwd();
 const { copyLibraryToProject } = require('./copyLibraryToProject');
+const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 let androidOSSdkDir;
 
 function getAndroidSdkDir() {
@@ -83,6 +84,10 @@ function buildAPK(cmd) {
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
+  if (cmd.debug && !createTestTem('apk')) {
+    console.error('createTestTem apk failed.');
+    return false;
+  }
   if (cmd.debug) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
   } else {
@@ -105,6 +110,10 @@ function buildAPK(cmd) {
       isBuildSuccess = false;
     }
   });
+  if (cmd.debug && !recoverTestTem('apk')) {
+    console.error('recoverTestTem apk failed.');
+    return false;
+  }
   console.log(gradleMessage);
   return isBuildSuccess;
 }
@@ -263,6 +272,10 @@ function buildAPP(cmd) {
   if (cmd.debug) {
     mode = 'Debug';
   }
+  if (cmd.debug && !createTestTem('app')) {
+    console.error('createTestTem app failed.');
+    return false;
+  }
   let currentDir = process.cwd();
   let projectSettingDir = path.join(currentDir, '.arkui-x/ios', 'app.xcodeproj');
   let exportPath = path.join(currentDir, '.arkui-x/ios', 'build/outputs/app/');
@@ -287,6 +300,10 @@ function buildAPP(cmd) {
       isBuildSuccess = false;
     }
   });
+  if (cmd.debug && !recoverTestTem('app')) {
+    console.error('recoverTestTem app failed.');
+    return false;
+  }
   console.log(message);
   return isBuildSuccess;
 }
