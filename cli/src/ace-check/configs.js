@@ -38,7 +38,7 @@ const harmonyOsSdk = new Sdk(
 const arkuiXSdk = new Sdk(
   'ArkUI-X',
   ['arkui-x'],
-  'ArkUI_X_HOME',
+  'ARKUIX_SDK_HOME',
   'ArkUI-X',
   'toolchains'
 );

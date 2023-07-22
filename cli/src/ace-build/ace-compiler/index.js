@@ -32,6 +32,7 @@ let projectDir;
 let openHarmonySdkDir;
 let harmonyOsSdkDir;
 let arkuiXSdkDir;
+let arkuiXSdkPath;
 let nodejsDir;
 let uiSyntax;
 let currentSystem;
@@ -45,6 +46,7 @@ function readConfig() {
       }
       if (Object.prototype.hasOwnProperty.call(config, 'arkui-x-sdk')) {
         arkuiXSdkDir = config['arkui-x-sdk'];
+        arkuiXSdkPath = arkuiXSdkDir + '/10/arkui-x';
       }
       if (Object.prototype.hasOwnProperty.call(config, 'harmonyos-sdk')) {
         harmonyOsSdkDir = config['harmonyos-sdk'];
@@ -79,11 +81,11 @@ function writeLocalProperties() {
   if(fs.existsSync(filePath)){
     return true;
   }
-  let content;
+  let content = `nodejs.dir=${nodejsDir}\narkui-x.dir=${arkuiXSdkDir}`;
   if (currentSystem === HarmonyOS) {
-    content = `hwsdk.dir=${harmonyOsSdkDir}\nnodejs.dir=${nodejsDir}`;
+    content += `\nhwsdk.dir=${harmonyOsSdkDir}`;
   } else {
-    content = `sdk.dir=${openHarmonySdkDir}\nnodejs.dir=${nodejsDir}`;
+    content += `\nsdk.dir=${openHarmonySdkDir}`;
   }
   return createLocalProperties(filePath, content);
 }
@@ -136,7 +138,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
   deleteOldFile(path.join(projectDir, '.arkui-x/ios/arkui-x'));
   deleteOldFile(path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x'));
   isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '');
-  const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
+  const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
   const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
   const androidSystemResPath = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/systemres');
   isContinue = isContinue && copy(systemResPath, iosSystemResPath);
@@ -305,7 +307,7 @@ function copyStageBundleToAAR(moduleList) {
       fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
       fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
     });
-    const systemResPath = path.join(arkuiXSdkDir, 'engine/systemres');
+    const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
     const androidSystemResPath = path.join(aarPath, 'src/main/assets/arkui-x/systemres');
     isContinue = isContinue && copy(systemResPath, androidSystemResPath);
   });
