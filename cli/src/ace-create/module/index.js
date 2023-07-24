@@ -166,9 +166,9 @@ function replaceStageProfile(moduleName) {
   try {
     if (moduleName != 'entry') {
       const srcModulePath = path.join(projectDir, moduleName, 'src/main/module.json5');
-      const modulePathJson = JSON.parse(fs.readFileSync(srcModulePath).toString());
+      const modulePathJson = JSON5.parse(fs.readFileSync(srcModulePath).toString());
       delete modulePathJson.module.abilities[0].skills;
-      fs.writeFileSync(srcModulePath, JSON.stringify(modulePathJson, '', '  '));
+      fs.writeFileSync(srcModulePath, JSON5.stringify(modulePathJson, '', '  '));
       modifyModuleBuildProfile(projectDir, moduleName);
       if (isNativeCppTemplate(projectDir)) {
         const appName = getAppNameForModule();
@@ -179,7 +179,7 @@ function replaceStageProfile(moduleName) {
       }
     }
     const srcBuildPath = path.join(projectDir, 'build-profile.json5');
-    const buildPathJson = JSON.parse(fs.readFileSync(srcBuildPath).toString());
+    const buildPathJson = JSON5.parse(fs.readFileSync(srcBuildPath).toString());
     const moduleInfo = {
       'name': moduleName,
       'srcPath': './' + moduleName,
@@ -193,7 +193,7 @@ function replaceStageProfile(moduleName) {
       ]
     };
     buildPathJson.modules.push(moduleInfo);
-    fs.writeFileSync(srcBuildPath, JSON.stringify(buildPathJson, '', '  '));
+    fs.writeFileSync(srcBuildPath, JSON5.stringify(buildPathJson, '', '  '));
     return true;
   } catch (error) {
     console.error('Replace stage project info error.');
