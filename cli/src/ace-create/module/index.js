@@ -84,7 +84,7 @@ function createStageInAndroid(moduleName, templateDir) {
     const templateFileName = 'MainActivity.java';
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + 'EntryAbilityActivity';
+    }) + capitalize(moduleName) + 'AbilityActivity';
     let dest = path.join(projectDir, '.arkui-x/android/app/src/main/java');
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
@@ -104,7 +104,7 @@ function createStageInAndroid(moduleName, templateDir) {
       fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
-      + moduleName + ':EntryAbility:'));
+      + moduleName + ':' + capitalize(moduleName) + 'Ability:'));
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
@@ -206,6 +206,25 @@ function replaceStageProjectInfo(moduleName) {
     const files = [];
     const replaceInfos = [];
     const strs = [];
+
+    const mainPath= path.join(projectDir, moduleName, 'src', 'main');
+    const targetAbilityDir = path.join(mainPath, 'ets', moduleName+'ability');
+    fs.renameSync(path.join(mainPath, 'ets', 'entryability'), targetAbilityDir);
+    fs.renameSync(path.join(targetAbilityDir, 'EntryAbility.ets'), path.join(targetAbilityDir, capitalize(moduleName)+'Ability.ets'));
+
+
+    files.push(path.join(targetAbilityDir, capitalize(moduleName)+'Ability.ets'));
+    replaceInfos.push('EntryAbility');
+    strs.push(capitalize(moduleName) + 'Ability');
+    
+    files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
+    replaceInfos.push('EntryAbility');
+    strs.push(capitalize(moduleName)+'Ability');
+
+    files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
+    replaceInfos.push('entryability');
+    strs.push(moduleName+'ability');
+
     files.push(path.join(projectDir, moduleName, '/src/main/resources/base/element/string.json'));
     replaceInfos.push('module_ability_name');
     strs.push(capitalize(moduleName) + 'Ability');
