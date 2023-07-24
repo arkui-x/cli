@@ -141,15 +141,15 @@ function validInputDevice(device) {
 
 function getCurrentProjectSystem(projDir) {
   let currentSystem = '';
-  const configFile = path.join(projDir, 'entry/build-profile.json5')
+  const configFile = path.join(projDir, 'build-profile.json5')
   if (!fs.existsSync(configFile)) {
-    console.error(`Please check entry/build-profile.json5 existing.`);
+    console.error(`Please check build-profile.json5 existing.`);
     return null;
   }
-  const buildProfileInfo = JSON5.parse(fs.readFileSync(configFile).toString());
-  for (let index = 0; index < buildProfileInfo.targets.length; index++) {
-    if (buildProfileInfo.targets[index].name === 'default') {
-      if (buildProfileInfo.targets[index].runtimeOS == HarmonyOS) {
+  const buildProfileInfo = JSON5.parse(fs.readFileSync(configFile).toString()).app.products;
+  for (let index = 0; index < buildProfileInfo.length; index++) {
+    if (buildProfileInfo[index].name === 'default') {
+      if (buildProfileInfo[index].runtimeOS == HarmonyOS) {
         currentSystem = HarmonyOS;
       } else {
         currentSystem = OpenHarmony;

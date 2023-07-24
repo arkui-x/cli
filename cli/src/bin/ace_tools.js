@@ -141,7 +141,7 @@ function parseCreate() {
                   }
                 }]).then(answers => {
                   initInfo.template = answers.template;
-                  initInfo.sdkVersion = '9';
+                  initInfo.sdkVersion = '10';
                   create(initInfo);
                 });
               });
