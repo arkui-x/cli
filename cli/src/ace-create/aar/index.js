@@ -199,9 +199,10 @@ function getCmakePath() {
         console.error('current system is unknown.');
         return null;
     }
-    const sdkVersion = JSON.parse(fs.readFileSync(
+    let sdkVersion = JSON.parse(fs.readFileSync(
         path.join(projectDir, 'build-profile.json5'))).app.compileSdkVersion.toString();
     if (currentSystem === HarmonyOS) {
+        sdkVersion = sdkVersion.split('(')[1].split(')')[0];
         system = '2';
     } else {
         system = '1';

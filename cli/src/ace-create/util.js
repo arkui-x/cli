@@ -138,9 +138,12 @@ function modifyHarmonyOSConfig(projectPath, moduleName) {
   
     if (fs.existsSync(buildProfile)) {
       const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
-      for (let index = 0; index < buildProfileInfo.targets.length; index++) {
-        if (buildProfileInfo.targets[index].name === 'default') {
-          buildProfileInfo.targets[index].runtimeOS = HarmonyOS;
+      const productsInfo = buildProfileInfo.app.products;
+      for (let index = 0; index < productsInfo.length; index++) {
+        if (productsInfo[index].name === 'default' && productsInfo[index].runtimeOS !== HarmonyOS) {
+          productsInfo[index].compileSdkVersion = '4.0.0(10)';
+          productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
+          productsInfo[index].runtimeOS = HarmonyOS;
           break;
         }
       }

@@ -5,8 +5,26 @@
       "path": "./src/main/cpp/CMakeLists.txt",
       "arguments": "",
       "cppFlags": "",
+    },
+    "arkOptions": {
+      // "apPath": "./modules.ap"  /* Profile used for profile-guided optimization (PGO), a compiler optimization technique to improve app runtime performance. */
     }
   },
+  "buildOptionSet": [
+    {
+      "name": "release",
+      "arkOptions": {
+        "obfuscation": {
+          "ruleOptions": {
+            "enable": true,
+            "files": [
+              "./obfuscation-rules.txt"
+            ]
+          }
+        }
+      }
+    },
+  ],
   "targets": [
     {
       "name": "default"

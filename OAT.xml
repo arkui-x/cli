@@ -116,6 +116,8 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/main/ets/entryability/EntryAbility.ets" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/test/List.test.ets" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/test/LocalUnit.test.ets" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/test/List.test.ets" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
+                <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/test/LocalUnit.test.ets" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/main/ets/entryability/EntryAbility.ets" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="License文件头校验策略的过滤条件" >
@@ -174,6 +176,8 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/main/ets/entryability/EntryAbility.ets" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/test/List.test.ets" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/src/test/LocalUnit.test.ets" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/test/List.test.ets" desc="OpenHarmony工程配置文件，无需添加License头"/>
+                <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/test/LocalUnit.test.ets" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/main/ets/entryability/EntryAbility.ets" desc="OpenHarmony工程配置文件，无需添加License头"/>
             </filefilter>
         </filefilterlist>
