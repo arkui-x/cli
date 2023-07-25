@@ -18,7 +18,8 @@ const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { copy, modifyHarmonyOSConfig } = require('../util');
-const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj } = require('../../util');
+const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj,
+  isAppProject } = require('../../util');
 
 let projectDir;
 let currentSystem;
@@ -77,6 +78,10 @@ function checkModuleName(moduleList, moduleName) {
 }
 
 function createStageInAndroid(moduleName, templateDir) {
+  if (!isAppProject(projectDir)) {
+    console.warn('aar and framework not support multiple modules.');
+    return true;
+  }
   const packageName = getPackageName();
   const packageArray = packageName.split('.');
   const src = path.join(templateDir, 'android/app/src/main/java');
@@ -254,6 +259,9 @@ function replaceStageProjectInfo(moduleName) {
 }
 
 function createStageInIOS(moduleName, templateDir) {
+  if (!isAppProject(projectDir)) {
+    return true;
+  }
   try {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
@@ -379,7 +387,7 @@ function replaceFileString(file, oldString, newString) {
 
 function createModule() {
   projectDir = process.cwd();
-  if (!fs.existsSync(path.join(projectDir, 'hvigorfile.ts'))) {
+  if (!fs.existsSync(path.join(projectDir, 'hvigorw'))) {
     console.error(`Please go to project directory under ace project path and create module again.`);
     return false;
   }

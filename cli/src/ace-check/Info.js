@@ -24,7 +24,7 @@ class Info {
     this.noJavaSdk = `Java SDK is not found`;
     this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com`;
     this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio`;
-    this.arkuiXSdkTitle = `ArkUI-X toolchains - develop for ArkUI-X devices`;
+    this.arkuiXSdkTitle = `ArkUI-X(v1.0.0 Alpha)`;
     this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices`;
     this.harmonyOsTitle = `HarmonyOS toolchains - develop for HarmonyOS devices`;
     this.androidTitle = `Android toolchains - develop for Android devices`;
