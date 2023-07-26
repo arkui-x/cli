@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const { openHarmonySdkDir, harmonyOsSdkDir } = require('../ace-check/configs');
+const { arkuiXSdkDir } = require('../ace-check/configs');
 const {
     Platform,
     platform,
@@ -92,19 +92,16 @@ function createPackageFile(packagePaths, packageArray) {
     });
 }
 
-function getIncludePath(system, sdkVersion) {
+function getIncludePath() {
     let sdkPath = '';
-    if (system == '2') {
-        if (harmonyOsSdkDir) {
-            sdkPath = path.join(harmonyOsSdkDir, 'openharmony', sdkVersion);
+    if (arkuiXSdkDir) {
+        if (fs.existsSync(path.join(arkuiXSdkDir, 'arkui-x.json'))) {
+            sdkPath = arkuiXSdkDir;
+        } else {
+            sdkPath = path.join(arkuiXSdkDir, '10/arkui-x');
         }
     } else {
-        if (openHarmonySdkDir) {
-            sdkPath = path.join(openHarmonySdkDir, sdkVersion);
-        }
-    }
-    if (!sdkPath) {
-        sdkPath = path.join(getIdeDefaultSdk(system), sdkVersion);
+        sdkPath = getIdeDefaultSdk();
     }
     if (platform === Platform.Windows) {
         sdkPath = sdkPath.replace(/\\/g, '/');
@@ -112,14 +109,9 @@ function getIncludePath(system, sdkVersion) {
     return sdkPath;
 }
 
-function getIdeDefaultSdk(system) {
+function getIdeDefaultSdk() {
     let defaultPath;
-    let defaultString;
-    if (system == '2') {
-        defaultString = 'Huawei/Sdk/openharmony';
-    } else {
-        defaultString = 'OpenHarmony/Sdk';
-    }
+    const defaultString = 'ArkUI-X/Sdk/10/arkui-x';
     if (platform === Platform.Linux) {
         defaultPath = path.join(homeDir, defaultString);
     } else if (platform === Platform.MacOS) {
@@ -159,8 +151,8 @@ function modifyHarmonyOSConfig(projectPath, moduleName) {
     });
   }
   
-  function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion) {
-    const nativeIncludePath = getIncludePath(system, sdkVersion);
+function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project) {
+    const nativeIncludePath = getIncludePath();
     files.push(path.join(projectPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'));
     replaceInfos.push('appNameValue');
     strs.push(project);

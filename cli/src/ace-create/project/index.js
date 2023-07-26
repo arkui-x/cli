@@ -53,20 +53,20 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, packages, project, system, proType, template, sdkVersion);
+        createProject(projectPath, packages, project, system, proType, template);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, packages, project, system, proType, template, sdkVersion);
+    createProject(projectPath, packages, project, system, proType, template);
   }
 }
 
-function createProject(projectPath, packages, project, system, proType, template, sdkVersion) {
+function createProject(projectPath, packages, project, system, proType, template) {
   try {
     fs.mkdirSync(projectPath);
-    findStageTemplate(projectPath, packages, project, system, proType, template, sdkVersion);
+    findStageTemplate(projectPath, packages, project, system, proType, template);
     if (proType === aceProType) {
       if (!(createAar(projectPath, project) && createFramework(projectPath, project))) {
         return false;
@@ -78,24 +78,24 @@ function createProject(projectPath, packages, project, system, proType, template
   }
 }
 
-function findStageTemplate(projectPath, packages, project, system, proType, template, sdkVersion) {
+function findStageTemplate(projectPath, packages, project, system, proType, template) {
 
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
     copyStageTemplate(pathTemplate, projectPath, proType, template);
-    replaceStageProjectInfo(projectPath, packages, project, system, proType, template, sdkVersion);
+    replaceStageProjectInfo(projectPath, packages, project, system, proType, template);
   } else {
     pathTemplate = path.join(__dirname, '../../../templates');
     if (fs.existsSync(pathTemplate)) {
       copyStageTemplate(pathTemplate, projectPath, proType, template);
-      replaceStageProjectInfo(projectPath, packages, project, system, proType, template, sdkVersion);
+      replaceStageProjectInfo(projectPath, packages, project, system, proType, template);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceAndroidProjectInfo(projectPath, packages, project, system, template, sdkVersion) {
+function replaceAndroidProjectInfo(projectPath, packages, project, template) {
   const packageArray = packages.split('.');
   const files = [];
   const replaceInfos = [];
@@ -146,7 +146,7 @@ function replaceAndroidProjectInfo(projectPath, packages, project, system, templ
   replaceInfos.push('MainActivity');
   strs.push('EntryEntryAbilityActivity');
   if (template == aceTemplateNC) {
-    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project, system, sdkVersion);
+    modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project);
   }
   replaceInfo(files, replaceInfos, strs);
 
@@ -188,7 +188,7 @@ function replaceiOSProjectInfo(projectPath, packages) {
   replaceIOSRbxprojInfo(projectPath);
 }
 
-function replaceStageProjectInfo(projectPath, packages, project, system, proType, template, sdkVersion) {
+function replaceStageProjectInfo(projectPath, packages, project, system, proType, template) {
   if (!packages) {
     packages = 'com.example.arkuicross';
   }
@@ -236,7 +236,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, proType
   }
   replaceInfo(files, replaceInfos, strs);
   if (proType !== aceProType) {
-    replaceAndroidProjectInfo(projectPath, packages, project, system, template, sdkVersion);
+    replaceAndroidProjectInfo(projectPath, packages, project, template);
     replaceiOSProjectInfo(projectPath, packages);
   }
   if (system == aceHarmonyOS) {
@@ -292,7 +292,7 @@ function copyStageTemplate(templatePath, projectPath, proType, template) {
     }
   }
   if (proType !== aceProType) {
-    if (!copyAndroidiOSTemplate(templatePath, projectPath, template)){
+    if (!copyAndroidiOSTemplate(templatePath, projectPath, template)) {
       return false;
     }
   }

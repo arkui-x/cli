@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { copy, createPackageFile, replaceInfo, getIncludePath } = require('../util');
-const { getCurrentProjectSystem, isNativeCppTemplate, } = require('../../util');
+const { isNativeCppTemplate } = require('../../util');
 let projectDir;
 
 function createAar(projectPath, aarName) {
@@ -155,7 +155,7 @@ function replaceAarInfo(libraryPath, aarName) {
 }
 
 function modifyNativeAAR(aarPath, aarName, files, replaceInfos, strs) {
-    const nativeIncludePath = getCmakePath();
+    const nativeIncludePath = getIncludePath();
     files.push(path.join(aarPath, 'src/main/cpp/CMakeLists.txt'));
     replaceInfos.push('appNameValue');
     strs.push(aarName);
@@ -190,24 +190,6 @@ function modifyNativeAAR(aarPath, aarName, files, replaceInfos, strs) {
         buildGradleInfo.splice(num, 0, value);
         fs.writeFileSync(buildGradle, buildGradleInfo.join('\r\n'));
     }
-}
-
-function getCmakePath() {
-    let system;
-    const currentSystem = getCurrentProjectSystem(projectDir);
-    if (!currentSystem) {
-        console.error('current system is unknown.');
-        return null;
-    }
-    let sdkVersion = JSON.parse(fs.readFileSync(
-        path.join(projectDir, 'build-profile.json5'))).app.compileSdkVersion.toString();
-    if (currentSystem === HarmonyOS) {
-        sdkVersion = sdkVersion.split('(')[1].split(')')[0];
-        system = '2';
-    } else {
-        system = '1';
-    }
-    return getIncludePath(system, sdkVersion);
 }
 
 module.exports = createAar;
