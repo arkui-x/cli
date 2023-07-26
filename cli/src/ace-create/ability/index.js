@@ -16,6 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
+const JSON5 = require('json5');
 const { copy } = require('../util');
 const { getModuleList, getModuleAbilityList, addFileToPbxproj, isAppProject } = require('../../util');
 
@@ -52,7 +53,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir, curre
   }
   try {
     const manifestPath = path.join(currentDir, '../AppScope/app.json5');
-    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+    const manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
     const packageArray = manifestJsonObj.app.bundleName.split('.');
     const src = path.join(templateDir, 'android/app/src/main/java');
     const templateFileName = 'MainActivity.java';
