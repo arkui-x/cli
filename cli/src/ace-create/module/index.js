@@ -89,7 +89,7 @@ function createStageInAndroid(moduleName, templateDir) {
     const templateFileName = 'MainActivity.java';
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + 'EntryAbilityActivity';
+    }) + capitalize(moduleName) + 'AbilityActivity';
     let dest = path.join(projectDir, '.arkui-x/android/app/src/main/java');
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
@@ -109,7 +109,7 @@ function createStageInAndroid(moduleName, templateDir) {
       fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
-      + moduleName + ':EntryAbility:'));
+      + moduleName + ':' + capitalize(moduleName) + 'Ability:'));
     const createActivityXmlInfo =
       '    <activity \n' +
       '            android:name=".' + destClassName + '"\n' +
@@ -171,9 +171,9 @@ function replaceStageProfile(moduleName) {
   try {
     if (moduleName != 'entry') {
       const srcModulePath = path.join(projectDir, moduleName, 'src/main/module.json5');
-      const modulePathJson = JSON.parse(fs.readFileSync(srcModulePath).toString());
+      const modulePathJson = JSON5.parse(fs.readFileSync(srcModulePath).toString());
       delete modulePathJson.module.abilities[0].skills;
-      fs.writeFileSync(srcModulePath, JSON.stringify(modulePathJson, '', '  '));
+      fs.writeFileSync(srcModulePath, JSON5.stringify(modulePathJson, '', '  '));
       modifyModuleBuildProfile(projectDir, moduleName);
       if (isNativeCppTemplate(projectDir)) {
         const appName = getAppNameForModule();
@@ -184,7 +184,7 @@ function replaceStageProfile(moduleName) {
       }
     }
     const srcBuildPath = path.join(projectDir, 'build-profile.json5');
-    const buildPathJson = JSON.parse(fs.readFileSync(srcBuildPath).toString());
+    const buildPathJson = JSON5.parse(fs.readFileSync(srcBuildPath).toString());
     const moduleInfo = {
       'name': moduleName,
       'srcPath': './' + moduleName,
@@ -198,7 +198,7 @@ function replaceStageProfile(moduleName) {
       ]
     };
     buildPathJson.modules.push(moduleInfo);
-    fs.writeFileSync(srcBuildPath, JSON.stringify(buildPathJson, '', '  '));
+    fs.writeFileSync(srcBuildPath, JSON5.stringify(buildPathJson, '', '  '));
     return true;
   } catch (error) {
     console.error('Replace stage project info error.');
@@ -211,6 +211,25 @@ function replaceStageProjectInfo(moduleName) {
     const files = [];
     const replaceInfos = [];
     const strs = [];
+
+    const mainPath= path.join(projectDir, moduleName, 'src', 'main');
+    const targetAbilityDir = path.join(mainPath, 'ets', moduleName+'ability');
+    fs.renameSync(path.join(mainPath, 'ets', 'entryability'), targetAbilityDir);
+    fs.renameSync(path.join(targetAbilityDir, 'EntryAbility.ets'), path.join(targetAbilityDir, capitalize(moduleName)+'Ability.ets'));
+
+
+    files.push(path.join(targetAbilityDir, capitalize(moduleName)+'Ability.ets'));
+    replaceInfos.push('EntryAbility');
+    strs.push(capitalize(moduleName) + 'Ability');
+    
+    files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
+    replaceInfos.push('EntryAbility');
+    strs.push(capitalize(moduleName)+'Ability');
+
+    files.push(path.join(projectDir, moduleName, '/src/main/module.json5'));
+    replaceInfos.push('entryability');
+    strs.push(moduleName+'ability');
+
     files.push(path.join(projectDir, moduleName, '/src/main/resources/base/element/string.json'));
     replaceInfos.push('module_ability_name');
     strs.push(capitalize(moduleName) + 'Ability');
