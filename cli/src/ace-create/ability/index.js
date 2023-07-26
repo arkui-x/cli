@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const { copy } = require('../util');
-const { getModuleList, getModuleAbilityList, addFileToPbxproj } = require('../../util');
+const { getModuleList, getModuleAbilityList, addFileToPbxproj, isAppProject } = require('../../util');
 
 let currentDir;
 
@@ -46,6 +46,10 @@ function isAbilityNameQualified(name) {
 }
 
 function createStageAbilityInAndroid(moduleName, abilityName, templateDir, currentDir) {
+  if (!isAppProject(path.join(currentDir, '../'))) {
+    console.warn('aar and framework not support multiple abilities.');
+    return true;
+  }
   try {
     const manifestPath = path.join(currentDir, '../AppScope/app.json5');
     const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
@@ -173,6 +177,9 @@ function updateManifest(abilityName) {
 }
 
 function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDir) {
+  if (!isAppProject(path.join(currentDir, '../'))) {
+    return true;
+  }
   try {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();

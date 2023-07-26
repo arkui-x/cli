@@ -100,7 +100,7 @@ ace check
 
 ```shell
 ohos@user ~ % ace check
-[√] ArkUI-X toolchains - develop for ArkUI-X devices
+[√] ArkUI-X(v1.0.0 Alpha)
   • ArkUI-X SDK at /Users/ohos/ARKUI-X
   • Node.js Runtime Environment at /usr/local/bin/node
   • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
