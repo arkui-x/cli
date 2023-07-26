@@ -183,13 +183,13 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
   try {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
-    }) + abilityName.replace('Ability', '') + 'ViewController';
-    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryMainViewController');
+    }) + abilityName + 'ViewController';
+    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryEntryAbilityViewController');
     fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/' + destClassName + '.h'),
-      fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryMainViewController', 'g'),
+      fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
     fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/' + destClassName + '.m'),
-      fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryMainViewController', 'g'),
+      fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
     const createViewControlInfo =
       '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
@@ -204,7 +204,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
     const curManifestXmlInfo =
       fs.readFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m')).toString();
     const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryMainViewController.h"');
+    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
     '#import "' + destClassName + '.h"\n' +
     curManifestXmlInfo.slice(insertImportIndex, insertIndex) +

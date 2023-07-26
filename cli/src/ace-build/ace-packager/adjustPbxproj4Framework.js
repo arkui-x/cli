@@ -243,14 +243,10 @@ function makeXCopyFilesBuildPhaseContent(xcframeworkMap, existData) {
   return content;
 }
 
-function makeXFileReferenceContent(fileType, xcframeworkMap, existData) {
+function makeXFileReferenceContent(xcframeworkMap, existData) {
   let line = '{fileRefUuid} /* {xcframework} */ = {isa = PBXFileReference; lastKnownFileType = ';
   line = line + 'wrapper.xcframework; name = {xcframework}; ';
-  if (fileType === 'app') {
-    line = line + 'path = frameworks/{xcframework}; sourceTree = "<group>"; };\n';
-  } else {
-    line = line + 'path = ../frameworks/{xcframework}; sourceTree = "<group>"; };\n';
-  }
+  line = line + 'path = frameworks/{xcframework}; sourceTree = "<group>"; };\n';
   let content = '';
   xcframeworkMap.forEach(function(value, key) {
     if (!existData.checkIfLibExists(existData.existData, key)) {
@@ -326,11 +322,11 @@ function updateXCopyFilesBuildPhaseContent(xcframework, pbxprojFileInfo,
     removeUnused, xcframework, allLibSet, funcOnRemoved);
 }
 
-function updateXFileReferenceContent(fileType, xcframework, pbxprojFileInfo,
+function updateXFileReferenceContent(xcframework, pbxprojFileInfo,
   removeUnused, allLibSet, funcOnRemoved) {
   const result = getTypeSettingSection([xFileReferenceStart], xFileReferenceEnd,
     pbxprojFileInfo, existLibInfoProcessor2);
-  const content = makeXFileReferenceContent(fileType, xcframework, result);
+  const content = makeXFileReferenceContent(xcframework, result);
   return adjustLibInfoInPbxproj(result, pbxprojFileInfo, content,
     removeUnused, xcframework, allLibSet, funcOnRemoved);
 }
@@ -378,7 +374,7 @@ function updateIosProjectPbxproj(fileType, projectDir, depMap, system,
       removeUnused, allLibSet, funcOnRemoved);
     pbxprojFileInfo = updateXCopyFilesBuildPhaseContent(xcframeworkList, pbxprojFileInfo,
       removeUnused, allLibSet, funcOnRemoved);
-    pbxprojFileInfo = updateXFileReferenceContent(fileType, xcframeworkList, pbxprojFileInfo,
+    pbxprojFileInfo = updateXFileReferenceContent(xcframeworkList, pbxprojFileInfo,
       removeUnused, allLibSet, funcOnRemoved);
     pbxprojFileInfo = updateXFrameworksBuildPhaseContent(xcframeworkList, pbxprojFileInfo,
       removeUnused, allLibSet, funcOnRemoved);
@@ -393,7 +389,7 @@ function updateIosProjectPbxproj(fileType, projectDir, depMap, system,
       const xcframeworkList = getXcframeworkList(depMap, system, pbxprojFileInfo);
       pbxprojFileInfo = updateXBuildFileContent(fileType, xcframeworkList, pbxprojFileInfo,
         removeUnused, allLibSet, funcOnRemoved);
-      pbxprojFileInfo = updateXFileReferenceContent(fileType, xcframeworkList, pbxprojFileInfo,
+      pbxprojFileInfo = updateXFileReferenceContent(xcframeworkList, pbxprojFileInfo,
         removeUnused, allLibSet, funcOnRemoved);
       pbxprojFileInfo = updateXFrameworksBuildPhaseContent(xcframeworkList, pbxprojFileInfo,
         removeUnused, allLibSet, funcOnRemoved);

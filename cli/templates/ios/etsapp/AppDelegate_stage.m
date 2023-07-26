@@ -14,7 +14,7 @@
  */
 
 #import "AppDelegate.h"
-#import "EntryMainViewController.h"
+#import "EntryEntryAbilityViewController.h"
 #import <libarkui_ios/StageApplication.h>
 
 #define BUNDLE_DIRECTORY @"arkui-x"
@@ -31,7 +31,7 @@
     [StageApplication launchApplication];
     
     NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",BUNDLE_NAME, @"entry", @"EntryAbility"];
-    EntryMainViewController *mainView = [[EntryMainViewController alloc] initWithInstanceName:instanceName];
+    EntryEntryAbilityViewController *mainView = [[EntryEntryAbilityViewController alloc] initWithInstanceName:instanceName];
     [self setNavRootVC:mainView];
     return YES;
 }
@@ -76,9 +76,9 @@
     
     if ([moduleName isEqualToString:@"entry"] && [abilityName isEqualToString:@"EntryAbility"]) {
         NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",bundleName, moduleName, abilityName];
-        EntryMainViewController *entryOtherVC = [[EntryMainViewController alloc] initWithInstanceName:instanceName];
+        EntryEntryAbilityViewController *entryOtherVC = [[EntryEntryAbilityViewController alloc] initWithInstanceName:instanceName];
         entryOtherVC.params = params;
-        subStageVC = (EntryMainViewController *)entryOtherVC;
+        subStageVC = (EntryEntryAbilityViewController *)entryOtherVC;
     } // other ViewController
     
     if (!subStageVC) {
