@@ -24,12 +24,15 @@ let currentDir;
 
 function checkAbilityName(abilityName, abilityList, moduleName) {
   if (!abilityName) {
-    console.error('abilityName name is required!');
+    console.error('\n abilityName is required!');
     return false;
   }
-  if (abilityList.includes(moduleName + '_' + abilityName + 'Ability')) {
-    console.error('abilityName name already exists!');
-    return false;
+
+  for (let index = 0; index < abilityList.length; index++) {
+    if (abilityList[index].toLowerCase() === (moduleName + '_' + abilityName + 'Ability').toLowerCase()) {
+      console.error('\n abilityName already exists!');
+      return false;
+    }
   }
   return true;
 }
@@ -157,7 +160,7 @@ function updateManifest(abilityName) {
       return false;
     }
     const moduleJsonPath = path.join(currentDir, 'src/main/module.json5');
-    const moduleJson = JSON.parse(fs.readFileSync(moduleJsonPath));
+    const moduleJson = JSON5.parse(fs.readFileSync(moduleJsonPath));
     moduleJson.module.abilities.push(
       {
         name: abilityName,

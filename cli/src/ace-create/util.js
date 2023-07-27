@@ -123,7 +123,7 @@ function getIdeDefaultSdk() {
 }
 
 function modifyHarmonyOSConfig(projectPath, moduleName) {
-    const buildProfile = path.join(projectPath, moduleName, 'build-profile.json5');
+    const buildProfile = path.join(projectPath, 'build-profile.json5');
     const configFile = [path.join(projectPath, moduleName, 'src/main/module.json5'),
     path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
     const deviceTypeName = 'deviceTypes';

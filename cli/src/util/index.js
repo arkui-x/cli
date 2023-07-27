@@ -194,7 +194,14 @@ function getAarName(projectDir) {
 }
 
 function getFrameworkName(projectDir) {
-  return [path.basename(projectDir)];
+  const frameworkName = [];
+  const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
+  iosDir.forEach(dir => {
+    if (dir.includes('.xcodeproj')) {
+      frameworkName.push(dir.split('.')[0]);
+    }
+  });
+  return frameworkName;
 }
 
 function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
