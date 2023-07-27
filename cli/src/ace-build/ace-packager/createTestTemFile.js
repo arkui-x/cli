@@ -15,6 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const JSON5 = require('json5');
 const { getModuleList } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../../ace-create/ability');
 let projectDir;
@@ -22,7 +23,7 @@ let projectDir;
 function recoverStageAbilityInAndroid(moduleName, abilityName) {
   try {
     const manifestPath = path.join(projectDir, 'AppScope/app.json5');
-    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+    const manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
     const packageArray = manifestJsonObj.app.bundleName.split('.');
     let dest = path.join(projectDir, '.arkui-x/android/app/src/main/java');
     packageArray.forEach(pkg => {
