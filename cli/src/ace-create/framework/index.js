@@ -56,7 +56,7 @@ function findFrameworkTemplate(libraryPath, frameworkName) {
 function copyTemplate(templatePath, libraryPath) {
     try {
         const files = ['AppDelegate_stage.h', 'AppDelegate_stage.m',
-            'EntryMainViewController.h', 'EntryMainViewController.m'];
+            'EntryEntryAbilityViewController.h', 'EntryEntryAbilityViewController.m'];
         copy(path.join(templatePath, 'framework'), path.join(libraryPath));
         files.forEach(fileName => {
             fs.copyFileSync(path.join(templatePath, 'ios/etsapp', fileName),
