@@ -117,7 +117,7 @@ ohos@user ~ % ace check
   • Ohpm at /Users/ohos/Library/Huawei/ohpm/bin
 [√] Android toolchains - develop for Android devices
   • Android SDK at /Users/ohos/Library/Android/sdk
-[√] DevEco Studio [Requires DevEco Studio 3.1 Release, API Version 9+]
+[√] DevEco Studio [Requires DevEco Studio 4.0 Beta2, API Version 10+]
   • DevEco Studio at /Applications/deveco-studio.app
 [!] Android Studio
   ! Android Studio is not installed, you can install in https://developer.android.google.cn/studio

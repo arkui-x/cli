@@ -155,7 +155,7 @@ function parseCreate() {
       } else if (subcommand === 'ability') {
         createAbility();
       } else {
-        console.log(`Please use ace create with subcommand : project/module/component/ability.`);
+        console.log(`Please use ace create with subcommand : project/module/ability.`);
       }
     });
 }
