@@ -154,13 +154,13 @@ function recoverFileToPbxproj(pbxprojFilePath, fileName, fileType) {
 
 function getDestName(moduleName, abilityName, fileType) {
   if (fileType == 'apk') {
-    return moduleName.replace(/\b\w/g, function (l) {
+    return moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + abilityName + 'Activity';
   }
-  return moduleName.replace(/\b\w/g, function (l) {
+  return moduleName.replace(/\b\w/g, function(l) {
     return l.toUpperCase();
-  }) + abilityName.replace('Ability', '') + 'ViewController';
+  }) + abilityName + 'ViewController';
 }
 
 function createTestTem(fileType) {
