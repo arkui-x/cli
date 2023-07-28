@@ -63,14 +63,13 @@ function checkModuleName(moduleList, moduleName) {
     console.error('The Module name can contain only letters, digits, and underscores(_).');
     return false;
   }
-  if (fs.existsSync(path.join(projectDir, moduleName)) ||
-    fs.existsSync(path.join(projectDir, moduleName))) {
+  if (fs.existsSync(path.join(projectDir, moduleName))) {
     console.error(`\n${moduleName} already exists.`);
     return false;
   }
   for (let index = 0; index < moduleList.length; index++) {
-    if (moduleList[index] === moduleName) {
-      console.error(`${moduleName} already exists.`);
+    if (moduleList[index].toLowerCase() === moduleName.toLowerCase()) {
+      console.error(`\n${moduleName} already exists.`);
       return false;
     }
   }
@@ -294,7 +293,7 @@ function createStageInIOS(moduleName, templateDir) {
         destClassName));
     const createViewControlInfo =
       '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName '+
-      '  isEqualToString:@"EntryAbility"]) {\n' +
+      '  isEqualToString:@"' + capitalize(moduleName) + 'Ability"]) {\n' +
       '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",'+
       'bundleName, moduleName, abilityName];\n' +
       '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] '+
