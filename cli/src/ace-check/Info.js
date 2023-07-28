@@ -28,7 +28,7 @@ class Info {
     this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices`;
     this.harmonyOsTitle = `HarmonyOS toolchains - develop for HarmonyOS devices`;
     this.androidTitle = `Android toolchains - develop for Android devices`;
-    this.devEcoStudioTitle = `DevEco Studio [Requires DevEco Studio 3.1 Release, API Version 9+]`;
+    this.devEcoStudioTitle = `DevEco Studio [Requires DevEco Studio 4.0 Beta2, API Version 10+]`;
     this.androidStudioTitle = `Android Studio`;
     this.openHarmonyLicenses = `All OpenHarmony licenses accepted`;
     this.androidLicenses = `All Android licenses accepted`;
