@@ -59,8 +59,6 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/android/gradle/wrapper/gradle-wrapper.jar" desc="Android工程模版自带的打包工具"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.xcuserstate" desc="iOS工程固定配置文件"/>
                 <filteritem type="filepath" name="cli/templates/framework/.*.xcuserstate" desc="iOS工程固定配置文件"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-arm64/libace_ios.framework/libace_ios" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/ios"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/libace_ios" desc="来源于代码仓foundation/arkui/ace_engine和foundation/arkui/ace_engine/adapter/ios"/>
             </filefilter>
             <filefilter name="copyrightPolicyFilter" desc="Copyright文件头校验策略的过滤条件" >
                 <filteritem type="filename" name="oh-package.json5" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
@@ -70,28 +68,10 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filename" name="hvigor-wrapper.js" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/layout/activity_main.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values-night/themes.xml" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/gradlew" desc="Android工程编译入口脚本，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/local.properties" desc="OpenHarmony工程配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/hvigorfile.js" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/entry/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/entry/hvigorfile.js" desc="OpenHarmony工程编译入口脚本，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/ets_fa/source/.*.ets" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/js_fa/source/.*.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/java/MainActivity.java" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/java/MyApplication.java" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加版权头"/>
@@ -104,11 +84,7 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/ohos_stage/hvigorfile.ts" desc="webpack编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ohos_stage/AppScope/app.json5" desc="webpack编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/build-profile.json5" desc="webpack编译配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_ets_fa/source/.*.ets" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_js_fa/source/.*.js" desc="示例展示无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/cpp/cpp_src/hello.cpp" desc="示例展示无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_ohos_fa/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_ohos_fa/entry/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/main/module.json5" desc="webpack编译配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/ohosTest/module.json5" desc="webpack编译配置文件，无需添加版权头"/>
@@ -128,30 +104,10 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filename" name="hvigor-wrapper.js" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ios/.*.plist|.*.modulemap|.*.storyboard|.*.pbxproj|.*.xcworkspacedata|.*.podspec" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-arm64/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/Headers/FlutterPlugin.h" desc="keep the flutter src copyright"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-arm64/libace_ios.framework/LICENSE" desc="keep the flutter src license"/>
-                <filteritem type="filepath" name="cli/templates/ios/frameworks/libace_ios.xcframework/ios-x86_64-simulator/libace_ios.framework/LICENSE" desc="keep the flutter src license"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/drawable/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/drawable-v24/ic_launcher_background.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/layout/activity_main.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values/colors.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values/strings.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values/themes.xml" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/android/app/src/main/res/values-night/themes.xml" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/android/gradlew" desc="Android工程编译入口脚本，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/android/gradlew.bat" desc="Android工程编译入口脚本，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/local.properties" desc="OpenHarmony工程配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/hvigorfile.js" desc="OpenHarmony工程编译入口脚本，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/entry/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ohos_fa/entry/hvigorfile.js" desc="OpenHarmony工程编译入口脚本，无需添加Licen头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/AndroidManifest.xml" desc="Android工程清单配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/ets_fa/source/.*.ets" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/js_fa/source/.*.js" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/java/MainActivity.java" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/main/java/MyApplication.java" desc="示例展示无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/android/app/src/androidTest/java/ExampleInstrumentedTest.java" desc="示例展示无需添加License头"/>
@@ -165,10 +121,6 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="cli/templates/ohos_stage/AppScope/app.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/ets_stage/source/entry/build-profile.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/cpp/cpp_src/hello.cpp" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_js_fa/source/.*.js" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_ets_fa/source/.*.ets" desc="示例展示无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_ohos_fa/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="cli/templates/cpp_ohos_fa/entry/build-profile.json5" desc="OpenHarmony工程编译配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/build-profile.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/main/module.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="cli/templates/cpp_ets_stage/source/entry/src/ohosTest/module.json5" desc="OpenHarmony工程配置文件，无需添加License头"/>
