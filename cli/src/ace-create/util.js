@@ -144,7 +144,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName) {
   
     configFile.forEach(config => {
       if (fs.existsSync(config)) {
-        const configFileInfo = JSON.parse(fs.readFileSync(config));
+        const configFileInfo = JSON5.parse(fs.readFileSync(config));
         configFileInfo.module[deviceTypeName] = ['phone'];
         fs.writeFileSync(config, JSON.stringify(configFileInfo, '', '  '));
       }
