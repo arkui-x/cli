@@ -29,7 +29,9 @@ function checkXcodeVersion() {
 function checkIdeviceVersion() {
     try {
         if (platform === Platform.MacOS) {
-            return process.execSync(`idevicesyslog -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+            let versionInfo = process.execSync(`idevicesyslog -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+            versionInfo = versionInfo.replace('idevicesyslog', 'libimobiledevice');
+            return versionInfo;
         }
         return "";
     } catch (err) {

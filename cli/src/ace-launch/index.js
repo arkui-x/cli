@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
-
+const JSON5 = require('json5'); 
 const log = require('../ace-log');
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
@@ -49,8 +49,8 @@ function getNameStageHaps(projectDir, moduleName) {
     const ohosJsonPath = path.join(projectDir, moduleName, 'src/main/module.json5');
     const appJsonPath = path.join(projectDir, '/AppScope/app.json5');
     if (fs.existsSync(ohosJsonPath) && fs.existsSync(appJsonPath)) {
-      ohosclassName = JSON.parse(fs.readFileSync(ohosJsonPath)).module.abilities[0].name;
-      bundleName = JSON.parse(fs.readFileSync(appJsonPath)).app.bundleName;
+      ohosclassName = JSON5.parse(fs.readFileSync(ohosJsonPath)).module.abilities[0].name;
+      bundleName = JSON5.parse(fs.readFileSync(appJsonPath)).app.bundleName;
       packageName = moduleName;
       if (!bundleName || !packageName || !ohosclassName) {
         console.error(`Please check bundleName, packageName and className in ${ohosJsonPath}.`);
@@ -84,7 +84,7 @@ function getNamesApk(projectDir, moduleName) {
           androidclassName = element.split('"')[1];
         }
       });
-      bundleName = JSON.parse(fs.readFileSync(manifestPath)).app.bundleName;
+      bundleName = JSON5.parse(fs.readFileSync(manifestPath)).app.bundleName;
       androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
         return l.toUpperCase();
       }) + 'EntryAbilityActivity';

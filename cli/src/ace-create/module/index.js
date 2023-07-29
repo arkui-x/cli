@@ -131,7 +131,7 @@ function createStageInAndroid(moduleName, templateDir) {
 function getPackageName() {
   try {
     const manifestPath = path.join(projectDir, 'AppScope/app.json5');
-    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+    const manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
     return manifestJsonObj.app.bundleName;
   } catch (error) {
     console.error('Get package name error.');
@@ -142,7 +142,7 @@ function getPackageName() {
 function getAppNameForModule() {
   try {
     const manifestPath = path.join(projectDir, 'oh-package.json5');
-    const manifestJsonObj = JSON.parse(fs.readFileSync(manifestPath));
+    const manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
     return manifestJsonObj.name;
   } catch (error) {
     console.error('Get app name error.');

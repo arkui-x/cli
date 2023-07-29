@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn, execSync } = require('child_process');
-
+const JSON5 = require('json5')
 const { getToolByType } = require('../ace-check/getTool');
 const { validInputDevice, isProjectRootDir, getCurrentProjectSystem } = require('../util');
 const { exit } = require('process');
@@ -248,7 +248,7 @@ function getAppPid(device, fileType, bundleName) {
 
 function getBundleName() {
   try {
-    return JSON.parse(fs.readFileSync(path.join(projectDir, 'AppScope/app.json5'))).app.bundleName;
+    return JSON5.parse(fs.readFileSync(path.join(projectDir, 'AppScope/app.json5'))).app.bundleName;
   } catch (err) {
     console.log('Get bundle name failed');
   }

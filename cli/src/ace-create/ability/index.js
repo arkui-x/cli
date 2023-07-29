@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const JSON5 = require('json5');
+const JSON5 = require('json5'); 
 const { copy } = require('../util');
 const { getModuleList, getModuleAbilityList, addFileToPbxproj, isAppProject } = require('../../util');
 
