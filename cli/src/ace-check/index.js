@@ -27,7 +27,7 @@ const {
   ohpmDir
 } = require('./configs');
 const checkJavaSdk = require('./checkJavaSdk');
-const { setConfig } = require('../ace-config');
+const { setConfig, ArkUIXSdkPathCheck } = require('../ace-config');
 const devices = require('../ace-devices');
 const info = require('./Info');
 const process = require('child_process');
@@ -117,6 +117,13 @@ function showWarning() {
       msgs.push(warningInfo[index]);
     }
   });
+  if(arkuiXSdkDir) {
+    let checkInfo = []
+    ArkUIXSdkPathCheck(arkuiXSdkDir,checkInfo);
+    checkInfo.forEach((key)=>{
+      msgs.push(key);
+    })
+  }
   if (msgs.length !== 0) {
     showWarningInfo(msgs);
   }
@@ -154,15 +161,30 @@ function check() {
   if (androidSdkDir) {
     setConfig({ 'android-sdk': androidSdkDir });
   }
-
-  errorTimes = !arkuiXSdkDir ? errorTimes++ : errorTimes;
-  errorTimes = !openHarmonySdkDir ? errorTimes++ : errorTimes;
-  errorTimes = !harmonyOsSdkDir ? errorTimes++ : errorTimes;
-  errorTimes = !nodejsDir ? errorTimes++ : errorTimes;
-  errorTimes = !javaSdkDir ? errorTimes++ : errorTimes;
-  errorTimes = !androidSdkDir ? errorTimes++ : errorTimes;
-  errorTimes = !devEcoStudioDir ? errorTimes++ : errorTimes;
-  errorTimes = !androidStudioDir ? errorTimes++ : errorTimes;
+  if(!arkuiXSdkDir) {
+    errorTimes++;  
+  }
+  if(!openHarmonySdkDir) {
+    errorTimes++;  
+  }
+  if(!harmonyOsSdkDir) {
+    errorTimes++;  
+  }
+  if(!nodejsDir) {
+    errorTimes++;  
+  }
+  if(!javaSdkDir) {
+    errorTimes++;  
+  }
+  if(!androidSdkDir) {
+    errorTimes++;  
+  }
+  if(!devEcoStudioDir) {
+    errorTimes++;  
+  }
+  if(!androidStudioDir) {
+    errorTimes++;  
+  }
 
   if (openHarmonySdkDir || harmonyOsSdkDir || androidSdkDir || deployVersion) {
     const validDevice = devices(true);
@@ -179,13 +201,13 @@ function check() {
 function printCheckInfo(errorTimes) {
   if (errorTimes === 1) {
     console.log(`
-  ! Ace-check found issues in 1 category.`);
+  ! ACE Tools found issues in 1 category.`);
   } else if (errorTimes > 1) {
     console.log(`
-  ! Ace-check found issues in ${errorTimes} categories.`);
+  ! ACE Tools found issues in ${errorTimes} categories.`);
   } else {
     console.log(`
-  √ Ace-check found no issues.`);
+  √ ACE Tools found no issues.`);
   }
 }
 

@@ -78,9 +78,6 @@ function readConfig() {
 
 function writeLocalProperties() {
   const filePath = path.join(projectDir, 'local.properties');
-  if(fs.existsSync(filePath)){
-    return true;
-  }
   let content = `nodejs.dir=${nodejsDir}\narkui-x.dir=${arkuiXSdkDir}`;
   if (currentSystem === HarmonyOS) {
     content += `\nhwsdk.dir=${harmonyOsSdkDir}`;

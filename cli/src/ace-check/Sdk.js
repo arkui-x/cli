@@ -15,7 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { getConfig } = require('../ace-config');
+const { getConfig,ArkUIXSdkPathCheck } = require('../ace-config');
 
 const {
   Platform,
@@ -117,9 +117,12 @@ class Sdk {
         }
       }
     }
-
     if (sdkHomeDir) {
-      if (this.validSdkDir(sdkHomeDir)) {
+      if(this.kSdkRoot === 'ArkUI-X') {
+        if(ArkUIXSdkPathCheck(sdkHomeDir)) {
+          return sdkHomeDir;
+        }
+      } else if (this.validSdkDir(sdkHomeDir)) {
         return sdkHomeDir;
       }
     }
