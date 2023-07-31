@@ -41,9 +41,9 @@ function addPrefix(message, valid, correctPrefix, errorPrefix) {
 }
 
 function showWarningInfo(msgs) {
-  console.warn('\x1B[31m%s\x1B[0m', 'Warning: ');
+  console.warn('\x1B[33m%s\x1B[0m', 'Warning: ');
   msgs.forEach(msg => {
-    console.warn('\x1B[31m    %s\x1B[0m', msg);
+    console.warn('\x1B[33m    %s\x1B[0m', msg);
   });
 }
 
