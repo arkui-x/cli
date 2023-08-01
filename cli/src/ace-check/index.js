@@ -133,34 +133,10 @@ function check() {
   let errorTimes = 0;
   errorTimes = checkRequired(errorTimes);
 
-  if (ohpmDir) {
-    setConfig({ 'ohpm-dir': ohpmDir });
-  }
-
-  if (arkuiXSdkDir) {
-    setConfig({ 'arkui-x-sdk': arkuiXSdkDir });
-  }
-
-  if (openHarmonySdkDir) {
-    setConfig({ 'openharmony-sdk': openHarmonySdkDir });
-  }
-
-  if (harmonyOsSdkDir) {
-    setConfig({ 'harmonyos-sdk': harmonyOsSdkDir });
-  }
-
   if (nodejsDir) {
-    setConfig({ 'nodejs-dir': nodejsDir });
     process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
   }
 
-  if (javaSdkDir) {
-    setConfig({ 'java-sdk': javaSdkDir });
-  }
-
-  if (androidSdkDir) {
-    setConfig({ 'android-sdk': androidSdkDir });
-  }
   if(!arkuiXSdkDir) {
     errorTimes++;  
   }
