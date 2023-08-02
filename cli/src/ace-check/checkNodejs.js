@@ -13,27 +13,15 @@
  * limitations under the License.
  */
 
-const process = require('child_process');
-
-const { Platform, platform } = require('./platform');
 const { getConfig } = require('../ace-config');
 
 function checkNodejs() {
+  const environment = process.env;
   const config = getConfig();
   if (config && config['nodejs-dir']) {
     return config['nodejs-dir'];
-  } else if (platform === Platform.Windows) {
-    try {
-      return process.execSync(`where node`).toString().replace(/\r\n/g, '');
-    } catch (err) {
-      // ignore
-    }
-  } else if (platform === Platform.Linux || platform === Platform.MacOS) {
-    try {
-      return process.execSync(`which node`).toString().replace(/\n/g, '');
-    } catch (err) {
-      // ignore
-    }
+  } else if ('NODE_HOME' in environment) {
+    return environment['NODE_HOME'].replace(';', '');
   }
 }
 
