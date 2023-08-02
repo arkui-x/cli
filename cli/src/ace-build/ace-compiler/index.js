@@ -21,43 +21,21 @@ const {
   platform
 } = require('../../ace-check/platform');
 const {
-  config,
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
 const { copy } = require('../../ace-create/util');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
+const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir ,nodejsDir} = require('../../ace-check/configs');
+
 let projectDir;
-let openHarmonySdkDir;
-let harmonyOsSdkDir;
-let arkuiXSdkDir;
 let arkuiXSdkPath;
-let nodejsDir;
 let uiSyntax;
 let currentSystem;
-let ohpmDir;
 
 function readConfig() {
   try {
-    if (config) {
-      if (Object.prototype.hasOwnProperty.call(config, 'openharmony-sdk')) {
-        openHarmonySdkDir = config['openharmony-sdk'];
-      }
-      if (Object.prototype.hasOwnProperty.call(config, 'arkui-x-sdk')) {
-        arkuiXSdkDir = config['arkui-x-sdk'];
-        arkuiXSdkPath = arkuiXSdkDir + '/10/arkui-x';
-      }
-      if (Object.prototype.hasOwnProperty.call(config, 'harmonyos-sdk')) {
-        harmonyOsSdkDir = config['harmonyos-sdk'];
-      }
-      if (Object.prototype.hasOwnProperty.call(config, 'nodejs-dir')) {
-        nodejsDir = config['nodejs-dir'];
-      }
-      if (Object.prototype.hasOwnProperty.call(config, 'ohpm-dir')) {
-        ohpmDir = config['ohpm-dir'];
-      }
-    }
     if (currentSystem === HarmonyOS) {
       if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
         console.error(`Please check HarmonyOS Sdk, ArkUI-X SDK, nodejs and ohpm in your environment.`);
@@ -69,6 +47,7 @@ function readConfig() {
         return false;
       }
     }
+    arkuiXSdkPath = path.join(arkuiXSdkDir, '10','arkui-x');
     return true;
   } catch (error) {
     console.error(`Please 'ace check' first.`);
