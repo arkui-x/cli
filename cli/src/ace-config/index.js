@@ -38,7 +38,7 @@ function setConfig(configs, isPrint) {
           let checkInfo = [];
           let isValid = ArkUIXSdkPathCheck(configPath,checkInfo);
           let logType = '\x1B[33m%s\x1B[0m';
-          let logStr = "Warnning: "
+          let logStr = "Warning: "
           if(!isValid) {
             logType = '\x1B[31m%s\x1B[0m';
             logStr = "Error: "
