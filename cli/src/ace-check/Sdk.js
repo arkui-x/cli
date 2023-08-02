@@ -49,80 +49,26 @@ class Sdk {
       sdkHomeDir = environment[this.kSdkHome].replace(';', '');
     } else if (this.kSdkRoot in environment) {
       sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
-    } else if (platform === Platform.Linux) {
-      for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, this.defaultSdkDir[i], 'Sdk');
-        if (fs.existsSync(defaultPath)) {
-          sdkHomeDir = defaultPath;
-        }
+    } else { 
+      let defaultPrefixPath = '';
+      if (platform === Platform.Linux) {
+        defaultPrefixPath = homeDir;
+      } else if (platform === Platform.MacOS) {
+        defaultPrefixPath = path.join(homeDir, 'Library');
+      } else if (platform === Platform.Windows) {
+        defaultPrefixPath = path.join(homeDir, 'AppData', 'Local');
       }
-    } else if (platform === Platform.MacOS) {
-      for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i], 'Sdk');
-        if (fs.existsSync(defaultPath)) {
-          sdkHomeDir = defaultPath;
-        }
-      }
-    } else if (platform === Platform.Windows) {
-      for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, 'AppData', 'Local', this.defaultSdkDir[i], 'Sdk');
-        if (fs.existsSync(defaultPath)) {
-          sdkHomeDir = defaultPath;
-        }
+      let defaultPath = path.join(defaultPrefixPath, 'Sdk');
+      if (fs.existsSync(defaultPath)) {
+        sdkHomeDir = defaultPath;
+      } else {
+        defaultPath = path.join(defaultPrefixPath, 'sdk');
+        sdkHomeDir = defaultPath;
       }
     }
 
     if (sdkHomeDir) {
       if (this.validSdkDir(sdkHomeDir)) {
-        return sdkHomeDir;
-      }
-    }
-
-    if (sdkHomeDir) {
-      const validSdkPath = path.join(sdkHomeDir, 'sdk');
-      if (this.validSdkDir(validSdkPath)) {
-        return validSdkPath;
-      }
-    }
-  }
-
-  locateSdkNoSub() {
-    let sdkHomeDir;
-    const config = this.checkConfig();
-    if (config) {
-      sdkHomeDir = config;
-    } else if (this.kSdkHome in environment) {
-      sdkHomeDir = environment[this.kSdkHome].replace(';', '');
-    } else if (this.kSdkRoot in environment) {
-      sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
-    } else if (platform === Platform.Linux) {
-      for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, this.defaultSdkDir[i]);
-        if (fs.existsSync(defaultPath)) {
-          sdkHomeDir = defaultPath;
-        }
-      }
-    } else if (platform === Platform.MacOS) {
-      for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, 'Library', this.defaultSdkDir[i]);
-        if (fs.existsSync(defaultPath)) {
-          sdkHomeDir = defaultPath;
-        }
-      }
-    } else if (platform === Platform.Windows) {
-      for (const i in this.defaultSdkDir) {
-        const defaultPath = path.join(homeDir, 'AppData', 'Local', this.defaultSdkDir[i]);
-        if (fs.existsSync(defaultPath)) {
-          sdkHomeDir = defaultPath;
-        }
-      }
-    }
-    if (sdkHomeDir) {
-      if(this.kSdkRoot === 'ArkUI-X') {
-        if(ArkUIXSdkPathCheck(sdkHomeDir)) {
-          return sdkHomeDir;
-        }
-      } else if (this.validSdkDir(sdkHomeDir)) {
         return sdkHomeDir;
       }
     }
@@ -138,6 +84,9 @@ class Sdk {
   }
 
   validSdkDir(dir) {
+    if(this.type === 'ArkUI-X') {
+      return ArkUIXSdkPathCheck(dir);
+    }
     return this.validSdkDirLicenses(dir) || this.validSdkDirTools(dir);
   }
 
