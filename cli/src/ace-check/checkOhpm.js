@@ -15,80 +15,73 @@
 
 const fs = require('fs');
 const path = require('path');
-const process = require('child_process');
-const { Platform, platform, homeDir } = require('./platform');
+const { Platform, platform } = require('./platform');
+const Process = require('child_process');
 const { getConfig } = require('../ace-config');
 
 function checkOhpm() {
+  const environment = process.env;
   const config = getConfig();
-  let ohpmTool;
+  let ohpmDir;
   if (config && config['ohpm-dir']) {
-    ohpmTool = config['ohpm-dir'];
-    if (!validOhpmDir(ohpmTool)) {
-      ohpmTool = getOhpm();
+    ohpmDir = config['ohpm-dir'];
+    if (validOhpmDir(ohpmDir)) {
+      return ohpmDir;
     }
-  } else {
-    ohpmTool = getOhpm();
   }
-  return ohpmTool;
+  if ('OHPM_HOME' in environment) {
+    ohpmDir = environment['OHPM_HOME'].replace(';', '');
+    if (validOhpmDir(ohpmDir)) {
+      return ohpmDir;
+    } 
+  }
+  return getGlobalOhpm();
 }
 
-function getOhpm() {
-  let ohpmDir = '';
+function getGlobalOhpm() {
+  let ohpmDir;
   if (platform === Platform.Windows) {
     try {
-      return path.parse(process.execSync(`where ohpm`, { stdio: 'pipe' }).toString().split(/\r\n/g)[0]).dir;
+      ohpmDir = path.parse(Process.execSync(`where ohpm`, { stdio: 'pipe' }).toString().split(/\r\n/g)[0]).dir;
     } catch (err) {
-      const defaultPath = path.join(homeDir, 'AppData/Local/Huawei/ohpm/bin');
-      if (fs.existsSync(defaultPath)) {
-        ohpmDir = defaultPath;
-      }
+      //ignore
     }
   } else if (platform === Platform.MacOS) {
     try {
-      ohpmDir = path.parse(process.execSync(`which ohpm`, { stdio: 'pipe' }).toString().replace(/\n/g, '')).dir;
+      ohpmDir = path.parse(Process.execSync(`which ohpm`, { stdio: 'pipe' }).toString().replace(/\n/g, '')).dir;
     } catch (err) {
-      const defaultPath = path.join(homeDir, 'Library/Huawei/ohpm/bin');
-      if (fs.existsSync(defaultPath)) {
-        ohpmDir = defaultPath;
-      }
+      //ignore
     }
   } else if (platform === Platform.Linux) {
     try {
-      ohpmDir = path.parse(process.execSync(`which ohpm`, { stdio: 'pipe' }).toString().replace(/\n/g, '')).dir;
+      ohpmDir = path.parse(Process.execSync(`which ohpm`, { stdio: 'pipe' }).toString().replace(/\n/g, '')).dir;
     } catch (err) {
-      const defaultPath = path.join(homeDir, 'ohpm/bin');
-      if (fs.existsSync(defaultPath)) {
-        ohpmDir = defaultPath;
-      }
+      //ignore
     }
   }
-  if (validOhpm(ohpmDir, 'ohpm')) {
+  if(ohpmDir) {
+    ohpmDir = path.dirname(ohpmDir);
+    ohpmDir = path.dirname(ohpmDir);
     return ohpmDir;
   }
 }
 
-function validOhpm(ohpmDir, ohpmBaseName) {
-  let validPath = path.join(ohpmDir, ohpmBaseName);
-  if (fs.existsSync(validPath) && fs.statSync(validPath).isFile()) {
-    try {
-      process.execSync(`${validPath} -v`, {
-        encoding: 'utf-8',
-        stdio: 'pipe',
-      });
-      return true;
-    } catch (err) {
-      // ignore
-    }
+function validOhpmDir(ohpmDir) {
+  if (!fs.existsSync(ohpmDir)) {
+    return false;
   }
-  return false;
-}
-
-function validOhpmDir(ohpmTool) {
-  if (fs.existsSync(ohpmTool)) {
-    if (validOhpm(ohpmTool, 'ohpm') || validOhpm(ohpmTool, 'bin/ohpm')) {
-      return true;
-    }
+  let execPath = path.join(ohpmDir, 'bin', 'ohpm');
+  if(!fs.existsSync(execPath) || !fs.statSync(execPath).isFile()) {
+    return false;
+  }
+  try {
+    Process.execSync(`${execPath} -v`, {
+      encoding: 'utf-8',
+      stdio: 'pipe',
+    });
+    return true;
+  } catch (err) {
+    console.log(err);
   }
   return false;
 }

@@ -32,7 +32,7 @@ function createFramework(projectPath, frameworkName) {
         findFrameworkTemplate(libraryPath, frameworkName);
         return true;
     } catch (error) {
-        console.log('framework created failed! Target directory：' + projectPath + ' .' + error);
+        console.log('framework created failed! Target directory: ' + projectPath + '.' + error);
         return false;
     }
 }
