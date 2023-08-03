@@ -72,9 +72,9 @@ function createProject(projectPath, packages, project, system, proType, template
         return false;
       }
     }
-    console.log('Project created successfully! Target directory：' + projectPath + ' .');
+    console.log('Project created successfully! Target directory: ' + projectPath + '.');
   } catch (error) {
-    console.log('Project created failed! Target directory：' + projectPath + ' .' + error);
+    console.log('Project created failed! Target directory: ' + projectPath + '.' + error);
   }
 }
 

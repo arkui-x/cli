@@ -27,7 +27,7 @@ function createAar(projectPath, aarName) {
         findAarTemplate(libraryPath, aarName);
         return true;
     } catch (error) {
-        console.log('AAR created failed! Target directory：' + libraryPath + ' .' + error);
+        console.log('AAR created failed! Target directory: ' + libraryPath + '.' + error);
         return false;
     }
 }
