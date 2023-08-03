@@ -12,7 +12,7 @@
         android:extractNativeLibs="true"
         android:theme="@android:style/Theme.Light.NoTitleBar">
 	<activity android:exported="true" android:name=".MainActivity"
-		android:windowSoftInputMode="adjustResize |stateHidden"
+		android:windowSoftInputMode="adjustNothing |stateHidden"
 		android:configChanges="orientation|keyboard|layoutDirection|screenSize|screenLayout|uiMode|smallestScreenSize|density"
 		>
             <intent-filter>
