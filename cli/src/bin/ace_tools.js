@@ -58,16 +58,20 @@ function parseCommander() {
   program.parse(process.argv);
 }
 
-function isProjectNameQualified(name) {
-  const regEn = /[`~!@#$%^&*()+<>?:"{},.\/;'\\[\]]/im;
-  const regCn = /[·！#￥（——）：；“”‘、，|《。》？、【】[\]]/im;
-
-  if (regEn.test(name) || regCn.test(name) || !isNaN(name[0]) || name.length > 200) {
-    return false;
-  } else if (name[0] === '_') {
+function isProjectNameValid(name) {
+  const regex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
+  if(name.length < 1 || name.length > 200) {
     return false;
   }
-  return true;
+  return regex.test(name);
+}
+
+function isBundleNameValid(name) {
+  const regex = /^[a-z][a-z0-9]*(\.[a-z0-9_]+)+$/;
+  if(name.length < 7 || name.length > 128) {
+    return false;
+  }
+  return regex.test(name);
 }
 
 function parseCreate() {
@@ -82,7 +86,7 @@ function parseCreate() {
           validate(val) {
             if (val === '') {
               return 'Project name must be required!';
-            } else if (!isProjectNameQualified(val)) {
+            } else if (!isProjectNameValid(val)) {
               return 'The project name must contain 1 to 200 characters, start with a ' +
                 'letter, and include only letters, digits and underscores (_)';
             }
@@ -97,6 +101,10 @@ function parseCreate() {
             type: 'input',
             message: 'Please enter the bundle name (com.example.' + initInfo.project.toLowerCase() + '):',
             validate(val) {
+              if(!isBundleNameValid(val)) {
+                return "The bundle name must contain 7 to 128 characters,start with a letter,and include " +
+                "only lowercase letters, digits,underscores(_) and at least one separator(.).";
+              }
               return true;
             }
           }]).then(answers => {
