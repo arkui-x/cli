@@ -1,0 +1,12 @@
+{
+  "name": "module_name",
+  "version": "1.0.0",
+  "description": "Please describe the basic information.",
+  "main": "",
+  "author": "",
+  "license": "",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/libentry.so": "file:./src/main/cpp/types/libentry"
+  }
+}
