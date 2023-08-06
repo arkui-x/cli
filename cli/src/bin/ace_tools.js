@@ -111,7 +111,8 @@ function parseCreate() {
               return true;
             }
           }]).then(answers => {
-            initInfo.packages = answers.packages;
+            initInfo.packages = answers.packages ? answers.packages.toLowerCase()
+              : 'com.example.' + initInfo.project.toLowerCase();
             inquirer.prompt([{
               name: 'system',
               type: 'input',
