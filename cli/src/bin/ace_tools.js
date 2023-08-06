@@ -101,6 +101,9 @@ function parseCreate() {
             type: 'input',
             message: 'Please enter the bundle name (com.example.' + initInfo.project.toLowerCase() + '):',
             validate(val) {
+              if(!val) {
+                val = 'com.example.' + initInfo.project.toLowerCase();
+              }
               if(!isBundleNameValid(val)) {
                 return "The bundle name must contain 7 to 128 characters,start with a letter,and include " +
                 "only lowercase letters, digits,underscores(_) and at least one separator(.).";
@@ -108,8 +111,7 @@ function parseCreate() {
               return true;
             }
           }]).then(answers => {
-            initInfo.packages = answers.packages ? answers.packages.toLowerCase()
-              : 'com.example.' + initInfo.project.toLowerCase();
+            initInfo.packages = answers.packages;
             inquirer.prompt([{
               name: 'system',
               type: 'input',
