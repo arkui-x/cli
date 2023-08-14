@@ -21,7 +21,7 @@ const {
 } = require('../ace-check/platform');
 const { getConfig } = require('../ace-config');
 const config = getConfig();
-const { copy } = require('../ace-create/project');
+const { copy } = require('../ace-create/util');
 
 function createLocalProperties(filePath, content) {
   if (platform === Platform.Windows) {
