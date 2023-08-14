@@ -8,26 +8,20 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint -c .eslintrc src/** --fix",
-    "build": "rollup -c rollup.config.js"
+    "build": "rollup -c rollup.config.js --bundleConfigAsCjs"
   },
   "license": "Apache 2.0",
   "dependencies": {
-    "commander": "^9.4.0",
-    "inquirer": "^8.2.3"
+    "commander": "^11.0.0",
+    "inquirer": "^8.2.6"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.4",
-    "@babel/plugin-transform-runtime": "^7.6.2",
-    "@babel/preset-env": "^7.6.3",
-    "@rollup/plugin-commonjs": "22.0.0-0",
-    "babel": "^6.23.0",
-    "eslint": "^7.14.0",
-    "rollup": "^2.38.4",
-    "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-json": "^4.0.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-preserve-shebang": "^1.0.1",
-    "rollup-plugin-terser": "^5.1.2",
-    "uuid": "^9.0.0"
+    "@rollup/plugin-commonjs": "25.0.4",
+    "@rollup/plugin-terser": "0.3.0",
+    "@rollup/plugin-json": "6.0.0",
+    "@rollup/plugin-node-resolve":"15.0.1",
+    "@rollup/plugin-babel":"6.0.3",
+    "eslint": "^8.34.0",
+    "rollup": "^3.19.1"
   }
 }

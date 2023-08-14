@@ -246,32 +246,6 @@ Please enter the ability name:
 
 如果此abilityname已存在，会提示开发者abilityName name already exists!.，开发者修改名称后，回车确认，可以成功新建出跨平台应用Ability。
 
-### ace create aar
-
-新建Android应用模块(aar)
-
-
-需要在新建的跨平台应用工程目录下执行，提示输入aar名称：
-
-```shell
-Please enter the AAR name:
-```
-
-如果此aar name已存在，会提示开发者${aar name} already exists.，开发者修改名称后，回车确认，可以成功新建出Android应用模块(aar)。
-
-### ace create framework
-
-新建iOS应用模块(framework)
-
-
-需要在新建的跨平台应用工程目录下执行，提示输入framework名称：
-
-```shell
-Please enter the framework name:
-```
-
-如果此framework name已存在，会提示开发者${framework name} already exists.，开发者修改名称后，回车确认，可以成功新建出iOS应用模块(framework)。
-
 ### ace build
 
 构建跨平台应用安装包。

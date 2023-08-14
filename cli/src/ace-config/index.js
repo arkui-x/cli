@@ -80,7 +80,7 @@ function getConfig() {
 }
 
 function ArkUIXSdkPathCheck(sdkPath, info) {
-  candidatePath = path.join(sdkPath, '10', 'arkui-x');
+  let candidatePath = path.join(sdkPath, '10', 'arkui-x');
   if(!fs.existsSync(candidatePath)) {
     if(info) {
       info.push(`The ArkUI-X Sdk path you configured "${sdkPath}" is incorrect,please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
