@@ -82,11 +82,12 @@ class Ide {
   }
 
   checkMacApp() {
-    if (this.stdType === 'android-studio') {
-      this.stdType = 'Android Studio';
+    let type = this.stdType;
+    if (type === 'android-studio') {
+      type = 'Android Studio';
     }
-    const appPath = [`/Applications/${this.stdType}.app`,
-    path.join(homeDir, '/Applications', `${this.stdType}.app`)];
+    const appPath = [`/Applications/${type}.app`,
+    path.join(homeDir, '/Applications', `${type}.app`)];
     for (const i in appPath) {
       if (fs.existsSync(appPath[i])) {
         return appPath[i];
@@ -159,7 +160,7 @@ class Ide {
   }
 
   validIdePath(dir, platform) {
-    if (this.stdType === 'Android Studio') {
+    if (this.stdType === 'android-studio') {
       this.exePrefix = 'studio';
     }
     const exe = platform === Platform.Linux ? '.sh' : platform === Platform.MacOS ? '' : '.exe';
