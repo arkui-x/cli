@@ -22,7 +22,9 @@ function optionTitle(message, valid) {
 }
 
 function requirementInfo(message, valid) {
-  console.log(addPrefix(message, valid, `  • `, `  X `));
+  if (!valid) {
+    console.log(addPrefix(message, valid, `  • `, `  X `));
+  }
 }
 
 function optionInfo(message, valid) {

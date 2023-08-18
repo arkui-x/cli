@@ -46,7 +46,7 @@ class Info {
     this.warnOhpm =
       'Ohpm is required, please download it with DevEco Studio or Command Line Tools.';
     this.warnJavaSdk =
-      'Java Sdk is required, please use the JDK 17 version that comes with DevEco Studio.';
+      'Java Sdk is required, JAVA_HOME is not set and no \'java\' command could be found in your PATH. JDK 17 or later is recommended.';
     this.warnArkuiXSdk =
       'ArkUI-X Sdk is required, please download the latest version.';
     this.warnAndroidSdk =
