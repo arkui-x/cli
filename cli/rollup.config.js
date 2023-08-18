@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-import resolve from 'rollup-plugin-node-resolve';
-import json from 'rollup-plugin-json';
-import babel from 'rollup-plugin-babel';
+import resolve from '@rollup/plugin-node-resolve';
+import json from '@rollup/plugin-json';
+import babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
-import { terser } from 'rollup-plugin-terser';
-import shebang from 'rollup-plugin-preserve-shebang';
+import terser from '@rollup/plugin-terser';
 
 const path = require('path');
 const fs = require('fs');
@@ -59,12 +58,29 @@ export default {
     file: 'dist/ace_tools.js',
     format: 'umd',
     name: 'ace_tools',
-    sourcemap: true
+    sourcemap: true,
+    globals: {
+      "path": "path",
+      "child_process": "child_process",
+      "fs": "fs",
+      "process": "process",
+      "os": "os",
+      "crypto": "crypto",
+      "events": "events",
+      "readline": "readline",
+      "tty": "tty",
+      "stream": "stream",
+      "assert": "assert",
+      "buffer": "buffer",
+      "util": "util",
+      "string_decoder": "string_decoder"
+    }
   },
   plugins: [
-    shebang('#!/usr/bin/env node'),
     json(),
-    resolve(),
+    resolve({
+      preferBuiltins: true,
+    }),
     commonjs({
       ignore: ['conditional-runtime-dependency']
     }),
