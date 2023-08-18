@@ -25,30 +25,24 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
+const { androidSdkDir } = require('../../ace-check/configs');
 const { isProjectRootDir, getAarName, getFrameworkName } = require('../../util');
 const projectDir = process.cwd();
 const { copyLibraryToProject } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
-let androidOSSdkDir;
 
-function getAndroidSdkDir() {
-  if (config) {
-    if (Object.prototype.hasOwnProperty.call(config, 'android-sdk')) {
-      androidOSSdkDir = config['android-sdk'];
-    } else {
-      console.error(`Cannot find android sdk, please run 'ace config --help' first.`);
-      return false;
-    }
+function isAndroidSdkVaild() {
+  if (androidSdkDir) {
+    return true;
   } else {
     console.error(`Cannot find android sdk, please run 'ace check' first.`);
     return false;
   }
-  return true;
 }
 
 function writeLocalProperties() {
   const filePath = path.join(projectDir, '.arkui-x/android/local.properties');
-  const content = `sdk.dir=${androidOSSdkDir}`;
+  const content = `sdk.dir=${androidSdkDir}`;
   return createLocalProperties(filePath, content);
 }
 
@@ -233,14 +227,14 @@ function packager(target, cmd) {
     return false;
   }
   if (target == "apk") {
-    if (getAndroidSdkDir() && writeLocalProperties()) {
+    if (isAndroidSdkVaild() && writeLocalProperties()) {
       if (buildAPK(cmd)) {
         copyToOutput(target);
         return true;
       }
     }
   } else if (target == "aar") {
-    if (getAndroidSdkDir() && writeLocalProperties()) {
+    if (isAndroidSdkVaild() && writeLocalProperties()) {
       if (buildAAR(cmd)) {
         copyLibraryToOutput(target);
         return true;
