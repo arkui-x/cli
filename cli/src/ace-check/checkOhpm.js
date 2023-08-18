@@ -61,7 +61,6 @@ function getGlobalOhpm() {
   }
   if(ohpmDir) {
     ohpmDir = path.dirname(ohpmDir);
-    ohpmDir = path.dirname(ohpmDir);
     return ohpmDir;
   }
 }
