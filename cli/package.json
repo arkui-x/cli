@@ -22,6 +22,7 @@
     "@rollup/plugin-node-resolve":"15.0.1",
     "@rollup/plugin-babel":"6.0.3",
     "eslint": "^8.34.0",
-    "rollup": "^3.19.1"
+    "rollup": "^3.19.1",
+    "rollup-plugin-preserve-shebang": "^1.0.1"
   }
 }
