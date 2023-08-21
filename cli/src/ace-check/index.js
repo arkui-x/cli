@@ -147,6 +147,9 @@ function check() {
     process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
   }
 
+  if(!ohpmDir) {
+    errorTimes++;  
+  }
   if(!arkuiXSdkDir) {
     errorTimes++;  
   }
