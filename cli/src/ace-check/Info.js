@@ -13,6 +13,15 @@
  * limitations under the License.
  */
 
+const {
+  openHarmonySdkVersion,
+  arkuiXSdkVersion,
+  androidSdkVersion,
+  harmonyOsSdkVersion,
+  devEcoStudioVersion,
+  androidStudioVersion
+} = require('./configs');
+
 class Info {
   constructor() {
     this.noOhpmDir = `Ohpm tool is not found`;
@@ -24,12 +33,12 @@ class Info {
     this.noJavaSdk = `Java SDK is not found`;
     this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com`;
     this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio`;
-    this.arkuiXSdkTitle = `ArkUI-X(v1.0.0 Alpha)`;
-    this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices`;
-    this.harmonyOsTitle = `HarmonyOS toolchains - develop for HarmonyOS devices`;
-    this.androidTitle = `Android toolchains - develop for Android devices`;
-    this.devEcoStudioTitle = `DevEco Studio [Requires DevEco Studio 4.0 Beta2, API Version 10+]`;
-    this.androidStudioTitle = `Android Studio`;
+    this.arkuiXSdkTitle = `ArkUI-X (ArkUI-X SDK version ${arkuiXSdkVersion})`;
+    this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version ${openHarmonySdkVersion})`;
+    this.harmonyOsTitle = `HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version ${harmonyOsSdkVersion})`;
+    this.androidTitle = `Android toolchains - develop for Android devices (Android SDK version ${androidSdkVersion})`;
+    this.devEcoStudioTitle = `DevEco Studio (version ${devEcoStudioVersion})`;
+    this.androidStudioTitle = `Android Studio (version ${androidStudioVersion})`;
     this.openHarmonyLicenses = `All OpenHarmony licenses accepted`;
     this.androidLicenses = `All Android licenses accepted`;
     this.iosXcodeTitle = `iOS toolchains - develop for iOS devices`;
