@@ -69,7 +69,7 @@ function showTools(tools) {
     iosDeployTitle = tools[i]["ios-deploy"] ? "[√] ios-deploy installed" : iosDeployTitle;
   }
   iosDeployTitle = (platform != Platform.MacOS) ? "" : iosDeployTitle;
-  let toolMsg = ohHdcTitle + " " + hoHdcTitle + " " + adbTitle + " " + iosDeployTitle;
+  let toolMsg = ohHdcTitle + "\n            " + hoHdcTitle + "\n            " + adbTitle + "\n            " + iosDeployTitle;
   console.log('Tools info :' + toolMsg);
 }
 

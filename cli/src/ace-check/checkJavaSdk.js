@@ -20,6 +20,13 @@ const { devEcoStudioDir } = require('./configs');
 const { Platform, platform } = require('./platform');
 const { getConfig } = require('../ace-config');
 
+function vaildJavaSdkDir() {
+  const environment = process.env;
+  if ('JAVA_HOME' in environment) {
+    return environment['JAVA_HOME'].replace(';', '');
+  }
+}
+
 function checkJavaSdk() {
   let javaSdkPath;
   const environment = process.env;
@@ -59,4 +66,4 @@ function validSdk(javaSdkPath) {
   }
 }
 
-module.exports = checkJavaSdk;
+module.exports = { checkJavaSdk, vaildJavaSdkDir};

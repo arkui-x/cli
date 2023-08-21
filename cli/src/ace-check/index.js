@@ -26,7 +26,7 @@ const {
   arkuiXSdkDir,
   ohpmDir
 } = require('./configs');
-const checkJavaSdk = require('./checkJavaSdk');
+const { vaildJavaSdkDir } = require('./checkJavaSdk');
 const { autoSetArkUISdk, ArkUIXSdkPathCheck } = require('../ace-config');
 const devices = require('../ace-devices');
 const info = require('./Info');
@@ -39,42 +39,52 @@ const {
   showWarningInfo
 } = require('./util');
 
-const javaSdkDir = checkJavaSdk();
+const javaSdkDir = vaildJavaSdkDir();
 const { Platform, platform } = require('./platform');
 
 function checkRequired(errorTimes) {
-  requirementTitle(info.arkuiXSdkTitle, arkuiXSdkDir && nodejsDir && javaSdkDir);
-  requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir);
-  requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
-  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
-  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
-
-  requirementTitle(info.openHarmonyTitle, openHarmonySdkDir && nodejsDir && javaSdkDir);
-  requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
-  requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
-  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
-  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
-
-  requirementTitle(info.harmonyOsTitle, harmonyOsSdkDir && nodejsDir && javaSdkDir);
-  requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir);
-  requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
-  requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir);
-  requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
+  let success = arkuiXSdkDir && nodejsDir;
+  requirementTitle(info.arkuiXSdkTitle, success);
+  if (!success) {
+    requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir);
+    requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
+  }
+  success = openHarmonySdkDir && ohpmDir;
+  requirementTitle(info.openHarmonyTitle, success);
+  if (!success) {
+    requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
+    requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
+  }
+  success = harmonyOsSdkDir && ohpmDir;
+  requirementTitle(info.harmonyOsTitle, success);
+  if (!success) {
+    requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir);
+    requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
+  }
 
   optionTitle(info.androidTitle, androidSdkDir);
-  optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
+  if (!androidSdkDir) {
+    optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
+  }
   if (platform !== Platform.Linux) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
-    optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
+    if (!devEcoStudioDir) {
+      optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
+    }
   }
   optionTitle(info.androidStudioTitle, androidStudioDir);
-  optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
+  if (!androidStudioDir) {
+    optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
+  }
 
   if (platform === Platform.MacOS) {
-    requirementTitle(info.iosXcodeTitle, xCodeVersion && iDeviceVersion && deployVersion);
-    requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion);
-    requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion);
-    requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
+    success = xCodeVersion && iDeviceVersion && deployVersion;
+    requirementTitle(info.iosXcodeTitle, success);
+    if (!success) {
+      requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion);
+      requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion);
+      requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
+    }
     errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }
   showWarning();
@@ -140,6 +150,9 @@ function check() {
     process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
   }
 
+  if(!ohpmDir) {
+    errorTimes++;  
+  }
   if(!arkuiXSdkDir) {
     errorTimes++;  
   }
