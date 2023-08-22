@@ -150,8 +150,9 @@ function showWarning() {
 
 function check(cmd) {
   let errorTimes = 0;
-  errorTimes = checkRequired(errorTimes, cmd.v);
-
+  if (cmd && cmd.v) {
+    errorTimes = checkRequired(errorTimes, cmd.v);
+  }
   if (nodejsDir) {
     process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
   }
