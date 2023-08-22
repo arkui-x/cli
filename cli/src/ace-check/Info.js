@@ -21,8 +21,6 @@ const {
   devEcoStudioVersion,
   androidStudioVersion
 } = require('./configs');
-const { getJavaVersion } = require('./checkJavaSdk');
-const javaSdkVersion = getJavaVersion();
 class Info {
   constructor() {
     this.noOhpmDir = `Ohpm tool is not found`;
@@ -90,7 +88,7 @@ class Info {
   }
 
   hasJavaSdk(javaSdkDir) {
-    return `Java Sdk at ${javaSdkDir} and Java version is ${javaSdkVersion}`;
+    return `Java Sdk at ${javaSdkDir}`;
   }
 
   hasAndroidSdk(androidSdkDir) {

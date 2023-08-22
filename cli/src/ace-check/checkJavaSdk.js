@@ -77,19 +77,7 @@ function validSdk(javaSdkPath) {
   }
 }
 function getJavaVersion() {
-  let javaVersion = '';
-  let javaVersionFile = path.join(process.env['JAVA_HOME'], 'release');
-  if (fs.existsSync(javaVersionFile)) {
-    let javaVersionContent = fs.readFileSync(javaVersionFile, 'utf-8');
-    let javaVersionContentArray = javaVersionContent.split('\n');
-    javaVersionContentArray.forEach((element) => {
-      if (element.indexOf('JAVA_VERSION=') >= 0) {
-        javaVersion = element.split('=')[1].replace(/"/g, '');
-      }
-    });
-  }
-  javaVersion = javaVersion.replace(/\r/g, '');
-  return javaVersion;
+  return '';
 }
 
 module.exports = {
