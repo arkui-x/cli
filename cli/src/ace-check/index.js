@@ -43,7 +43,7 @@ const javaSdkDir = vaildJavaSdkDir();
 const { Platform, platform } = require('./platform');
 
 function checkRequired(errorTimes, showdetail = false) {
-  if(!showdetail) {
+  if (!showdetail) {
     console.log('Check summary (to see all details, run ace check -v)');
   }
   let success = arkuiXSdkDir && nodejsDir;
@@ -57,12 +57,14 @@ function checkRequired(errorTimes, showdetail = false) {
   if (!success || showdetail) {
     requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
+    requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
   }
   success = harmonyOsSdkDir && ohpmDir;
   requirementTitle(info.harmonyOsTitle, success);
   if (!success || showdetail) {
     requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
+    requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
   }
 
   optionTitle(info.androidTitle, androidSdkDir);
@@ -78,6 +80,7 @@ function checkRequired(errorTimes, showdetail = false) {
   optionTitle(info.androidStudioTitle, androidStudioDir);
   if (!androidStudioDir || showdetail) {
     optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
+    requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
   }
 
   if (platform === Platform.MacOS) {

@@ -15,15 +15,27 @@
 
 const fs = require('fs');
 const path = require('path');
-
+ 
 const { devEcoStudioDir } = require('./configs');
 const { Platform, platform } = require('./platform');
 const { getConfig } = require('../ace-config');
+const { spawn } = require('child_process');
+const Process = require('child_process');
 
 function vaildJavaSdkDir() {
   const environment = process.env;
-  if ('JAVA_HOME' in environment) {
-    return environment['JAVA_HOME'].replace(';', '');
+  if (platform === Platform.Windows) {
+    if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java.exe'))) {
+      return environment['JAVA_HOME'];
+    }
+  } else if (platform === Platform.Linux) {
+    if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java'))) {
+      return environment['JAVA_HOME'];
+    }
+  } else if (platform === Platform.MacOS) {
+    if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java'))) {
+      return environment['JAVA_HOME'];
+    }
   }
 }
 
@@ -56,6 +68,7 @@ function checkJavaSdk() {
 
   if (validSdk(javaSdkPath)) {
     environment['JAVA_HOME'] = javaSdkPath;
+    environment['PATH'] = `${path.join(javaSdkPath, 'bin')};${environment['PATH']}`;
     return javaSdkPath;
   }
 }
@@ -65,5 +78,32 @@ function validSdk(javaSdkPath) {
     return true;
   }
 }
+function getJavaVersion() {
+  let javaVersion;
+  if (platform === Platform.Windows) {
+    javaVersion = Process.execSync(`java --version`, {
+      env: process.env,
+      encoding: 'utf-8',
+      stdio: 'pipe'
+    });
+  } else if (platform === Platform.Linux) {
+    javaVersion = Process.execSync(`java -version`, {
+      env: process.env,
+      encoding: 'utf-8',
+      stdio: 'pipe'
+    });
+  } else if (platform === Platform.MacOS) {
+    javaVersion = Process.execSync(`java -version`, {
+      env: process.env,
+      encoding: 'utf-8',
+      stdio: 'pipe'
+    });
+  }
+  return javaVersion;
+}
 
-module.exports = { checkJavaSdk, vaildJavaSdkDir};
+module.exports = {
+  checkJavaSdk,
+  vaildJavaSdkDir,
+  getJavaVersion
+};
