@@ -21,8 +21,8 @@ function optionTitle(message, valid) {
   console.log(addPrefix(message, valid, `[√] `, `[!] `));
 }
 
-function requirementInfo(message, valid) {
-  if (!valid) {
+function requirementInfo(message, valid, showdetail) {
+  if (!valid || showdetail) {
     console.log(addPrefix(message, valid, `  • `, `  X `));
   }
 }

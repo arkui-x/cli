@@ -172,8 +172,8 @@ function parseCreate() {
 }
 
 function parseCheck() {
-  program.command('check').description('check sdk environment').action(() => {
-    check();
+  program.command('check').option('-v|--v', 'show details').description('check sdk environment').action((cmd) => {
+    check(cmd);
   });
 }
 

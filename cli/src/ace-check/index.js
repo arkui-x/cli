@@ -42,48 +42,51 @@ const {
 const javaSdkDir = vaildJavaSdkDir();
 const { Platform, platform } = require('./platform');
 
-function checkRequired(errorTimes) {
+function checkRequired(errorTimes, showdetail = false) {
+  if(!showdetail) {
+    console.log('Check summary (to see all details, run ace check -v)');
+  }
   let success = arkuiXSdkDir && nodejsDir;
   requirementTitle(info.arkuiXSdkTitle, success);
-  if (!success) {
-    requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir);
-    requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir);
+  if (!success || showdetail) {
+    requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir, showdetail);
+    requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir, showdetail);
   }
   success = openHarmonySdkDir && ohpmDir;
   requirementTitle(info.openHarmonyTitle, success);
-  if (!success) {
-    requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir);
-    requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
+  if (!success || showdetail) {
+    requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir, showdetail);
+    requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
   }
   success = harmonyOsSdkDir && ohpmDir;
   requirementTitle(info.harmonyOsTitle, success);
-  if (!success) {
-    requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir);
-    requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir);
+  if (!success || showdetail) {
+    requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir, showdetail);
+    requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
   }
 
   optionTitle(info.androidTitle, androidSdkDir);
-  if (!androidSdkDir) {
-    optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir);
+  if (!androidSdkDir || showdetail) {
+    optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir, showdetail);
   }
   if (platform !== Platform.Linux) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
-    if (!devEcoStudioDir) {
+    if (!devEcoStudioDir || showdetail) {
       optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
     }
   }
   optionTitle(info.androidStudioTitle, androidStudioDir);
-  if (!androidStudioDir) {
+  if (!androidStudioDir || showdetail) {
     optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
   }
 
   if (platform === Platform.MacOS) {
     success = xCodeVersion && iDeviceVersion && deployVersion;
     requirementTitle(info.iosXcodeTitle, success);
-    if (!success) {
-      requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion);
-      requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion);
-      requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion);
+    if (!success || showdetail) {
+      requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion, showdetail);
+      requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion, showdetail);
+      requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion, showdetail);
     }
     errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }
@@ -142,9 +145,9 @@ function showWarning() {
   }
 }
 
-function check() {
+function check(cmd) {
   let errorTimes = 0;
-  errorTimes = checkRequired(errorTimes);
+  errorTimes = checkRequired(errorTimes, cmd.v);
 
   if (nodejsDir) {
     process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
