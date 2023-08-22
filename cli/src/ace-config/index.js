@@ -96,18 +96,8 @@ function ArkUIXSdkPathCheck(sdkPath, info) {
   return true;
 }
 
-function autoSetArkUISdk() {
-  let currentPath = __dirname;
-  let targetPath = path.join(currentPath, '..', '..', '..', '..', 'arkui-x.json');
-  if(fs.existsSync(targetPath)) {
-    targetPath = path.join(targetPath, '..', '..', '..');
-    setConfig({'arkui-x-sdk':targetPath});
-  }
-}
-
 module.exports = {
   setConfig: setConfig,
   getConfig: getConfig,
-  ArkUIXSdkPathCheck: ArkUIXSdkPathCheck,
-  autoSetArkUISdk: autoSetArkUISdk
+  ArkUIXSdkPathCheck: ArkUIXSdkPathCheck
 };

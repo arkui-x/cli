@@ -72,6 +72,20 @@ class Sdk {
         return sdkHomeDir;
       }
     }
+    if(this.stdType === 'ArkUI-X') {
+      return this.getPackageArkUIXSdkDir();
+    }
+  }
+
+  getPackageArkUIXSdkDir() {
+    let currentPath = __dirname;
+    let targetPath = path.join(currentPath, '..', '..', '..', '..', 'arkui-x.json');
+    if(fs.existsSync(targetPath)) {
+      targetPath = path.join(targetPath, '..', '..', '..');
+      if(ArkUIXSdkPathCheck(targetPath)) {
+        return targetPath;
+      }
+    }
   }
 
   checkConfig() {
