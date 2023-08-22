@@ -126,6 +126,9 @@ function getArkuiXSdkVersion() {
   if(!arkuiXSdkDir) {
     return 'unknown';
   }
+  if (!fs.existsSync(arkuiXSdkDir)) {
+    return 'unknown';
+  }
   const files = fs.readdirSync(arkuiXSdkDir);
   let numOfFile = files.length
   if(!files || numOfFile <= 0) {
@@ -178,6 +181,9 @@ function getAndroidSdkVersion() {
   if(!androidSdkDir) {
     return 'unknown';
   }
+  if (!fs.existsSync(path.join(androidSdkDir, 'build-tools'))) {
+    return 'unknown';
+  }
   const files = fs.readdirSync(path.join(androidSdkDir, 'build-tools'));
   let numOfFile = files.length;
   if(!files || numOfFile <= 0) {
@@ -200,7 +206,10 @@ function getAndroidSdkVersion() {
 }
 
 function getHarmonyOsSdkVersion() {
-  if(!harmonyOsSdk) {
+  if(!harmonyOsSdkDir) {
+    return 'unknown';
+  }
+  if (!fs.existsSync(path.join(harmonyOsSdkDir, 'hmscore'))) {
     return 'unknown';
   }
   const files = fs.readdirSync(path.join(harmonyOsSdkDir, 'hmscore'));
@@ -227,6 +236,9 @@ function getHarmonyOsSdkVersion() {
 function getStudioVersion(studioDir) {
   if(!studioDir) {
     return 'unknown';
+  }
+  if (studioDir.endsWith('bin')) {
+    studioDir = studioDir.substring(0, studioDir.length - 3);
   }
   if(platform === Platform.MacOS) {
     let targetPath = path.join(studioDir, 'Contents', 'Info.plist');
