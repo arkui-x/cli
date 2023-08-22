@@ -27,7 +27,7 @@ const {
   ohpmDir
 } = require('./configs');
 const { vaildJavaSdkDir } = require('./checkJavaSdk');
-const { autoSetArkUISdk, ArkUIXSdkPathCheck } = require('../ace-config');
+const { ArkUIXSdkPathCheck } = require('../ace-config');
 const devices = require('../ace-devices');
 const info = require('./Info');
 const process = require('child_process');
@@ -134,8 +134,6 @@ function showWarning() {
     checkInfo.forEach((key)=>{
       msgs.push(key);
     })
-  } else {
-    autoSetArkUISdk();
   }
   if (msgs.length !== 0) {
     showWarningInfo(msgs);
