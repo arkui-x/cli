@@ -153,6 +153,9 @@ function check(cmd) {
   if (cmd && cmd.v) {
     errorTimes = checkRequired(errorTimes, cmd.v);
   }
+  else {
+    errorTimes = checkRequired(errorTimes);
+  }
   if (nodejsDir) {
     process.execSync(`npm config set @ohos:registry=https://repo.harmonyos.com/npm/`);
   }
