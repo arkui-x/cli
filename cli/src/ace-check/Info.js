@@ -41,6 +41,7 @@ class Info {
     this.openHarmonyLicenses = `All OpenHarmony licenses accepted`;
     this.androidLicenses = `All Android licenses accepted`;
     this.iosXcodeTitle = `iOS toolchains - develop for iOS devices`;
+    this.XcodeTitle = `Xcode - develop for iOS and macOS`;
     this.noXcodeVersion = 'xcodebuild not installed. To install, run: xcode-select --install';
     this.noIdeviceVersion = 'libimobiledevice not installed. To install, run: brew install libimobiledevice';
     this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
@@ -139,7 +140,7 @@ class Info {
     return androidStudioDir ? this.hasAndroidStudio(androidStudioDir) : this.noAndroidStudio;
   }
   javaSdkVersionInfo(javaSdkVersion) {
-    return `Java version OpenJDK Runtime Environment (${javaSdkVersion})`;
+    return javaSdkVersion;
   }
   iosXcodeVersionInfo(xCodeVersion) {
     return xCodeVersion ? xCodeVersion : this.noXcodeVersion;

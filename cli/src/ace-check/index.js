@@ -78,6 +78,9 @@ function checkRequired(errorTimes, showdetail = false) {
   optionTitle(info.androidTitle, androidSdkDir);
   if (!androidSdkDir || showdetail) {
     optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir, showdetail);
+    if(javaSdkDir) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    }
   }
   if (platform !== Platform.Linux) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
@@ -96,9 +99,12 @@ function checkRequired(errorTimes, showdetail = false) {
 
   if (platform === Platform.MacOS) {
     success = xCodeVersion && iDeviceVersion && deployVersion;
+    requirementTitle(info.XcodeTitle, xCodeVersion);
+    if (!xCodeVersion || showdetail) {
+      requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion, showdetail);
+    }
     requirementTitle(info.iosXcodeTitle, success);
     if (!success || showdetail) {
-      requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion, showdetail);
       requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion, showdetail);
       requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion, showdetail);
     }
