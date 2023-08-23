@@ -14,6 +14,7 @@
  */
 
 const { getConfig } = require('../ace-config');
+const Process = require('child_process');
 
 function checkNodejs() {
   const environment = process.env;
@@ -25,4 +26,16 @@ function checkNodejs() {
   }
 }
 
-module.exports = checkNodejs;
+function getNodejsVersion() {
+  try {
+    const nodejsVersion = Process.execSync(`node -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+    return nodejsVersion;
+  } catch (err) {
+    // ignore
+  }
+}
+
+module.exports = {
+  checkNodejs,
+  getNodejsVersion
+};

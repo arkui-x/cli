@@ -19,6 +19,7 @@ const path = require('path');
 const { devEcoStudioDir } = require('./configs');
 const { Platform, platform } = require('./platform');
 const { getConfig } = require('../ace-config');
+const Process = require('child_process');
 
 function vaildJavaSdkDir() {
   const environment = process.env;
@@ -77,7 +78,13 @@ function validSdk(javaSdkPath) {
   }
 }
 function getJavaVersion() {
-  return '';
+  let javaVersion = '';
+  if (vaildJavaSdkDir()) {
+    let javaVersionContent = Process.execSync('java --version', { stdio: 'pipe' }).toString();
+    let javaVersionContentArray = javaVersionContent.split('\n'); 
+    javaVersion = javaVersionContentArray[1];
+    return javaVersion;
+  }
 }
 
 module.exports = {

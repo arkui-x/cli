@@ -16,6 +16,7 @@
 const {
   openHarmonySdkVersion,
   arkuiXSdkVersion,
+  nodejsVersion,
   androidSdkVersion,
   harmonyOsSdkVersion,
   devEcoStudioVersion,
@@ -41,9 +42,11 @@ class Info {
     this.openHarmonyLicenses = `All OpenHarmony licenses accepted`;
     this.androidLicenses = `All Android licenses accepted`;
     this.iosXcodeTitle = `iOS toolchains - develop for iOS devices`;
+    this.XcodeTitle = `Xcode - develop for iOS`;
     this.noXcodeVersion = 'xcodebuild not installed. To install, run: xcode-select --install';
     this.noIdeviceVersion = 'libimobiledevice not installed. To install, run: brew install libimobiledevice';
     this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
+    this.noXcodedir = 'Xcode is not installed, you can install in app store';
 
     this.warnOpenHarmonySdk =
       'OpenHarmony sdk is required, please refer to the HarmonyOS Developer to download and install it.';
@@ -84,7 +87,7 @@ class Info {
   }
 
   hasNodejs(nodejsDir) {
-    return `Node.js Runtime Environment at ${nodejsDir}`;
+    return `Node.js ${nodejsVersion} Runtime Environment at ${nodejsDir}`;
   }
 
   hasJavaSdk(javaSdkDir) {
@@ -101,6 +104,10 @@ class Info {
 
   hasAndroidStudio(androidStudioDir) {
     return `Android Studio at ${androidStudioDir}`;
+  }
+
+  hasXcode(xCodeDir) {
+    return `Xcode at ${xCodeDir}`;
   }
 
   ohpmToolInfo(OhpmDir) {
@@ -138,10 +145,19 @@ class Info {
   androidStudioInfo(androidStudioDir) {
     return androidStudioDir ? this.hasAndroidStudio(androidStudioDir) : this.noAndroidStudio;
   }
+
+  javaSdkVersionInfo(javaSdkVersion) {
+    return javaSdkVersion;
+  }
+
   iosXcodeVersionInfo(xCodeVersion) {
     return xCodeVersion ? xCodeVersion : this.noXcodeVersion;
   }
 
+  iosXcodeDirInfo(xCodeDir){
+    return xCodeDir ? this.hasXcode(xCodeDir) : this.noXcodedir;
+  }
+  
   iosIdeviceVersionInfo(iDeviceVersion) {
     return iDeviceVersion ? iDeviceVersion : this.noIdeviceVersion;
   }
