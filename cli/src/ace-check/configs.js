@@ -20,7 +20,7 @@ const {
 } = require('./platform');
 const Sdk = require('./Sdk');
 const Ide = require('./Ide');
-const checkNodejs = require('./checkNodejs');
+const {checkNodejs, getNodejsVersion} = require('./checkNodejs');
 const checkOhpm = require('./checkOhpm');
 const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion } = require('./checkAppVersion');
 const fs = require('fs');
@@ -89,6 +89,7 @@ const androidSdkDir = androidSdk.locateSdk();
 const androidSdkVersion = getAndroidSdkVersion();
 
 const nodejsDir = checkNodejs();
+const nodejsVersion = getNodejsVersion();
 const ohpmDir = checkOhpm();
 
 const devEcoStudioDir = devEcoStudio.locateIde();
@@ -97,8 +98,21 @@ const devEcoStudioVersion = getStudioVersion(devEcoStudioDir);
 const androidStudioDir = androidStudio.locateIde();
 const androidStudioVersion = getStudioVersion(androidStudioDir);
 const xCodeVersion = checkXcodeVersion();
+const xCodeDir = getxCodeDir();
 const iDeviceVersion = checkIdeviceVersion();
 const deployVersion = checkDeployVersion();
+
+function getxCodeDir() {
+  if(platform === Platform.MacOS) {
+    let xCodeDirlist = ['/Applications/Xcode.app', path.join(homeDir, '/Applications', `Xcode.app`)];
+    for (const i in xCodeDirlist) {
+      if (fs.existsSync(xCodeDirlist[i])) {
+        return xCodeDirlist[i];
+      }
+    }
+  }
+  return undefined;
+}
 
 function getOpenHarmonySdkVersion() {
   if(!openHarmonySdkDir) {
@@ -265,6 +279,7 @@ module.exports = {
   harmonyOsSdkDir,
   harmonyOsSdkVersion,
   nodejsDir,
+  nodejsVersion,
   devEcoStudioDir,
   devEcoStudioVersion,
   androidStudioDir,
@@ -272,6 +287,7 @@ module.exports = {
   androidSdkDir,
   androidSdkVersion,
   xCodeVersion,
+  xCodeDir,
   iDeviceVersion,
   deployVersion,
   arkuiXSdkDir,

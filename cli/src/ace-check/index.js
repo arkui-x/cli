@@ -21,6 +21,7 @@ const {
   androidStudioDir,
   androidSdkDir,
   xCodeVersion,
+  xCodeDir,
   iDeviceVersion,
   deployVersion,
   arkuiXSdkDir,
@@ -49,10 +50,17 @@ function checkRequired(errorTimes, showdetail = false) {
     console.log('Check summary (to see all details, run ace check -v)');
   }
   let success = arkuiXSdkDir && nodejsDir;
+  if(platform === Platform.MacOS) {
+    success = iDeviceVersion && deployVersion && success;
+  }
   requirementTitle(info.arkuiXSdkTitle, success);
   if (!success || showdetail) {
     requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir, showdetail);
     requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir, showdetail);
+    if(platform === Platform.MacOS) {
+        requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion, showdetail);
+        requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion, showdetail);
+    }
   }
   success = openHarmonySdkDir && ohpmDir;
   requirementTitle(info.openHarmonyTitle, success);
@@ -86,6 +94,9 @@ function checkRequired(errorTimes, showdetail = false) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
     if (!devEcoStudioDir || showdetail) {
       optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
+      if(javaSdkDir) {
+        requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+      }
     }
   }
   optionTitle(info.androidStudioTitle, androidStudioDir);
@@ -98,15 +109,12 @@ function checkRequired(errorTimes, showdetail = false) {
   }
 
   if (platform === Platform.MacOS) {
-    success = xCodeVersion && iDeviceVersion && deployVersion;
-    requirementTitle(info.XcodeTitle, xCodeVersion);
+    let mes = info.XcodeTitle + (xCodeVersion? ` (${xCodeVersion[0]})`:'');
+    requirementTitle(mes ,xCodeVersion);
     if (!xCodeVersion || showdetail) {
-      requirementInfo(info.iosXcodeVersionInfo(xCodeVersion), xCodeVersion, showdetail);
-    }
-    requirementTitle(info.iosXcodeTitle, success);
-    if (!success || showdetail) {
-      requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion, showdetail);
-      requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion, showdetail);
+      mes = xCodeVersion? xCodeVersion[1]:xCodeVersion;
+      requirementInfo(info.iosXcodeDirInfo(xCodeDir), xCodeVersion, showdetail);
+      requirementInfo(info.iosXcodeVersionInfo(mes), xCodeVersion, showdetail);
     }
     errorTimes = (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }

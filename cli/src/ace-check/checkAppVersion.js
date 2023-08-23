@@ -19,7 +19,12 @@ const { Platform, platform } = require('./platform');
 function checkXcodeVersion() {
     try {
         if (platform === Platform.MacOS) {
-            return process.execSync(`xcodebuild  -version`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+            let xcodeVersion = process.execSync(`xcodebuild  -version`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+            if(xcodeVersion){
+                let buildIndex = xcodeVersion.indexOf('Build');
+                xcodeVersion = [xcodeVersion.substring(0, buildIndex), xcodeVersion.substring(buildIndex)];
+                return xcodeVersion;
+            }
         }
         return "";
     } catch (err) {
