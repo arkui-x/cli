@@ -15,7 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { Platform, platform } = require('./platform');
+const { Platform, platform, homeDir } = require('./platform');
 const Process = require('child_process');
 const { getConfig } = require('../ace-config');
 
@@ -35,7 +35,30 @@ function checkOhpm() {
       return ohpmDir;
     } 
   }
+  ohpmDir = getDefaultOhpm();
+  if(ohpmDir) {
+    return ohpmDir;
+  }
   return getGlobalOhpm();
+}
+
+function getDefaultOhpm() {
+  let ohpmPaths = path.join(homeDir, 'ohpm');
+  if(!fs.existsSync(ohpmPaths)){
+    return undefined;
+  }
+  const files = fs.readdirSync(ohpmPaths);
+  let numOfFile = files.length;
+  if(!files || numOfFile <= 0) {
+    return undefined;
+  }
+  for(let i = 0; i < numOfFile; i++) {
+    let targetPath = path.join(ohpmPaths, files[i]);
+    if(validOhpmDir(targetPath)) {
+      return targetPath;
+    }
+  }
+  return undefined;
 }
 
 function getGlobalOhpm() {
