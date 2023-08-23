@@ -26,6 +26,7 @@ const {
   arkuiXSdkDir,
   ohpmDir
 } = require('./configs');
+const { getJavaVersion } = require('./checkJavaSdk');
 const { vaildJavaSdkDir } = require('./checkJavaSdk');
 const { autoSetArkUISdk, ArkUIXSdkPathCheck } = require('../ace-config');
 const devices = require('../ace-devices');
@@ -39,6 +40,7 @@ const {
   showWarningInfo
 } = require('./util');
 
+const javaSdkVersion = getJavaVersion();
 const javaSdkDir = vaildJavaSdkDir();
 const { Platform, platform } = require('./platform');
 
@@ -58,6 +60,9 @@ function checkRequired(errorTimes, showdetail = false) {
     requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
     requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
+    if(javaSdkDir) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    }
   }
   success = harmonyOsSdkDir && ohpmDir;
   requirementTitle(info.harmonyOsTitle, success);
@@ -65,6 +70,9 @@ function checkRequired(errorTimes, showdetail = false) {
     requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
     requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
+    if(javaSdkDir) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    }
   }
 
   optionTitle(info.androidTitle, androidSdkDir);
@@ -81,6 +89,9 @@ function checkRequired(errorTimes, showdetail = false) {
   if (!androidStudioDir || showdetail) {
     optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
     requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
+    if(javaSdkDir) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    }
   }
 
   if (platform === Platform.MacOS) {
