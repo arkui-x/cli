@@ -25,10 +25,13 @@ const {
   iDeviceVersion,
   deployVersion,
   arkuiXSdkDir,
+  javaSdkDirAndroid,
+  javaSdkDirDevEco,
+  javaSdkVersionAndroid,
+  javaSdkVersionDevEco,
   ohpmDir
 } = require('./configs');
 const path = require('path');
-const { getJavaVersion, getJavaSdkDir, vaildJavaSdkDir} = require('./checkJavaSdk');
 const { ArkUIXSdkPathCheck } = require('../ace-config');
 const devices = require('../ace-devices');
 const info = require('./Info');
@@ -40,13 +43,6 @@ const {
   optionInfo,
   showWarningInfo
 } = require('./util');
-
-const javaSdkDirUser = vaildJavaSdkDir();
-const javaSdkDirAndroid = getJavaSdkDir(androidStudioDir) || javaSdkDirUser;
-const javaSdkDirDevEco = getJavaSdkDir(devEcoStudioDir) || javaSdkDirUser;
-const javaSdkVersionUser = getJavaVersion(path.join(javaSdkDirUser, 'bin'));
-const javaSdkVersionAndroid = getJavaVersion(path.join(javaSdkDirAndroid, 'bin')) || javaSdkVersionUser;
-const javaSdkVersionDevEco = getJavaVersion(path.join(javaSdkDirDevEco, 'bin')) || javaSdkVersionUser;
 const { Platform, platform } = require('./platform');
 
 function checkRequired(errorTimes, showdetail = false) {

@@ -23,6 +23,7 @@ const Ide = require('./Ide');
 const {checkNodejs, getNodejsVersion} = require('./checkNodejs');
 const checkOhpm = require('./checkOhpm');
 const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion } = require('./checkAppVersion');
+const { getJavaVersion, getJavaSdkDirInEnv, getJavaSdkDirInIde} = require('./checkJavaSdk');
 const fs = require('fs');
 const path = require('path');
 const Process = require('child_process');
@@ -101,6 +102,13 @@ const xCodeVersion = checkXcodeVersion();
 const xCodeDir = getxCodeDir();
 const iDeviceVersion = checkIdeviceVersion();
 const deployVersion = checkDeployVersion();
+
+const javaSdkDirUser = getJavaSdkDirInEnv();
+const javaSdkDirAndroid = getJavaSdkDirInIde(androidStudioDir) || javaSdkDirUser;
+const javaSdkDirDevEco = getJavaSdkDirInIde(devEcoStudioDir) || javaSdkDirUser;
+const javaSdkVersionUser = javaSdkDirUser ? getJavaVersion(path.join(javaSdkDirUser, 'bin')) : undefined;
+const javaSdkVersionAndroid = javaSdkDirAndroid ? getJavaVersion(path.join(javaSdkDirAndroid, 'bin')) : undefined || javaSdkVersionUser;
+const javaSdkVersionDevEco = javaSdkDirDevEco ? getJavaVersion(path.join(javaSdkDirDevEco, 'bin')) : undefined || javaSdkVersionUser;
 
 function getxCodeDir() {
   if (platform === Platform.MacOS) {
@@ -292,5 +300,11 @@ module.exports = {
   deployVersion,
   arkuiXSdkDir,
   arkuiXSdkVersion,
+  javaSdkDirUser,
+  javaSdkDirAndroid,
+  javaSdkDirDevEco,
+  javaSdkVersionUser,
+  javaSdkVersionAndroid,
+  javaSdkVersionDevEco,
   ohpmDir
 };
