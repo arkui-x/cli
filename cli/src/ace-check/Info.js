@@ -87,7 +87,7 @@ class Info {
   }
 
   hasNodejs(nodejsDir) {
-    return `Node.js ${nodejsVersion} Runtime Environment at ${nodejsDir}`;
+    return `Node.js (${nodejsVersion}) Runtime Environment at ${nodejsDir}`;
   }
 
   hasJavaSdk(javaSdkDir) {
