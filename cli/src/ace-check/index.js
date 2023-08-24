@@ -27,8 +27,8 @@ const {
   arkuiXSdkDir,
   ohpmDir
 } = require('./configs');
-const { getJavaVersion } = require('./checkJavaSdk');
-const { vaildJavaSdkDir } = require('./checkJavaSdk');
+const path = require('path');
+const { getJavaVersion, getJavaSdkDir, vaildJavaSdkDir} = require('./checkJavaSdk');
 const { ArkUIXSdkPathCheck } = require('../ace-config');
 const devices = require('../ace-devices');
 const info = require('./Info');
@@ -41,8 +41,12 @@ const {
   showWarningInfo
 } = require('./util');
 
-const javaSdkVersion = getJavaVersion();
-const javaSdkDir = vaildJavaSdkDir();
+const javaSdkDirUser = vaildJavaSdkDir();
+const javaSdkDirAndroid = getJavaSdkDir(androidStudioDir) || javaSdkDirUser;
+const javaSdkDirDevEco = getJavaSdkDir(devEcoStudioDir) || javaSdkDirUser;
+const javaSdkVersionUser = getJavaVersion(path.join(javaSdkDirUser, 'bin'));
+const javaSdkVersionAndroid = getJavaVersion(path.join(javaSdkDirAndroid, 'bin')) || javaSdkVersionUser;
+const javaSdkVersionDevEco = getJavaVersion(path.join(javaSdkDirDevEco, 'bin')) || javaSdkVersionUser;
 const { Platform, platform } = require('./platform');
 
 function checkRequired(errorTimes, showdetail = false) {
@@ -67,9 +71,9 @@ function checkRequired(errorTimes, showdetail = false) {
   if (!success || showdetail) {
     requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
-    requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
-    if (javaSdkDir) {
-      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    requirementInfo(info.javaSdkInfo(javaSdkDirDevEco), javaSdkDirDevEco, showdetail);
+    if (javaSdkDirDevEco) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersionDevEco), javaSdkDirDevEco, showdetail);
     }
   }
   success = harmonyOsSdkDir && ohpmDir;
@@ -77,39 +81,41 @@ function checkRequired(errorTimes, showdetail = false) {
   if (!success || showdetail) {
     requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
-    requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
-    if (javaSdkDir) {
-      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    requirementInfo(info.javaSdkInfo(javaSdkDirDevEco), javaSdkDirDevEco, showdetail);
+    if (javaSdkDirDevEco) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersionDevEco), javaSdkDirDevEco, showdetail);
     }
   }
 
   optionTitle(info.androidTitle, androidSdkDir);
   if (!androidSdkDir || showdetail) {
     optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir, showdetail);
-    if (javaSdkDir) {
-      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    requirementInfo(info.javaSdkInfo(javaSdkDirAndroid), javaSdkDirAndroid, showdetail);
+    if (javaSdkDirAndroid) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersionAndroid), javaSdkDirAndroid, showdetail);
     }
   }
   if (platform !== Platform.Linux) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
     if (!devEcoStudioDir || showdetail) {
       optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
-      if (javaSdkDir) {
-        requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+      requirementInfo(info.javaSdkInfo(javaSdkDirDevEco), javaSdkDirDevEco, showdetail);
+      if (javaSdkDirDevEco) {
+        requirementInfo(info.javaSdkVersionInfo(javaSdkVersionDevEco), javaSdkDirDevEco, showdetail);
       }
     }
   }
   optionTitle(info.androidStudioTitle, androidStudioDir);
   if (!androidStudioDir || showdetail) {
     optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
-    requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
-    if (javaSdkDir) {
-      requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
+    requirementInfo(info.javaSdkInfo(javaSdkDirAndroid), javaSdkDirAndroid, showdetail);
+    if (javaSdkDirAndroid) {
+      requirementInfo(info.javaSdkVersionInfo(javaSdkVersionAndroid), javaSdkDirAndroid, showdetail);
     }
   }
 
   if (platform === Platform.MacOS) {
-    let mes = info.XcodeTitle + (xCodeVersion ? ` (${xCodeVersion[0]})`:'');
+    let mes = info.XcodeTitle + (xCodeVersion ? ` (${xCodeVersion[0]})` : '');
     requirementTitle(mes, xCodeVersion);
     if (!xCodeVersion || showdetail) {
       mes = xCodeVersion ? xCodeVersion[1] : xCodeVersion;
@@ -128,7 +134,7 @@ function showWarning() {
     harmonyOsSdkDir,
     nodejsDir,
     ohpmDir,
-    javaSdkDir,
+    javaSdkDirDevEco || javaSdkDirAndroid,
     arkuiXSdkDir,
     androidSdkDir,
     androidStudioDir
@@ -198,7 +204,7 @@ function check(cmd) {
   if(!nodejsDir) {
     errorTimes++;  
   }
-  if(!javaSdkDir) {
+  if(!(javaSdkDirDevEco || javaSdkDirAndroid)) {
     errorTimes++;  
   }
   if(!androidSdkDir) {

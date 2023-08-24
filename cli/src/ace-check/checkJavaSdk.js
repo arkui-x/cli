@@ -38,6 +38,28 @@ function vaildJavaSdkDir() {
   }
 }
 
+function getJavaSdkDir(IdeDir) {
+  if (!IdeDir) {
+    return;
+  } else {
+    if (platform === Platform.Windows || platform === Platform.Linux) {
+      if (fs.existsSync(path.join(IdeDir, 'jbr'))) {
+        return path.join(IdeDir, 'jbr');
+      }
+      else if (fs.existsSync(path.join(IdeDir, '..', 'jbr'))) {
+        return path.join(IdeDir, '..', 'jbr');
+      }
+    } else if (platform === Platform.MacOS) {
+      if (fs.existsSync(path.join(IdeDir, 'Contents', 'jdk', 'Contents', 'Home'))) {
+        return path.join(IdeDir, 'Contents', 'jdk', 'Contents', 'Home');
+      }
+      else if (fs.existsSync(path.join(IdeDir, '..', 'Contents', 'jdk', 'Contents', 'Home'))) {
+        return path.join(IdeDir, '..', 'Contents', 'jdk', 'Contents', 'Home');
+      }
+    }
+  }
+}
+
 function checkJavaSdk() {
   let javaSdkPath;
   const environment = process.env;
@@ -77,11 +99,19 @@ function validSdk(javaSdkPath) {
     return true;
   }
 }
-function getJavaVersion() {
+function getJavaVersion(javaBinDir) {
   let javaVersion = '';
+  if (platform === Platform.Windows) {
+    javaBinDir = path.join(javaBinDir, 'java.exe');
+    javaBinDir = '"' + javaBinDir + '"';
+  } else if (platform === Platform.Linux) {
+    javaBinDir = path.join(javaBinDir, 'java');
+  } else if (platform === Platform.MacOS) {
+    javaBinDir = path.join(javaBinDir, 'java');
+  }
   if (vaildJavaSdkDir()) {
-    let javaVersionContent = Process.execSync('java --version', { stdio: 'pipe' }).toString();
-    let javaVersionContentArray = javaVersionContent.split('\n'); 
+    const javaVersionContent = Process.execSync(`${javaBinDir} --version`, {encoding: 'utf-8', stdio: 'pipe' }).toString();
+    const javaVersionContentArray = javaVersionContent.split('\n');
     javaVersion = javaVersionContentArray[1];
     return javaVersion;
   }
@@ -90,5 +120,6 @@ function getJavaVersion() {
 module.exports = {
   checkJavaSdk,
   vaildJavaSdkDir,
-  getJavaVersion
+  getJavaVersion,
+  getJavaSdkDir
 };
