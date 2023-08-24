@@ -16,12 +16,11 @@
 const fs = require('fs');
 const path = require('path');
  
-const { devEcoStudioDir } = require('./configs');
 const { Platform, platform } = require('./platform');
 const { getConfig } = require('../ace-config');
 const Process = require('child_process');
 
-function vaildJavaSdkDir() {
+function getJavaSdkDirInEnv() {
   const environment = process.env;
   if (platform === Platform.Windows) {
     if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java.exe'))) {
@@ -38,37 +37,25 @@ function vaildJavaSdkDir() {
   }
 }
 
-function checkJavaSdk() {
-  let javaSdkPath;
-  const environment = process.env;
-  const config = getConfig();
-
-  if (config && config['java-sdk']) {
-    javaSdkPath = config['java-sdk'];
-  } else if ('JAVA_HOME' in environment) {
-    javaSdkPath = environment['JAVA_HOME'].replace(';', '');
+function getJavaSdkDirInIde(IdeDir) {
+  if (!IdeDir) {
+    return;
   } else {
-    if (devEcoStudioDir) {
-      if (platform === Platform.Linux || platform === Platform.Windows) {
-        if (/bin$/.test(devEcoStudioDir)) {
-          javaSdkPath = path.join(devEcoStudioDir, '..', 'jbr');
-        } else {
-          javaSdkPath = path.join(devEcoStudioDir, 'jbr');
-        }
-      } else if (platform === Platform.MacOS) {
-        if (/bin$/.test(devEcoStudioDir)) {
-          javaSdkPath = path.join(devEcoStudioDir, '..', 'Contents', 'jdk', 'Contents', 'Home');
-        } else {
-          javaSdkPath = path.join(devEcoStudioDir, 'Contents', 'jdk', 'Contents', 'Home');
-        }
+    if (platform === Platform.Windows || platform === Platform.Linux) {
+      if (fs.existsSync(path.join(IdeDir, 'jbr'))) {
+        return path.join(IdeDir, 'jbr');
+      }
+      else if (fs.existsSync(path.join(IdeDir, '..', 'jbr'))) {
+        return path.join(IdeDir, '..', 'jbr');
+      }
+    } else if (platform === Platform.MacOS) {
+      if (fs.existsSync(path.join(IdeDir, 'Contents', 'jbr', 'Contents', 'Home'))) {
+        return path.join(IdeDir, 'Contents', 'jbr', 'Contents', 'Home');
+      }
+      else if (fs.existsSync(path.join(IdeDir, '..', 'Contents', 'jbr', 'Contents', 'Home'))) {
+        return path.join(IdeDir, '..', 'Contents', 'jbr', 'Contents', 'Home');
       }
     }
-  }
-
-  if (validSdk(javaSdkPath)) {
-    environment['JAVA_HOME'] = javaSdkPath;
-    environment['PATH'] = `${path.join(javaSdkPath, 'bin')};${environment['PATH']}`;
-    return javaSdkPath;
   }
 }
 
@@ -77,18 +64,29 @@ function validSdk(javaSdkPath) {
     return true;
   }
 }
-function getJavaVersion() {
+function getJavaVersion(javaBinDir) {
   let javaVersion = '';
-  if (vaildJavaSdkDir()) {
-    let javaVersionContent = Process.execSync('java --version', { stdio: 'pipe' }).toString();
-    let javaVersionContentArray = javaVersionContent.split('\n'); 
+  if (platform === Platform.Windows) {
+    javaBinDir = path.join(javaBinDir, 'java.exe');
+    javaBinDir = '"' + javaBinDir + '"';
+  } else if (platform === Platform.Linux) {
+    javaBinDir = path.join(javaBinDir, 'java');
+  } else if (platform === Platform.MacOS) {
+    javaBinDir = '"' + javaBinDir + '"';
+    javaBinDir = path.join(javaBinDir, 'java');
+  }
+  try {
+    const javaVersionContent = Process.execSync(`${javaBinDir} --version`, {encoding: 'utf-8', stdio: 'pipe' }).toString();
+    const javaVersionContentArray = javaVersionContent.split('\n');
     javaVersion = javaVersionContentArray[1];
+    return javaVersion;
+  } catch (err) {
     return javaVersion;
   }
 }
 
 module.exports = {
-  checkJavaSdk,
-  vaildJavaSdkDir,
-  getJavaVersion
+  getJavaSdkDirInEnv,
+  getJavaVersion,
+  getJavaSdkDirInIde
 };
