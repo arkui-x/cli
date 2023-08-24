@@ -103,8 +103,8 @@ const iDeviceVersion = checkIdeviceVersion();
 const deployVersion = checkDeployVersion();
 
 function getxCodeDir() {
-  if(platform === Platform.MacOS) {
-    let xCodeDirlist = ['/Applications/Xcode.app', path.join(homeDir, '/Applications', `Xcode.app`)];
+  if (platform === Platform.MacOS) {
+    const xCodeDirlist = ['/Applications/Xcode.app', path.join(homeDir, '/Applications', `Xcode.app`)];
     for (const i in xCodeDirlist) {
       if (fs.existsSync(xCodeDirlist[i])) {
         return xCodeDirlist[i];

@@ -28,10 +28,11 @@ function checkNodejs() {
 
 function getNodejsVersion() {
   try {
-    const nodejsVersion = Process.execSync(`node -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+    let nodejsVersion = Process.execSync(`node -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+    nodejsVersion = nodejsVersion.replace(/\r/g, '');
     return nodejsVersion;
   } catch (err) {
-    // ignore
+    return '';
   }
 }
 

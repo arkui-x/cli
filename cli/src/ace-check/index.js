@@ -50,16 +50,16 @@ function checkRequired(errorTimes, showdetail = false) {
     console.log('Check summary (to see all details, run ace check -v)');
   }
   let success = arkuiXSdkDir && nodejsDir;
-  if(platform === Platform.MacOS) {
+  if (platform === Platform.MacOS) {
     success = iDeviceVersion && deployVersion && success;
   }
   requirementTitle(info.arkuiXSdkTitle, success);
   if (!success || showdetail) {
     requirementInfo(info.arkuiXSdkInfo(arkuiXSdkDir), arkuiXSdkDir, showdetail);
     requirementInfo(info.nodejsInfo(nodejsDir), nodejsDir, showdetail);
-    if(platform === Platform.MacOS) {
-        requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion, showdetail);
-        requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion, showdetail);
+    if (platform === Platform.MacOS) {
+      requirementInfo(info.iosIdeviceVersionInfo(iDeviceVersion), iDeviceVersion, showdetail);
+      requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion, showdetail);
     }
   }
   success = openHarmonySdkDir && ohpmDir;
@@ -68,7 +68,7 @@ function checkRequired(errorTimes, showdetail = false) {
     requirementInfo(info.openHarmonySdkInfo(openHarmonySdkDir), openHarmonySdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
     requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
-    if(javaSdkDir) {
+    if (javaSdkDir) {
       requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
     }
   }
@@ -78,7 +78,7 @@ function checkRequired(errorTimes, showdetail = false) {
     requirementInfo(info.harmonyOsSdkInfo(harmonyOsSdkDir), harmonyOsSdkDir, showdetail);
     requirementInfo(info.ohpmToolInfo(ohpmDir), ohpmDir, showdetail);
     requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
-    if(javaSdkDir) {
+    if (javaSdkDir) {
       requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
     }
   }
@@ -86,7 +86,7 @@ function checkRequired(errorTimes, showdetail = false) {
   optionTitle(info.androidTitle, androidSdkDir);
   if (!androidSdkDir || showdetail) {
     optionInfo(info.androidSdkInfo(androidSdkDir), androidSdkDir, showdetail);
-    if(javaSdkDir) {
+    if (javaSdkDir) {
       requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
     }
   }
@@ -94,7 +94,7 @@ function checkRequired(errorTimes, showdetail = false) {
     optionTitle(info.devEcoStudioTitle, devEcoStudioDir);
     if (!devEcoStudioDir || showdetail) {
       optionInfo(info.devEcoStudioInfo(devEcoStudioDir), devEcoStudioDir);
-      if(javaSdkDir) {
+      if (javaSdkDir) {
         requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
       }
     }
@@ -103,16 +103,16 @@ function checkRequired(errorTimes, showdetail = false) {
   if (!androidStudioDir || showdetail) {
     optionInfo(info.androidStudioInfo(androidStudioDir), androidStudioDir);
     requirementInfo(info.javaSdkInfo(javaSdkDir), javaSdkDir, showdetail);
-    if(javaSdkDir) {
+    if (javaSdkDir) {
       requirementInfo(info.javaSdkVersionInfo(javaSdkVersion), javaSdkDir, showdetail);
     }
   }
 
   if (platform === Platform.MacOS) {
-    let mes = info.XcodeTitle + (xCodeVersion? ` (${xCodeVersion[0]})`:'');
-    requirementTitle(mes ,xCodeVersion);
+    let mes = info.XcodeTitle + (xCodeVersion ? ` (${xCodeVersion[0]})`:'');
+    requirementTitle(mes, xCodeVersion);
     if (!xCodeVersion || showdetail) {
-      mes = xCodeVersion? xCodeVersion[1]:xCodeVersion;
+      mes = xCodeVersion ? xCodeVersion[1] : xCodeVersion;
       requirementInfo(info.iosXcodeDirInfo(xCodeDir), xCodeVersion, showdetail);
       requirementInfo(info.iosXcodeVersionInfo(mes), xCodeVersion, showdetail);
     }
