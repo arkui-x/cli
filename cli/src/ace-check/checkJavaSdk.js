@@ -72,6 +72,8 @@ function setJavaSdkDirInEnv(javaSdkDir) {
       environment['JAVA_HOME'] = javaSdkDir;
       environment['PATH'] = javaSdkDir + '/bin:' + environment['PATH'];
     }
+  } else {
+    console.log('Java Sdk is required, JAVA_HOME is not set and no \'java\' command could be found in your PATH. JDK 17 or later is recommended.');
   }
 }
 
