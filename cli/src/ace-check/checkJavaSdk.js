@@ -59,11 +59,20 @@ function getJavaSdkDirInIde(IdeDir) {
   }
 }
 
-function validSdk(javaSdkPath) {
-  if (fs.existsSync(javaSdkPath)) {
-    return true;
+function setJavaSdkDirInEnv(javaSdkDir) {
+  const environment = process.env;
+  if (platform === Platform.Windows) {
+    environment['JAVA_HOME'] = javaSdkDir;
+    environment['Path'] = javaSdkDir + '\\bin;' + environment['Path'];
+  } else if (platform === Platform.Linux) {
+    environment['JAVA_HOME'] = javaSdkDir;
+    environment['PATH'] = javaSdkDir + '/bin:' + environment['PATH'];
+  } else if (platform === Platform.MacOS) {
+    environment['JAVA_HOME'] = javaSdkDir;
+    environment['PATH'] = javaSdkDir + '/bin:' + environment['PATH'];
   }
 }
+
 function getJavaVersion(javaBinDir) {
   let javaVersion = '';
   if (platform === Platform.Windows) {
@@ -88,5 +97,6 @@ function getJavaVersion(javaBinDir) {
 module.exports = {
   getJavaSdkDirInEnv,
   getJavaVersion,
-  getJavaSdkDirInIde
+  getJavaSdkDirInIde,
+  setJavaSdkDirInEnv
 };

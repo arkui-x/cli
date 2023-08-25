@@ -27,7 +27,8 @@ const {
 const { copy } = require('../../ace-create/util');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
-const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir ,nodejsDir} = require('../../ace-check/configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco} = require('../../ace-check/configs');
+const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -221,7 +222,7 @@ function runGradle(fileType, cmd, moduleList) {
     if (cmd.debug) {
       debugStr = '-p buildMode=debug';
     }
-    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap`);
+    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap --no-daemon`);
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
     fileType === 'framework' || fileType === 'xcframework') {
@@ -241,11 +242,13 @@ function runGradle(fileType, cmd, moduleList) {
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');
   }
+  setJavaSdkDirInEnv(javaSdkDirDevEco);
   try {
     console.log(`${gradleMessage}`);
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit'
+      stdio: 'inherit',
+      env: process.env
     });
     return true;
   } catch (error) {

@@ -25,7 +25,8 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { androidSdkDir,arkuiXSdkDir } = require('../../ace-check/configs');
+const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid} = require('../../ace-check/configs');
+const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { isProjectRootDir, getAarName, getFrameworkName } = require('../../util');
 const projectDir = process.cwd();
 const { copyLibraryToProject } = require('./copyLibraryToProject');
@@ -91,6 +92,7 @@ function buildAPK(cmd) {
   let isBuildSuccess = true;
   console.log('Start building apk...');
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
+  setJavaSdkDirInEnv(javaSdkDirAndroid);
   cmds.forEach(cmd => {
     if (platform === Platform.Windows) {
       cmd = cmd.replace(/\//g, '\\');
@@ -147,6 +149,7 @@ function buildAAR(cmd) {
       cmd = cmd.replace(/\//g, '\\');
     }
     try {
+      setJavaSdkDirInEnv(javaSdkDirAndroid);
       exec(cmd, {
         encoding: 'utf-8',
         stdio: 'inherit',
