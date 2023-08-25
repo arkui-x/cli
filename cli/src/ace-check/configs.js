@@ -170,7 +170,7 @@ function getArkuiXSdkVersion() {
 }
 
 function isVersionValid(version, limit) {
-  subVersions = version.split('.');
+  let subVersions = version.split('.');
   if(subVersions.length != limit) {
     return false;
   }
