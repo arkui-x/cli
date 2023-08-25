@@ -92,36 +92,6 @@ function createPackageFile(packagePaths, packageArray) {
     });
 }
 
-function getIncludePath() {
-    let sdkPath = '';
-    if (arkuiXSdkDir) {
-        if (fs.existsSync(path.join(arkuiXSdkDir, 'arkui-x.json'))) {
-            sdkPath = arkuiXSdkDir;
-        } else {
-            sdkPath = path.join(arkuiXSdkDir, '10/arkui-x');
-        }
-    } else {
-        sdkPath = getIdeDefaultSdk();
-    }
-    if (platform === Platform.Windows) {
-        sdkPath = sdkPath.replace(/\\/g, '/');
-    }
-    return sdkPath;
-}
-
-function getIdeDefaultSdk() {
-    let defaultPath;
-    const defaultString = 'ArkUI-X/Sdk/10/arkui-x';
-    if (platform === Platform.Linux) {
-        defaultPath = path.join(homeDir, defaultString);
-    } else if (platform === Platform.MacOS) {
-        defaultPath = path.join(homeDir, 'Library', defaultString);
-    } else if (platform === Platform.Windows) {
-        defaultPath = path.join(homeDir, 'AppData', 'Local', defaultString);
-    }
-    return defaultPath;
-}
-
 function modifyHarmonyOSConfig(projectPath, moduleName) {
     const buildProfile = path.join(projectPath, 'build-profile.json5');
     const configFile = [path.join(projectPath, moduleName, 'src/main/module.json5'),
@@ -152,13 +122,10 @@ function modifyHarmonyOSConfig(projectPath, moduleName) {
   }
   
 function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project) {
-    const nativeIncludePath = getIncludePath();
     files.push(path.join(projectPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'));
     replaceInfos.push('appNameValue');
     strs.push(project);
-    files.push(path.join(projectPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'));
-    replaceInfos.push('SDK_INCLUDE_PATH');
-    strs.push(nativeIncludePath);
+    
     const buildGradle = path.join(projectPath, '.arkui-x/android/app/build.gradle');
     if (fs.existsSync(buildGradle)) {
       const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
@@ -195,6 +162,5 @@ module.exports = {
     createPackageFile,
     replaceInfo,
     modifyHarmonyOSConfig,
-    modifyNativeCppConfig,
-    getIncludePath
+    modifyNativeCppConfig
 };

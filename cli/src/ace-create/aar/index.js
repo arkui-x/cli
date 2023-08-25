@@ -155,13 +155,9 @@ function replaceAarInfo(libraryPath, aarName) {
 }
 
 function modifyNativeAAR(aarPath, aarName, files, replaceInfos, strs) {
-    const nativeIncludePath = getIncludePath();
     files.push(path.join(aarPath, 'src/main/cpp/CMakeLists.txt'));
     replaceInfos.push('appNameValue');
     strs.push(aarName);
-    files.push(path.join(aarPath, 'src/main/cpp/CMakeLists.txt'));
-    replaceInfos.push('SDK_INCLUDE_PATH');
-    strs.push(nativeIncludePath);
     const buildGradle = path.join(aarPath, 'build.gradle');
     if (fs.existsSync(buildGradle)) {
         const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
