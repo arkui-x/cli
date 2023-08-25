@@ -60,16 +60,20 @@ function getJavaSdkDirInIde(IdeDir) {
 }
 
 function setJavaSdkDirInEnv(javaSdkDir) {
-  const environment = process.env;
-  if (platform === Platform.Windows) {
-    environment['JAVA_HOME'] = javaSdkDir;
-    environment['Path'] = javaSdkDir + '\\bin;' + environment['Path'];
-  } else if (platform === Platform.Linux) {
-    environment['JAVA_HOME'] = javaSdkDir;
-    environment['PATH'] = javaSdkDir + '/bin:' + environment['PATH'];
-  } else if (platform === Platform.MacOS) {
-    environment['JAVA_HOME'] = javaSdkDir;
-    environment['PATH'] = javaSdkDir + '/bin:' + environment['PATH'];
+  if (javaSdkDir) {
+    const environment = process.env;
+    if (platform === Platform.Windows) {
+      environment['JAVA_HOME'] = javaSdkDir;
+      environment['Path'] = javaSdkDir + '\\bin;' + environment['Path'];
+    } else if (platform === Platform.Linux) {
+      environment['JAVA_HOME'] = javaSdkDir;
+      environment['PATH'] = javaSdkDir + '/bin:' + environment['PATH'];
+    } else if (platform === Platform.MacOS) {
+      environment['JAVA_HOME'] = javaSdkDir;
+      environment['PATH'] = javaSdkDir + '/bin:' + environment['PATH'];
+    }
+  } else {
+    console.log('Java Sdk is required, JAVA_HOME is not set and no \'java\' command could be found in your PATH. JDK 17 or later is recommended.');
   }
 }
 
