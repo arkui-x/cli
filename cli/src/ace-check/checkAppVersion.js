@@ -14,8 +14,9 @@
  */
 
 const process = require('child_process');
-const { Platform, platform } = require('./platform');
-
+const { Platform, platform ,homeDir} = require('./platform');
+const path = require('path');
+const fs = require('fs');
 function checkXcodeVersion() {
     try {
         if (platform === Platform.MacOS) {
@@ -55,8 +56,21 @@ function checkDeployVersion() {
     }
 }
 
+function getxCodeDir() {
+    if (platform === Platform.MacOS) {
+      const xCodeDirlist = ['/Applications/Xcode.app', path.join(homeDir, '/Applications', `Xcode.app`)];
+      for (const i in xCodeDirlist) {
+        if (fs.existsSync(xCodeDirlist[i])) {
+          return xCodeDirlist[i];
+        }
+      }
+    }
+    return undefined;
+}
+
 module.exports = {
     checkXcodeVersion,
     checkIdeviceVersion,
-    checkDeployVersion
+    checkDeployVersion,
+    getxCodeDir
 };

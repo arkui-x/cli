@@ -15,6 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const Process = require('child_process');
 
 const { Platform, platform, homeDir } = require('./platform');
 const { getConfig } = require('../ace-config');
@@ -171,6 +172,53 @@ class Ide {
     }
     return false;
   }
+
+  getVersion(studioDir) {
+    if(!studioDir) {
+      return 'unknown';
+    }
+    if (studioDir.endsWith('bin')) {
+      studioDir = studioDir.substring(0, studioDir.length - 3);
+    }
+    if(platform === Platform.MacOS) {
+      let targetPath = path.join(studioDir, 'Contents', 'Info.plist');
+      if(!fs.existsSync(targetPath)) {
+        return 'unknown';
+      }
+      try {
+        return Process.execSync(`defaults read "${targetPath}" CFBundleShortVersionString`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+      } catch (err) {
+        return 'unknown';
+      }
+    } else if(platform === Platform.Windows) {
+      let targetPath = path.join(studioDir, 'product-info.json');
+      if(!fs.existsSync(targetPath)) {
+        return 'unknown';
+      }
+      return JSON.parse(fs.readFileSync(targetPath))['version'];
+    }
+  }
 }
 
-module.exports = Ide;
+const devEcoStudio = new Ide(
+  'DevEco Studio',
+  [`/opt/deveco-studio`, `${homeDir}/deveco-studio`],
+  [],
+  [`C:\\Program Files\\Huawei\\DevEco Studio`,
+    `D:\\Program Files\\Huawei\\DevEco Studio`],
+  'devecostudio'
+);
+
+const androidStudio = new Ide(
+  'Android Studio',
+  [`/opt/android-studio`, `${homeDir}/android-studio`],
+  [],
+  [`C:\\Program Files\\Android\\Android Studio`,
+    `D:\\Program Files\\Android\\Android Studio`],
+  'androidstudio'
+);
+
+module.exports = {
+  devEcoStudio,
+  androidStudio
+};
