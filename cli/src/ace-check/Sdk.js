@@ -31,7 +31,8 @@ class Sdk {
     defaultSdkDir,
     kSdkHome,
     kSdkRoot,
-    toolchainsName
+    toolchainsName,
+    getVersion,
   ) {
     this.type = type;
     this.stdType = this.type.toLowerCase();
@@ -39,7 +40,9 @@ class Sdk {
     this.kSdkHome = kSdkHome;
     this.kSdkRoot = kSdkRoot;
     this.toolchainsName = toolchainsName;
+    this.getVersion = getVersion;
   }
+
   locateSdk() {
     let sdkHomeDir;
     const config = this.checkConfig();
@@ -113,4 +116,169 @@ class Sdk {
   }
 }
 
-module.exports = Sdk;
+
+function isVersionValid(version, limit) {
+  let subVersions = version.split('.');
+  if(subVersions.length != limit) {
+    return false;
+  }
+  for(let i = 0; i < limit; i++) {
+    if(isNaN(subVersions[i])) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function cmpVersion(version1, version2) {
+  let subVersions1 = version1.split('.');
+  let subVersions2 = version2.split('.');
+  let limit = subVersions1.length;
+  for(let i = 0; i < limit; i++){
+    if(parseInt(subVersions1[i]) == parseInt(subVersions2[i])) {
+      continue;
+    }
+    if(parseInt(subVersions1[i]) > parseInt(subVersions2[i])) {
+      return 1;
+    } else {
+      return -1;
+    }
+  }
+  return 0;
+}
+
+function getOpenHarmonySdkVersion(sdkDir) {
+  if(!sdkDir) {
+    return 'unknown';
+  }
+  const files = fs.readdirSync(sdkDir);
+  let numOfFile = files.length
+  if(!files || numOfFile <= 0) {
+    return 'unknown';
+  }
+  let target = '0';
+  files.forEach((file) => {
+    if(!isNaN(file) && parseInt(file) > parseInt(target)) {
+      target = file
+    }
+  })
+  let targetPath = path.join(sdkDir, target, 'ets', 'oh-uni-package.json');
+  if(!fs.existsSync(targetPath)) {
+    return 'unknown';
+  }
+  return JSON.parse(fs.readFileSync(targetPath))['version'];
+}
+
+function getArkuiXSdkVersion(sdkDir) {
+  if (!sdkDir || !fs.existsSync(sdkDir)) {
+    return 'unknown';
+  }
+  const files = fs.readdirSync(sdkDir);
+  let numOfFile = files.length
+  if(!files || numOfFile <= 0) {
+    return 'unknown';
+  }
+  let target = '0';
+  files.forEach((file) => {
+    if(!isNaN(file) && parseInt(file) > parseInt(target)) {
+      target = file
+    }
+  })
+  let targetPath = path.join(sdkDir, target, 'arkui-x', 'arkui-x.json');
+  if(!fs.existsSync(targetPath)) {
+    return 'unknown';
+  }
+  return JSON.parse(fs.readFileSync(targetPath))['version'];
+}
+
+function getAndroidSdkVersion(sdkDir) {
+  if (!sdkDir|| !fs.existsSync(path.join(sdkDir, 'build-tools'))) {
+    return 'unknown';
+  }
+  const files = fs.readdirSync(path.join(sdkDir, 'build-tools'));
+  let numOfFile = files.length;
+  if(!files || numOfFile <= 0) {
+    return 'unknown';
+  }
+  let target = '0.0.0';
+  let sign = false;
+  files.forEach((file) => {
+    if(isVersionValid(file, 3)) {
+      if(cmpVersion(file,target) > 0) {
+        sign = true;
+        target = file;
+      }
+    }
+  })
+  if(sign) {
+    return target;  
+  }
+  return 'unknown';
+}
+
+function getHarmonyOsSdkVersion(sdkDir) {
+  if(!sdkDir || !fs.existsSync(path.join(sdkDir, 'hmscore'))) {
+    return 'unknown';
+  }
+  const files = fs.readdirSync(path.join(sdkDir, 'hmscore'));
+  let numOfFile = files.length;
+  if(!files || numOfFile <= 0) {
+    return 'unknown';
+  }
+  let target = '0.0.0';
+  let sign = false;
+  files.forEach((file) => {
+    if(isVersionValid(file, 3)) {
+      if(cmpVersion(file,target) > 0) {
+        sign = true;
+        target = file;
+      }
+    }
+  })
+  if(sign) {
+    return target;  
+  }
+  return 'unknown';
+}
+
+const openHarmonySdk = new Sdk(
+  'OpenHarmony',
+  ['OpenHarmony'],
+  'OpenHarmony_HOME',
+  'OpenHarmony',
+  'toolchains',
+  getOpenHarmonySdkVersion
+);
+
+const harmonyOsSdk = new Sdk(
+  'HarmonyOS',
+  ['Huawei'],
+  'HarmonyOS_HOME',
+  'HarmonyOS',
+  'toolchains',
+  getHarmonyOsSdkVersion
+);
+const arkuiXSdk = new Sdk(
+  'ArkUI-X',
+  ['ArkUI-X'],
+  'ARKUIX_SDK_HOME',
+  'ArkUI-X',
+  'toolchains',
+  getArkuiXSdkVersion
+);
+
+const androidSdk = new Sdk(
+  'Android',
+  ['Android'],
+  'ANDROID_HOME',
+  'Android',
+  'platform-tools',
+  getAndroidSdkVersion
+);
+
+module.exports = {
+  openHarmonySdk,
+  harmonyOsSdk,
+  arkuiXSdk,
+  androidSdk
+};
