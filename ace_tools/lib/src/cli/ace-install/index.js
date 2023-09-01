@@ -16,7 +16,6 @@
 const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
-
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
 const installHapPackage = [];
@@ -43,7 +42,8 @@ function checkInstallFile(projectDir, fileType, moduleList) {
           modulePackageName = module;
         }
         if (fileList.length === 1 && fileList[0] === `${modulePackageName}-default-unsigned.${fileType}`) {
-          console.log('WARN: Before installing the [' + module + '] hap,please complete the signature.');
+          console.log('\x1B[31m%s\x1B[0m',
+            'Error: Before installing the [' + module + '] hap,please complete the signature.');
         }
         fileList.forEach(file => {
           if (file === `${modulePackageName}-default-signed.${fileType}`) {
@@ -80,7 +80,7 @@ function checkInstallFile(projectDir, fileType, moduleList) {
       });
       if (fileList.length === 1 && fileList[0] === `release/app-release-unsigned.${fileType}`) {
         console.log('\x1B[31m%s\x1B[0m',
-          'Warning: Before installing the apk, please sign and rebuild, or build the debug version.');
+          'Error: Before installing the apk, please sign and rebuild, or build the debug version.');
       }
       if (fileList.includes(`release/app-release.${fileType}`)) {
         filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
@@ -102,6 +102,9 @@ function install(fileType, device, moduleListInput) {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
+  if (!validInputDevice(device)) {
+    return false;
+  }
   moduleListInput = moduleListInput.split(' ');
   const filePathList = checkInstallFile(projectDir, fileType, moduleListInput);
   if (!filePathList || filePathList.length === 0) {
@@ -116,9 +119,6 @@ function install(fileType, device, moduleListInput) {
   const toolObj = getToolByType(fileType, currentSystem);
   if (!toolObj) {
     console.error('There is no install tool, please check');
-    return false;
-  }
-  if (!validInputDevice(device)) {
     return false;
   }
   const installCmd = installCmdConstruct(fileType, toolObj, device);

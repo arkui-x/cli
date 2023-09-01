@@ -127,9 +127,13 @@ function isPackageInAndroid(toolObj, device) {
   }
 }
 
-function launch(fileType, device, moduleName, options) {
+function launch(fileType, device, options) {
   const projectDir = process.cwd();
+  const moduleName = options.target;
   if (!isProjectRootDir(projectDir)) {
+    return false;
+  }
+  if (!validInputDevice(device)) {
     return false;
   }
   const currentSystem = getCurrentProjectSystem(projectDir);
@@ -142,7 +146,7 @@ function launch(fileType, device, moduleName, options) {
     console.error('There are not install tool, please check');
     return false;
   }
-  if (validInputDevice(device) && getNames(projectDir, fileType, moduleName) && toolObj) {
+  if (getNames(projectDir, fileType, moduleName) && toolObj) {
     if (fileType === 'apk' && !isPackageInAndroid(toolObj, device)) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;

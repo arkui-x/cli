@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+const exec = require('child_process').execSync;
 const checkDevices = require('../ace-check/checkDevices');
 const { getTools } = require('../ace-check/getTool');
 const { Platform, platform } = require('../ace-check/platform');
@@ -36,7 +37,7 @@ function devices(logFlag) {
   } else {
     for (let i = 0; i < devices.length; i++) {
       const device = devices[i];
-      if (device.indexOf('unauthorized') !== -1 || device.indexOf('offline') !== -1) {
+      if (device.indexOf('unauthorized') !== -1 || device.toLowerCase().indexOf('offline') !== -1) {
         unavailableDevices.push(device);
       } else {
         availableDevices.push(device);
@@ -44,7 +45,10 @@ function devices(logFlag) {
     }
     if (availableDevices.length > 0 && logFlag) {
       const len = availableDevices.length;
-      console.log(`[√] Connected device (${len} available)\r\n  • ${availableDevices.join('\r\n  • ')}`);
+      console.log(`[√] Connected device (${len} available)`);
+      availableDevices.forEach(device => {
+        showDeviceInfo(device, '  • ');
+      });
     }
     if (unavailableDevices.length > 0 && logFlag) {
       const len = unavailableDevices.length;
@@ -73,4 +77,102 @@ function showTools(tools) {
   console.log('Tools info :' + toolMsg);
 }
 
-module.exports = devices;
+function showDeviceInfo(device, icon) {
+  const id = getDeviceID(device);
+  const title = getDeviceTitle(device);
+  console.log('\x1B[32m%s\x1B[0m', `${icon}`, `${title} (${id})`);
+}
+
+function showValidDevice(fileType) {
+  let validDevices;
+  const mapDevice = new Map();
+  const devicesArr = devices();
+  let flag = '';
+  if (fileType) {
+    if (fileType === 'app') {
+      flag = 'iOS';
+    } else if (fileType === 'apk') {
+      flag = 'Android';
+    } else {
+      flag = 'OpenHarmony/HarmonyOS';
+    }
+    validDevices = getTypeDevice(devicesArr.available, flag);
+  } else {
+    validDevices = devicesArr.available;
+  }
+
+  if (validDevices.length === 0) {
+    console.error('\x1B[31m%s\x1B[0m', `Error: no available ${flag} Device.`);
+    return;
+  } else if (validDevices.length === 1) {
+    mapDevice.set('0', validDevices[0]);
+  } else {
+    validDevices.forEach((device, index) => {
+      mapDevice.set((index + 1).toString(), device);
+      showDeviceInfo(device, `[${index + 1}]: `);
+    });
+  }
+  return mapDevice;
+}
+
+function getTypeDevice(validDevices, flag) {
+  const typeDevice = [];
+  validDevices.forEach(device => {
+    if (device.split(/[\t\s]+/)[0] === flag) {
+      typeDevice.push(device);
+    }
+  });
+  return typeDevice;
+}
+
+function getDeviceTitle(device) {
+  let title;
+  if (device.split(/[\t\s]+/)[0] == 'iOS') {
+    const id = getDeviceID(device);
+    title = exec(`idevicename -u ${id}`).toString().trimEnd();
+  } else {
+    if (device.includes(':')) {
+      title = device.split(/:/g)[2].split(/[\t\s]+/)[0];
+    } else {
+      title = device.split(/[\t\s]+/)[5];
+    }
+  }
+  return title;
+}
+
+function getDeviceType(id) {
+  let fileType = '';
+  let deviceType = '';
+  const validDevices = devices().available;
+  for (let i = 0; i < validDevices.length; ++i) {
+    if (id === getDeviceID(validDevices[i])) {
+      deviceType = validDevices[i].split(/[\t\s]+/)[0];
+      break;
+    }
+  }
+  if (deviceType === 'iOS') {
+    fileType = 'app';
+  } else if (deviceType === 'Android') {
+    fileType = 'apk';
+  } else if (deviceType === 'OpenHarmony/HarmonyOS') {
+    fileType = 'hap';
+  }
+  return fileType;
+}
+
+function getDeviceID(device) {
+  let id;
+  if (device.split(/[\t\s]+/)[0] == 'iOS') {
+    id = device.split(/[\t\s]+/)[4];
+  } else {
+    id = device.split(/[\t\s]+/)[2];
+  }
+  return id;
+}
+
+module.exports = {
+  devices,
+  showValidDevice,
+  getDeviceType,
+  getDeviceID
+};

@@ -20,6 +20,9 @@ const { validInputDevice } = require('../util');
 const { openHarmonySdkDir, harmonyOsSdkDir } = require('../ace-check/configs');
 function uninstall(fileType, device, bundle) {
   let toolObj;
+  if (!validInputDevice(device)) {
+    return false;
+  }
   if (openHarmonySdkDir) {
     toolObj = getToolByType(fileType, 'OpenHarmony');
   } else if (harmonyOsSdkDir) {
@@ -31,28 +34,24 @@ function uninstall(fileType, device, bundle) {
     console.error('There are not install tool, please check');
     return false;
   }
-  if (validInputDevice(device)) {
-    let successFlag;
-    if (fileType === 'hap') {
+  let successFlag;
+  if (fileType === 'hap') {
+    successFlag = uninstallHap(toolObj, device, bundle);
+    if (!successFlag && openHarmonySdkDir && harmonyOsSdkDir) {
+      toolObj = getToolByType(fileType, 'HarmonyOS');
       successFlag = uninstallHap(toolObj, device, bundle);
-      if (!successFlag && openHarmonySdkDir && harmonyOsSdkDir) {
-        toolObj = getToolByType(fileType, 'HarmonyOS');
-        successFlag = uninstallHap(toolObj, device, bundle);
-      }
-    } else if (fileType === 'apk') {
-      successFlag = uninstallApk(toolObj, device, bundle);
-    } else if (fileType === 'app') {
-      successFlag = uninstallApp(toolObj, device, bundle);
     }
-    if (successFlag) {
-      console.log(`Uninstall ${fileType.toUpperCase()} successfully.`);
-    } else {
-      console.error(`Uninstall ${fileType.toUpperCase()} failed.`);
-    }
-    return successFlag;
-  } else {
-    return false;
+  } else if (fileType === 'apk') {
+    successFlag = uninstallApk(toolObj, device, bundle);
+  } else if (fileType === 'app') {
+    successFlag = uninstallApp(toolObj, device, bundle);
   }
+  if (successFlag) {
+    console.log(`Uninstall ${fileType.toUpperCase()} successfully.`);
+  } else {
+    console.error(`Uninstall ${fileType.toUpperCase()} failed.`);
+  }
+  return successFlag;
 }
 function uninstallApp(toolObj, device, bundle) {
   let cmdPath;

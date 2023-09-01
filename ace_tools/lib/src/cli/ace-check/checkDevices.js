@@ -17,28 +17,38 @@ const process = require('child_process');
 const { getTools } = require('./getTool');
 function checkDevices() {
   let deviceCommand;
+  let checkHuaweiDeviceCmd;
   const devicesOutputs = [];
   let title = '';
   const toolObj = getTools() || [];
   for (let i = 0; i < toolObj.length; i++) {
+    let isCheck = false;
     if ('hdc' in toolObj[i]) {
       title = 'OpenHarmony/HarmonyOS Devices\t';
-      deviceCommand = `${toolObj[i]['hdc']} list targets`;
+      deviceCommand = `${toolObj[i]['hdc']} list targets -v`;
     } else if ('hohdc' in toolObj[i]) {
+      isCheck = true;
+      checkHuaweiDeviceCmd = `${toolObj[i]['hohdc']}`;
       title = 'OpenHarmony/HarmonyOS Devices\t';
-      deviceCommand = `${toolObj[i]['hohdc']} list targets`;
+      deviceCommand = `${toolObj[i]['hohdc']} list targets -v`;
     } else if ('adb' in toolObj[i]) {
       title = 'Android Devices\t';
-      deviceCommand = `${toolObj[i]['adb']} devices`;
+      deviceCommand = `${toolObj[i]['adb']} devices -l`;
     } else if ('ios-deploy' in toolObj[i]) {
       title = 'iOS Devices\t';
       deviceCommand = `${toolObj[i]['ios-deploy']} -c -t 1`;
     }
 
     try {
-      const commandOutput = process.execSync(deviceCommand).toString();
+      const commandOutput = process.execSync(deviceCommand).toString().trim();
       const devices = getDevices(commandOutput);
       devices.forEach(item => {
+        if (isCheck) {
+          const id = item.split(/[\t\s]+/)[0];
+          checkHuaweiDeviceCmd += ` -t ${id} shell getprop ro.product.brand`;
+          if (process.execSync(checkHuaweiDeviceCmd, { stdio: 'pipe' }).
+          toString().trim().toLowerCase() !== 'huawei') return;
+        }
         if (!devicesOutputs.includes(title + item)) {
           devicesOutputs.push(title + item);
         }
@@ -53,8 +63,9 @@ function checkDevices() {
 function getDevices(out) {
   let splitArr = out.split(/[\r\n]+/);
   splitArr = splitArr.filter(item => {
-    return item !== 'List of devices attached' && item !== 'List of targets attached:' && item !== '' && item !== '[Empty]'
-      && item.indexOf('device to be connected') === -1 && item.indexOf('Not support std mode') === -1;
+    return item !== 'List of devices attached' && item !== 'List of targets attached:' && item !== ''
+      && item.indexOf('[Empty]') === -1 && item.indexOf('device to be connected') === -1 && item.indexOf('hdc') !== 1
+      && item.indexOf('Not support std mode') === -1 && item.indexOf('COM1') === -1 && item.indexOf('UART') === -1;
   });
   return splitArr;
 }

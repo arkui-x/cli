@@ -23,7 +23,7 @@ const createComponent = require('./src/cli/ace-create/component');
 const { createAbility } = require('./src/cli/ace-create/ability');
 const { setConfig } = require('./src/cli/ace-config');
 const check = require('./src/cli/ace-check');
-const devices = require('./src/cli/ace-devices');
+const { devices, getDeviceID, showValidDevice, getDeviceType } = require('./src/cli/ace-devices');
 const compiler = require('./src/cli/ace-build/ace-compiler');
 const build = require('./src/cli/ace-build');
 const install = require('./src/cli/ace-install');
@@ -256,29 +256,21 @@ function parseInstall() {
     .option('--target [moduleName]', 'name of module to be installed')
     .description('install hap/apk/app on device')
     .action((fileType, options, cmd) => {
-      fileType = fileType || 'hap';
-      if (fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
-        console.log(`Please use ace install with subcommand : hap or apk or app.`);
-      } else {
-        options.target = options.target || 'entry';
-        install(fileType, cmd.parent._optionValues.device, options.target);
-      }
+      options.target = options.target || 'entry';
+      execCmd(fileType, options.target, cmd, install);
     });
 }
 
 function parseUninstall() {
   program.command('uninstall [fileType]')
-    .option('--bundle [bundleId]', 'bundleId to be uninstalled')
+    .option('--bundle <bundleName>', 'bundleName to be uninstalled')
     .description('uninstall hap/apk/app on device')
     .action((fileType, options, cmd) => {
-      fileType = fileType || 'hap';
-      if (fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
-        console.log(`Please use ace uninstall with subcommand : hap or apk or app.`);
-      } else if (!options.bundle) {
+      if (!options.bundle) {
         console.log(`Please input bundleName with --bundle.`);
-      } else {
-        uninstall(fileType, cmd.parent._optionValues.device, options.bundle);
+        return false;
       }
+      execCmd(fileType, options.bundle, cmd, uninstall);
     });
 }
 
@@ -287,12 +279,7 @@ function parseRun() {
     .description('run hap/apk on device')
     .option('--target [moduleName]', 'name of module to be installed')
     .action((fileType, options, cmd) => {
-      fileType = fileType || 'hap';
-      if (fileType === 'hap' || fileType === 'apk' || fileType === 'app') {
-        run(fileType, cmd.parent._optionValues.device, options);
-      } else {
-        console.log(`Please use ace run with subcommand : hap or apk.`);
-      }
+      execCmd(fileType, options, cmd, run);
     });
 }
 
@@ -301,13 +288,8 @@ function parseLaunch() {
     .option('--target [moduleName]', 'name of module to be launched')
     .description('launch hap/apk on device')
     .action((fileType, options, cmd) => {
-      fileType = fileType || 'hap';
       options.target = options.target || 'entry';
-      if (fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
-        console.log(`Please use ace launch with subcommand : hap or apk.`);
-      } else {
-        launch(fileType, cmd.parent._optionValues.device, options.target, options);
-      }
+      execCmd(fileType, options, cmd, launch);
     });
 }
 
@@ -315,13 +297,7 @@ function parseLog() {
   program.command('log [fileType]')
     .description('show debug log')
     .action((fileType, options, cmd) => {
-      if (fileType === 'hap' || typeof fileType === 'undefined') {
-        log('hap', cmd.parent._optionValues.device);
-      } else if (fileType === 'apk' || fileType === 'app') {
-        log(fileType, cmd.parent._optionValues.device);
-      } else {
-        console.log(`Please use ace build with subcommand : hap, apk or app.`);
-      }
+      execCmd(fileType, '', cmd, log);
     });
 }
 
@@ -365,4 +341,55 @@ function parseTest() {
         console.log(`Please use ace test with subcommand : apk or app.`);
       }
     });
+}
+
+function execCmd(fileType, options, cmd, func) {
+  if (fileType && fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
+    console.log(`Please use ace ${func.name} with subcommand : hap or apk or app.`);
+    return false;
+  } else {
+    if (!cmd.parent._optionValues.device) {
+      chooseDevice(fileType, options, func);
+    } else {
+      if (!fileType) {
+        fileType = getDeviceType(cmd.parent._optionValues.device);
+      }
+      func(fileType, cmd.parent._optionValues.device, options);
+    }
+  }
+}
+
+function chooseDevice(fileType, options, func) {
+  const mapDevice = showValidDevice(fileType);
+  if (!mapDevice) {
+    return false;
+  } else if (mapDevice.size === 1) {
+    const inputDevice = getDeviceID(mapDevice.get('0'));
+    if (!fileType) {
+      fileType = getDeviceType(inputDevice);
+    }
+    func(fileType, inputDevice, options);
+  } else {
+    inquirer.prompt([{
+      name: 'ID',
+      type: 'input',
+      message: 'Please choose one (or "q" to quit):',
+      validate(val) {
+        if (val.toLowerCase() === 'q' || val.toLowerCase() === 'quit') return true;
+        if (mapDevice.get(val)) {
+          return true;
+        } else {
+          return `choose 1 ~ ${mapDevice.size}.`;
+        }
+      }
+    }]).then(answers => {
+      const id = answers.ID;
+      if (id === 'q' || id === 'quit') return false;
+      const inputDevice = getDeviceID(mapDevice.get(id));
+      if (!fileType) {
+        fileType = getDeviceType(inputDevice);
+      }
+      func(fileType, inputDevice, options);
+    });
+  }
 }

@@ -30,13 +30,16 @@ function log(fileType, device, cmdTest) {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
+  if (!validInputDevice(device)) {
+    return false;
+  }
   const currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
     console.error('current system is unknown.');
     return false;
   }
   toolObj = getToolByType(fileType, currentSystem, true);
-  if (!validTool(toolObj) || !validInputDevice(device) || !validManifestPath()) {
+  if (!validTool(toolObj) || !validManifestPath()) {
     return;
   }
   if (test) {
