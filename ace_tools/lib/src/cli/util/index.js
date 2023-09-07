@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
-const devices = require('../ace-devices');
+const { devices, getDeviceID } = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -167,16 +167,6 @@ function isNativeCppTemplate(projDir) {
   }
   const fileInfo = fs.readFileSync(checkFile).toString();
   return fileInfo.includes('CMakeLists.txt');
-}
-
-function getDeviceID(device) {
-  let id;
-  if (device.split(/[\t\s]+/)[0] === 'iOS') {
-    id = device.split(/[\t\s]+/)[4];
-  } else {
-    id = device.split(/[\t\s]+/)[2];
-  }
-  return id;
 }
 
 function getAarName(projectDir) {

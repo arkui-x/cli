@@ -32,7 +32,7 @@ const {
   ohpmDir
 } = require('./configs');
 const { arkUIXSdkPathCheck } = require('../ace-config');
-const devices = require('../ace-devices');
+const { devices } = require('../ace-devices');
 const info = require('./Info');
 const process = require('child_process');
 const {

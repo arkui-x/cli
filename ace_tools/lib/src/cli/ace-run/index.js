@@ -41,7 +41,7 @@ function run(fileType, device, cmd) {
   }
   if (installFlag) {
     log(fileType, device, cmd.test);
-    launch(fileType, device, cmd.target, cmd);
+    launch(fileType, device, cmd);
     console.log('Run successful.');
     return;
   }
