@@ -39,8 +39,9 @@ function run(fileType, device, cmd) {
   if (fileType !== 'app') {
     installFlag = install(fileType, device, cmd.target);
   }
-  if (installFlag && launch(fileType, device, cmd)) {
+  if (installFlag) {
     log(fileType, device, cmd.test);
+    launch(fileType, device, cmd);
     console.log('Run successful.');
     return;
   }
