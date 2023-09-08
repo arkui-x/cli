@@ -19,11 +19,12 @@ const { spawn, execSync } = require('child_process');
 const JSON5 = require('json5');
 const { getToolByType } = require('../ace-check/getTool');
 const { validInputDevice, isProjectRootDir, getCurrentProjectSystem } = require('../util');
+const { isSimulator } = require('../ace-devices/index');
 const { exit } = require('process');
 
 let toolObj;
-let projectDir;
 let test;
+let projectDir = process.cwd();
 function log(fileType, device, cmdTest) {
   test = cmdTest;
   projectDir = process.cwd();
@@ -67,7 +68,9 @@ function log(fileType, device, cmdTest) {
 function logCmd(toolObj, device, pid, currentSystem) {
   let hilog;
   if (device) {
-    if ('hdc' in toolObj) {
+    if (isSimulator(device)) {
+      hilog = spawn('xcrun', ['simctl', 'spawn', device, 'log', 'stream', '--predicate', `process == "${pid}"`]);
+    } else if ('hdc' in toolObj) {
       if (currentSystem === 'HarmonyOS') {
         hilog = spawn(toolObj['hdc'], ['-t', device, 'hilog', `pid=${pid}`]);
       } else {
@@ -88,7 +91,9 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     }
   } else {
-    if ('hdc' in toolObj) {
+    if (isSimulator(device)) {
+      hilog = spawn('xcrun', ['simctl', 'spawn', 'booted', 'log', 'stream', '--predicate', `process == "${pid}"`]);
+    } else if ('hdc' in toolObj) {
       if (currentSystem === 'HarmonyOS') {
         hilog = spawn(toolObj['hdc'], ['hilog', `pid=${pid}`]);
       } else {
@@ -235,6 +240,9 @@ function getPid(device, fileType) {
 }
 
 function getAppPid(device, fileType, bundleName) {
+  if (isSimulator(device)) {
+    return 'app';
+  }
   const toolIosDeploy = getToolByType(fileType);
   if (!validTool(toolIosDeploy)) {
     return undefined;
@@ -245,6 +253,7 @@ function getAppPid(device, fileType, bundleName) {
     const result = output.indexOf('true') === -1 ? undefined : 'app';
     return result;
   } catch (err) {
+    console.error(err);
     return undefined;
   }
 }
@@ -265,4 +274,7 @@ function sleep(sleepTime) {
     }
   }
 }
-module.exports = log;
+module.exports = {
+  log,
+  getBundleName
+};

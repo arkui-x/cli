@@ -17,9 +17,10 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 const JSON5 = require('json5');
-const log = require('../ace-log');
+const { log, getBundleName } = require('../ace-log');
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
+const { isSimulator } = require('../ace-devices/index');
 let bundleName;
 let packageName;
 let ohosclassName;
@@ -162,6 +163,7 @@ function launch(fileType, device, options) {
       const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
       if (result.toLowerCase().includes('fail')) {
         console.error(result);
+        console.log("Maybe you need to install the app first");
         return false;
       }
       console.log(`Launch ${fileType.toUpperCase()} successfully.`);
@@ -192,13 +194,20 @@ function getCmdLaunch(toolObj, device, options) {
     cmdLaunch =
       `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
   } else if ('ios-deploy' in toolObj) {
-    const cmdPath = toolObj['ios-deploy'];
-    const deviceOption = device ? `--id ${device}` : '';
-    let testOption = '';
-    if (options.test) {
-      testOption = getTestOption(options, '');
+    if (isSimulator(device)) {
+      const cmdPath = 'xcrun simctl launch';
+      const deviceOption = device ? `${device}` : 'booted';
+      const bundleName = getBundleName();
+      cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
+    } else{
+      const cmdPath = toolObj['ios-deploy'];
+      const deviceOption = device ? `--id ${device}` : '';
+      let testOption = '';
+      if (options.test) {
+        testOption = getTestOption(options, '');
+      }
+      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch`;
     }
-    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch`;
   } else {
     console.error('Internal error with hdc and adb checking.');
   }

@@ -18,6 +18,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
+const { isSimulator } = require('../ace-devices/index');
 const installHapPackage = [];
 let packageType = '';
 function checkInstallFile(projectDir, fileType, moduleList) {
@@ -105,6 +106,19 @@ function install(fileType, device, moduleListInput) {
   if (!validInputDevice(device)) {
     return false;
   }
+  const app = path.join(projectDir, '.arkui-x', 'ios');
+  if (isSimulator(device)) {
+    if (!fs.existsSync(path.join(app, '.simulator'))) {
+      console.error('Please run "ace build app -s or --simulator" to build simulator app first');
+      return false;
+    }
+  }
+  if (fs.existsSync(path.join(app, '.simulator'))){
+    if (fileType === 'app' && !isSimulator(device)) {
+      console.error('Your app is simulator app, please run "ace build app" to build app first');
+      return false;
+    }
+  }
   moduleListInput = moduleListInput.split(' ');
   const filePathList = checkInstallFile(projectDir, fileType, moduleListInput);
   if (!filePathList || filePathList.length === 0) {
@@ -179,14 +193,24 @@ function installCmdConstruct(fileType, toolObj, device) {
       deviceOption = `-s ${device}`;
     }
   } else if (fileType === 'app') {
-    if (!('ios-deploy' in toolObj)) {
-      console.error('Internal error with ios-deploy checking');
-      return undefined;
+    if (isSimulator(device)) {
+      cmdPath = 'xcrun simctl install';
+      if (device) {
+        deviceOption = device;
+      } else {
+        deviceOption = 'booted';
+      }
     }
-    cmdPath = toolObj['ios-deploy'];
-    cmdInstallOption = '--no-wifi --bundle';
-    if (device) {
-      deviceOption = `--id ${device}`;
+    else {
+      if (!('ios-deploy' in toolObj)) {
+        console.error('Internal error with ios-deploy checking');
+        return undefined;
+      }
+      cmdPath = toolObj['ios-deploy'];
+      cmdInstallOption = '--no-wifi --bundle';
+      if (device) {
+        deviceOption = `--id ${device}`;
+      }
     }
   }
   return `${cmdPath} ${deviceOption} ${cmdInstallOption}`;
