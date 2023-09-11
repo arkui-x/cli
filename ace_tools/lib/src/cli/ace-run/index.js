@@ -29,7 +29,7 @@ function run(fileType, device, cmd) {
   if (!validInputDevice(device)) {
     return false;
   }
-  if(isSimulator(device) && fileType === 'app'){
+  if (isSimulator(device) && fileType === 'app') {
     cmd.simulator = true;
   }
   if (fileType === 'hap') {
@@ -39,14 +39,18 @@ function run(fileType, device, cmd) {
   }
   let installFlag = true;
   cmd.target = cmd.target || 'entry';
-  // ios launch command contain install
   if (fileType !== 'app') {
     installFlag = install(fileType, device, cmd.target);
   }
   if (installFlag) {
-    log(fileType, device, cmd.test);
+    if (fileType === 'app') {
+      log(fileType, device, cmd.test);
+    }
     if (launch(fileType, device, cmd)) {
       console.log('Run successful.');
+      if (fileType !== 'app') {
+        log(fileType, device, cmd.test);
+      }
     } else {
       console.error('Run failed.');
     }

@@ -44,7 +44,7 @@ function checkDevices() {
 
     try {
       const commandOutput = process.execSync(deviceCommand).toString().trim();
-      if (commandOutput.startsWith('{') && commandOutput.endsWith('}')){
+      if (commandOutput.startsWith('{') && commandOutput.endsWith('}')) {
         const json = JSON.parse(commandOutput);
         const devices = json['devices'];
         Object.keys(devices).forEach(key => {
@@ -64,8 +64,9 @@ function checkDevices() {
         if (isCheck) {
           const id = item.split(/[\t\s]+/)[0];
           checkHuaweiDeviceCmd += ` -t ${id} shell getprop ro.product.brand`;
-          if (process.execSync(checkHuaweiDeviceCmd, { stdio: 'pipe' }).
-          toString().trim().toLowerCase() !== 'huawei') return;
+          if (process.execSync(checkHuaweiDeviceCmd, { stdio: 'pipe' }).toString().trim().toLowerCase() !== 'huawei') {
+            return;
+          }
         }
         if (!devicesOutputs.includes(title + item)) {
           devicesOutputs.push(title + item);
@@ -89,5 +90,5 @@ function getDevices(out) {
 }
 
 module.exports = {
-  checkDevices,
+  checkDevices
 };
