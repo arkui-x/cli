@@ -41,8 +41,11 @@ function run(fileType, device, cmd) {
   }
   if (installFlag) {
     log(fileType, device, cmd.test);
-    launch(fileType, device, cmd);
-    console.log('Run successful.');
+    if (launch(fileType, device, cmd)) {
+      console.log('Run successful.');
+    } else {
+      console.error('Run failed.');
+    }
     return;
   }
   console.error('Run failed.');

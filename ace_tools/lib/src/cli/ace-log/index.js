@@ -48,7 +48,7 @@ function log(fileType, device, cmdTest) {
   }
   let pid = getPid(device, fileType);
   const sleepTime = 1000;
-  const timeOutCount = 5;
+  const timeOutCount = 20;
   if (!pid) {
     for (let i = 0; i < timeOutCount; i++) {
       sleep(sleepTime);
@@ -84,7 +84,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
       if (test) {
         hilog = spawn(toolObj['idevicesyslog'], ['-u', device]);
       } else {
-        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid], ['-u', device]);
+        hilog = spawn(toolObj['idevicesyslog'], ['-p', pid, '-u', device]);
       }
     }
   } else {
