@@ -83,7 +83,7 @@ function showDeviceInfo(device, icon) {
   const id = getDeviceID(device);
   const title = getDeviceTitle(device);
   let type = device.split(/[\t\s]+/)[0];
-  if(device.startsWith('{') && device.endsWith('}')){
+  if (device.startsWith('{') && device.endsWith('}')) {
     type = JSON.parse(device)['title'].trim();
   }
   console.log('\x1B[32m%s\x1B[0m', `${icon}`, `${title} (${id}) [${type}]`);
@@ -91,10 +91,10 @@ function showDeviceInfo(device, icon) {
 
 function getDeviceTitle(device) {
   let title;
-  if(device.startsWith('{') && device.endsWith('}')){
+  if (device.startsWith('{') && device.endsWith('}')) {
     return JSON.parse(device)['name'];
   }
-  else if (device.split(/[\t\s]+/)[0] == 'iOS') {
+  else if (device.split(/[\t\s]+/)[0] === 'iOS') {
     const id = getDeviceID(device);
     title = exec(`idevicename -u ${id}`).toString().trimEnd();
   } else {
@@ -112,7 +112,7 @@ function getDeviceID(device) {
   if (device.startsWith('{') && device.endsWith('}')) {
     return JSON.parse(device)['udid'];
   }
-  if (device.split(/[\t\s]+/)[0] == 'iOS') {
+  if (device.split(/[\t\s]+/)[0] === 'iOS') {
     id = device.split(/[\t\s]+/)[4];
   } else {
     id = device.split(/[\t\s]+/)[2];
@@ -155,7 +155,7 @@ function showValidDevice(fileType) {
 function getTypeDevice(validDevices, flag) {
   const typeDevice = [];
   validDevices.forEach(device => {
-    if ( device.startsWith('{') && device.endsWith('}')) {
+    if (device.startsWith('{') && device.endsWith('}')) {
       if (flag === 'iOS') {
         typeDevice.push(device);
       }
@@ -168,8 +168,8 @@ function getTypeDevice(validDevices, flag) {
 }
 
 function isSimulator(device) {
-  if (device == undefined) {
-    if(devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')){
+  if (device === undefined) {
+    if (devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')) {
       return true;
     }
     else {
