@@ -37,10 +37,28 @@ function checkDevices() {
     } else if ('ios-deploy' in toolObj[i]) {
       title = 'iOS Devices\t';
       deviceCommand = `${toolObj[i]['ios-deploy']} -c -t 1`;
+    } else if ('xcrun simctl' in toolObj[i]) {
+      title = 'iOS Simulator\t';
+      deviceCommand = `${toolObj[i]['xcrun simctl']} list devices booted iOS --json`;
     }
 
     try {
       const commandOutput = process.execSync(deviceCommand).toString().trim();
+      if (commandOutput.startsWith('{') && commandOutput.endsWith('}')){
+        const json = JSON.parse(commandOutput);
+        const devices = json['devices'];
+        Object.keys(devices).forEach(key => {
+          devices[key].forEach(item => {
+            let devicesjson = {
+              'name': item['name'],
+              'udid': item['udid'],
+              'title': title
+            }
+            devicesOutputs.push(JSON.stringify(devicesjson));
+          });
+        });
+        continue;
+      }
       const devices = getDevices(commandOutput);
       devices.forEach(item => {
         if (isCheck) {
@@ -70,4 +88,6 @@ function getDevices(out) {
   return splitArr;
 }
 
-module.exports = checkDevices;
+module.exports = {
+  checkDevices,
+};

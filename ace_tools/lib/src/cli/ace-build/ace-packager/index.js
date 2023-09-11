@@ -14,6 +14,7 @@
  */
 
 const path = require('path');
+const fs = require('fs');
 const exec = require('child_process').execSync;
 const {
   Platform,
@@ -169,13 +170,28 @@ function buildFramework(cmd) {
   }
   let gradleMessage = 'Build framework successful.';
   let isBuildSuccess = true;
+  let sdk = 'iphoneos';
+  if (cmd.simulator) {
+    sdk = 'iphonesimulator';
+  }
   const frameworkNameList = getFrameworkName(projectDir);
   const frameworkDir = path.join(projectDir, '.arkui-x/ios');
   frameworkNameList.forEach(frameworkName => {
     const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
     const exportPath = path.join(frameworkDir, `build/outputs/framework`);
-    const cmdStr = `xcodebuild -project ${frameworkProj} -sdk iphoneos -configuration "${mode}" `
+    const cmdStr = `xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" `
       + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
+    if (cmd.simulator) {
+      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      if (!fs.existsSync(simulatorFile)){
+        fs.writeFileSync(simulatorFile, '');
+      }
+    }else{
+      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      if (fs.existsSync(simulatorFile)) {
+        fs.unlinkSync(simulatorFile);
+      }
+    }
     try {
       exec(cmdStr, {
         encoding: 'utf-8',
@@ -199,14 +215,29 @@ function buildXcFramework(cmd) {
   }
   let gradleMessage = 'Build xcframework successful.';
   let isBuildSuccess = true;
+  let sdk = 'iphoneos';
+  if (cmd.simulator) {
+    sdk = 'iphonesimulator';
+  }
   const frameworkNameList = getFrameworkName(projectDir);
   const frameworkDir = path.join(projectDir, '.arkui-x/ios');
   frameworkNameList.forEach(frameworkName => {
     const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
     const myFramework = path.join(frameworkDir, `build/${mode}-iphoneos/${frameworkName}.framework`);
     const exportPath = path.join(frameworkDir, `build/outputs/xcframework`);
+    if (cmd.simulator) {
+      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      if (!fs.existsSync(simulatorFile)){
+        fs.writeFileSync(simulatorFile, '');
+      }
+    }else{
+      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      if (fs.existsSync(simulatorFile)) {
+        fs.unlinkSync(simulatorFile);
+      }
+    }
     const xcFrameworkName = path.join(exportPath, `${frameworkName}.xcframework`);
-    cmds.push(`xcodebuild -project ${frameworkProj} -sdk iphoneos -configuration "${mode}" clean build`);
+    cmds.push(`xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" clean build`);
     cmds.push(`xcodebuild -create-xcframework -framework ${myFramework} -output ${xcFrameworkName}`);
     try {
       cmds.forEach(cmdStr => {
@@ -275,11 +306,26 @@ function buildAPP(cmd) {
   const currentDir = process.cwd();
   const projectSettingDir = path.join(currentDir, '.arkui-x/ios', 'app.xcodeproj');
   const exportPath = path.join(currentDir, '.arkui-x/ios', 'build/outputs/app/');
+  let sdk = 'iphoneos';
+  if (cmd.simulator) {
+    sdk = 'iphonesimulator';
+  }
+  if (cmd.simulator) {
+    const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+    if (!fs.existsSync(simulatorFile)){
+      fs.writeFileSync(simulatorFile, '');
+    }
+  } else {
+    const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+    if (fs.existsSync(simulatorFile)) {
+      fs.unlinkSync(simulatorFile);
+    }
+  }
   let signCmd = '';
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
   }
-  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk iphoneos -configuration "${mode}" `
+  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" `
     + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
   let message = 'Build app successful.';

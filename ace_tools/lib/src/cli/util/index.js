@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
-const { devices, getDeviceID } = require('../ace-devices');
+const { devices, getDeviceID, devicesList } = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -117,7 +117,7 @@ function getModuleAbilityList(projDir, moduleList) {
 }
 
 function validInputDevice(device) {
-  const devicesArr = devices();
+  const devicesArr = devicesList;
   if (!device) {
     if (devicesArr.available.length === 1) {
       return true;

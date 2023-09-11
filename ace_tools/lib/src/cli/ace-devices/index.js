@@ -14,9 +14,11 @@
  */
 
 const exec = require('child_process').execSync;
-const checkDevices = require('../ace-check/checkDevices');
+const { type } = require('os');
+const { checkDevices } = require('../ace-check/checkDevices');
 const { getTools } = require('../ace-check/getTool');
 const { Platform, platform } = require('../ace-check/platform');
+const devicesList = devices();
 function devices(logFlag) {
   const tools = getTools();
   if (tools && tools.length === 0) {
@@ -80,13 +82,48 @@ function showTools(tools) {
 function showDeviceInfo(device, icon) {
   const id = getDeviceID(device);
   const title = getDeviceTitle(device);
-  console.log('\x1B[32m%s\x1B[0m', `${icon}`, `${title} (${id})`);
+  let type = device.split(/[\t\s]+/)[0];
+  if(device.startsWith('{') && device.endsWith('}')){
+    type = JSON.parse(device)['title'].trim();
+  }
+  console.log('\x1B[32m%s\x1B[0m', `${icon}`, `${title} (${id}) [${type}]`);
+}
+
+function getDeviceTitle(device) {
+  let title;
+  if(device.startsWith('{') && device.endsWith('}')){
+    return JSON.parse(device)['name'];
+  }
+  else if (device.split(/[\t\s]+/)[0] == 'iOS') {
+    const id = getDeviceID(device);
+    title = exec(`idevicename -u ${id}`).toString().trimEnd();
+  } else {
+    if (device.includes(':')) {
+      title = device.split(/:/g)[2].split(/[\t\s]+/)[0];
+    } else {
+      title = device.split(/[\t\s]+/)[5];
+    }
+  }
+  return title;
+}
+
+function getDeviceID(device) {
+  let id;
+  if (device.startsWith('{') && device.endsWith('}')) {
+    return JSON.parse(device)['udid'];
+  }
+  if (device.split(/[\t\s]+/)[0] == 'iOS') {
+    id = device.split(/[\t\s]+/)[4];
+  } else {
+    id = device.split(/[\t\s]+/)[2];
+  }
+  return id;
 }
 
 function showValidDevice(fileType) {
   let validDevices;
   const mapDevice = new Map();
-  const devicesArr = devices();
+  const devicesArr = devicesList;
   let flag = '';
   if (fileType) {
     if (fileType === 'app') {
@@ -118,61 +155,42 @@ function showValidDevice(fileType) {
 function getTypeDevice(validDevices, flag) {
   const typeDevice = [];
   validDevices.forEach(device => {
-    if (device.split(/[\t\s]+/)[0] === flag) {
+    if ( device.startsWith('{') && device.endsWith('}')) {
+      if (flag === 'iOS') {
+        typeDevice.push(device);
+      }
+    }
+    else if (device.split(/[\t\s]+/)[0] === flag) {
       typeDevice.push(device);
     }
   });
   return typeDevice;
 }
 
-function getDeviceTitle(device) {
-  let title;
-  if (device.split(/[\t\s]+/)[0] == 'iOS') {
-    const id = getDeviceID(device);
-    title = exec(`idevicename -u ${id}`).toString().trimEnd();
-  } else {
-    if (device.includes(':')) {
-      title = device.split(/:/g)[2].split(/[\t\s]+/)[0];
-    } else {
-      title = device.split(/[\t\s]+/)[5];
+function isSimulator(device) {
+  if (device == undefined) {
+    if(devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')){
+      return true;
+    }
+    else {
+      return false;
     }
   }
-  return title;
-}
-
-function getDeviceType(id) {
-  let fileType = '';
-  let deviceType = '';
-  const validDevices = devices().available;
-  for (let i = 0; i < validDevices.length; ++i) {
-    if (id === getDeviceID(validDevices[i])) {
-      deviceType = validDevices[i].split(/[\t\s]+/)[0];
-      break;
+  for (let i = 0; i < devicesList.available.length; i++) {
+    if (devicesList.available[i].startsWith('{') && devicesList.available[i].endsWith('}')) {
+      if (device === JSON.parse(devicesList.available[i])['udid']) {
+        return true;
+      }
     }
   }
-  if (deviceType === 'iOS') {
-    fileType = 'app';
-  } else if (deviceType === 'Android') {
-    fileType = 'apk';
-  } else if (deviceType === 'OpenHarmony/HarmonyOS') {
-    fileType = 'hap';
-  }
-  return fileType;
-}
-
-function getDeviceID(device) {
-  let id;
-  if (device.split(/[\t\s]+/)[0] == 'iOS') {
-    id = device.split(/[\t\s]+/)[4];
-  } else {
-    id = device.split(/[\t\s]+/)[2];
-  }
-  return id;
+  return false;
 }
 
 module.exports = {
   devices,
+  getDeviceID,
   showValidDevice,
-  getDeviceType,
-  getDeviceID
+  getTypeDevice,
+  devicesList,
+  isSimulator
 };

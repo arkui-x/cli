@@ -17,6 +17,7 @@
 const path = require('path');
 const program = require('commander');
 const inquirer = require('inquirer');
+const { Platform, platform } = require('./src/cli/ace-check/platform');
 const create = require('./src/cli/ace-create/project');
 const createModule = require('./src/cli/ace-create/module');
 const createComponent = require('./src/cli/ace-create/component');
@@ -234,8 +235,10 @@ function parseBuild() {
     .option('-r --release', 'build as release')
     .option('--debug', 'build as debug')
     .option('--nosign', 'build without sign')
+    .option('-s | --simulator', 'build for iOS Simulator')
     .description('build hap/apk/app/aar/framework/xcframework of moduleName')
     .action((fileType, cmd) => {
+      cmd.simulator = cmd.simulator && platform === Platform.MacOS && fileType === 'app';
       if (cmd.release && cmd.debug) {
         console.log('\x1B[31m%s\x1B[0m', 'Warning: Release and debug are not allowed to exist at the same time.');
         return false;

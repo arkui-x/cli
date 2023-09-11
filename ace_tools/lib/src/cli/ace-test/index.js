@@ -27,6 +27,10 @@ function test(fileType, device, cmd) {
   if (!validInputDevice(device)) {
     return false;
   }
+  if (isSimulator(device) && fileType === 'app'){
+    console.error('Simulator does not support testing app');
+    return false;
+  }
   if (fileType === 'hap') {
     compiler(fileType, cmd);
   } else {

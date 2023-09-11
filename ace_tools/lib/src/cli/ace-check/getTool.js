@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('./platform');
-const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir } = require('./configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir } = require('./configs');
 function getTools() {
   const toolPaths = [];
   let hdcPath = {};
@@ -37,6 +37,9 @@ function getTools() {
   }
   if (platform === Platform.MacOS && deployVersion) {
     toolPaths.push({ 'ios-deploy': 'ios-deploy' });
+  }
+  if (platform === Platform.MacOS && xCodeDir) {
+    toolPaths.push({'xcrun simctl': 'xcrun simctl'});
   }
   return toolPaths;
 }

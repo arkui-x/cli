@@ -17,8 +17,9 @@ const compiler = require('../ace-build/ace-compiler');
 const build = require('../ace-build');
 const install = require('../ace-install');
 const launch = require('../ace-launch');
-const log = require('../ace-log');
+const { log } = require('../ace-log');
 const { isProjectRootDir, validInputDevice } = require('../util');
+const { isSimulator } = require('../ace-devices');
 
 function run(fileType, device, cmd) {
   const projectDir = process.cwd();
@@ -27,6 +28,9 @@ function run(fileType, device, cmd) {
   }
   if (!validInputDevice(device)) {
     return false;
+  }
+  if(isSimulator(device) && fileType === 'app'){
+    cmd.simulator = true;
   }
   if (fileType === 'hap') {
     compiler(fileType, cmd);
