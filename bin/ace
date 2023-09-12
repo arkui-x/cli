@@ -17,12 +17,12 @@ basedir=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
 case `uname` in
     *CYGWIN*|*MINGW*|*MSYS*) basedir=`cygpath -w "$basedir"`;;
 esac
-
+echo $basedir
 if [ -x "$basedir/node" ]; then
-  "$basedir/node"  "$basedir/../lib/ace_tools.js" "$@"
+  "$basedir/node"  "$basedir/../ace_tools/lib/ace_tools.js" "$@"
   ret=$?
 else
-  node  "$basedir/../lib/ace_tools.js" "$@"
+  node  "$basedir/../ace_tools/lib/ace_tools.js" "$@"
   ret=$?
 fi
 exit $ret

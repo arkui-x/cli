@@ -22,10 +22,10 @@ if ($PSVersionTable.PSVersion -lt "6.0" -or $IsWindows) {
 }
 $ret=0
 if (Test-Path "$basedir/node$exe") {
-  & "$basedir/node$exe"  "$basedir/../lib/ace_tools.js" $args
+  & "$basedir/node$exe"  "$basedir/../ace_tools/lib/ace_tools.js" $args
   $ret=$LASTEXITCODE
 } else {
-  & "node$exe"  "$basedir/../lib/ace_tools.js" $args
+  & "node$exe"  "$basedir/../ace_tools/lib/ace_tools.js" $args
   $ret=$LASTEXITCODE
 }
 exit $ret
