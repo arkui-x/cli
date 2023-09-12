@@ -24,7 +24,7 @@ IF EXIST "%dp0%\node.exe" (
   SET PATHEXT=%PATHEXT:;.JS;=;%
 )
 
-"%_prog%"  "%dp0%\..\lib\ace_tools.js" %*
+"%_prog%"  "%dp0%\..\ace_tools\lib\ace_tools.js" %*
 ENDLOCAL
 EXIT /b %errorlevel%
 :find_dp0
