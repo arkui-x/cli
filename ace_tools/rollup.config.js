@@ -22,20 +22,19 @@ import shebang from 'rollup-plugin-preserve-shebang';
 
 const path = require('path');
 const fs = require('fs');
-const templatePath = path.join(__dirname, 'templates');
-const distPath = path.join(__dirname, 'dist/template');
 
-if (!fs.existsSync(path.join(__dirname, 'dist'))) {
-  fs.mkdirSync(path.join(__dirname, 'dist'));
-}
+const distPath = path.join(__dirname, 'dist');
+const templatePath = path.join(__dirname, 'templates');
+const distTemplatePath = path.join(distPath,'templates');
+
 if (!fs.existsSync(distPath)) {
   fs.mkdirSync(distPath);
 }
+if (!fs.existsSync(distTemplatePath)) {
+  fs.mkdirSync(distTemplatePath);
+}
 
-fs.writeFileSync(path.join(__dirname, 'dist/ace'), fs.readFileSync(path.join(__dirname, 'src/bin/ace')), {mode:0o755});
-fs.writeFileSync(path.join(__dirname, 'dist/ace.cmd'), fs.readFileSync(path.join(__dirname, 'src/bin/ace.cmd')),{mode:0o755});
-fs.writeFileSync(path.join(__dirname, 'dist/ace.ps1'), fs.readFileSync(path.join(__dirname, 'src/bin/ace.ps1')),{mode:0o755});
-copy(templatePath, distPath);
+copy(templatePath, distTemplatePath);
 
 function copy(src, dst) {
   const paths = fs.readdirSync(src);
@@ -54,9 +53,9 @@ function copy(src, dst) {
 }
 
 export default {
-  input: 'src/bin/ace_tools.js',
+  input: 'lib/ace_tools.js',
   output: {
-    file: 'dist/ace_tools.js',
+    file: path.join(distPath, 'lib', 'ace_tools.js'),
     format: 'umd',
     name: 'ace_tools',
     sourcemap: true,
@@ -75,7 +74,8 @@ export default {
       "buffer": "buffer",
       "util": "util",
       "string_decoder": "string_decoder"
-    }
+    },
+    sourcemap: false
   },
   plugins: [
     shebang('#!/usr/bin/env node'),
@@ -84,7 +84,8 @@ export default {
       preferBuiltins: true,
     }),
     commonjs({
-      ignore: ['conditional-runtime-dependency']
+      ignore: ['conditional-runtime-dependency'],
+      requireReturnsDefault: true
     }),
     babel({
       exclude: 'node_modules/**'

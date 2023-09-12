@@ -84,7 +84,7 @@ function findStageTemplate(projectPath, packages, project, system, proType, temp
     copyStageTemplate(pathTemplate, projectPath, proType, template);
     replaceStageProjectInfo(projectPath, packages, project, system, proType, template);
   } else {
-    pathTemplate = path.join(__dirname, '../../../../../templates');
+    pathTemplate = globalThis.templatePath;
     console.log(pathTemplate);
     if (fs.existsSync(pathTemplate)) {
       copyStageTemplate(pathTemplate, projectPath, proType, template);

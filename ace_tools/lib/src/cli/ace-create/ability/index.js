@@ -228,7 +228,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
 }
 
 function getTemplatePath() {
-  let templateDir = path.join(__dirname, '../../../../../templates');
+  let templateDir = globalThis.templatePath;
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }

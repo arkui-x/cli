@@ -420,7 +420,7 @@ function createModule() {
   }
   let templateDir = path.join(__dirname, 'template');
   if (!fs.existsSync(templateDir)) {
-    templateDir = path.join(__dirname, '../../../../../templates');
+    templateDir = globalThis.templatePath;
   }
   return createStageModule(moduleList, templateDir);
 }

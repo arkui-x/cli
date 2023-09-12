@@ -38,7 +38,7 @@ function findFrameworkTemplate(libraryPath, frameworkName) {
     copyTemplate(templatePath, libraryPath);
     replaceFrameworkInfo(libraryPath, frameworkName);
   } else {
-    templatePath = path.join(__dirname, '../../../../../templates');
+    templatePath = globalThis.templatePath;
     if (fs.existsSync(templatePath)) {
       copyTemplate(templatePath, libraryPath);
       replaceFrameworkInfo(libraryPath, frameworkName);
