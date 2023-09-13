@@ -19,7 +19,7 @@ const { checkDevices } = require('../ace-check/checkDevices');
 const { getTools } = require('../ace-check/getTool');
 const { Platform, platform } = require('../ace-check/platform');
 const devicesList = devices();
-function devices(logFlag) {
+function devices(logFlag = false) {
   const tools = getTools();
   if (tools && tools.length === 0) {
     console.info(`No such debug tools (hdc/adb/ios-deploy).`);
@@ -34,7 +34,7 @@ function devices(logFlag) {
   }
   const devices = checkDevices() || [];
   const [availableDevices, unavailableDevices] = [[], []];
-  if (devices.length === 0) {
+  if (logFlag && devices.length === 0) {
     console.log(`[!] No connected device`);
   } else {
     for (let i = 0; i < devices.length; i++) {
