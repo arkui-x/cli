@@ -307,8 +307,10 @@ function buildAPP(cmd) {
   const projectSettingDir = path.join(currentDir, '.arkui-x/ios', 'app.xcodeproj');
   const exportPath = path.join(currentDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
+  let platform = `generic/platform="iOS"`
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
+    platform = `generic/platform="iOS Simulator"`
   }
   if (cmd.simulator) {
     const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
@@ -325,7 +327,7 @@ function buildAPP(cmd) {
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
   }
-  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" `
+  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ${platform} `
     + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
   let message = 'Build app successful.';

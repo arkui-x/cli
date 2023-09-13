@@ -32,7 +32,7 @@ const {
   ohpmDir
 } = require('./configs');
 const { arkUIXSdkPathCheck } = require('../ace-config');
-const { devices } = require('../ace-devices');
+const { devices, devicesList } = require('../ace-devices');
 const info = require('./Info');
 const process = require('child_process');
 const {
@@ -212,7 +212,8 @@ function check(cmd) {
   }
 
   if (openHarmonySdkDir || harmonyOsSdkDir || androidSdkDir || deployVersion) {
-    const validDevice = devices(true);
+    devices();
+    const validDevice = devicesList;
     if (validDevice.all.length === 0) {
       errorTimes += 1;
     }

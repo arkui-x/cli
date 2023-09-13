@@ -18,8 +18,9 @@ const { type } = require('os');
 const { checkDevices } = require('../ace-check/checkDevices');
 const { getTools } = require('../ace-check/getTool');
 const { Platform, platform } = require('../ace-check/platform');
-const devicesList = devices();
-function devices(logFlag) {
+const devicesList = getDevicesList();
+
+function getDevicesList() {
   const tools = getTools();
   if (tools && tools.length === 0) {
     console.info(`No such debug tools (hdc/adb/ios-deploy).`);
@@ -29,32 +30,14 @@ function devices(logFlag) {
       'unavailable': []
     };
   }
-  if (logFlag) {
-    showTools(tools);
-  }
   const devices = checkDevices() || [];
   const [availableDevices, unavailableDevices] = [[], []];
-  if (devices.length === 0) {
-    console.log(`[!] No connected device`);
-  } else {
-    for (let i = 0; i < devices.length; i++) {
-      const device = devices[i];
-      if (device.indexOf('unauthorized') !== -1 || device.toLowerCase().indexOf('offline') !== -1) {
-        unavailableDevices.push(device);
-      } else {
-        availableDevices.push(device);
-      }
-    }
-    if (availableDevices.length > 0 && logFlag) {
-      const len = availableDevices.length;
-      console.log(`[√] Connected device (${len} available)`);
-      availableDevices.forEach(device => {
-        showDeviceInfo(device, '  • ');
-      });
-    }
-    if (unavailableDevices.length > 0 && logFlag) {
-      const len = unavailableDevices.length;
-      console.log(`[!] Connected device (${len} unavailable)'\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
+  for (let i = 0; i < devices.length; i++) {
+    const device = devices[i];
+    if (device.indexOf('unauthorized') !== -1 || device.toLowerCase().indexOf('offline') !== -1) {
+      unavailableDevices.push(device);
+    } else {
+      availableDevices.push(device);
     }
   }
   return {
@@ -62,6 +45,31 @@ function devices(logFlag) {
     'available': availableDevices,
     'unavailable': unavailableDevices
   };
+}
+
+function devices() {
+  const tools = getTools();
+  if (tools && tools.length === 0) {
+    console.info(`No such debug tools (hdc/adb/ios-deploy).`);
+  }
+  showTools(tools);
+  const devices = devicesList.all;
+  const [availableDevices, unavailableDevices] = [devicesList.available, devicesList.unavailable];
+  if (devices.length === 0) {
+    console.log(`[!] No connected device`);
+  } else {
+    if (availableDevices.length > 0) {
+      const len = availableDevices.length;
+      console.log(`[√] Connected device (${len} available)`);
+      availableDevices.forEach(device => {
+        showDeviceInfo(device, '  • ');
+      });
+    }
+    if (unavailableDevices.length > 0) {
+      const len = unavailableDevices.length;
+      console.log(`[!] Connected device (${len} unavailable)'\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
+    }
+  }
 }
 
 function showTools(tools) {
