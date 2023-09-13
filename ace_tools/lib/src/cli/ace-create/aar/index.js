@@ -40,7 +40,7 @@ function findAarTemplate(libraryPath, aarName) {
     modifyAarConfig(libraryPath);
     replaceAarInfo(libraryPath, aarName);
   } else {
-    templatePath = path.join(__dirname, '../../../../../templates');
+    templatePath = globalThis.templatePath;
     if (fs.existsSync(templatePath)) {
       copyTemplateToAAR(templatePath, libraryPath);
       modifyAarConfig(libraryPath);

@@ -125,7 +125,7 @@ function createComponent() {
     console.error(`Please go to your ${path.join('projectName', 'source', 'ModuleName')} and create component again.`);
     return false;
   }
-  let templateDir = path.join(__dirname, '../../../../../templates');
+  let templateDir = globalThis.templatePath;
   if (!fs.existsSync(templateDir)) {
     templateDir = path.join(__dirname, 'template');
   }

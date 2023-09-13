@@ -36,7 +36,7 @@ const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
-
+globalThis.templatePath = path.join(__dirname,'..','templates');
 parseCommander();
 function parseCommander() {
   program.version(require('../package').version);

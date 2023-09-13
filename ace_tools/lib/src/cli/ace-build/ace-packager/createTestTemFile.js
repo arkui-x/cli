@@ -166,7 +166,7 @@ function getDestName(moduleName, abilityName, fileType) {
 function createTestTem(fileType) {
   projectDir = process.cwd();
   const moduleList = getModuleList(path.join(projectDir, '/build-profile.json5'));
-  const templateDir = path.join(__dirname, '../../../../../templates');
+  const templateDir = globalThis.templatePath;
   const curManifestXmlInfo =
     fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
   const curAppDelegateInfo =
