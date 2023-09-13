@@ -180,7 +180,7 @@ function parseCheck() {
 
 function parseDevices() {
   program.command('devices').description('list the connected devices.').action(() => {
-    devices(true);
+    devices();
   });
 }
 
