@@ -18,6 +18,7 @@ const build = require('../ace-build');
 const install = require('../ace-install');
 const launch = require('../ace-launch');
 const { isProjectRootDir, validInputDevice } = require('../util');
+const { isSimulator } = require('../ace-devices/index');
 
 function test(fileType, device, cmd) {
   const projectDir = process.cwd();
