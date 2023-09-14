@@ -307,10 +307,10 @@ function buildAPP(cmd) {
   const projectSettingDir = path.join(currentDir, '.arkui-x/ios', 'app.xcodeproj');
   const exportPath = path.join(currentDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
-  let platform = `generic/platform="iOS"`
+  let platform = `generic/platform="iOS"`;
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
-    platform = `generic/platform="iOS Simulator"`
+    platform = `generic/platform="iOS Simulator"`;
   }
   if (cmd.simulator) {
     const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
