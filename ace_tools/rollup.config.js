@@ -23,9 +23,10 @@ import shebang from 'rollup-plugin-preserve-shebang';
 const path = require('path');
 const fs = require('fs');
 
-const distPath = path.join(__dirname, 'dist');
+const argv = process.argv
+const distPath = argv[5] || path.join(__dirname, 'dist');
 const templatePath = path.join(__dirname, 'templates');
-const distTemplatePath = path.join(distPath,'templates');
+const distTemplatePath = path.join(distPath, 'templates');
 
 if (!fs.existsSync(distPath)) {
   fs.mkdirSync(distPath);
