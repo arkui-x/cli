@@ -128,6 +128,30 @@ function getDeviceID(device) {
   return id;
 }
 
+function getDeviceType(id) {
+  let fileType = '';
+  let deviceType = '';
+  const validDevices = devicesList.available;
+  for (let i = 0; i < validDevices.length; ++i) {
+    if (id === getDeviceID(validDevices[i])) {
+      if (validDevices[i].startsWith('{') && validDevices[i].endsWith('}')) {
+        deviceType = 'iOS';
+        break;
+      }
+      deviceType = validDevices[i].split(/[\t\s]+/)[0];
+      break;
+    }
+  }
+  if (deviceType === 'iOS') {
+    fileType = 'app';
+  } else if (deviceType === 'Android') {
+    fileType = 'apk';
+  } else if (deviceType === 'OpenHarmony/HarmonyOS') {
+    fileType = 'hap';
+  }
+  return fileType;
+}
+
 function showValidDevice(fileType) {
   let validDevices;
   const mapDevice = new Map();
@@ -198,7 +222,7 @@ module.exports = {
   devices,
   getDeviceID,
   showValidDevice,
-  getTypeDevice,
+  getDeviceType,
   devicesList,
   isSimulator
 };
