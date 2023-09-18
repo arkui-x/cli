@@ -163,13 +163,13 @@ function launch(fileType, device, options) {
       const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
       if (result.toLowerCase().includes('fail')) {
         console.error(result);
-        console.log("Maybe you need to install the app first");
         return false;
       }
       console.log(`Launch ${fileType.toUpperCase()} successfully.`);
       return true;
     } catch (error) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
+      console.log("you need to install the app first");
       return false;
     }
   } else {
@@ -206,7 +206,7 @@ function getCmdLaunch(toolObj, device, options) {
       if (options.test) {
         testOption = getTestOption(options, '');
       }
-      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch`;
+      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch -m`;
     }
   } else {
     console.error('Internal error with hdc and adb checking.');

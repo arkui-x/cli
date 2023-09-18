@@ -39,9 +39,7 @@ function run(fileType, device, cmd) {
   }
   let installFlag = true;
   cmd.target = cmd.target || 'entry';
-  if (fileType !== 'app' || (fileType === 'app' && cmd.simulator)) {
-    installFlag = install(fileType, device, cmd.target);
-  }
+  installFlag = install(fileType, device, cmd.target);
   if (installFlag) {
     if (fileType === 'app') {
       log(fileType, device, cmd.test);
