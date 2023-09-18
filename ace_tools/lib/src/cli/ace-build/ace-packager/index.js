@@ -16,6 +16,7 @@
 const path = require('path');
 const fs = require('fs');
 const exec = require('child_process').execSync;
+const os = require('os');
 const {
   Platform,
   platform
@@ -171,15 +172,21 @@ function buildFramework(cmd) {
   let gradleMessage = 'Build framework successful.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
+  let platform = `generic/platform="iOS"`;
+  let arch = "arm64";
+  if (os.arch() === 'x64' && cmd.simulator) {
+    arch = "x86_64";
+  }
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
+    platform = `generic/platform="iOS Simulator"`;
   }
   const frameworkNameList = getFrameworkName(projectDir);
   const frameworkDir = path.join(projectDir, '.arkui-x/ios');
   frameworkNameList.forEach(frameworkName => {
     const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
     const exportPath = path.join(frameworkDir, `build/outputs/framework`);
-    const cmdStr = `xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" `
+    const cmdStr = `xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
       + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
     if (cmd.simulator) {
       const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
@@ -216,8 +223,14 @@ function buildXcFramework(cmd) {
   let gradleMessage = 'Build xcframework successful.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
+  let platform = `generic/platform="iOS"`;
+  let arch = "arm64";
+  if (os.arch() === 'x64' && cmd.simulator) {
+    arch = "x86_64";
+  }
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
+    platform = `generic/platform="iOS Simulator"`;
   }
   const frameworkNameList = getFrameworkName(projectDir);
   const frameworkDir = path.join(projectDir, '.arkui-x/ios');
@@ -237,7 +250,7 @@ function buildXcFramework(cmd) {
       }
     }
     const xcFrameworkName = path.join(exportPath, `${frameworkName}.xcframework`);
-    cmds.push(`xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" clean build`);
+    cmds.push(`xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} clean build`);
     cmds.push(`xcodebuild -create-xcframework -framework ${myFramework} -output ${xcFrameworkName}`);
     try {
       cmds.forEach(cmdStr => {
@@ -308,6 +321,10 @@ function buildAPP(cmd) {
   const exportPath = path.join(currentDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
+  let arch = "arm64";
+  if (os.arch() === 'x64' && cmd.simulator) {
+    arch = "x86_64";
+  }
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
     platform = `generic/platform="iOS Simulator"`;
@@ -327,7 +344,7 @@ function buildAPP(cmd) {
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
   }
-  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ${platform} `
+  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
     + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
   let message = 'Build app successful.';
