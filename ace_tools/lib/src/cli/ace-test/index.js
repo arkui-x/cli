@@ -41,7 +41,7 @@ function test(fileType, device, cmd) {
   cmd.target = cmd.target || 'entry';
   // ios launch command contain install
   installFlag = install(fileType, device, cmd.target);
-  if (installFlag && launch(fileType, device, cmd.target, cmd)) {
+  if (installFlag && launch(fileType, device, cmd)) {
     return true;
   }
   console.error('Test failed.');
