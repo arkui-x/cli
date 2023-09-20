@@ -16,11 +16,12 @@
     "inquirer": "^8.2.6"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "25.0.4",
+    "@rollup/plugin-commonjs": "24.1.0",
     "@rollup/plugin-terser": "0.3.0",
     "@rollup/plugin-json": "6.0.0",
     "@rollup/plugin-node-resolve":"15.0.1",
     "@rollup/plugin-babel":"6.0.3",
+    "@babel/core": "7.20.12",
     "eslint": "^8.34.0",
     "rollup": "^3.19.1",
     "rollup-plugin-preserve-shebang": "^1.0.1"
