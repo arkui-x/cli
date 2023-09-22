@@ -21,10 +21,14 @@ const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require(
 const { isSimulator } = require('../ace-devices/index');
 const installHapPackage = [];
 let packageType = '';
-function checkInstallFile(projectDir, fileType, moduleList) {
+function checkInstallFile(projectDir, fileType, moduleList, installFilePath) {
   try {
     const filePathList = [];
     let buildDir;
+    if(installFilePath){
+      filePathList.push(installFilePath);
+      return filePathList;
+    }
     if (!moduleList || moduleList.length === 0) {
       console.error('Please input target name.');
       return false;
@@ -98,9 +102,12 @@ function checkInstallFile(projectDir, fileType, moduleList) {
   }
 }
 
-function install(fileType, device, moduleListInput) {
+function install(fileType, device, moduleListInput, installFilePath) {
   const projectDir = process.cwd();
-  if (!isProjectRootDir(projectDir)) {
+  if (!installFilePath && !isProjectRootDir(projectDir)) {
+    return false;
+  }
+  if (installFilePath && !isInstallFileExist(fileType, installFilePath)) {
     return false;
   }
   if (!validInputDevice(device)) {
@@ -120,12 +127,12 @@ function install(fileType, device, moduleListInput) {
     }
   }
   moduleListInput = moduleListInput.split(' ');
-  const filePathList = checkInstallFile(projectDir, fileType, moduleListInput);
+  const filePathList = checkInstallFile(projectDir, fileType, moduleListInput, installFilePath);
   if (!filePathList || filePathList.length === 0) {
     console.error('There is no file to install');
     return false;
   }
-  const currentSystem = getCurrentProjectSystem(projectDir);
+  const currentSystem = installFilePath ? ' ' : getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
     console.error('current system is unknown.');
     return false;
@@ -215,4 +222,25 @@ function installCmdConstruct(fileType, toolObj, device) {
   }
   return `${cmdPath} ${deviceOption} ${cmdInstallOption}`;
 }
-module.exports = install;
+
+function isInstallFileExist(fileType, installFilePath) {
+  try {
+    if (!fs.existsSync(installFilePath)) {
+      console.error(`Install file not found.`);
+      return false;
+    }
+    if (path.extname(installFilePath).toLowerCase() !== `.${fileType}`) {
+      console.error(`Install file is not match to file type`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error(`Please check install file.\n`, error);
+    return false;
+  }
+}
+
+module.exports = {
+  install,
+  isInstallFileExist
+};

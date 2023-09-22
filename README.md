@@ -437,6 +437,7 @@ ace test [options] [fileType]
 | --m [testModuleName] | 指定测试应用的ModuleName。 |
 | --unittest [testRunner] | 指定测试应用的testRunner。 |
 | --timeout [timeout] | 指定测试应用的单条用例的超时时间。 |
+| --path [path] | 指定应用包路径用于直接安装测试。 |
 
 - fileType
 
