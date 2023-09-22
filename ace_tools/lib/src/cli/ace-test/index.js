@@ -15,14 +15,14 @@
 
 const compiler = require('../ace-build/ace-compiler');
 const build = require('../ace-build');
-const install = require('../ace-install');
+const {install, isInstallFileExist} = require('../ace-install');
 const launch = require('../ace-launch');
 const { isProjectRootDir, validInputDevice } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 
 function test(fileType, device, cmd) {
   const projectDir = process.cwd();
-  if (!isProjectRootDir(projectDir)) {
+  if (!cmd.path && !isProjectRootDir(projectDir)) {
     return false;
   }
   if (!validInputDevice(device)) {
@@ -30,6 +30,19 @@ function test(fileType, device, cmd) {
   }
   if (isSimulator(device) && fileType === 'app'){
     console.error('Simulator does not support testing app');
+    return false;
+  }
+  if (cmd.path) {
+    if (!isInstallFileExist(fileType, cmd.path)) {
+      return false;
+    }
+    let installFlag = true;
+    cmd.target = cmd.target || 'entry';
+    installFlag = install(fileType, device, cmd.target, cmd.path);
+    if (installFlag && launch(fileType, device, cmd)) {
+      return true;
+    }
+    console.error('Test failed.');
     return false;
   }
   if (fileType === 'hap') {
@@ -40,7 +53,7 @@ function test(fileType, device, cmd) {
   let installFlag = true;
   cmd.target = cmd.target || 'entry';
   // ios launch command contain install
-  installFlag = install(fileType, device, cmd.target);
+  installFlag = install(fileType, device, cmd.target, undefined);
   if (installFlag && launch(fileType, device, cmd)) {
     return true;
   }
