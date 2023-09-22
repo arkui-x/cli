@@ -189,12 +189,12 @@ function buildFramework(cmd) {
     const cmdStr = `xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
       + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
     if (cmd.simulator) {
-      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      const simulatorFile = path.join(projectDir, '.arkui-x/ios', '.simulator');
       if (!fs.existsSync(simulatorFile)){
         fs.writeFileSync(simulatorFile, '');
       }
     }else{
-      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      const simulatorFile = path.join(projectDir, '.arkui-x/ios', '.simulator');
       if (fs.existsSync(simulatorFile)) {
         fs.unlinkSync(simulatorFile);
       }
@@ -239,12 +239,12 @@ function buildXcFramework(cmd) {
     const myFramework = path.join(frameworkDir, `build/${mode}-iphoneos/${frameworkName}.framework`);
     const exportPath = path.join(frameworkDir, `build/outputs/xcframework`);
     if (cmd.simulator) {
-      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      const simulatorFile = path.join(projectDir, '.arkui-x/ios', '.simulator');
       if (!fs.existsSync(simulatorFile)){
         fs.writeFileSync(simulatorFile, '');
       }
     }else{
-      const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+      const simulatorFile = path.join(projectDir, '.arkui-x/ios', '.simulator');
       if (fs.existsSync(simulatorFile)) {
         fs.unlinkSync(simulatorFile);
       }
@@ -316,9 +316,8 @@ function buildAPP(cmd) {
     console.error('createTestTem app failed.');
     return false;
   }
-  const currentDir = process.cwd();
-  const projectSettingDir = path.join(currentDir, '.arkui-x/ios', 'app.xcodeproj');
-  const exportPath = path.join(currentDir, '.arkui-x/ios', 'build/outputs/app/');
+  const projectSettingDir = path.join(projectDir, '.arkui-x/ios', 'app.xcodeproj');
+  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
   let arch = "arm64";
@@ -330,12 +329,12 @@ function buildAPP(cmd) {
     platform = `generic/platform="iOS Simulator"`;
   }
   if (cmd.simulator) {
-    const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+    const simulatorFile = path.join(projectDir, '.arkui-x/ios', '.simulator');
     if (!fs.existsSync(simulatorFile)){
       fs.writeFileSync(simulatorFile, '');
     }
   } else {
-    const simulatorFile = path.join(currentDir, '.arkui-x/ios', '.simulator');
+    const simulatorFile = path.join(projectDir, '.arkui-x/ios', '.simulator');
     if (fs.existsSync(simulatorFile)) {
       fs.unlinkSync(simulatorFile);
     }
