@@ -27,7 +27,7 @@ const check = require('./src/cli/ace-check');
 const { devices, getDeviceID, showValidDevice, getDeviceType } = require('./src/cli/ace-devices');
 const compiler = require('./src/cli/ace-build/ace-compiler');
 const build = require('./src/cli/ace-build');
-const install = require('./src/cli/ace-install');
+const {install} = require('./src/cli/ace-install');
 const uninstall = require('./src/cli/ace-uninstall');
 const { log } = require('./src/cli/ace-log');
 const launch = require('./src/cli/ace-launch');
@@ -318,6 +318,7 @@ function parseTest() {
     .option('--unittest [testRunner]', 'name of testRunner to be test')
     .option('--class [class]', 'name of testClass to be test')
     .option('--timeout [timeout]', 'time of timeout to be test')
+    .option('--path [path]', 'path of package to install and test directly')
     .description(`test apk/app on device
       --b                   [Test BundleName]
       --m                   [Test ModuleName]
@@ -334,6 +335,10 @@ function parseTest() {
       }
       if (!options.unittest) {
         console.log("test unittest not found， please use '--unittest <unittest>'");
+        return false;
+      }
+      if (options.path !== undefined && options.path.length == 0) {
+        console.log("please input the correct path of install file");
         return false;
       }
       if (fileType === 'apk' || fileType === 'app') {

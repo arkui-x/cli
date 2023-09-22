@@ -18,7 +18,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const JSON5 = require('json5');
 const { log, getBundleName } = require('../ace-log');
-const { getToolByType } = require('../ace-check/getTool');
+const { getToolByType, getAapt2 } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 let bundleName;
@@ -28,14 +28,22 @@ let androidclassName;
 let className;
 let cmdOption;
 let appPackagePath;
-function getNames(projectDir, fileType, moduleName) {
+function getNames(projectDir, fileType, moduleName, installFilePath, bundleName) {
   moduleName = moduleName || 'entry';
   if (fileType === 'hap') {
     return getNameStageHaps(projectDir, moduleName);
   } else if (fileType === 'apk') {
-    return getNamesApk(projectDir, moduleName);
+    if (installFilePath) {
+      return getNamesApkByInstallFile(moduleName, installFilePath, bundleName);
+    } else {
+      return getNamesApk(projectDir, moduleName);
+    }
   } else if (fileType === 'app') {
-    return getNamesApp(projectDir);
+    if (installFilePath) {
+      return getNamesAppByInstallFile(installFilePath);
+    } else {
+      return getNamesApp(projectDir);
+    }
   }
 }
 
@@ -105,6 +113,37 @@ function getNamesApk(projectDir, moduleName) {
   }
 }
 
+function getNamesAppByInstallFile(installFilePath) {
+  appPackagePath = installFilePath;
+  return true;
+}
+
+function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
+  try {
+    let aapt2 = getAapt2();
+    if (aapt2 === '') {
+      console.error('Can not get aapt from anfroid build tools. ');
+      return false;
+    }
+    const getPackageNameCmd = `${aapt2} dump packagename ${installFilePath}`;
+    packageName = exec(`${getPackageNameCmd}`, { encoding: 'utf8' }).trim();
+    bundleName = apkBundleName;
+    androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
+      return l.toUpperCase();
+    }) + 'EntryAbilityActivity';
+    if (!bundleName || !packageName || !androidclassName) {
+      console.error(`Please check packageName , className or bundleName.`);
+      return false;
+    }
+    cmdOption = ' -a android.intent.action.MAIN -c android.intent.category.LAUNCHER';
+    className = androidclassName;
+    return true;
+  } catch (err) {
+    console.error('Get names about apk failed.\n' + err);
+    return false;
+  }
+}
+
 function isPackageInAndroid(toolObj, device) {
   let comd = '';
   if ('adb' in toolObj) {
@@ -131,13 +170,13 @@ function isPackageInAndroid(toolObj, device) {
 function launch(fileType, device, options) {
   const projectDir = process.cwd();
   const moduleName = options.target;
-  if (!isProjectRootDir(projectDir)) {
+  if (!options.path && !isProjectRootDir(projectDir)) {
     return false;
   }
   if (!validInputDevice(device)) {
     return false;
   }
-  const currentSystem = getCurrentProjectSystem(projectDir);
+  const currentSystem = options.path ? ' ' : getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
     console.error('current system is unknown.');
     return false;
@@ -147,7 +186,7 @@ function launch(fileType, device, options) {
     console.error('There are not install tool, please check');
     return false;
   }
-  if (getNames(projectDir, fileType, moduleName) && toolObj) {
+  if (getNames(projectDir, fileType, moduleName, options.path, options.b) && toolObj) {
     if (fileType === 'apk' && !isPackageInAndroid(toolObj, device)) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
       return false;
@@ -158,7 +197,7 @@ function launch(fileType, device, options) {
     }
     try {
       if (options.test) {
-        log(fileType, device, 'test');
+        log(fileType, device, 'test', options.path);
       }
       const result = exec(`${cmdLaunch}`, { encoding: 'utf8' });
       if (result.toLowerCase().includes('fail')) {

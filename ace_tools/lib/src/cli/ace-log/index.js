@@ -25,22 +25,22 @@ const { exit } = require('process');
 let toolObj;
 let test;
 let projectDir = process.cwd();
-function log(fileType, device, cmdTest) {
+function log(fileType, device, cmdTest, installFilePath) {
   test = cmdTest;
   projectDir = process.cwd();
-  if (!isProjectRootDir(projectDir)) {
+  if (!installFilePath && !isProjectRootDir(projectDir)) {
     return false;
   }
   if (!validInputDevice(device)) {
     return false;
   }
-  const currentSystem = getCurrentProjectSystem(projectDir);
+  const currentSystem = installFilePath ? ' ' : getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
     console.error('current system is unknown.');
     return false;
   }
   toolObj = getToolByType(fileType, currentSystem, true);
-  if (!validTool(toolObj) || !validManifestPath()) {
+  if (!validTool(toolObj) || (!installFilePath && !validManifestPath())) {
     return;
   }
   if (test) {
