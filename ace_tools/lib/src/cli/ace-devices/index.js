@@ -23,7 +23,6 @@ const devicesList = getDevicesList();
 function getDevicesList() {
   const tools = getTools();
   if (tools && tools.length === 0) {
-    console.info(`No such debug tools (hdc/adb/ios-deploy).`);
     return {
       'all': [],
       'available': [],
