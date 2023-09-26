@@ -20,7 +20,6 @@ const inquirer = require('inquirer');
 const { Platform, platform } = require('./src/cli/ace-check/platform');
 const create = require('./src/cli/ace-create/project');
 const createModule = require('./src/cli/ace-create/module');
-const createComponent = require('./src/cli/ace-create/component');
 const { createAbility } = require('./src/cli/ace-create/ability');
 const { setConfig } = require('./src/cli/ace-config');
 const check = require('./src/cli/ace-check');
@@ -44,6 +43,7 @@ function parseCommander() {
   program.option('-d, --device <device>', 'input device id to specify the device to do something');
 
   parseCreate();
+  parseNew();
   parseCheck();
   parseDevices();
   parseConfig();
@@ -76,100 +76,104 @@ function isBundleNameValid(name) {
 }
 
 function parseCreate() {
-  program.command('create [subcommand]')
+  program.command('create')
     .description(`create ace project/module/component/ability`)
-    .action((subcommand, cmd) => {
-      if (!subcommand || subcommand === 'project') {
+    .action((cmd) => {
+      inquirer.prompt([{
+        name: 'project',
+        type: 'input',
+        message: 'Please enter the project name:',
+        validate(val) {
+          if (val === '') {
+            return 'Project name must be required!';
+          } else if (!isProjectNameValid(val)) {
+            return 'The project name must contain 1 to 200 characters, start with a ' +
+              'letter, and include only letters, digits and underscores (_)';
+          }
+          return true;
+        }
+      }]).then(answers => {
+        const initInfo = {};
+        initInfo.platform = '';
+        initInfo.project = answers.project;
         inquirer.prompt([{
-          name: 'project',
+          name: 'packages',
           type: 'input',
-          message: 'Please enter the project name:',
+          message: 'Please enter the bundle name (com.example.' + initInfo.project.toLowerCase() + '):',
           validate(val) {
-            if (val === '') {
-              return 'Project name must be required!';
-            } else if (!isProjectNameValid(val)) {
-              return 'The project name must contain 1 to 200 characters, start with a ' +
-                'letter, and include only letters, digits and underscores (_)';
+            if (!val) {
+              val = 'com.example.' + initInfo.project.toLowerCase();
+            }
+            if (!isBundleNameValid(val)) {
+              return 'The bundle name must contain 7 to 128 characters,start with a letter,and include ' +
+              'only lowercase letters, digits,underscores(_) and at least one separator(.).';
             }
             return true;
           }
         }]).then(answers => {
-          const initInfo = {};
-          initInfo.platform = '';
-          initInfo.project = answers.project;
+          initInfo.packages = answers.packages ? answers.packages.toLowerCase()
+            : 'com.example.' + initInfo.project.toLowerCase();
           inquirer.prompt([{
-            name: 'packages',
+            name: 'system',
             type: 'input',
-            message: 'Please enter the bundle name (com.example.' + initInfo.project.toLowerCase() + '):',
+            message: 'Please enter the system (1: OpenHarmony, 2: HarmonyOS):',
             validate(val) {
-              if (!val) {
-                val = 'com.example.' + initInfo.project.toLowerCase();
+              if (val === '1' || val === '2') {
+                return true;
+              } else {
+                return 'system must be an integer: 1 or 2.';
               }
-              if (!isBundleNameValid(val)) {
-                return 'The bundle name must contain 7 to 128 characters,start with a letter,and include ' +
-                'only lowercase letters, digits,underscores(_) and at least one separator(.).';
-              }
-              return true;
             }
           }]).then(answers => {
-            initInfo.packages = answers.packages ? answers.packages.toLowerCase()
-              : 'com.example.' + initInfo.project.toLowerCase();
+            initInfo.system = answers.system;
             inquirer.prompt([{
-              name: 'system',
+              name: 'proType',
               type: 'input',
-              message: 'Please enter the system (1: OpenHarmony, 2: HarmonyOS):',
+              message: 'Please enter the project type (1: Application, 2: Library):',
               validate(val) {
                 if (val === '1' || val === '2') {
                   return true;
                 } else {
-                  return 'system must be an integer: 1 or 2.';
+                  return 'project type must be an integer: 1 or 2.';
                 }
               }
             }]).then(answers => {
-              initInfo.system = answers.system;
+              initInfo.proType = answers.proType;
               inquirer.prompt([{
-                name: 'proType',
+                name: 'template',
                 type: 'input',
-                message: 'Please enter the project type (1: Application, 2: Library):',
+                message: 'Please enter the template (1: Empty Ability, 2: Native C++):',
                 validate(val) {
                   if (val === '1' || val === '2') {
                     return true;
                   } else {
-                    return 'project type must be an integer: 1 or 2.';
+                    return 'template must be an integer: 1 or 2.';
                   }
                 }
               }]).then(answers => {
-                initInfo.proType = answers.proType;
-                inquirer.prompt([{
-                  name: 'template',
-                  type: 'input',
-                  message: 'Please enter the template (1: Empty Ability, 2: Native C++):',
-                  validate(val) {
-                    if (val === '1' || val === '2') {
-                      return true;
-                    } else {
-                      return 'template must be an integer: 1 or 2.';
-                    }
-                  }
-                }]).then(answers => {
-                  initInfo.template = answers.template;
-                  initInfo.sdkVersion = '10';
-                  create(initInfo);
-                });
+                initInfo.template = answers.template;
+                initInfo.sdkVersion = '10';
+                create(initInfo);
               });
             });
           });
         });
-      } else if (subcommand === 'module') {
+      });
+  });
+}
+
+function parseNew() {
+  program.command('new [subcommand]')
+    .description('create abilit/module in project')
+    .action((subcommand,cmd) => {
+      if(subcommand === 'module') {
         createModule();
-      } else if (subcommand === 'component') {
-        createComponent();
-      } else if (subcommand === 'ability') {
+      }else if(subcommand === 'ability') {
         createAbility();
       } else {
-        console.log(`Please use ace create with subcommand : project/module/ability.`);
+        console.log(`Please use ace new with subcommand: module/ability`);
       }
-    });
+  })
 }
 
 function parseCheck() {
