@@ -41,8 +41,8 @@ function create(args) {
       }
     }
   }];
-  const { project, packages, system, proType, template } = args;
-  const projectPath = path.join(process.cwd(), project);
+  const { outputDir,project, bundleName, runtimeOS, proType, template } = args;
+  const projectPath = outputDir;
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
     inquirer.prompt(question).then(answers => {
@@ -53,20 +53,20 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, packages, project, system, proType, template);
+        createProject(projectPath, bundleName, project, runtimeOS, proType, template);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, packages, project, system, proType, template);
+    createProject(projectPath, bundleName, project, runtimeOS, proType, template);
   }
 }
 
-function createProject(projectPath, packages, project, system, proType, template) {
+function createProject(projectPath, bundleName, project, runtimeOS, proType, template) {
   try {
     fs.mkdirSync(projectPath);
-    findStageTemplate(projectPath, packages, project, system, proType, template);
+    findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template);
     if (proType === aceProType) {
       if (!(createAar(projectPath, project) && createFramework(projectPath, project))) {
         return false;
@@ -78,25 +78,25 @@ function createProject(projectPath, packages, project, system, proType, template
   }
 }
 
-function findStageTemplate(projectPath, packages, project, system, proType, template) {
+function findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template) {
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
     copyStageTemplate(pathTemplate, projectPath, proType, template);
-    replaceStageProjectInfo(projectPath, packages, project, system, proType, template);
+    replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template);
   } else {
     pathTemplate = globalThis.templatePath;
     console.log(pathTemplate);
     if (fs.existsSync(pathTemplate)) {
       copyStageTemplate(pathTemplate, projectPath, proType, template);
-      replaceStageProjectInfo(projectPath, packages, project, system, proType, template);
+      replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template);
     } else {
       console.log('Error: Template is not exist!');
     }
   }
 }
 
-function replaceAndroidProjectInfo(projectPath, packages, project, template) {
-  const packageArray = packages.split('.');
+function replaceAndroidProjectInfo(projectPath, bundleName, project, template) {
+  const packageArray = bundleName.split('.');
   const files = [];
   const replaceInfos = [];
   const strs = [];
@@ -108,25 +108,25 @@ function replaceAndroidProjectInfo(projectPath, packages, project, template) {
   strs.push(project);
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/AndroidManifest.xml'));
   replaceInfos.push('packageName');
-  strs.push(packages);
+  strs.push(bundleName);
   files.push(path.join(projectPath, '.arkui-x/android/app/build.gradle'));
   replaceInfos.push('packageName');
-  strs.push(packages);
+  strs.push(bundleName);
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
+  strs.push('package ' + bundleName);
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MyApplication.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
+  strs.push('package ' + bundleName);
   files.push(path.join(projectPath, '.arkui-x/android/app/src/androidTest/java/ExampleInstrumentedTest.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
+  strs.push('package ' + bundleName);
   files.push(path.join(projectPath, '.arkui-x/android/app/src/test/java/ExampleUnitTest.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + packages);
+  strs.push('package ' + bundleName);
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ArkUIInstanceName');
-  strs.push(packages + ':entry:EntryAbility:');
+  strs.push(bundleName + ':entry:EntryAbility:');
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('ohos.ace.adapter.AceActivity');
   strs.push('ohos.stage.ability.adapter.StageActivity');
@@ -159,13 +159,13 @@ function replaceAndroidProjectInfo(projectPath, packages, project, template) {
   createPackageFile(packagePaths, packageArray);
 }
 
-function replaceiOSProjectInfo(projectPath, packages) {
+function replaceiOSProjectInfo(projectPath, bundleName) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
   files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
   replaceInfos.push('bundleIdentifier');
-  strs.push(packages);
+  strs.push(bundleName);
   files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
   replaceInfos.push('etsapp');
   strs.push('app');
@@ -183,14 +183,14 @@ function replaceiOSProjectInfo(projectPath, packages) {
   strs.push('DFC5555629D7F36400B63EB3');
   files.push(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
   replaceInfos.push('packageName');
-  strs.push(packages);
+  strs.push(bundleName);
   replaceInfo(files, replaceInfos, strs);
   replaceIOSRbxprojInfo(projectPath);
 }
 
-function replaceStageProjectInfo(projectPath, packages, project, system, proType, template) {
-  if (!packages) {
-    packages = 'com.example.arkuicross';
+function replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template) {
+  if (!bundleName) {
+    bundleName = 'com.example.arkuicross';
   }
   const files = [];
   const replaceInfos = [];
@@ -201,7 +201,7 @@ function replaceStageProjectInfo(projectPath, packages, project, system, proType
   strs.push(project);
   files.push(path.join(projectPath, 'AppScope/app.json5'));
   replaceInfos.push('appBunduleName');
-  strs.push(packages);
+  strs.push(bundleName);
   files.push(path.join(projectPath, 'oh-package.json5'));
   replaceInfos.push('packageInfo');
   strs.push(project);
@@ -236,10 +236,10 @@ function replaceStageProjectInfo(projectPath, packages, project, system, proType
   }
   replaceInfo(files, replaceInfos, strs);
   if (proType !== aceProType) {
-    replaceAndroidProjectInfo(projectPath, packages, project, template);
-    replaceiOSProjectInfo(projectPath, packages);
+    replaceAndroidProjectInfo(projectPath, bundleName, project, template);
+    replaceiOSProjectInfo(projectPath, bundleName);
   }
-  if (system === aceHarmonyOS) {
+  if (runtimeOS === aceHarmonyOS) {
     modifyHarmonyOSConfig(projectPath, 'entry');
   }
 }

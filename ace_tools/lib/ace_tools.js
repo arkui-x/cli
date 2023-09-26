@@ -33,6 +33,7 @@ const launch = require('./src/cli/ace-launch');
 const run = require('./src/cli/ace-run');
 const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
+const { getAbsolutePath } = require('./src/cli/util')
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname,'..','templates');
@@ -76,32 +77,55 @@ function isBundleNameValid(name) {
 }
 
 function parseCreate() {
-  program.command('create')
-    .description(`create ace project/module/component/ability`)
-    .action((cmd) => {
+  program.command('create [outputDir]')
+    .option('-t | --template [type]', 'project type')
+    .description(`create ace project`)
+    .action((outputDir, cmd) => {
+      if(outputDir === undefined) {
+        console.log('No option specified for the output directory');
+        return;
+      }
+      const initInfo = {};
+      if(!cmd.template ||cmd.template === 'app') {
+        initInfo.proType = '1'
+        initInfo.template = '1'
+      } else if(cmd.template === 'library') {
+        initInfo.proType = '2'
+        initInfo.template = '1'
+      } else if(cmd.template === 'plugin_napi') {
+        initInfo.proType = '1'
+        initInfo.template = '2'
+      } else {
+        console.log(`create project failed.template option does not support the value of ${cmd.template}.\nPlease choose one of app/library/plugin_napi `);
+        return;
+      }
+      outputDir = getAbsolutePath(outputDir);
+      projectName =path.basename(outputDir);
+
       inquirer.prompt([{
         name: 'project',
         type: 'input',
-        message: 'Please enter the project name:',
+        message: `Please enter the project name(${projectName}):`,
         validate(val) {
           if (val === '') {
-            return 'Project name must be required!';
-          } else if (!isProjectNameValid(val)) {
+            val = projectName;
+          } 
+          if (!isProjectNameValid(val)) {
             return 'The project name must contain 1 to 200 characters, start with a ' +
               'letter, and include only letters, digits and underscores (_)';
           }
           return true;
         }
       }]).then(answers => {
-        const initInfo = {};
         initInfo.platform = '';
-        initInfo.project = answers.project;
+        initInfo.project = answers.project || projectName;
+        initInfo.outputDir = outputDir
         inquirer.prompt([{
-          name: 'packages',
+          name: 'bundleName',
           type: 'input',
-          message: 'Please enter the bundle name (com.example.' + initInfo.project.toLowerCase() + '):',
+          message: 'Please enter the bundleName (com.example.' + initInfo.project.toLowerCase() + '):',
           validate(val) {
-            if (!val) {
+            if (val === '') {
               val = 'com.example.' + initInfo.project.toLowerCase();
             }
             if (!isBundleNameValid(val)) {
@@ -111,55 +135,27 @@ function parseCreate() {
             return true;
           }
         }]).then(answers => {
-          initInfo.packages = answers.packages ? answers.packages.toLowerCase()
+          initInfo.bundleName = answers.bundleName ? answers.bundleName.toLowerCase()
             : 'com.example.' + initInfo.project.toLowerCase();
           inquirer.prompt([{
-            name: 'system',
+            name: 'runtimeOS',
             type: 'input',
-            message: 'Please enter the system (1: OpenHarmony, 2: HarmonyOS):',
+            message: 'Please enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS):',
             validate(val) {
               if (val === '1' || val === '2') {
                 return true;
               } else {
-                return 'system must be an integer: 1 or 2.';
+                return 'input must be an integer: 1 or 2.';
               }
             }
           }]).then(answers => {
-            initInfo.system = answers.system;
-            inquirer.prompt([{
-              name: 'proType',
-              type: 'input',
-              message: 'Please enter the project type (1: Application, 2: Library):',
-              validate(val) {
-                if (val === '1' || val === '2') {
-                  return true;
-                } else {
-                  return 'project type must be an integer: 1 or 2.';
-                }
-              }
-            }]).then(answers => {
-              initInfo.proType = answers.proType;
-              inquirer.prompt([{
-                name: 'template',
-                type: 'input',
-                message: 'Please enter the template (1: Empty Ability, 2: Native C++):',
-                validate(val) {
-                  if (val === '1' || val === '2') {
-                    return true;
-                  } else {
-                    return 'template must be an integer: 1 or 2.';
-                  }
-                }
-              }]).then(answers => {
-                initInfo.template = answers.template;
-                initInfo.sdkVersion = '10';
-                create(initInfo);
-              });
-            });
+            initInfo.runtimeOS = answers.runtimeOS;
+            initInfo.sdkVersion = '10';
+            create(initInfo);
           });
         });
       });
-  });
+    });
 }
 
 function parseNew() {
