@@ -198,7 +198,7 @@ function getPid(device, fileType) {
   if (!bundleName) {
     return;
   }
-  if (fileType === 'app') {
+  if (fileType === 'ios') {
     return getAppPid(device, fileType, bundleName);
   } else {
     try {

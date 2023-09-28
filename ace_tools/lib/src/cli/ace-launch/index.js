@@ -38,7 +38,7 @@ function getNames(projectDir, fileType, moduleName, installFilePath, bundleName)
     } else {
       return getNamesApk(projectDir, moduleName);
     }
-  } else if (fileType === 'app') {
+  } else if (fileType === 'ios') {
     if (installFilePath) {
       return getNamesAppByInstallFile(installFilePath);
     } else {
@@ -49,7 +49,7 @@ function getNames(projectDir, fileType, moduleName, installFilePath, bundleName)
 
 function getNamesApp(projectDir) {
   const appName = 'app.app';
-  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/app/', appName);
+  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/ios/', appName);
   return true;
 }
 

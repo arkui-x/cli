@@ -28,8 +28,8 @@ function test(fileType, device, cmd) {
   if (!validInputDevice(device)) {
     return false;
   }
-  if (isSimulator(device) && fileType === 'app'){
-    console.error('Simulator does not support testing app');
+  if (isSimulator(device) && fileType === 'ios'){
+    console.error('Simulator does not support testing ios');
     return false;
   }
   if (cmd.path) {

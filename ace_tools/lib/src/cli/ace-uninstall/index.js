@@ -44,7 +44,7 @@ function uninstall(fileType, device, bundle) {
     }
   } else if (fileType === 'apk') {
     successFlag = uninstallApk(toolObj, device, bundle);
-  } else if (fileType === 'app') {
+  } else if (fileType === 'ios') {
     successFlag = uninstallApp(toolObj, device, bundle);
   }
   if (successFlag) {

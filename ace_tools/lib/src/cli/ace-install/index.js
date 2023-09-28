@@ -59,13 +59,13 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath) {
       });
     }
     // android and ios only have one apk or app
-    if (fileType === 'app') {
-      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/app/');
+    if (fileType === 'ios') {
+      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/ios/');
       const fileList = fs.readdirSync(buildDir).filter(file => {
-        return path.extname(file).toLowerCase() === `.${fileType}`;
+        return path.extname(file).toLowerCase() === `.app`;
       });
       if (fileList && fileList.length > 1) {
-        console.error(`Found more than 1 ${fileType} in ${buildDir}.Please inspect.`);
+        console.error(`Found more than 1 app in ${buildDir}.Please inspect.`);
         return false;
       }
       fileList.forEach(file => {
@@ -116,13 +116,13 @@ function install(fileType, device, moduleListInput, installFilePath) {
   const app = path.join(projectDir, '.arkui-x', 'ios');
   if (isSimulator(device)) {
     if (!fs.existsSync(path.join(app, '.simulator'))) {
-      console.error('Please run "ace build app -s or --simulator" to build simulator app first');
+      console.error('Please run "ace build ios -s or --simulator" to build simulator ios first');
       return false;
     }
   }
   if (fs.existsSync(path.join(app, '.simulator'))){
-    if (fileType === 'app' && !isSimulator(device)) {
-      console.error('Your app is simulator app, please run "ace build app" to build app first');
+    if (fileType === 'ios' && !isSimulator(device)) {
+      console.error('Your app is simulator app, please run "ace build ios" to build ios first');
       return false;
     }
   }
@@ -199,7 +199,7 @@ function installCmdConstruct(fileType, toolObj, device) {
     if (device) {
       deviceOption = `-s ${device}`;
     }
-  } else if (fileType === 'app') {
+  } else if (fileType === 'ios') {
     if (isSimulator(device)) {
       cmdPath = 'xcrun simctl install';
       if (device) {

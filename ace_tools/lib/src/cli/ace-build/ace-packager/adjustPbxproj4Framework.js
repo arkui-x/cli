@@ -212,7 +212,7 @@ function makeXBuildFileContent(fileType, xcframeworkMap, existData) {
     if (!existData.checkIfLibExists(existData.existData, key)) {
       const updateLines = lines.replace(/{buildfileuuid}/g, value.uuid).replace(/{fileRefUuid}/g, value.fileRefUuid)
         .replace(/{xcframework}/g, key);
-      if (fileType === 'app') {
+      if (fileType === 'ios') {
         const updateembedLines = embedLines.replace(/{buildembeduuid}/g, value.embedUuid).replace(/{fileRefUuid}/g,
           value.fileRefUuid).replace(/{xcframework}/g, key);
         content = content + existData.lineHeader + itemLineStartTab + updateLines +
@@ -366,7 +366,7 @@ function savePbxprojConfig(pbxprojFilePath, updatepbxprojFileInfo) {
 
 function updateIosProjectPbxproj(fileType, projectDir, depMap, system,
   removeUnused, funcOnRemoved, allLibSet) {
-  if (fileType === 'app') {
+  if (fileType === 'ios') {
     const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios', 'app.xcodeproj/project.pbxproj');
     let pbxprojFileInfo = readPbxprojFile(pbxprojFilePath);
     const xcframeworkList = getXcframeworkList(depMap, system, pbxprojFileInfo);
@@ -381,7 +381,7 @@ function updateIosProjectPbxproj(fileType, projectDir, depMap, system,
     pbxprojFileInfo = updateXGroupContent(xcframeworkList, pbxprojFileInfo,
       removeUnused, allLibSet, funcOnRemoved);
     savePbxprojConfig(pbxprojFilePath, pbxprojFileInfo);
-  } else if (fileType === 'framework' || fileType === 'xcframework') {
+  } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework') {
     const frameworkNameList = getFrameworkName(projectDir);
     frameworkNameList.forEach(frameworkName => {
       const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios', frameworkName + '.xcodeproj/project.pbxproj');

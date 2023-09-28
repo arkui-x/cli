@@ -29,7 +29,7 @@ function run(fileType, device, cmd) {
   if (!validInputDevice(device)) {
     return false;
   }
-  if (isSimulator(device) && fileType === 'app') {
+  if (isSimulator(device) && fileType === 'ios') {
     cmd.simulator = true;
   }
   if (fileType === 'hap') {
@@ -41,12 +41,12 @@ function run(fileType, device, cmd) {
   cmd.target = cmd.target || 'entry';
   installFlag = install(fileType, device, cmd.target, undefined);
   if (installFlag) {
-    if (fileType === 'app') {
+    if (fileType === 'ios') {
       log(fileType, device, cmd.test);
     }
     if (launch(fileType, device, cmd)) {
       console.log('Run successful.');
-      if (fileType !== 'app') {
+      if (fileType !== 'ios') {
         log(fileType, device, cmd.test);
       }
     } else {

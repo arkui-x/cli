@@ -48,7 +48,7 @@ function writeLocalProperties() {
 }
 
 function copyToOutput(fileType) {
-  const typePath = fileType === 'apk' ? '.arkui-x/android/app' : '.arkui-x/ios';
+  const typePath = fileType == 'ios' ? '.arkui-x/ios' : '.arkui-x/android/app';
   const src = path.join(projectDir, `/${typePath}/build/outputs/${fileType}/`);
   const filePath = copyToBuildDir(src);
   console.log(`filepath: ${filePath}`);
@@ -62,7 +62,7 @@ function copyLibraryToOutput(fileType) {
       const filePath = copyToBuildDir(src);
       console.log(`filepath: ${filePath}`);
     });
-  } else if (fileType === 'framework' || fileType === 'xcframework') {
+  } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework') {
     const frameworkNameList = getFrameworkName(projectDir);
     frameworkNameList.forEach(frameworkName => {
       const src = path.join(projectDir, `.arkui-x/ios/build/outputs/${fileType}/`);
@@ -111,6 +111,42 @@ function buildAPK(cmd) {
     console.error('recoverTestTem apk failed.');
     return false;
   }
+  console.log(gradleMessage);
+  return isBuildSuccess;
+}
+
+function buildAab(cmd) {
+  copyLibraryToProject('apk', cmd, projectDir, 'android');
+  const cmds = [];
+  const androidDir = path.join(projectDir, '.arkui-x/android');
+  if (platform !== Platform.Windows) {
+    cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
+  }
+  if (cmd.debug) {
+    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleDebug`);
+  } else {
+    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleRelease`);
+  }
+
+  let gradleMessage = 'Build aab successful.';
+  let isBuildSuccess = true;
+  console.log('Start building aab...');
+  process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
+  setJavaSdkDirInEnv(javaSdkDirAndroid);
+  cmds.forEach(cmd => {
+    if (platform === Platform.Windows) {
+      cmd = cmd.replace(/\//g, '\\');
+    }
+    try {
+      exec(cmd, {
+        encoding: 'utf-8',
+        stdio: 'inherit',
+      });
+    } catch (error) {
+      gradleMessage = 'Build aab failed.';
+      isBuildSuccess = false;
+    }
+  });
   console.log(gradleMessage);
   return isBuildSuccess;
 }
@@ -164,12 +200,12 @@ function buildAAR(cmd) {
 }
 
 function buildFramework(cmd) {
-  copyLibraryToProject('framework', cmd, projectDir, 'ios');
+  copyLibraryToProject('ios-framework', cmd, projectDir, 'ios');
   let mode = 'Release';
   if (cmd.debug) {
     mode = 'Debug';
   }
-  let gradleMessage = 'Build framework successful.';
+  let gradleMessage = 'Build ios-framework successful.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -185,7 +221,7 @@ function buildFramework(cmd) {
   const frameworkDir = path.join(projectDir, '.arkui-x/ios');
   frameworkNameList.forEach(frameworkName => {
     const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
-    const exportPath = path.join(frameworkDir, `build/outputs/framework`);
+    const exportPath = path.join(frameworkDir, `build/outputs/ios-framework`);
     const cmdStr = `xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
       + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
     if (cmd.simulator) {
@@ -205,7 +241,7 @@ function buildFramework(cmd) {
         stdio: 'inherit'
       });
     } catch (error) {
-      gradleMessage = 'Build framework failed.';
+      gradleMessage = 'Build ios-framework failed.';
       isBuildSuccess = false;
     }
   });
@@ -214,13 +250,13 @@ function buildFramework(cmd) {
 }
 
 function buildXcFramework(cmd) {
-  copyLibraryToProject('xcframework', cmd, projectDir, 'ios');
+  copyLibraryToProject('ios-xcframework', cmd, projectDir, 'ios');
   const cmds = [];
   let mode = 'Release';
   if (cmd.debug) {
     mode = 'Debug';
   }
-  let gradleMessage = 'Build xcframework successful.';
+  let gradleMessage = 'Build ios-xcframework successful.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -237,7 +273,7 @@ function buildXcFramework(cmd) {
   frameworkNameList.forEach(frameworkName => {
     const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
     const myFramework = path.join(frameworkDir, `build/${mode}-iphoneos/${frameworkName}.framework`);
-    const exportPath = path.join(frameworkDir, `build/outputs/xcframework`);
+    const exportPath = path.join(frameworkDir, `build/outputs/ios-xcframework`);
     if (cmd.simulator) {
       const simulatorFile = path.join(projectDir, '.arkui-x/ios', '.simulator');
       if (!fs.existsSync(simulatorFile)){
@@ -260,7 +296,7 @@ function buildXcFramework(cmd) {
         });
       });
     } catch (error) {
-      gradleMessage = 'Build xcframework failed.';
+      gradleMessage = 'Build ios-xcframework failed.';
       isBuildSuccess = false;
     }
   });
@@ -279,6 +315,13 @@ function packager(target, cmd) {
         return true;
       }
     }
+  } else if (target === 'aab') {
+    if (isAndroidSdkVaild() && writeLocalProperties()) {
+      if (buildAab(cmd)) {
+        copyToOutput('bundle');
+        return true;
+      }
+    }
   } else if (target === 'aar') {
     if (isAndroidSdkVaild() && writeLocalProperties()) {
       if (buildAAR(cmd)) {
@@ -286,17 +329,17 @@ function packager(target, cmd) {
         return true;
       }
     }
-  } else if (target === 'app') {
-    if (buildAPP(cmd)) {
+  } else if (target === 'ios') {
+    if (buildiOS(cmd)) {
       copyToOutput(target);
       return true;
     }
-  } else if (target === 'framework') {
+  } else if (target === 'ios-framework') {
     if (buildFramework(cmd)) {
       copyLibraryToOutput(target);
       return true;
     }
-  } else if (target === 'xcframework') {
+  } else if (target === 'ios-xcframework') {
     if (buildXcFramework(cmd)) {
       copyLibraryToOutput(target);
       return true;
@@ -305,19 +348,19 @@ function packager(target, cmd) {
   return false;
 }
 
-function buildAPP(cmd) {
-  copyLibraryToProject('app', cmd, projectDir, 'ios');
+function buildiOS(cmd) {
+  copyLibraryToProject('ios', cmd, projectDir, 'ios');
   const cmds = [];
   let mode = 'Release';
   if (cmd.debug) {
     mode = 'Debug';
   }
-  if (cmd.debug && !createTestTem('app')) {
-    console.error('createTestTem app failed.');
+  if (cmd.debug && !createTestTem('ios')) {
+    console.error('createTestTem ios failed.');
     return false;
   }
   const projectSettingDir = path.join(projectDir, '.arkui-x/ios', 'app.xcodeproj');
-  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
+  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/ios/');
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
   let arch = "arm64";
@@ -346,9 +389,9 @@ function buildAPP(cmd) {
   const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
     + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
-  let message = 'Build app successful.';
+  let message = 'Build ios successful.';
   let isBuildSuccess = true;
-  console.log('Start building app...');
+  console.log('Start building ios...');
   cmds.forEach(cmd => {
     try {
       exec(cmd, {
@@ -356,12 +399,12 @@ function buildAPP(cmd) {
         stdio: 'inherit'
       });
     } catch (error) {
-      message = 'Build app failed.';
+      message = 'Build ios failed.';
       isBuildSuccess = false;
     }
   });
-  if (cmd.debug && !recoverTestTem('app')) {
-    console.error('recoverTestTem app failed.');
+  if (cmd.debug && !recoverTestTem('ios')) {
+    console.error('recoverTestTem ios failed.');
     return false;
   }
   console.log(message);
