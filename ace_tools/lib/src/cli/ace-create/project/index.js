@@ -291,6 +291,8 @@ function copyStageTemplate(templatePath, projectPath, proType, template) {
       return false;
     }
   }
+  fs.mkdirSync(path.join(projectPath, '.arkui-x'));
+  fs.writeFileSync(path.join(projectPath, '.arkui-x/arkui-x-config.json5'), fs.readFileSync(path.join(templatePath, 'arkui-x-config.json5').toString()));
   if (proType !== aceProType) {
     if (!copyAndroidiOSTemplate(templatePath, projectPath, template)) {
       return false;
