@@ -249,6 +249,14 @@ function isAppProject(projectDir) {
   return fs.readFileSync(settingsGradle).toString().includes(`include ':app'`);
 }
 
+function getAbsolutePath(str) {
+  if(path.isAbsolute(str)) {
+    return str
+  } else {
+    return path.join(process.cwd(),str);
+  }
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -261,5 +269,6 @@ module.exports = {
   getUUID,
   generateUUID,
   addFileToPbxproj,
-  isAppProject
+  isAppProject,
+  getAbsolutePath
 };
