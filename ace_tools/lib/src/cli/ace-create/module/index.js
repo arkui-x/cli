@@ -204,6 +204,13 @@ function replaceStageProfile(moduleName) {
   }
 }
 
+function updateArkUIXConfig(moduleName) {
+  const jsonFiles = path.join(projectDir, '.arkui-x/arkui-x-config.json5');
+  const arkuiJson = JSON5.parse(fs.readFileSync(jsonFiles).toString());
+  arkuiJson["modules"].push(moduleName);
+  fs.writeFileSync(jsonFiles, JSON5.stringify(arkuiJson, '', '  '));
+}
+
 function replaceStageProjectInfo(moduleName) {
   try {
     const files = [];
@@ -267,6 +274,7 @@ function replaceStageProjectInfo(moduleName) {
     if (currentSystem === 'HarmonyOS') {
       modifyHarmonyOSConfig(projectDir, moduleName);
     }
+    updateArkUIXConfig(moduleName);
     return true;
   } catch (error) {
     console.error('Replace project info error.');
