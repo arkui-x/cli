@@ -29,6 +29,7 @@ const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, is
 const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco} = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
+const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -156,6 +157,77 @@ function copyHaptoOutput(moduleListSpecified) {
   });
 }
 
+function copyBundletoBuild(moduleListSpecified) {
+  let isContinue = true;
+  const buildPath = path.join(projectDir, '.arkui-x/build/ace_assets');
+  try {
+    deleteOldFile(buildPath);
+    moduleListSpecified.forEach(module => {
+      // Now only consider one ability
+      const src = path.join(projectDir, module, 'build/default/intermediates/loader_out/default/ets');
+      const resindex = path.join(projectDir, module,
+        'build/default/intermediates/res/default/resources.index');
+      const resPath = path.join(projectDir, module, 'build/default/intermediates/res/default/resources');
+      const moduleJsonPath = path.join(projectDir, module,
+        'build/default/intermediates/res/default/module.json');
+
+      const destClassName = module;
+      const distAndroid = path.join(buildPath, 'android/', destClassName + '/ets');
+      const resindexAndroid = path.join(buildPath, 'android/', destClassName + '/resources.index');
+      const resPathAndroid = path.join(buildPath, 'android/', destClassName + '/resources');
+      const moduleJsonPathAndroid = path.join(buildPath, 'android/', destClassName + '/module.json');
+      const distIOS = path.join(buildPath, 'ios/', destClassName + '/ets');
+      const resindexIOS = path.join(buildPath, 'ios/', destClassName + '/resources.index');
+      const resPathIOS = path.join(buildPath, 'ios/', destClassName + '/resources');
+      const moduleJsonPathIOS = path.join(buildPath, 'ios/', destClassName + '/module.json');
+
+      fs.mkdirSync(distAndroid, { recursive: true });
+      isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
+      fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
+      fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
+      fs.mkdirSync(distIOS, { recursive: true });
+      isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
+      fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
+      fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
+    });
+    const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
+    const bundleSystemResPath = path.join(buildPath, 'systemres');
+    isContinue = isContinue && copy(systemResPath, bundleSystemResPath);
+    isContinue = isContinue && copyLibsToBuild(moduleListSpecified, buildPath);
+  } catch (err) {
+    console.log(`Generate build directory failed\n`, err);
+    return false;
+  }
+  console.log(`filepath: ${buildPath}`);
+  return isContinue;
+}
+
+function copyLibsToBuild(moduleListSpecified, buildPath) {
+  let isContinue = true;
+  try {
+    if (platform === Platform.MacOS) {
+      const iosFramework = path.join(projectDir, '.arkui-x/ios/frameworks');
+      deleteOldFile(iosFramework);
+      copyLibraryToProject('ios', '', projectDir, 'ios');
+      moduleListSpecified.forEach(module => {
+        isContinue = isContinue && copy(iosFramework, path.join(buildPath, `ios/${module}/framework`));
+      });
+      deleteOldFile(iosFramework);
+    }
+    const androidLib = path.join(projectDir, '.arkui-x/android/app/libs');
+    deleteOldFile(androidLib);
+    copyLibraryToProject('apk', '', projectDir, 'android');
+    moduleListSpecified.forEach(module => {
+      isContinue = isContinue && copy(androidLib, path.join(buildPath, `android/${module}/libs`));
+    });
+    deleteOldFile(androidLib);
+    return isContinue;
+  } catch (err) {
+    console.log(`copy library to build directory failed\n`, err);
+    return false;
+  }
+}
+
 function runGradle(fileType, cmd, moduleList) {
   let cmds = [`cd ${projectDir}`];
   const buildCmd = `./hvigorw`;
@@ -180,8 +252,8 @@ function runGradle(fileType, cmd, moduleList) {
     }
     cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap --no-daemon`);
     gradleMessage = 'Start building hap...';
-  } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
-    fileType === 'framework' || fileType === 'xcframework') {
+  } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework'
+    || fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
     const buildtarget = 'default@CompileArkTS';
     let testbBuildtarget = '';
     if (cmd.debug && moduleList) {
@@ -252,8 +324,6 @@ function copyStageBundleToAAR(moduleList) {
 function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
   if (readConfig()
     && writeLocalProperties()
-    // && copyStageSourceToOhos(moduleListAll, 'main')
-    // && copyTestStageSourceToOhos(moduleListAll, fileType, cmd)
     && runGradle(fileType, cmd, moduleListSpecified)
     && copyStageBundleToAndroidAndIOS(moduleListSpecified)
     && copyTestStageBundleToAndroidAndIOS(moduleListSpecified, fileType, cmd)) {
@@ -261,8 +331,11 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
       console.log(`Build hap successfully.`);
       copyHaptoOutput(moduleListSpecified);
       return true;
-    } else if (fileType === 'apk' || fileType === 'app' ||
-      fileType === 'framework' || fileType === 'xcframework') {
+    } else if (fileType === 'bundle') {
+      console.log(`Build bundle successfully.`);
+      return copyBundletoBuild(moduleListSpecified);
+    } else if (fileType === 'apk' || fileType === 'ios' ||
+      fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aab') {
       return true;
     } else if (fileType === 'aar') {
       return copyStageBundleToAAR(moduleListAll);
@@ -274,9 +347,9 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
 
 function compiler(fileType, cmd) {
   const moduleListInput = cmd.target;
-  if (platform !== Platform.MacOS &&
-  (fileType === 'app' || fileType === 'framework' || fileType === 'xcframework')) {
-    console.warn('\x1B[31m%s\x1B[0m', 'Warning: ' + `Please go to your MacOS and build ${fileType}.`);
+  if ((platform !== Platform.MacOS) &&
+    (fileType === 'ios' || fileType === 'ios-framework' || fileType === 'ios-xcframework')) {
+    console.warn('\x1B[31m%s\x1B[0m', 'Error: ' + `Please go to your MacOS and build ${fileType}.`);
     return false;
   }
   projectDir = process.cwd();
@@ -284,12 +357,12 @@ function compiler(fileType, cmd) {
     return false;
   }
   if (isAppProject(projectDir)) {
-    if (fileType === 'aar' || fileType === 'framework' || fileType === 'xcframework') {
+    if (fileType === 'aar' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
       console.warn('\x1B[31m%s\x1B[0m', `Build ${fileType} failed, current project is not library project.`);
       return false;
     }
   } else {
-    if ((fileType === 'app' || fileType === 'apk') && !isAppProject(projectDir)) {
+    if ((fileType === 'ios' || fileType === 'apk' || fileType === 'aab' || fileType === 'bundle')) {
       console.warn('\x1B[31m%s\x1B[0m', `Build ${fileType} failed, current project is not application project.`);
       return false;
     }

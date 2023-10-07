@@ -142,7 +142,7 @@ function getDeviceType(id) {
     }
   }
   if (deviceType === 'iOS') {
-    fileType = 'app';
+    fileType = 'ios';
   } else if (deviceType === 'Android') {
     fileType = 'apk';
   } else if (deviceType === 'OpenHarmony/HarmonyOS') {
@@ -157,7 +157,7 @@ function showValidDevice(fileType) {
   const devicesArr = devicesList;
   let flag = '';
   if (fileType) {
-    if (fileType === 'app') {
+    if (fileType === 'ios') {
       flag = 'iOS';
     } else if (fileType === 'apk') {
       flag = 'Android';

@@ -163,6 +163,7 @@ function cleanOutputPath() {
       const buildDir = config['build-dir'];
       removeDir(buildDir);
     }
+    removeDir(path.join(projectDir, '.arkui-x/build'));
   } catch (error) {
     console.error(error);
     return false;
@@ -176,7 +177,7 @@ function removeDir(path, ignoreDirArr, saveDirectory) {
     if (fs.existsSync(path)) {
       files = fs.readdirSync(path);
       files.forEach((file) => {
-        if (ignoreDirArr.indexOf(file) === -1) {
+        if (!ignoreDirArr || ignoreDirArr.includes(file) === -1) {
           const curPath = path + '/' + file;
           if (fs.statSync(curPath).isDirectory()) {
             removeDir(curPath, ignoreDirArr, false);

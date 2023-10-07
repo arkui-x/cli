@@ -24,8 +24,8 @@ const appCpu2SdkLibMap = {
       'release': ['android-arm-release', 'android-arm']
     },
     'x86_64': {
-      'debug': ['android-x86_64-release'],
-      'release': ['android-x86_64-release', 'android-x86_64']
+     'debug': ['android-x86_64'],
+     'release': ['android-x86_64', 'android-x86_64-release']
     }
   },
   'ios': {

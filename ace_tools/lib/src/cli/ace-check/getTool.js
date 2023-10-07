@@ -56,7 +56,7 @@ function getToolByType(fileType, currentSystem, isLogTool) {
   if (fileType === 'apk' && androidSdkDir) {
     toolPath = { 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') };
   }
-  if (fileType === 'app' && platform === Platform.MacOS) {
+  if (fileType === 'ios' && platform === Platform.MacOS) {
     if (!isLogTool) {
       toolPath = { 'ios-deploy': 'ios-deploy' };
     } else {

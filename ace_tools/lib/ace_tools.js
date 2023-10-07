@@ -236,20 +236,22 @@ function parseBuild() {
     .option('--debug', 'build as debug')
     .option('--nosign', 'build without sign')
     .option('-s | --simulator', 'build for iOS Simulator')
-    .description('build hap/apk/app/aar/framework/xcframework of moduleName')
+    .description('build hap/apk/ios/aar/ios-framework/ios-xcframework/bundle/aab/ of moduleName')
     .action((fileType, cmd) => {
-      cmd.simulator = cmd.simulator && platform === Platform.MacOS && fileType === 'app';
+      cmd.simulator = cmd.simulator && platform === Platform.MacOS && fileType === 'ios';
       if (cmd.release && cmd.debug) {
         console.log('\x1B[31m%s\x1B[0m', 'Warning: Release and debug are not allowed to exist at the same time.');
         return false;
       }
       if (fileType === 'hap' || typeof fileType === 'undefined') {
         compiler('hap', cmd);
-      } else if (fileType === 'apk' || fileType === 'app' || fileType === 'aar' ||
-        fileType === 'framework' || fileType === 'xcframework') {
+      } else if (fileType === 'bundle') {
+        compiler(fileType, cmd);
+      } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' ||
+        fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aab' ) {
         build(fileType, cmd);
       } else {
-        console.log(`Please use ace build with subcommand : hap, apk, aar, app, framework or xcframework.`);
+        console.log(`Please use ace build with subcommand : hap, apk, aar, ios, ios-framework or ios-xcframework.`);
       }
     });
 }
@@ -257,7 +259,7 @@ function parseBuild() {
 function parseInstall() {
   program.command('install [fileType]')
     .option('--target [moduleName]', 'name of module to be installed')
-    .description('install hap/apk/app on device')
+    .description('install hap/apk/ios on device')
     .action((fileType, options, cmd) => {
       options.target = options.target || 'entry';
       execCmd(fileType, options.target, cmd, install);
@@ -267,7 +269,7 @@ function parseInstall() {
 function parseUninstall() {
   program.command('uninstall [fileType]')
     .option('--bundle <bundleName>', 'bundleName to be uninstalled')
-    .description('uninstall hap/apk/app on device')
+    .description('uninstall hap/apk/ios on device')
     .action((fileType, options, cmd) => {
       if (!options.bundle) {
         console.log(`Please input bundleName with --bundle.`);
@@ -319,7 +321,7 @@ function parseTest() {
     .option('--class [class]', 'name of testClass to be test')
     .option('--timeout [timeout]', 'time of timeout to be test')
     .option('--path [path]', 'path of package to install and test directly')
-    .description(`test apk/app on device
+    .description(`test apk/ios on device
       --b                   [Test BundleName]
       --m                   [Test ModuleName]
       --unittest            [TestRunner]
@@ -341,19 +343,19 @@ function parseTest() {
         console.log("please input the correct path of install file");
         return false;
       }
-      if (fileType === 'apk' || fileType === 'app') {
+      if (fileType === 'apk' || fileType === 'ios') {
         options.test = 'test';
         options.debug = true;
         test(fileType, cmd.parent._optionValues.device, options);
       } else {
-        console.log(`Please use ace test with subcommand : apk or app.`);
+        console.log(`Please use ace test with subcommand : apk or ios.`);
       }
     });
 }
 
 function execCmd(fileType, options, cmd, func) {
-  if (fileType && fileType !== 'hap' && fileType !== 'apk' && fileType !== 'app') {
-    console.log(`Please use ace ${func.name} with subcommand : hap or apk or app.`);
+  if (fileType && fileType !== 'hap' && fileType !== 'apk' && fileType !== 'ios') {
+    console.log(`Please use ace ${func.name} with subcommand : hap or apk or ios.`);
     return false;
   } else {
     if (!cmd.parent._optionValues.device) {

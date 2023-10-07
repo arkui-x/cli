@@ -28,7 +28,7 @@ let projectRootLen = 0;
 function getSubProjectDir(fileType, projectDir) {
   if (fileType === 'apk') {
     return ['app'];
-  } else if (fileType === 'app' || fileType === 'framework' || fileType === 'xcframework') {
+  } else if (fileType === 'ios' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
     return ['ios'];
   } else if (fileType === 'aar') {
     return getAarName(projectDir);
