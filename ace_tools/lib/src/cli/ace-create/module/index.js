@@ -17,11 +17,12 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
-const { copy, modifyHarmonyOSConfig } = require('../util');
+const { copy, modifyHarmonyOSConfig, addCrosssPlatform } = require('../util');
+const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability')
 const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj,
   isAppProject } = require('../../util');
 
-let projectDir;
+const projectDir = process.cwd();
 let currentSystem;
 
 function capitalize(str) {
@@ -204,13 +205,6 @@ function replaceStageProfile(moduleName) {
   }
 }
 
-function updateArkUIXConfig(moduleName) {
-  const jsonFiles = path.join(projectDir, '.arkui-x/arkui-x-config.json5');
-  const arkuiJson = JSON5.parse(fs.readFileSync(jsonFiles).toString());
-  arkuiJson["modules"].push(moduleName);
-  fs.writeFileSync(jsonFiles, JSON5.stringify(arkuiJson, '', '  '));
-}
-
 function replaceStageProjectInfo(moduleName) {
   try {
     const files = [];
@@ -274,7 +268,6 @@ function replaceStageProjectInfo(moduleName) {
     if (currentSystem === 'HarmonyOS') {
       modifyHarmonyOSConfig(projectDir, moduleName);
     }
-    updateArkUIXConfig(moduleName);
     return true;
   } catch (error) {
     console.error('Replace project info error.');
@@ -350,11 +343,32 @@ function createStageModule(moduleList, templateDir) {
       }
     }];
     inquirer.prompt(question).then(answers => {
-      if (createStageModuleInSource(answers.moduleName, templateDir)
-        && createStageInAndroid(answers.moduleName, templateDir)
-        && createStageInIOS(answers.moduleName, templateDir)) {
-        return replaceStageProjectInfo(answers.moduleName);
-      }
+      const moduleName = answers.moduleName;
+      inquirer.prompt([{
+        name: 'cross',
+        type: 'input',
+        message: 'The module is or not cross platform (y / n):',
+        validate(val) {
+          if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
+            return 'Please enter y / n!';
+          } else {
+            return true;
+          }
+        }
+      }]).then(answers => {
+        if (answers.cross === 'y') {
+          if (createStageModuleInSource(moduleName, templateDir)
+            && createStageInAndroid(moduleName, templateDir)
+            && createStageInIOS(moduleName, templateDir)) {
+              addCrosssPlatform(projectDir, moduleName);
+            return replaceStageProjectInfo(moduleName);
+          }
+        } else {
+          if (createStageModuleInSource(moduleName, templateDir)) {
+            return replaceStageProjectInfo(moduleName);
+          }
+        }
+      });
     });
   }
 }
@@ -409,7 +423,6 @@ function replaceFileString(file, oldString, newString) {
 }
 
 function createModule() {
-  projectDir = process.cwd();
   if (!fs.existsSync(path.join(projectDir, 'hvigorw'))) {
     console.error(`Please go to project directory under ace project path and create module again.`);
     return false;
@@ -433,4 +446,74 @@ function createModule() {
   return createStageModule(moduleList, templateDir);
 }
 
-module.exports = createModule;
+function updateCrossPlatformModules(currentSystem) {
+  try {
+    const updateModuleDir = [];
+    const originDir = ['.arkui-x', '.hvigor', 'AppScope', 'entry', 'hvigor', 'oh_modules'];
+    const buildProfile = path.join(projectDir, 'build-profile.json5');
+    const moduleListAll = getModuleList(buildProfile);
+    fs.readdirSync(projectDir).forEach(dir => {
+      if (!fs.statSync(dir).isDirectory() || originDir.includes(dir) || moduleListAll.includes(dir)) return;
+      if (isModuleDir(dir)) updateModuleDir.push(dir);
+    });
+    if (updateModuleDir.length === 0) {
+      return;
+    }
+    let templateDir = path.join(__dirname, 'template');
+    if (!fs.existsSync(templateDir)) {
+      templateDir = globalThis.templatePath;
+    }
+
+    updateModuleDir.forEach(module => {
+      addCrosssPlatform(projectDir, module);
+      replaceStageProfile(module);
+      updateRuntimeOS(module, currentSystem);
+      const moduleJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, module, 'src/main/module.json5')));
+      const currentDir = path.join(projectDir, module);
+      moduleJsonInfo.module.abilities.forEach(component => {
+        createStageAbilityInIOS(module, component['name'], templateDir, currentDir);
+        createStageAbilityInAndroid(module, component['name'], templateDir, currentDir);
+      });
+    })
+  } catch (err) {
+    console.log('update cross platform modules failed')
+  }
+}
+
+function updateRuntimeOS(moduleName, currentSystem) {
+  const buildProfile = path.join(projectDir, moduleName, 'build-profile.json5');
+  const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
+  if (buildProfileInfo.targets[0].runtimeOS) {
+    delete buildProfileInfo.targets[0].runtimeOS;
+    fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
+  }
+  const configFile = [path.join(projectDir, moduleName, 'src/main/module.json5'),
+  path.join(projectDir, moduleName, 'src/ohosTest/module.json5')];
+  let deviceTypes;
+  if (currentSystem === 'OpenHarmony') {
+    deviceTypes = ['default', 'tablet'];
+  } else {
+    deviceTypes = ['phone'];
+  }
+  configFile.forEach(config => {
+    if (fs.existsSync(config)) {
+      const configFileInfo = JSON5.parse(fs.readFileSync(config));
+      configFileInfo.module['deviceTypes'] = deviceTypes;
+      fs.writeFileSync(config, JSON.stringify(configFileInfo, '', '  '));
+    }
+  });
+}
+
+function isModuleDir(dir) {
+  let isContinue = true;
+  const files = ['build-profile.json5', 'hvigorfile.ts', 'oh-package.json5', 'src/main/ets'];
+  files.forEach(file => {
+    isContinue = isContinue && fs.existsSync(path.join(projectDir, dir, file));
+  });
+  return isContinue;
+}
+
+module.exports = {
+  createModule,
+  updateCrossPlatformModules
+};

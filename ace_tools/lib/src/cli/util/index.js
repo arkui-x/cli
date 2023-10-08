@@ -257,6 +257,16 @@ function getAbsolutePath(str) {
   }
 }
 
+function getCrossPlatformModules(projectDir) {
+
+  const crossFile = path.join(projectDir, '.arkui-x/arkui-x-config.json5');
+    if (fs.existsSync(crossFile)) {
+      const crossInfo = JSON5.parse(fs.readFileSync(crossFile).toString());
+      return crossInfo.modules;
+    }
+  return [];
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -270,5 +280,6 @@ module.exports = {
   generateUUID,
   addFileToPbxproj,
   isAppProject,
-  getAbsolutePath
+  getAbsolutePath,
+  getCrossPlatformModules
 };
