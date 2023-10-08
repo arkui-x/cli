@@ -113,15 +113,13 @@ function install(fileType, device, moduleListInput, installFilePath) {
   if (!validInputDevice(device)) {
     return false;
   }
-  const app = path.join(projectDir, '.arkui-x', 'ios');
-  if (isSimulator(device)) {
-    if (!fs.existsSync(path.join(app, '.simulator'))) {
-      console.error('Please run "ace build ios -s or --simulator" to build simulator ios first');
-      return false;
+  if (fileType === 'ios'){
+    const buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build', 'app.build');
+    if (isSimulator(device) && fs.existsSync(path.join(buildDir, 'Release-iphoneos'))) {
+        console.error('Please run "ace build ios -s or --simulator" to build simulator ios first');
+        return false;
     }
-  }
-  if (fs.existsSync(path.join(app, '.simulator'))){
-    if (fileType === 'ios' && !isSimulator(device)) {
+    if (!isSimulator(device) && fs.existsSync(path.join(buildDir, 'Release-iphonesimulator'))) {
       console.error('Your app is simulator app, please run "ace build ios" to build ios first');
       return false;
     }
