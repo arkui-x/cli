@@ -25,9 +25,11 @@ const {
   copyToBuildDir
 } = require('../ace-build');
 const { copy } = require('../../ace-create/util');
-const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject } = require('../../util');
+const { updateCrossPlatformModules } = require('../../ace-create/module');
+const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
+  getCrossPlatformModules } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
-const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco} = require('../../ace-check/configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
 
@@ -254,7 +256,11 @@ function runGradle(fileType, cmd, moduleList) {
     gradleMessage = 'Start building hap...';
   } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework'
     || fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
-    const buildtarget = 'default@CompileArkTS';
+    let moduleStr = '';
+    if (moduleList) {
+      moduleStr = ' -p module=' + moduleList.join(',');
+    }
+    let buildtarget = 'default@CompileArkTS' + moduleStr;
     let testbBuildtarget = '';
     if (cmd.debug && moduleList) {
       const moduleTestStr = '-p module=' + moduleList.join('@ohosTest,') + '@ohosTest';
@@ -321,7 +327,7 @@ function copyStageBundleToAAR(moduleList) {
   return isContinue;
 }
 
-function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
+function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecified) {
   if (readConfig()
     && writeLocalProperties()
     && runGradle(fileType, cmd, moduleListSpecified)
@@ -338,7 +344,7 @@ function compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified) {
       fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aab') {
       return true;
     } else if (fileType === 'aar') {
-      return copyStageBundleToAAR(moduleListAll);
+      return copyStageBundleToAAR(crossPlatformModules);
     }
   }
   console.error(`Compile failed.`);
@@ -367,19 +373,26 @@ function compiler(fileType, cmd) {
       return false;
     }
   }
+  currentSystem = getCurrentProjectSystem(projectDir);
+  if (!currentSystem) {
+    console.error('current system is unknown.');
+    return false;
+  }
+  updateCrossPlatformModules(currentSystem);
   const settingPath = path.join(projectDir, 'build-profile.json5');
   const moduleListAll = getModuleList(settingPath);
   if (moduleListAll === null || moduleListAll.length === 0) {
     console.error('There is no module in project.');
     return false;
   }
-  currentSystem = getCurrentProjectSystem(projectDir);
-  if (!currentSystem) {
-    console.error('current system is unknown.');
+
+  const crossPlatformModules = getCrossPlatformModules(projectDir);
+  if (fileType !== 'hap' && (!crossPlatformModules || crossPlatformModules.length === 0)) {
+    console.error('There is no cross platform module in project.');
     return false;
   }
 
-  let moduleListSpecified = moduleListAll;
+  let moduleListSpecified = fileType === 'hap' ? moduleListAll : crossPlatformModules;
   if (moduleListInput && moduleListInput !== true) {
     const inputModules = moduleListInput.split(' ');
     for (let i = 0; i < inputModules.length; i++) {
@@ -393,7 +406,8 @@ function compiler(fileType, cmd) {
     }
     moduleListSpecified = inputModules;
   }
-  return compilerPackage(moduleListAll, fileType, cmd, moduleListSpecified);
+
+  return compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecified);
 }
 
 module.exports = compiler;

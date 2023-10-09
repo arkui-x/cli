@@ -18,7 +18,8 @@ const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { copy } = require('../util');
-const { getModuleList, getModuleAbilityList, addFileToPbxproj, isAppProject } = require('../../util');
+const { getModuleList, getModuleAbilityList, addFileToPbxproj, isAppProject,
+  getCrossPlatformModules } = require('../../util');
 
 let currentDir;
 
@@ -260,6 +261,7 @@ function createAbility() {
   }
   const templateDir = getTemplatePath();
   const moduleAbilityList = getModuleAbilityList(path.join(currentDir, '../'), moduleListForAbility);
+  const crossPlatformModules = getCrossPlatformModules(path.join(currentDir, '../'));
   const question = [{
     name: 'abilityName',
     type: 'input',
@@ -275,11 +277,15 @@ function createAbility() {
   }];
   inquirer.prompt(question).then(answers => {
     if (createInSource(answers.abilityName + 'Ability', templateDir) &&
-    updateManifest(answers.abilityName + 'Ability') &&
-    createStageAbilityInAndroid(path.basename(currentDir), answers.abilityName + 'Ability',
-      path.join(templateDir, '../../../../../../../'), currentDir) &&
-      createStageAbilityInIOS(path.basename(currentDir), answers.abilityName + 'Ability',
-        path.join(templateDir, '../../../../../../../'), currentDir)) {
+      updateManifest(answers.abilityName + 'Ability')) {
+      if (crossPlatformModules.includes(path.basename(currentDir))) {
+        if (createStageAbilityInAndroid(path.basename(currentDir), answers.abilityName + 'Ability',
+          path.join(templateDir, '../../../../../../../'), currentDir) &&
+          createStageAbilityInIOS(path.basename(currentDir), answers.abilityName + 'Ability',
+            path.join(templateDir, '../../../../../../../'), currentDir)) {
+          return true;
+        }
+      }
       return true;
     }
   });

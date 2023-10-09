@@ -150,11 +150,38 @@ function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project) 
   }
 }
 
+function addCrosssPlatform(projectPath, module) {
+  try {
+    if (!fs.existsSync(path.join(projectPath, '.arkui-x'))) {
+      fs.mkdirSync(path.join(projectPath, '.arkui-x'), { recursive: true });
+    }
+    const crossFile = path.join(projectPath, '.arkui-x/arkui-x-config.json5');
+    if (fs.existsSync(crossFile)) {
+      const crossInfo = JSON5.parse(fs.readFileSync(crossFile).toString());
+      if (!crossInfo.modules.includes(module)) {
+        crossInfo.modules.push(module);
+      }
+      fs.writeFileSync(crossFile, JSON.stringify(crossInfo, '', '  '));
+    } else {
+      const data = `{
+  "crossplatform": true,
+  "modules": [
+    "${module}",
+  ]
+}`;
+      fs.writeFileSync(crossFile, data);
+    }
+  } catch (err) {
+    console.log('add cross platform failed\n', err)
+  }
+}
+
 module.exports = {
   copy,
   rmdir,
   createPackageFile,
   replaceInfo,
   modifyHarmonyOSConfig,
-  modifyNativeCppConfig
+  modifyNativeCppConfig,
+  addCrosssPlatform
 };
