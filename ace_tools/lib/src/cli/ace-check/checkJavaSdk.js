@@ -17,10 +17,27 @@ const fs = require('fs');
 const path = require('path');
 
 const { Platform, platform } = require('./platform');
+const { getConfig } = require('../ace-config');
 const Process = require('child_process');
 
 function getJavaSdkDirInEnv() {
   const environment = process.env;
+  const config = getConfig();
+  if (config && config['java-sdk']){
+    if (platform === Platform.Windows) {
+      if (fs.existsSync(path.join(config['java-sdk'], 'bin', 'java.exe'))) {
+        return config['java-sdk'];
+      }
+    } else if (platform === Platform.Linux) {
+      if (fs.existsSync(path.join(config['java-sdk'], 'bin', 'java'))) {
+        return config['java-sdk'];
+      }
+    } else if (platform === Platform.MacOS) {
+      if (fs.existsSync(path.join(config['java-sdk'], 'bin', 'java'))) {
+        return config['java-sdk'];
+      }
+    }
+  }
   if (platform === Platform.Windows) {
     if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java.exe'))) {
       return environment['JAVA_HOME'];
