@@ -80,7 +80,13 @@ function getConfig() {
 }
 
 function arkUIXSdkPathCheck(sdkPath, info) {
-  let candidatePath = path.join(sdkPath, '10', 'arkui-x');
+  const dirs = fs.readdirSync(sdkPath).filter((file) => {
+    return fs.statSync(path.join(sdkPath, file)).isDirectory() && file !== 'licenses';
+  });
+  const maxDir = dirs.reduce((prev, next) => {
+    return Math.max(prev, next);
+  }, 0);
+  let candidatePath = path.join(sdkPath, String(maxDir), 'arkui-x');
   if (!fs.existsSync(candidatePath)) {
     if (info) {
       info.push(`The ArkUI-X Sdk path you configured "${sdkPath}" is incorrect,please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
