@@ -309,6 +309,7 @@ function parseConfig() {
         --android-studio-path [Android Studio Path]
         --build-dir           [Build Dir]
         --nodejs-dir          [Nodejs Dir]
+        --java-sdk            [Java Sdk]
         --arkui-x-sdk         [ArkUI-X SDK]
         --ohpm-dir            [Ohpm Dir]`);
       }
