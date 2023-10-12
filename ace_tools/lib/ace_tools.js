@@ -343,7 +343,7 @@ Available subcommands:
     buildType
       .option('-r --release', 'Build a release version of your app.')
       .option('--debug', 'Build a debug version of your app.');
-    if (fileType === 'ios') {
+    if (fileType === 'ios' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
       buildType
         .option('--nosign', 'build without sign')
         .option('-s | --simulator', 'build for iOS Simulator');
@@ -354,7 +354,7 @@ Available subcommands:
     }
     buildType
       .action((cmd) => {
-        cmd.simulator = cmd.simulator && platform === Platform.MacOS && fileType === 'ios';
+        cmd.simulator = cmd.simulator && platform === Platform.MacOS;
         if (cmd.release && cmd.debug) {
           console.log('\x1B[31m%s\x1B[0m', 'Warning: Release and debug are not allowed to exist at the same time.');
           return false;
