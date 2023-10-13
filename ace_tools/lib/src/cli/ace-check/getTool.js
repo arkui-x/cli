@@ -154,11 +154,11 @@ function getOhpmTools() {
 
 // get android decompilation tool aapt2
 function getAapt2() {
-  androidSdkBuildToolsPath = path.join(androidSdkDir, 'build-tools');
+  const androidSdkBuildToolsPath = path.join(androidSdkDir, 'build-tools');
   if (fs.existsSync(androidSdkBuildToolsPath)) {
     const androidSdkBuildTools = fs.readdirSync(androidSdkBuildToolsPath);
     for (let i = 0; i < androidSdkBuildTools.length; i++) {
-      aapt2Dir = path.join(androidSdkBuildToolsPath, androidSdkBuildTools[i], 'aapt2')
+      const aapt2Dir = path.join(androidSdkBuildToolsPath, androidSdkBuildTools[i], 'aapt2')
       if (platform === Platform.Windows && fs.existsSync(aapt2Dir + '.exe')) {
         return aapt2Dir;
       }
