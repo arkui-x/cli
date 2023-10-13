@@ -34,30 +34,17 @@ const run = require('./src/cli/ace-run');
 const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
 const { getAbsolutePath } = require('./src/cli/util');
-const help = require('./src/cli/ace-help');
+const { help, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
 const commandsSort = {
-  'Environment': [],
-  'Device': [],
-  'Project': [],
   'Application': [],
-  'Auxiliary': []
+  'Device': [],
+  'Environment': [],
+  'Project': [],
 };
-
-function unknownOptions() {
-  const unknownOption = program.args.filter(arg => arg.startsWith('-'));
-  console.log('\x1B[31m%s\x1B[0m', `Could not find an option with short name "${unknownOption}"\n\n`);
-  console.log('\x1B[31m%s\x1B[0m', `Run 'ace -h' (or 'ace <command> -h') for available ace commands and options`);
-  process.exit(1);
-}
-
-function unknownCommands(unknownCommand) {
-  console.log('\x1B[31m%s\x1B[0m', `Could not find a command named "${unknownCommand}"\n\n`);
-  console.log('\x1B[31m%s\x1B[0m', `Run 'ace -h' (or 'ace <command> -h') for available ace commands and options`);
-  process.exit(1);
-}
+const subCommands = ['apk', 'hap', 'ios'];
 
 parseCommander();
 function parseCommander() {
@@ -69,49 +56,37 @@ function parseCommander() {
     `
 Common commands:
 
-  ArkUI create [options] [subcommand]
+  ace create <output directory>
   Create a new ArkUI project in the specified directory.
 
-  ArkUI run [options] [fileType]
+  ace run [fileType] [options]
   Run your ArkUI application on an attached device or in an emulator.
     `);
 
   program.version(require('../package').version);
   program.usage('<command> [options]').name('ace').addHelpCommand(false);
-  program.option('-d, --device <device>', 'input device id to specify the device to do something');
+  program.option('-d, --device <device>', 'Input device id to specify the device to do something.');
 
   program.unknownOption = () => unknownOptions();
   program.on('command:*', unknownCommand => unknownCommands(unknownCommand));
 
-
-  parseCreate();
-  parseNew();
-  parseCheck();
-  parseDevices();
-  parseConfig();
   parseBuild();
+  parseCheck();
+  parseClean();
+  parseConfig();
+  parseCreate();
+  parseDevices();
   parseInstall();
-  parseUninstall();
-  parseRun();
   parseLaunch();
   parseLog();
-  parseClean();
+  parseNew();
+  parseRun();
   parseTest();
+  parseUninstall();
 
   const userInputCommand = process.argv.slice(2);
   if (userInputCommand.length === 0 || userInputCommand[0] === '--help' || userInputCommand[0] === '-h') {
-    if (userInputCommand.length < 2) {
-      program.outputHelp(() => help(commandsSort));
-    } else {
-      if (program.args.filter(arg => arg.startsWith('-'))) {
-        console.log('\x1B[31m%s\x1B[0m', `Could not find an option with short name "${process.argv.slice(2)}"\n\n`);
-        console.log('\x1B[31m%s\x1B[0m', `Run 'ace -h' (or 'ace <command> -h') for available ace commands and options`);
-      } else {
-        console.log('\x1B[31m%s\x1B[0m', `Could not find a command named "${process.argv.slice(2)}"\n\n`);
-        console.log('\x1B[31m%s\x1B[0m', `Run 'ace -h' (or 'ace <command> -h') for available ace commands and options`);
-      }
-      process.exit(1);
-    }
+    program.outputHelp(() => help(commandsSort));
   } else {
     program.addHelpText("afterAll", `\nRun "ace --help" to see global options.`);
     program.parse(process.argv);
@@ -136,12 +111,12 @@ function isBundleNameValid(name) {
 
 function parseCreate() {
   program.command('create [outputDir]', { hidden: true })
-    .option('-t | --template [type]', 'project type')
+    .option('-t, --template <type>', '[app (default), library, plugin_napi]')
     .description(`Create a new ArkUI project.`)
     .usage('<output directory>')
     .action((outputDir, cmd) => {
       if (outputDir === undefined) {
-        console.log('No option specified for the output directory');
+        console.log('No option specified for the output directory.');
         return;
       }
       const initInfo = {};
@@ -155,7 +130,7 @@ function parseCreate() {
         initInfo.proType = '1';
         initInfo.template = '2';
       } else {
-        console.log(`create project failed.template option does not support the value of ${cmd.template}.\nPlease choose one of app/library/plugin_napi `);
+        console.log(`Create project failed. template option does not support the value of ${cmd.template}.\nPlease choose one of app/library/plugin_napi.`);
         return;
       }
       outputDir = getAbsolutePath(outputDir);
@@ -221,16 +196,14 @@ function parseCreate() {
 
 function parseNew() {
   const newCmd = program.command('new', { hidden: true })
-    .description(`Create a new ability/module to your project.`)
+    .description(`Create a new ability or module to your project.`)
     .addHelpCommand(false)
-    .usage('[subcommand]')
+    .usage('<subcommand>')
     .on('--help', () => {
-      if (process.argv[3] === '--help' || process.argv[3] === '-h' || process.argv.length === 3) {
-        console.log(`
+      console.log(`
 Available subcommands:
-  module                 Create a new module.
-  ability                Create a new ability.`);
-      }
+  ability                Create a new ability.
+  module                 Create a new module.`);
     });
   const newArgs = ['ability', 'module'];
   newArgs.forEach(subcommand => {
@@ -252,7 +225,7 @@ Available subcommands:
 
 function parseCheck() {
   program.command('check', { hidden: true })
-    .option('-v|--v', 'show details')
+    .option('-v, --v', 'Show details')
     .description(`Show information about the installed tooling.`)
     .action((cmd) => {
       check(cmd);
@@ -321,36 +294,34 @@ function parseConfig() {
 function parseBuild() {
   const buildCmd = program.command('build', { hidden: true })
     .addHelpCommand(false)
-    .usage('[subcommand] [options] ')
+    .usage('<subcommand> [options] ')
     .description(`Build an executable app or install bundle.`)
     .on('--help', () => {
-      if (process.argv[3] === '--help' || process.argv[3] === '-h' || process.argv.length === 3) {
-        console.log(`
+      console.log(`
 Available subcommands:
+  aab                    Build an Android APP Bundle file from your app.
   aar                    Build a repository containing an AAR and a POM file.
-  aab                    Build an Android App Bundle file from your app.
   apk                    Build an Android APK file from your app.
   bundle                 Build the ArkUI assets directory from your app.
   hap                    Build a HarmonyOS/Openharmony Hap file from your app.
   ios                    Build an iOS APP file from your app.
   ios-framework          Build an iOS framework.
   ios-xcframework        Build an iOS xcframework.`);
-      }
     });
   const buildArgs = ['aab', 'aar', 'apk', 'bundle', 'hap', 'ios', 'ios-framework', 'ios-xcframework'];
   buildArgs.forEach(fileType => {
     const buildType = buildCmd.command(fileType, { hidden: true });
     buildType
-      .option('-r --release', 'Build a release version of your app.')
+      .option('-r, --release', 'Build a release version of your app.')
       .option('--debug', 'Build a debug version of your app.');
     if (fileType === 'ios' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
       buildType
-        .option('--nosign', 'build without sign')
-        .option('-s | --simulator', 'build for iOS Simulator');
+        .option('--nosign', 'Build without sign.')
+        .option('-s, --simulator', 'Build for iOS Simulator.');
     }
     if (fileType === 'hap') {
       buildType
-        .option('--target [moduleName]', 'name of module to be built');
+        .option('--target [moduleName]', 'Name of module to be built.');
     }
     buildType
       .action((cmd) => {
@@ -376,14 +347,14 @@ Available subcommands:
 function parseInstall() {
   program.command('install [fileType]', { hidden: true })
     .usage('[subcommand]')
-    .option('--target [moduleName]', 'name of module to be installed')
+    .option('--target [moduleName]', 'Name of module to be installed.')
     .description(`Install an ArkUI app on an attached device.`)
     .on('--help', () => {
-      if (process.argv[3] === '--help' || process.argv[3] === '-h') {
+      if (process.argv[3] === '--help' || process.argv[3] === '-h' || !subCommands.some(sub => process.argv.includes(sub))) {
         console.log(`
 Available subcommands:
-  hap                    Install a HarmonyOS/openharmony HAP on an attached device.
   apk                    Install an Android APK on an attached device.
+  hap                    Install a HarmonyOS/openharmony HAP on an attached device.
   ios                    Install an iOS APP on an attached device.`);
       }
     })
@@ -398,14 +369,14 @@ Available subcommands:
 function parseUninstall() {
   program.command('uninstall [fileType]', { hidden: true })
     .usage('[subcommand]')
-    .option('--bundle <bundleName>', 'bundleName to be uninstalled')
+    .option('--bundle <bundleName>', 'BundleName to be uninstalled.')
     .description(`Uninstall an ArkUI app on an attached device.`)
     .on('--help', () => {
-      if (process.argv[3] === '--help' || process.argv[3] === '-h') {
+      if (process.argv[3] === '--help' || process.argv[3] === '-h' || !subCommands.some(sub => process.argv.includes(sub))) {
         console.log(`
 Available subcommands:
-  hap                    Uninstall a HarmonyOS/Openharmony HAP  an attached device.
   apk                    Uninstall an Android APK an attached device.
+  hap                    Uninstall a HarmonyOS/Openharmony HAP an attached device.
   ios                    Uninstall an iOS APP an attached device.`);
       }
     })
@@ -424,13 +395,13 @@ function parseRun() {
   program.command('run [fileType]', { hidden: true })
     .usage('[subcommand]')
     .description(`Run your ArkUI app on an attached device.`)
-    .option('--target [moduleName]', 'name of module to be installed')
+    .option('--target [moduleName]', 'Name of module to be installed.')
     .on('--help', () => {
       if (process.argv[3] === '--help' || process.argv[3] === '-h') {
         console.log(`
 Available subcommands:
-  hap                    Run a HarmonyOS/Openharmony HAP to your device.
   apk                    Run an Android APK to your device.
+  hap                    Run a HarmonyOS/Openharmony HAP to your device.
   ios                    Run an iOS APP to your device.`);
       }
     })
@@ -444,15 +415,15 @@ Available subcommands:
 function parseLaunch() {
   program.command('launch [fileType]', { hidden: true })
     .usage('[subcommand]')
-    .option('--target [moduleName]', 'name of module to be launched')
+    .option('--target [moduleName]', 'Name of module to be launched.')
     .description(`Launch  your ArkUI app on an attached device.`)
     .on('--help', () => {
-      if (process.argv[3] === '--help' || process.argv[3] === '-h') {
+      if (process.argv[3] === '--help' || process.argv[3] === '-h' || !subCommands.some(sub => process.argv.includes(sub))) {
         console.log(`
 Available subcommands:
-  hap                    Run a HarmonyOS/Openharmony HAP to your device.
-  apk                    Run an Android APK to your device.
-  ios                    Run an iOS APP to your device.`);
+  apk                    Launch an Android APK to your device.
+  hap                    Launch a HarmonyOS/Openharmony HAP to your device.
+  ios                    Launch an iOS APP to your device.`);
       }
     })
     .action((fileType, options, cmd) => {
@@ -468,11 +439,11 @@ function parseLog() {
     .usage('[subcommand]')
     .description(`Show log output for running ArkUI apps.`)
     .on('--help', () => {
-      if (process.argv[3] === '--help' || process.argv[3] === '-h') {
+      if (process.argv[3] === '--help' || process.argv[3] === '-h' || !subCommands.some(sub => process.argv.includes(sub))) {
         console.log(`
 Available subcommands:
-  hap                    Show log output for running HAP.
   apk                    Show log output for running APK.
+  hap                    Show log output for running HAP.
   ios                    Show log output for running APP.`);
       }
     })
@@ -496,20 +467,20 @@ function parseClean() {
 function parseTest() {
   program.command('test [fileType]', { hidden: true })
     .usage('[subcommand] [options] ')
-    .option('--target [moduleName]', 'name of module to be installed')
-    .option('--b [bundleName]', 'name of bundleName to be test')
-    .option('--m [testModuleName]', 'name of moduleName to be test')
-    .option('--unittest [testRunner]', 'name of testRunner to be test')
-    .option('--class [class]', 'name of testClass to be test')
-    .option('--timeout [timeout]', 'time of timeout to be test')
-    .option('--path [path]', 'path of package to install and test directly')
+    .option('--target [moduleName]', 'Name of module to be installed.')
+    .option('--b [bundleName]', 'Name of bundleName to be test.')
+    .option('--m [testModuleName]', 'Name of moduleName to be test.')
+    .option('--unittest [testRunner]', 'Name of testRunner to be test.')
+    .option('--class [class]', 'Name of testClass to be test.')
+    .option('--timeout [timeout]', 'Time of timeout to be test.')
+    .option('--path [path]', 'Path of package to install and test directly.')
     .description(`Run ArkUI unit tests for the current project.`)
     .on('--help', () => {
-      if (process.argv[3] === '--help' || process.argv[3] === '-h') {
+      if (process.argv[3] === '--help' || process.argv[3] === '-h' || !['apk', 'ios'].some(sub => process.argv.includes(sub))) {
         console.log(`
-  Available subcommands:
-    apk                    Run APK unit tests for the current project.
-    ios                    Run APP unit tests for the current project.`);
+Available subcommands:
+  apk                    Run APK unit tests for the current project.
+  ios                    Run APP unit tests for the current project.`);
       }
     })
     .action((fileType, options, cmd) => {
@@ -543,8 +514,8 @@ function parseTest() {
 
 function execCmd(fileType, options, cmd, func) {
   if (fileType && fileType !== 'hap' && fileType !== 'apk' && fileType !== 'ios') {
-    console.log('\x1B[31m%s\x1B[0m', `Could not find a command named "${process.argv.slice(3)}"\n\n`);
-    console.log('\x1B[31m%s\x1B[0m', `Run 'ace -h' (or 'ace <command> -h') for available ace commands and options`);
+    console.log('\x1B[31m%s\x1B[0m', `Could not find a command named "${process.argv.slice(3)}".\n\n`);
+    console.log('\x1B[31m%s\x1B[0m', `Run 'ace [command] --help' for available ace commands and options.`);
     return false;
   } else {
     if (!cmd.parent._optionValues.device) {
