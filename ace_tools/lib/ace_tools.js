@@ -159,7 +159,7 @@ function parseCreate() {
         return;
       }
       outputDir = getAbsolutePath(outputDir);
-      projectName = path.basename(outputDir);
+      const projectName = path.basename(outputDir);
 
       inquirer.prompt([{
         name: 'project',
