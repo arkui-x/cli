@@ -80,9 +80,12 @@ function getConfig() {
 }
 
 function arkUIXSdkPathCheck(sdkPath, info) {
-  const dirs = fs.readdirSync(sdkPath).filter((file) => {
-    return fs.statSync(path.join(sdkPath, file)).isDirectory() && file !== 'licenses';
-  });
+  const dirs = ['10'];
+  if (fs.existsSync(sdkPath)) {
+    dirs.push(...(fs.readdirSync(sdkPath).filter((file) => {
+      return fs.statSync(path.join(sdkPath, file)).isDirectory() && file !== 'licenses' && !isNaN(file);
+    })));
+  }
   const maxDir = dirs.reduce((prev, next) => {
     return Math.max(prev, next);
   }, 0);
