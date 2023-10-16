@@ -467,13 +467,14 @@ function parseClean() {
 function parseTest() {
   program.command('test [fileType]', { hidden: true })
     .usage('[subcommand] [options] ')
-    .option('--target [moduleName]', 'Name of module to be installed.')
-    .option('--b [bundleName]', 'Name of bundleName to be test.')
-    .option('--m [testModuleName]', 'Name of moduleName to be test.')
-    .option('--unittest [testRunner]', 'Name of testRunner to be test.')
-    .option('--class [class]', 'Name of testClass to be test.')
-    .option('--timeout [timeout]', 'Time of timeout to be test.')
-    .option('--path [path]', 'Path of package to install and test directly.')
+    .option('--target [moduleName]', 'name of module to be installed')
+    .option('--b [bundleName]', 'name of bundleName to be test')
+    .option('--m [testModuleName]', 'name of moduleName to be test')
+    .option('--unittest [testRunner]', 'name of testRunner to be test')
+    .option('--class [class]', 'name of testClass to be test')
+    .option('--timeout [timeout]', 'time of timeout to be test')
+    .option('--skipInstall', 'to skip install and test directly only if the app has been installed')
+    .option('--path [path]', 'path of package to install and test directly')
     .description(`Run ArkUI unit tests for the current project.`)
     .on('--help', () => {
       if (process.argv[3] === '--help' || process.argv[3] === '-h' || !['apk', 'ios'].some(sub => process.argv.includes(sub))) {

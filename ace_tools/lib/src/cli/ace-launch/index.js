@@ -18,7 +18,7 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const JSON5 = require('json5');
 const { log, getBundleName } = require('../ace-log');
-const { getToolByType, getAapt2 } = require('../ace-check/getTool');
+const { getToolByType, getAapt } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 let bundleName;
@@ -120,13 +120,18 @@ function getNamesAppByInstallFile(installFilePath) {
 
 function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
   try {
-    let aapt2 = getAapt2();
-    if (aapt2 === '') {
+    let aapt = getAapt();
+    if (aapt === '') {
       console.error('Can not get aapt from anfroid build tools. ');
       return false;
     }
-    const getPackageNameCmd = `${aapt2} dump packagename ${installFilePath}`;
-    packageName = exec(`${getPackageNameCmd}`, { encoding: 'utf8' }).trim();
+    const getPackageNameCmd = `${aapt} dump badging ${installFilePath}`;
+    apkData = exec(`${getPackageNameCmd}`, { encoding: 'utf8' }).trim().split('\n');
+    apkData.forEach(element => {
+      if (element.indexOf(`package: name=`) !== -1) {
+        packageName = element.split("'")[1];
+      }
+    });
     bundleName = apkBundleName;
     androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
       return l.toUpperCase();

@@ -227,6 +227,7 @@ function isInstallFileExist(fileType, installFilePath) {
       console.error(`Install file not found.`);
       return false;
     }
+    fileType = fileType == 'ios' ? 'app' : fileType;
     if (path.extname(installFilePath).toLowerCase() !== `.${fileType}`) {
       console.error(`Install file is not match to file type`);
       return false;

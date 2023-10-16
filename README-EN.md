@@ -393,6 +393,7 @@ ace run [options] [fileType]
 | --m [testModuleName] | Specifies the Test ModuleName on which the ArkUI-X application excute. |
 | --unittest [testRunner] | Specifies the Test testRunner on which the ArkUI-X application excute. |
 | --timeout [timeout] | Specifies the timeout on which the ArkUI-X application excute. |
+| --skipInstall | Skip install only if app/apk has been installed.（Still rely on the app/apk package, If 'path' is specified, use the app/apk package specified by 'path'. Otherwise, use the app/apk package in default path）|
 | --path [path] | Specifies the path of package to install and test directly. |
 
 - fileType

@@ -32,6 +32,13 @@ function test(fileType, device, cmd) {
     console.error('Simulator does not support testing ios');
     return false;
   }
+  if(cmd.skipInstall){
+    if(launch(fileType, device, cmd)){
+      return true;
+    }
+    console.error('Skip install and test failed.');
+    return false;
+  }
   if (cmd.path) {
     if (!isInstallFileExist(fileType, cmd.path)) {
       return false;
