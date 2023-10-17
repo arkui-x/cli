@@ -152,18 +152,18 @@ function getOhpmTools() {
   return path.join(ohpmDir, 'bin', 'ohpm');
 }
 
-// get android decompilation tool aapt2
-function getAapt2() {
+// get android decompilation tool aapt
+function getAapt() {
   const androidSdkBuildToolsPath = path.join(androidSdkDir, 'build-tools');
   if (fs.existsSync(androidSdkBuildToolsPath)) {
-    const androidSdkBuildTools = fs.readdirSync(androidSdkBuildToolsPath);
+    let androidSdkBuildTools = fs.readdirSync(androidSdkBuildToolsPath);
     for (let i = 0; i < androidSdkBuildTools.length; i++) {
-      const aapt2Dir = path.join(androidSdkBuildToolsPath, androidSdkBuildTools[i], 'aapt2')
-      if (platform === Platform.Windows && fs.existsSync(aapt2Dir + '.exe')) {
-        return aapt2Dir;
+      const aaptDir = path.join(androidSdkBuildToolsPath, androidSdkBuildTools[i], 'aapt')
+      if (platform === Platform.Windows && fs.existsSync(aaptDir + '.exe')) {
+        return aaptDir;
       }
-      if (platform !== Platform.Windows && fs.existsSync(aapt2Dir)) {
-        return aapt2Dir;
+      if (platform !== Platform.Windows && fs.existsSync(aaptDir)) {
+        return aaptDir;
       }
     }
     return '';
@@ -174,5 +174,5 @@ module.exports = {
   getTools,
   getToolByType,
   getOhpmTools,
-  getAapt2
+  getAapt
 };
