@@ -386,10 +386,9 @@ function compiler(fileType, cmd) {
     return false;
   }
 
-  const crossPlatformModules = getCrossPlatformModules(projectDir);
+  let crossPlatformModules = getCrossPlatformModules(projectDir);
   if (fileType !== 'hap' && (!crossPlatformModules || crossPlatformModules.length === 0)) {
-    console.error('There is no cross platform module in project.');
-    return false;
+    crossPlatformModules = moduleListAll;
   }
 
   let moduleListSpecified = fileType === 'hap' ? moduleListAll : crossPlatformModules;
