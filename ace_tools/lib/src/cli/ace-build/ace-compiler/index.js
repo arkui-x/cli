@@ -207,22 +207,31 @@ function copyBundletoBuild(moduleListSpecified) {
 function copyLibsToBuild(moduleListSpecified, buildPath) {
   let isContinue = true;
   try {
+    fs.mkdirSync(path.join(buildPath, 'android/library'), { recursive: true });
+    fs.mkdirSync(path.join(buildPath, 'ios/library'), { recursive: true });
     if (platform === Platform.MacOS) {
       const iosFramework = path.join(projectDir, '.arkui-x/ios/frameworks');
-      deleteOldFile(iosFramework);
       copyLibraryToProject('ios', '', projectDir, 'ios');
       moduleListSpecified.forEach(module => {
-        isContinue = isContinue && copy(iosFramework, path.join(buildPath, `ios/${module}/framework`));
+        isContinue = isContinue && copy(iosFramework,
+          path.join(buildPath, `ios/${module}/framework`), 'libarkui_ios.xcframework');
       });
-      deleteOldFile(iosFramework);
+      isContinue = isContinue && copy(path.join(iosFramework, 'libarkui_ios.xcframework'),
+        path.join(buildPath, 'ios/library/libarkui_ios.xcframework'));
     }
     const androidLib = path.join(projectDir, '.arkui-x/android/app/libs');
-    deleteOldFile(androidLib);
     copyLibraryToProject('apk', '', projectDir, 'android');
     moduleListSpecified.forEach(module => {
-      isContinue = isContinue && copy(androidLib, path.join(buildPath, `android/${module}/libs`));
+      isContinue = isContinue && copy(androidLib,
+        path.join(buildPath, `android/${module}/libs`), 'libarkui_android.so');
     });
-    deleteOldFile(androidLib);
+    ['arm64-v8a', 'armeabi-v7a', 'x86_64'].forEach(item => {
+      if (fs.existsSync(path.join(androidLib, item, 'libarkui_android.so'))) {
+        fs.mkdirSync(path.join(buildPath, 'android/library', item), { recursive: true });
+        fs.copyFileSync(path.join(androidLib, item, 'libarkui_android.so'),
+          path.join(buildPath, 'android/library', item, 'libarkui_android.so'));
+      }
+    });
     return isContinue;
   } catch (err) {
     console.log(`copy library to build directory failed\n`, err);

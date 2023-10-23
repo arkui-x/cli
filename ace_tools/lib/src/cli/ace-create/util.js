@@ -40,9 +40,9 @@ function rmdir(filePath) {
   }
 }
 
-function copy(src, dst) {
+function copy(src, dst, excludefile) {
   const paths = fs.readdirSync(src).filter(item => {
-    return item.substring(0, 1) !== '.';
+    return (item.substring(0, 1) !== '.' && item !== excludefile);
   });
   paths.forEach(newpath => {
     const srcEle = path.join(src, newpath);
@@ -57,7 +57,7 @@ function copy(src, dst) {
       if (!fs.existsSync(dstEle)) {
         fs.mkdirSync(dstEle, { recursive: true });
       }
-      copy(srcEle, dstEle);
+      copy(srcEle, dstEle, excludefile);
     }
   });
   return true;
