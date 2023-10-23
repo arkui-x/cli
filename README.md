@@ -7,7 +7,7 @@ ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工�
 
 图1 ACE Tools命令行工具模块结构
 
-![](figures/cli.jpg)
+![](figures/cli.png)
 
 命令行各平台使用不同脚本文件做为入口，再通过Node.js执行到ace_tools.js文件，使用npm模块commander解析命令行执行各子模块导出的方法。
 
@@ -40,7 +40,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
     ├── ets_stage               # Stage开发模板
     ├── framework               # framework工程模板
     ├── ios                     # iOS工程模板
-    ├── ohos_stage              # ohos Stage工程模板
+    └── ohos_stage              # ohos Stage工程模板
 
 ```
 
@@ -53,21 +53,22 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 语法：
 
 ```shell
-ace config [options] <path>
+ace config [arguments]
 ```
+- arguments
 
-| 参数          | 说明                |
+| 参数    | 说明                |
 | ------------- | ------------------- |
-| --openharmony-sdk | OpenHarmony SDK路径。 |
-| --harmonyos-sdk | HarmonyOS SDK路径。 |
 | --android-sdk | Android SDK路径。    |
-| --nodejs-dir  | Node.js 路径。        |
+| --android-studio-path | Android Studio安装路径（可选参数）。 |
+| --arkui-x-sdk | ArkUI-X SDK路径。 |
 | --build-dir   | 编译输出的路径。     |
 | --deveco-studio-path | DevEco Studio安装路径（可选参数）。 |
-| --android-studio-path | Android Studio安装路径（可选参数）。 |
+| --harmonyos-sdk | HarmonyOS SDK路径。 |
 | --java-sdk | JDK路径。 |
-| --arkui-x-sdk | ArkUI-X SDK路径 |
-| --ohpm-dir  | Ohpm路径 |
+| --nodejs-dir  | Node.js 路径。        |
+| --ohpm-dir  | Ohpm路径。 |
+| --openharmony-sdk | OpenHarmony SDK路径。 |
 
 ### ace check
 
@@ -77,31 +78,34 @@ ace config [options] <path>
 
 | 检查内容         | 说明                         | Windows | Linux | Mac  |
 | ---------------- | ---------------------------- | ------- | ----- | ---- |
-| Node.js           | Node.js 路径                  | 是      | 是    | 是   |
-| OpenHarmony SDK  | OpenHarmony SDK路径          | 是      | 是    | 是   |
-| HarmonyOS SDK    | HarmonyOS SDK路径          | 是      | 是    | 是   |
+| adb | Android设备调试工具 | 是 | 是 | 是 |
 | Android SDK      | Android SDK路径              | 是      | 是    | 是   |
-| DevEco Studio    | DevEco Studio安装路径        | 是      | 否    | 是   |
 | Android Studio   | Android Studio安装路径       | 是      | 是    | 是   |
-| 连接设备         | 当前连接的所有设备           | 是      | 是    | 是   |
-| Xcode            | 当前Xcode的版本号            | 否      | 否    | 是   |
-| libimobiledevice | 当前libimobiledevice的版本号 | 否      | 否    | 是   |
-| ios-deploy       | 当前ios-deploy的版本号       | 否      | 否    | 是   |
 | ArkUI-X SDK      | ArkUI-X SDK路径             | 是      | 是     | 是 |
-| ohpm             | ohpm路径                    | 是      | 是     | 是 |
+| DevEco Studio    | DevEco Studio安装路径        | 是      | 否    | 是   |
+| HarmonyOS hdc | HarmonyOS设备调试工具 | 是 | 是 | 是 |
+| HarmonyOS SDK    | HarmonyOS SDK路径          | 是      | 是    | 是   |
+| ios-deploy       | 当前ios-deploy的版本号       | 否      | 否    | 是   |
+| libimobiledevice | 当前libimobiledevice的版本号 | 否      | 否    | 是   |
+| Node.js           | Node.js 路径                  | 是      | 是    | 是   |
+| Ohpm            | Ohpm路径                   | 是      | 是     | 是 |
+| OpenHarmony hdc | OpenHarmony调试工具 | 是 | 是 | 是 |
+| OpenHarmony SDK  | OpenHarmony SDK路径          | 是      | 是    | 是   |
+| Xcode            | 当前Xcode的版本号            | 否      | 否    | 是   |
+| 连接设备         | 当前连接的所有设备           | 是      | 是    | 是   |
 
 语法：
 
 ```shell
-ace check
+ace check [arguments]
 ```
 
-- options
+- arguments
 
-| 子命令                | 说明                                       |
-| --------------------- | ------------------------------------------ |
-| -v                    | 显示详细结果                   |
-| -h --help             | 显示帮助信息。                             |
+| 参数      | 说明           |
+| --------- | -------------- |
+| -v --v    | 显示详细结果。 |
+| -h --help | 显示帮助信息。 |
 
 执行结果参考：
 
@@ -176,10 +180,13 @@ Mac平台上可以查询到当前连接的Android(包括Android Studio的模拟�
 语法：
 
 ```shell
-ace devices
+ace devices [arguments]
 ```
+- arguments
 
-无参数
+| 参数      | 说明           |
+| --------- | -------------- |
+| -h --help | 显示帮助信息。 |
 
 执行结果参考：
 
@@ -211,18 +218,18 @@ ace create <output directory>
 
 - options
 
-| 子命令                | 说明                                       |
+| 选项                | 说明                                       |
 | --------------------- | ------------------------------------------ |
-| -t \| --template \[type\]     | 指定创建工程                   |
+| -t  --template \<type\>  | 指定创建工程。                  |
 | -h --help             | 显示帮助信息。                             |
 
 - type
 
-type                | 说明                                       |
-| --------------------- | ------------------------------------------ |
-app | 创建普通arkui-下应用工程 |
-library | 创建aar/framewor工程 |
-plugin_napi | 创建native工程 |
+| type        | 说明                      |
+| ----------- | ------------------------- |
+| app         | 创建普通arkui-x应用工程。 |
+| library     | 创建aar/framework工程。   |
+| plugin_napi | 创建native工程。          |
 
 在当前目录创建test工程：
 
@@ -293,7 +300,7 @@ Please enter the module name:
 Please enter the ability name:
 ```
 
-如果此abilityname已存在，会提示开发者abilityName name already exists!.，开发者修改名称后，回车确认，可以成功新建出跨平台应用Ability。
+如果此ability name已存在，会提示开发者abilityName name already exists!.，开发者修改名称后，回车确认，可以成功新建出跨平台应用Ability。
 
 ### ace build
 
@@ -302,34 +309,36 @@ Please enter the ability name:
 语法：
 
 ```shell
-ace build [options] [fileType]
+ace build <subCommand> [arguments]
 ```
 
 在Windows和Linux平台上可构建Hap和Apk，在Mac平台上可构建Hap、Apk和App。
 
 注：在DevEco Studio中打开要编译的工程配置自动签名，单击File > Project Structure > Project > Signing Configs界面勾选“Automatically generate signature”，等待自动签名完成即可，再执行ace build即可构建出签名hap安装包；在Mac上编译App之前需要使用Xcode打开对应ios工程，在Build settings的Singing进行签名配置，再执行编译命令；在Linux上无法签名。
 
-- options
+- subCommand
 
-| 子命令                | 说明                                       |
-| --------------------- | ------------------------------------------ |
-| --target [moduleName] | 指定目标模块名进行构建。                   |
-| -r --release          | 构建应用程序的类型为release(默认为release)。 |
-| --debug               | 构建应用程序的类型为debug。               |
-| --nosign              | 构建出未签名的应用程序（仅App）。          |
-| -h --help             | 显示帮助信息。                             |
-| -s --simulator        | 构建ios模拟器对应包                             |
-
-- fileType
-
-| 参数 | 说明                                                   |
+| 子命令 | 说明                                                   |
 | ---- | ------------------------------------------------------ |
-| hap  | 生成OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
-| apk  | 生成Android应用 apk 包。                                  |
-| ios  | 生成iOS应用 app 包。                                   |
-| aar  | 生成Android应用 aar 包。                                   |
-| ios-framework  | 生成iOS应用 framework 包。                                   |
-| ios-xcframework  | 生成iOS应用 xcframework 包。                                   |
+| aab | 构建Android App Bundle文件。 |
+| aar  | 构建Android应用 aar 包。                                 |
+| apk  | 构建Android应用 apk 包。                                |
+| bundle | 构建ArkUI cross-platform资源目录。 |
+| hap  | 构建OpenHarmony/HarmonyOS应用 hap 包。 |
+| ios  | 构建iOS应用 app 包。                                 |
+| ios-framework  | 构建iOS应用 framework 包。                                 |
+| ios-xcframework  | 构建iOS应用 xcframework 包。                                 |
+
+- arguments
+
+| 参数                  | 子命令                                                       | 说明                                         |
+| --------------------- | ------------------------------------------------------------ | -------------------------------------------- |
+| --debug               | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为debug。                  |
+| --nosign              | ios、ios-framework、ios-xcframework                          | 构建出未签名的应用程序。                     |
+| --target [moduleName] | hap                                                          | 指定目标模块名进行构建。                     |
+| -r --release          | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为release(默认为release)。 |
+| -s --simulator        | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
+| -h --help             | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
 
 构建完成，提示包生成路径:
 
@@ -346,33 +355,32 @@ filepath: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
 语法：
 
 ```shell
-ace install [options] [fileType]
+ace install [arguments]
 ```
 
 在Windows和Linux平台上可以安装Hap和Apk应用包，在Mac平台上可以安装Hap、Apk和App应用包。
 命令会根据options提示开发者选择对应平台的设备，如果只有一个设备连接，会直接安装到该设备上。
 注：编译Release版本的Apk需要签名才能安装，请通过Android Studio完成签名或者编译Debug版本Apk安装。
 
-- options
+- arguments
 
-| 子命令                | 说明                     |
+| 参数 | 说明                                                         |
+| ---- | ------------------------------------------------------------ |
+| apk  | 安装Android应用 apk 包。                                     |
+| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包。                       |
+| ios  | 安装iOS应用 app 包。                                         |
+
+| 参数           | 说明                     |
 | --------------------- | ------------------------ |
 | --target [moduleName] | 指定目标模块名进行安装。 |
-| -d --device [deviceId]| 指定运行应用的设备Id。 |
-| -h --help             | 显示帮助信息。                             |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。|
+| -h --help             | 显示帮助信息。           |
 
-- fileType
-
-| 参数 | 说明                                                   |
-| ---- | ------------------------------------------------------ |
-| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
-| apk  | 安装Android应用 apk 包。                                  |
-| ios  | 安装iOS应用 app 包。                                   |
 
 安装完成：
 
 ```shell
-ohos@user % ace install app
+ohos@user % ace install ios
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
@@ -386,24 +394,21 @@ Install IOS successfully.
 语法：
 
 ```shell
-ace uninstall [options] [fileType]
+ace uninstall [arguments]
 ```
+- arguments
 
-- options
+| 参数 | 说明                                                         |
+| ---- | ------------------------------------------------------------ |
+| apk  | 卸载Android应用 apk 包。                                     |
+| hap  | 卸载OpenHarmony/HarmonyOS应用 hap 包。                       |
+| ios  | 卸载iOS应用 app 包。                                         |
 
-| 子命令                | 说明                   |
+| 参数    | 说明                   |
 | --------------------- | ---------------------- |
-| --bundle [bundleName] | 指定卸载应用的包名。   |
-| -d --device [deviceId]| 指定运行应用的设备Id。 |
-| -h --help             | 显示帮助信息。                             |
-
-- fileType
-
-| 参数 | 说明                                                   |
-| ---- | ------------------------------------------------------ |
-| hap  | 卸载OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
-| apk  | 卸载Android应用 apk 包。                                  |
-| ios  | 卸载iOS应用 app 包。                                   |
+| --bundle \<bundleName\> | 指定卸载应用的包名。   |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。|
+| -h --help             | 显示帮助信息。          |
 
 卸载完成：
 
@@ -422,23 +427,21 @@ Uninstall IOS successfully.
 语法：
 
 ```shell
-ace launch [options] [fileType]
+ace launch [arguments]
 ```
+- arguments
 
-- options
+| 参数 | 说明                                                         |
+| ---- | ------------------------------------------------------------ |
+| apk  | 运行Android应用 apk 包。                                     |
+| hap  | 运行OpenHarmony/HarmonyOS应用 hap 包。                       |
+| ios  | 运行iOS应用 app 包。                                         |
 
-| 子命令                | 说明                   |
+| 参数          | 说明                   |
 | --------------------- | ---------------------- |
-| -d --device [deviceId]| 指定运行应用的设备Id。 |
-| -h --help             | 显示帮助信息。                             |
-
-- fileType
-
-| 参数 | 说明                                                   |
-| ---- | ------------------------------------------------------ |
-| hap  | 运行OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
-| apk  | 运行Android应用 apk 包。                                  |
-| ios  | 运行iOS应用 app 包。                                   |
+| --target [moduleName] | 指定目标模块名进行运行。 |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。|
+| -h --help             | 显示帮助信息。           |
 
 运行完成：
 
@@ -459,23 +462,21 @@ Launch IOS successfully.
 语法：
 
 ```shell
-ace log [options] [fileType]
+ace log [arguments]
 ```
+- arguments
 
-- options
+| 参数 | 说明                                                         |
+| ---- | ------------------------------------------------------------ |
+| apk  | 查看Android应用日志。                                        |
+| hap  | 查看OpenHarmony/HarmonyOS应用日志。                          |                    
+| ios  | 查看iOS应用日志。                                            |
 
-| 子命令              | 说明                   |
+| 参数            | 说明                   |
 | ------------------- | ---------------------- |
-| -d --device [deviceId]| 指定运行应用的设备Id。 |
-| -h --help             | 显示帮助信息。                             |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。 |
+| -h --help             | 显示帮助信息。            |
 
-- fileType
-
-| 参数 | 说明                                                |
-| ---- | --------------------------------------------------- |
-| hap  | 查看OpenHarmony/HarmonyOS应用日志，fileType未输入时，默认参数为hap。 |
-| apk  | 查看Android应用日志。                                  |
-| ios  | 查看iOS应用日志。                                   |
 
 ```
 ohos@user % ace log ios
@@ -496,23 +497,22 @@ ace run 先检查设备是否连接，确定设备类型，然后执行跨平台
 语法：
 
 ```shell
-ace run [options] [fileType]
+ace run [arguments]
 ```
-
-- options
-
-| 子命令              | 说明                   |
-| ------------------- | ---------------------- |
-| -d --device [deviceId]| 指定运行应用的设备Id。 |
-| -h --help             | 显示帮助信息。                             |
-
-- fileType
+- arguments
 
 | 参数 | 说明                                                         |
-| ---- | ------------------------------------------------------------ |
-| hap  | 构建并运行OpenHarmony/HarmonyOS应用 hap 包，fileType未输入时，默认参数为hap。 |
-| apk  | 构建并运行Android应用 apk 包。                                  |
+| :--- | ------------------------------------------------------------ |
+| apk  | 构建并运行Android应用 apk 包。                               |
+| hap  | 构建并运行OpenHarmony/HarmonyOS应用 hap 包。                 |
 | ios  | 构建并运行iOS应用 app 包。                                   |
+
+| 参数          | 说明                   |
+| ------------------- | ---------------------- |
+| --target [moduleName] | 指定目标模块名进行运行。 |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。 |
+| -h --help             | 显示帮助信息。            |
+
 
 ```
 ohos@user % ace run ios
@@ -534,27 +534,28 @@ ace test 先检查设备是否连接，确定设备类型，然后执行跨平�
 语法：
 
 ```shell
-ace test [options] [fileType]
+ace test [arguments]
 ```
+- arguments
 
-- options
+| 参数 | 说明                           |
+| ---- | ------------------------------ |
+| apk  | 构建并运行Android应用 apk 包。 |
+| ios  | 构建并运行iOS应用 app 包。     |
 
-| 子命令              | 说明                   |
+| 参数         | 说明                   |
 | ------------------- | ---------------------- |
-| -d --device [deviceId]| 指定运行应用的设备Id。 |
-| --b [testBundleName] | 指定测试应用的BundleName。 |
+| --b [bundleName] | 指定测试应用的BundleName。 |
+| --class [class] | 指定测试应用的class。 |
 | --m [testModuleName] | 指定测试应用的ModuleName。 |
-| --unittest [testRunner] | 指定测试应用的testRunner。 |
+| --skipInstall | 已安装情况跳过安装直接测试。（仍需依赖app/apk包，若指定了'path'则使用'path'下的app/apk包，否则使用默认路径下的app/apk包） |
+| --target [moduleName] | 指定测试module用于安装测试。 |
 | --timeout [timeout] | 指定测试应用的单条用例的超时时间。 |
-| --skipInstall | 已安装情况跳过安装直接测试.（仍需依赖app/apk包，若指定了'path'则使用'path'下的app/apk包，否则使用默认路径下的app/apk包） |
+| --unittest [testRunner] | 指定测试应用的testRunner。 |
 | --path [path] | 指定应用包路径用于直接安装测试。 |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。 |
+| -h --help | 显示帮助信息。 |
 
-- fileType
-
-| 参数 | 说明                                                         |
-| ---- | ------------------------------------------------------------ |
-| apk  | 构建并运行Android应用 apk 包。                                  |
-| ios  | 构建并运行iOS应用 app 包。                                    |
 
 ### ace clean
 
@@ -563,8 +564,13 @@ ace test [options] [fileType]
 语法：
 
 ```shell
-ace clean
+ace clean [arguments]
 ```
+- arguments
+
+| 参数         | 说明                   |
+| ------------------- | ---------------------- |
+| -h --help             | 显示帮助信息。        |
 
 清理完成：
 
@@ -579,70 +585,68 @@ Clean project successfully
 语法：
 
 ```shell
-ace help <subcommand>
+ace help [command]
 ```
+- command
 
-| 子命令    | 说明                                                         |
-| --------- | ------------------------------------------------------------ |
-| devices   | 列出所有连接的设备。                                         |
-| check     | 查验跨平台应用开发环境。                                     |
-| config    | 设置ACE工具链相关配置，包括OpenHarmony SDK路径、HarmonyOS SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 |
+| 命令     | 说明                   |
+| ------------------- | ---------------------- |
+| build | 构建跨平台应用安装包。 |
+| check | 查验跨平台应用开发环境。 |
+| clean | 清理跨平台应用编译结果。 |
+| config | 设置ACE工具链相关配置，包括OpenHarmony SDK路径、HarmonyOS SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 |
 | create    | 创建一个新的跨平台应用或者模块(Module)。                     |
-| build     | 构建跨平台应用安装包。                                       |
-| install   | 将跨平台应用安装到连接的设备上。                             |
-| uninstall | 将跨平台应用从设备上卸载。                                   |
-| launch    | 在设备上运行跨平台应用。                                     |
-| log       | 滚动展示正在运行的跨平台应用的日志。                         |
-| run       | 运行跨平台应用包。                                           |
-| test      | 执行跨平台应用包单元测试。                                   |
-| clean     | 清理跨平台应用编译结果。                                     |
-| help      | 跨平台应用命令行工具帮助。                                   |
+| devices | 列出所有连接的设备。                                         |
+| install | 将跨平台应用安装到连接的设备上。 |
+| launch | 在设备上运行跨平台应用。 |
+| log | 滚动展示正在运行的跨平台应用的日志。 |
+| run | 运行跨平台应用包。 |
+| test | 执行跨平台应用包单元测试。 |
+| uninstall | 将跨平台应用从设备上卸载。 |
 
 提示内容：
 
 ```shell
 ohos@user % ace help
-Manage your ArkUI app development.
+Manage your ArkUI cross-platform app development.
 
 Common commands:
 
-  ArkUI create [options] [subcommand]
-  Create a new ArkUI project in the specified directory.
+  ace create
+  Create a new ArkUI cross-platform project in the specified directory.
 
-  ArkUI run [options] [fileType]
-  Run your ArkUI application on an attached device or in an emulator.
-    
+  ace run
+  Run your ArkUI cross-platform application on an attached device or in an emulator.
+
 Usage: ace <command> [options]
 
 Options:
   -V, --version          output the version number
-  -d, --device <device>  input device id to specify the device to do something
+  -d, --device <device>  Input device id to specify the device to do something.
   -h, --help             display help for command
 
 Available commands:
 
-Environment: 
-  check   		 Show information about the installed tooling.
-  config   		 Configure ArkUI settings.
+Application:
+  install                Install an ArkUI cross-platform app on an attached device.
+  launch                 Launch your ArkUI cross-platform app on an attached device.
+  log                    Show log output for running ArkUI cross-platform apps.
+  run                    Run your ArkUI cross-platform app on an attached device.
+  test                   Run ArkUI cross-platform unit tests for the current project.
+  uninstall              Uninstall an ArkUI cross-platform app on an attached device.
 
-Device: 
-  devices   		 List the connected devices.
+Device:
+  devices                List the connected devices.
 
-Project: 
-  create   		 Create a new ArkUI project.
-  new   		 Create a new ability/module to your project.
-  build   		 Build an executable app or install bundle.
-  clean   		 Delete the build/ directories.
+Environment:
+  check                  Show information about the installed tooling.
+  config                 Configure ArkUI cross-platform settings.
 
-Application: 
-  install   		 Install an ArkUI app on an attached device.
-  uninstall   		 Uninstall an ArkUI app on an attached device.
-  run   		 Run your ArkUI app on an attached device.
-  launch   		 Launch  your ArkUI app on an attached device.
-  log   		 Show log output for running ArkUI apps.
-  test   		 Run ArkUI unit tests for the current project.
-
-Auxiliary: 
+Project:
+  build                  Build an executable app or install bundle.
+  clean                  Delete the build/ directories.
+  create                 Create a new ArkUI cross-platform project.
+  new                    Create a new ability or module to your project.
 
 Run "ace help <command>" for more information about a command.
 ```
