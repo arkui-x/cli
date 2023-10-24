@@ -81,11 +81,10 @@ function getJsonConfig(apiConfigPath) {
   }
 }
 
-function getCpuList(buildProject, projectDir, system) {
+function getCpuList(buildProject, projectDir, system, cmd) {
   if (system === 'android') {
     const androidGradlePath = path.join(projectDir,
       '.arkui-x/android/' + buildProject + '/build.gradle');
-    console.log('\nandroid Gradle File:', androidGradlePath);
     if (fs.existsSync(androidGradlePath)) {
       let gradleData = fs.readFileSync(androidGradlePath, 'utf-8');
       gradleData = gradleData.trim().split('\n');
@@ -97,7 +96,21 @@ function getCpuList(buildProject, projectDir, system) {
         }
       });
       if (!ndkList) {
-        console.log('could not find  abiFilters , please check');
+        if (!cmd.targetPlatform) {
+          ndkList = ['arm64-v8a'];
+        } else {
+          const abiList = [];
+          cmd.targetPlatform.split(',').forEach(abi => {
+            if (abi === 'arm64') {
+              abiList.push("arm64-v8a");
+            } else if (abi === 'arm') {
+              abiList.push("armeabi-v7a");
+            } else if (abi === 'x86_64') {
+              abiList.push("x86_64");
+            }
+          });
+          ndkList = abiList;
+        }
       }
       return ndkList;
     }
@@ -137,7 +150,7 @@ function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap)
   let allCheckMap = new Map();
   let depCheckMap = new Map();
   subProjectNameList.forEach(buildProject => {
-    const cpuList = getCpuList(buildProject, projectDir, system);
+    const cpuList = getCpuList(buildProject, projectDir, system, cmd);
     printLog('\nbuildSubProject : ', buildProject, '  Cpu List : ', cpuList);
     for (const cpuIndex in cpuList) {
       const archType = appCpu2SdkLibMap[system][cpuList[cpuIndex]][compileType][0];

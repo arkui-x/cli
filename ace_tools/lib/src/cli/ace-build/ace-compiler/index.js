@@ -27,7 +27,7 @@ const {
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
-  getCrossPlatformModules } = require('../../util');
+  getCrossPlatformModules, modifyAndroidAbi } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
@@ -159,10 +159,11 @@ function copyHaptoOutput(moduleListSpecified) {
   });
 }
 
-function copyBundletoBuild(moduleListSpecified) {
+function copyBundletoBuild(moduleListSpecified, cmd) {
   let isContinue = true;
   const buildPath = path.join(projectDir, '.arkui-x/build/ace_assets');
   try {
+    modifyAndroidAbi(projectDir, cmd);
     deleteOldFile(buildPath);
     moduleListSpecified.forEach(module => {
       // Now only consider one ability
@@ -195,7 +196,7 @@ function copyBundletoBuild(moduleListSpecified) {
     const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
     const bundleSystemResPath = path.join(buildPath, 'systemres');
     isContinue = isContinue && copy(systemResPath, bundleSystemResPath);
-    isContinue = isContinue && copyLibsToBuild(moduleListSpecified, buildPath);
+    isContinue = isContinue && copyLibsToBuild(moduleListSpecified, buildPath, cmd);
   } catch (err) {
     console.log(`Generate build directory failed\n`, err);
     return false;
@@ -204,14 +205,14 @@ function copyBundletoBuild(moduleListSpecified) {
   return isContinue;
 }
 
-function copyLibsToBuild(moduleListSpecified, buildPath) {
+function copyLibsToBuild(moduleListSpecified, buildPath, cmd) {
   let isContinue = true;
   try {
     fs.mkdirSync(path.join(buildPath, 'android/library'), { recursive: true });
     fs.mkdirSync(path.join(buildPath, 'ios/library'), { recursive: true });
     if (platform === Platform.MacOS) {
       const iosFramework = path.join(projectDir, '.arkui-x/ios/frameworks');
-      copyLibraryToProject('ios', '', projectDir, 'ios');
+      copyLibraryToProject('ios', cmd, projectDir, 'ios');
       moduleListSpecified.forEach(module => {
         isContinue = isContinue && copy(iosFramework,
           path.join(buildPath, `ios/${module}/framework`), 'libarkui_ios.xcframework');
@@ -220,7 +221,7 @@ function copyLibsToBuild(moduleListSpecified, buildPath) {
         path.join(buildPath, 'ios/library/libarkui_ios.xcframework'));
     }
     const androidLib = path.join(projectDir, '.arkui-x/android/app/libs');
-    copyLibraryToProject('apk', '', projectDir, 'android');
+    copyLibraryToProject('apk', cmd, projectDir, 'android');
     moduleListSpecified.forEach(module => {
       isContinue = isContinue && copy(androidLib,
         path.join(buildPath, `android/${module}/libs`), 'libarkui_android.so');
@@ -348,7 +349,7 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
       return true;
     } else if (fileType === 'bundle') {
       console.log(`Build bundle successfully.`);
-      return copyBundletoBuild(moduleListSpecified);
+      return copyBundletoBuild(moduleListSpecified, cmd);
     } else if (fileType === 'apk' || fileType === 'ios' ||
       fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aab') {
       return true;

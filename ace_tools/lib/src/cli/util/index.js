@@ -250,21 +250,88 @@ function isAppProject(projectDir) {
 }
 
 function getAbsolutePath(str) {
-  if(path.isAbsolute(str)) {
+  if (path.isAbsolute(str)) {
     return str
   } else {
-    return path.join(process.cwd(),str);
+    return path.join(process.cwd(), str);
   }
 }
 
 function getCrossPlatformModules(projectDir) {
-
   const crossFile = path.join(projectDir, '.arkui-x/arkui-x-config.json5');
-    if (fs.existsSync(crossFile)) {
-      const crossInfo = JSON5.parse(fs.readFileSync(crossFile).toString());
-      return crossInfo.modules;
-    }
+  if (fs.existsSync(crossFile)) {
+    const crossInfo = JSON5.parse(fs.readFileSync(crossFile).toString());
+    return crossInfo.modules;
+  }
   return [];
+}
+
+function modifyAndroidAbi(projectDir, cmd, fileType) {
+  try {
+    let abiFilters;
+    if (!cmd || !cmd.targetPlatform) {
+      abiFilters = ['arm64'];
+    } else {
+      abiFilters = cmd.targetPlatform.split(',');
+    }
+    cleanLibs(projectDir, abiFilters, fileType);
+    if (!isNativeCppTemplate(projectDir)) {
+      return;
+    }
+    const dir = 'app';
+    const buildGradle = path.join(projectDir, `.arkui-x/android/${dir}/build.gradle`);
+    if (fs.existsSync(buildGradle)) {
+      const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
+      for (let i = 0; i < buildGradleInfo.length; i++) {
+        if (buildGradleInfo[i].includes('abiFilters')) {
+          buildGradleInfo[i] = `            abiFilters`;
+          abiFilters.forEach(abi => {
+            if (abi === 'arm64') {
+              buildGradleInfo[i] += ` "arm64-v8a",`;
+            } else if (abi === 'arm') {
+              buildGradleInfo[i] += ` "armeabi-v7a",`;
+            } else if (abi === 'x86_64') {
+              buildGradleInfo[i] += ` "x86_64",`;
+            }
+          });
+          buildGradleInfo[i] = buildGradleInfo[i].slice(0, -1);
+          break;
+        }
+      }
+      fs.writeFileSync(buildGradle, buildGradleInfo.join('\r\n'));
+    }
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function validOptions(inputValue, optionValues) {
+  let errInput = '';
+  const inputArr = inputValue.split(',');
+  for (let i = 0; i < inputArr.length; i++) {
+    if (!optionValues.includes(inputArr[i])) {
+      errInput = inputArr[i];
+      break;
+    }
+  }
+  return errInput;
+}
+
+function cleanLibs(projectDir, abiFilters, fileType) {
+  let deleteLibDir;
+  const dir = fileType === 'aar' ? getAarName(projectDir)[0] : 'app';
+  if (!abiFilters.includes('arm')) {
+    deleteLibDir = path.join(projectDir, `.arkui-x/android/${dir}/libs/armeabi-v7a`);
+    fs.rmSync(deleteLibDir, { recursive: true, force: true });
+  }
+  if (!abiFilters.includes('arm64')) {
+    deleteLibDir = path.join(projectDir, `.arkui-x/android/${dir}/libs/arm64-v8a`);
+    fs.rmSync(deleteLibDir, { recursive: true, force: true });
+  }
+  if (!abiFilters.includes('x86_64')) {
+    deleteLibDir = path.join(projectDir, `.arkui-x/android/${dir}/libs/x86_64`);
+    fs.rmSync(deleteLibDir, { recursive: true, force: true });
+  }
 }
 
 module.exports = {
@@ -281,5 +348,7 @@ module.exports = {
   addFileToPbxproj,
   isAppProject,
   getAbsolutePath,
-  getCrossPlatformModules
+  getCrossPlatformModules,
+  modifyAndroidAbi,
+  validOptions
 };

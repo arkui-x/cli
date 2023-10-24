@@ -27,7 +27,7 @@ const {
 } = require('../ace-build');
 const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid} = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
-const { isProjectRootDir, getAarName, getFrameworkName } = require('../../util');
+const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi } = require('../../util');
 const projectDir = process.cwd();
 const { copyLibraryToProject } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
@@ -73,6 +73,7 @@ function copyLibraryToOutput(fileType) {
 }
 
 function buildAPK(cmd) {
+  modifyAndroidAbi(projectDir, cmd);
   copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
   const androidDir = path.join(projectDir, '.arkui-x/android');
@@ -116,6 +117,7 @@ function buildAPK(cmd) {
 }
 
 function buildAab(cmd) {
+  modifyAndroidAbi(projectDir, cmd);
   copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
   const androidDir = path.join(projectDir, '.arkui-x/android');
@@ -152,6 +154,7 @@ function buildAab(cmd) {
 }
 
 function buildAAR(cmd) {
+  modifyAndroidAbi(projectDir, cmd, 'aar');
   copyLibraryToProject('aar', cmd, projectDir, 'android');
   const cmds = [];
   const aarDir = path.join(projectDir, '.arkui-x/android');

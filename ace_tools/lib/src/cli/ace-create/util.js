@@ -122,31 +122,32 @@ function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project) 
 
   const buildGradle = path.join(projectPath, '.arkui-x/android/app/build.gradle');
   if (fs.existsSync(buildGradle)) {
-    const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
-    let num;
-    for (let i = 0; i < buildGradleInfo.length; i++) {
-      if (buildGradleInfo[i] === `            abiFilters "arm64-v8a", "armeabi-v7a"`) {
-        buildGradleInfo[i] = `            abiFilters "arm64-v8a"`;
-      }
-      if (buildGradleInfo[i] === '    dynamicFeatures = []') {
-        num = i;
-        break;
-      }
+    const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').toString();
+    const searchAbi = `testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"`;
+    const searchFeatures = 'dynamicFeatures = []';
+    const addAbiIndex = buildGradleInfo.lastIndexOf(searchAbi);
+    const delFeaturesIndex = buildGradleInfo.lastIndexOf(searchFeatures);
+    const addAbi = `\n
+        ndk {
+            abiFilters "arm64-v8a"
+        }
+    `;
+    const addPackage = `
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
+        }
     }
-    const value = `
-      externalNativeBuild {
-          cmake {
-              path file('src/main/cpp/CMakeLists.txt')
-              version '3.22.1'
-          }
-      }
-  
-      packagingOptions {
-          pickFirst 'lib/arm64-v8a/libarkui_android.so'
-      }
-        `;
-    buildGradleInfo.splice(num, 0, value);
-    fs.writeFileSync(buildGradle, buildGradleInfo.join('\r\n'));
+
+    packagingOptions {
+        pickFirst 'lib/arm64-v8a/libarkui_android.so'
+    }`;
+
+    const updateBuildGradleInfo = buildGradleInfo.slice(0, addAbiIndex + searchAbi.length) + addAbi +
+      buildGradleInfo.slice(addAbiIndex + searchAbi.length, delFeaturesIndex) + addPackage +
+      buildGradleInfo.slice(delFeaturesIndex + searchFeatures.length);
+    fs.writeFileSync(buildGradle, updateBuildGradleInfo);
   }
 }
 
