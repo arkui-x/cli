@@ -194,7 +194,7 @@ function getFrameworkName(projectDir) {
   return frameworkName;
 }
 
-function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
+function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
   if (fileType === 'headfile') {
     const headFileUUID = getUUID(pbxprojFilePath);
     if (headFileUUID === undefined) {
@@ -236,6 +236,38 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType) {
       pbxprojFileInfo.slice(addPBXFileReferenceIndex + 41, addchildrenIndex + 20) + addchildren +
       pbxprojFileInfo.slice(addchildrenIndex + 20, addPBXSourcesBuildPhaseIndex + 28) + addPBXSourcesBuildPhase +
       pbxprojFileInfo.slice(addPBXSourcesBuildPhaseIndex + 28);
+    fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+  } else if (fileType === 'cfile') {
+    const cBuildFileUUID = getUUID(pbxprojFilePath);
+    const cFileReferenceUUID = getUUID(pbxprojFilePath);
+    if (cBuildFileUUID === undefined || cFileReferenceUUID === undefined) {
+      console.log('get UUID Failed');
+      return false;
+    }
+    const addBuildFile = '\n		' + cBuildFileUUID + ' /* ' + fileName +
+      ' in Sources */ = {isa = PBXBuildFile; fileRef = ' + cFileReferenceUUID + ' /* ' + fileName + ' */; };';
+    const addFileReference = '\n		' + cFileReferenceUUID + ' /* ' + fileName +
+      ' */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ' + fileName +
+      '; path = ../../' + moduleName + '/src/main/cpp/' + fileName + '; sourceTree = "<group>"; };';
+    const addGroupChildren = '\n				' + cFileReferenceUUID + ' /* ' + fileName + ' */,';
+    const addSourcesBuildPhase = '\n				' + cBuildFileUUID + ' /* ' + fileName + ' in Sources */,';
+    const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
+    const searchBuildFile = '/* arkui-x */; };';
+    const searchFileReference = 'arkui-x; sourceTree = "<group>"; };';
+    const searchGroupChildren = '/* arkui-x */,';
+    const searchSourcesBuildPhase = '/* main.m in Sources */,';
+    const addBuildFileIndex = pbxprojFileInfo.lastIndexOf('/* arkui-x */; };');
+    const addFileReferenceIndex = pbxprojFileInfo.lastIndexOf('arkui-x; sourceTree = "<group>"; };');
+    const addGroupChildrenIndex = pbxprojFileInfo.lastIndexOf('/* arkui-x */,');
+    const addSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('/* main.m in Sources */,');
+    const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addBuildFileIndex + searchBuildFile.length) +
+      addBuildFile + pbxprojFileInfo.slice(addBuildFileIndex + searchBuildFile.length,
+        addFileReferenceIndex + searchFileReference.length) +
+      addFileReference + pbxprojFileInfo.slice(addFileReferenceIndex + searchFileReference.length,
+        addGroupChildrenIndex + searchGroupChildren.length) +
+      addGroupChildren + pbxprojFileInfo.slice(addGroupChildrenIndex + searchGroupChildren.length,
+        addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length) +
+      addSourcesBuildPhase + pbxprojFileInfo.slice(addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length);
     fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
   } else {
     console.log('filetype error');

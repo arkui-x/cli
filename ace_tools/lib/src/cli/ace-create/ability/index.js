@@ -77,11 +77,6 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir, curre
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('packageName', 'g'), manifestJsonObj.app.bundleName));
     fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(new RegExp('ohos.ace.adapter.AceActivity', 'g'),
-        'ohos.stage.ability.adapter.StageActivity'));
-    fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
-    fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
         manifestJsonObj.app.bundleName + ':' + moduleName + ':' + abilityName + ':'));
     const createActivityXmlInfo =
@@ -189,7 +184,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + abilityName + 'ViewController';
-    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryEntryAbilityViewController');
+    const srcFilePath = path.join(templateDir, 'ios/app/EntryEntryAbilityViewController');
     fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/' + destClassName + '.h'),
       fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));

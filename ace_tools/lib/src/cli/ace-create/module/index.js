@@ -102,11 +102,6 @@ function createStageInAndroid(moduleName, templateDir) {
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('packageName', 'g'), packageName));
     fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(new RegExp('ohos.ace.adapter.AceActivity', 'g'),
-        'ohos.stage.ability.adapter.StageActivity'));
-    fs.writeFileSync(destFilePath,
-      fs.readFileSync(destFilePath).toString().replace(new RegExp('AceActivity', 'g'), 'StageActivity'));
-    fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
       + moduleName + ':' + capitalize(moduleName) + 'Ability:'));
     const createActivityXmlInfo =
@@ -120,7 +115,9 @@ function createStageInAndroid(moduleName, templateDir) {
       createActivityXmlInfo +
       curManifestXmlInfo.slice(insertIndex);
     fs.writeFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
-
+    if (isNativeCppTemplate(projectDir)) {
+      replaceAndroidNativeCpp(moduleName);
+    }
     return true;
   } catch (error) {
     console.error('Error occurs when create in android', error);
@@ -283,7 +280,7 @@ function createStageInIOS(moduleName, templateDir) {
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + capitalize(moduleName) + 'AbilityViewController';
-    const srcFilePath = path.join(templateDir, 'ios/etsapp/EntryEntryAbilityViewController');
+    const srcFilePath = path.join(templateDir, 'ios/app/EntryEntryAbilityViewController');
     fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.h'),
       fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
@@ -314,6 +311,9 @@ function createStageInIOS(moduleName, templateDir) {
     if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
       !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
       return false;
+    }
+    if (isNativeCppTemplate(projectDir)) {
+      addFileToPbxproj(pbxprojFilePath, 'hello.cpp', 'cfile', moduleName);
     }
     return true;
   } catch (error) {
@@ -418,6 +418,24 @@ function replaceNativeCppTemplate(moduleName, appName) {
   }
 }
 
+function replaceAndroidNativeCpp(moduleName) {
+  try {
+    const cMakeFile = path.join(projectDir, `.arkui-x/android/app/src/main/cpp/CMakeLists.txt`);
+    const sourcePath = moduleName.toUpperCase() + `_NATIVE_SOURCE_PATH`;
+    const data = `
+set(${sourcePath} \${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../${moduleName}/src/main/cpp)
+add_library(${moduleName} SHARED \${${sourcePath}}/hello.cpp)
+target_link_libraries(${moduleName} PUBLIC arkui_android)`;
+
+    const cMakeInfo = fs.readFileSync(cMakeFile, 'utf8').split(/\r\n|\n|\r/gm);
+    cMakeInfo.splice(-1, 0, data);
+    fs.writeFileSync(cMakeFile, cMakeInfo.join('\r\n'));
+    return true;
+  } catch (e) {
+    console.error('Replace Android Native C++ failed.');
+    return false;
+  }
+}
 function replaceFileString(file, oldString, newString) {
   fs.writeFileSync(file, fs.readFileSync(file).toString().replace(oldString, newString));
 }

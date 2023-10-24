@@ -130,18 +130,7 @@ function replaceAarInfo(libraryPath, aarName) {
   files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
   replaceInfos.push('ArkUIInstanceName');
   strs.push(aarPackage + ':entry:EntryAbility:');
-  files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-  replaceInfos.push('ohos.ace.adapter.AceActivity');
-  strs.push('ohos.stage.ability.adapter.StageActivity');
-  files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
-  replaceInfos.push('AceActivity');
-  strs.push('StageActivity');
-  files.push(path.join(aarPath, 'src/main/java/MyApplication.java'));
-  replaceInfos.push('ohos.ace.adapter.AceApplication');
-  strs.push('ohos.stage.ability.adapter.StageApplication');
-  files.push(path.join(aarPath, 'src/main/java/MyApplication.java'));
-  replaceInfos.push('AceApplication');
-  strs.push('StageApplication');
+
   if (isNativeCppTemplate(projectDir)) {
     modifyNativeAAR(aarPath, aarName, files, replaceInfos, strs);
   }
