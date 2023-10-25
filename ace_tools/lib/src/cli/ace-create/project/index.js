@@ -14,7 +14,6 @@
  */
 
 const fs = require('fs');
-const readline = require('readline');
 const path = require('path');
 const inquirer = require('inquirer');
 const check = require('../../ace-check');
@@ -128,20 +127,8 @@ function replaceAndroidProjectInfo(projectPath, bundleName, project, template) {
   replaceInfos.push('ArkUIInstanceName');
   strs.push(bundleName + ':entry:EntryAbility:');
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
-  replaceInfos.push('ohos.ace.adapter.AceActivity');
-  strs.push('ohos.stage.ability.adapter.StageActivity');
-  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
-  replaceInfos.push('AceActivity');
-  strs.push('StageActivity');
-  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MainActivity.java'));
   replaceInfos.push('MainActivity');
   strs.push('EntryEntryAbilityActivity');
-  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MyApplication.java'));
-  replaceInfos.push('ohos.ace.adapter.AceApplication');
-  strs.push('ohos.stage.ability.adapter.StageApplication');
-  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/java/MyApplication.java'));
-  replaceInfos.push('AceApplication');
-  strs.push('StageApplication');
   files.push(path.join(projectPath, '.arkui-x/android/app/src/main/AndroidManifest.xml'));
   replaceInfos.push('MainActivity');
   strs.push('EntryEntryAbilityActivity');
@@ -166,26 +153,10 @@ function replaceiOSProjectInfo(projectPath, bundleName) {
   files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
   replaceInfos.push('bundleIdentifier');
   strs.push(bundleName);
-  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('etsapp');
-  strs.push('app');
-  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('res');
-  strs.push('arkui-x');
-  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('DFFB5DAC28F4429C00E74486');
-  strs.push('DFC5555529D7F36400B63EB3');
-  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('AppDelegate.mm');
-  strs.push('AppDelegate.m');
-  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
-  replaceInfos.push('DFFB5DAD28F4429C00E74486');
-  strs.push('DFC5555629D7F36400B63EB3');
   files.push(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
   replaceInfos.push('packageName');
   strs.push(bundleName);
   replaceInfo(files, replaceInfos, strs);
-  replaceIOSRbxprojInfo(projectPath);
 }
 
 function replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template) {
@@ -255,16 +226,11 @@ function copyAndroidiOSTemplate(templatePath, projectPath, template) {
     if (!copy(path.join(templatePath, '/cpp/cpp_android'), path.join(projectPath, '.arkui-x/android/app/src/main/cpp'))) {
       return false;
     }
-    if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '.arkui-x/ios/etsapp.xcodeproj'))) {
+    if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '.arkui-x/ios/app.xcodeproj'))) {
       return false;
     }
   }
 
-  fs.renameSync(path.join(projectPath, '.arkui-x/ios/etsapp.xcodeproj'), path.join(projectPath, '.arkui-x/ios/app.xcodeproj'));
-  fs.renameSync(path.join(projectPath, '.arkui-x/ios/etsapp'), path.join(projectPath, '.arkui-x/ios/app'));
-  fs.renameSync(path.join(projectPath, '.arkui-x/ios/js'), path.join(projectPath, '.arkui-x/ios/arkui-x'));
-  fs.unlinkSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.mm'));
-  fs.unlinkSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.h'));
   fs.renameSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate_stage.m'),
     path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
   fs.renameSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate_stage.h'),
@@ -299,29 +265,6 @@ function copyStageTemplate(templatePath, projectPath, proType, template) {
     }
   }
   return true;
-}
-
-function replaceIOSRbxprojInfo(projectPath) {
-  const rbxprojInfoPath = path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
-  const rl = readline.createInterface({
-    input: fs.createReadStream(rbxprojInfoPath)
-  });
-
-  const fileStream = fs.createWriteStream(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj.temp'),
-    { autoClose: true });
-
-  rl.on('line', function(line) {
-    if (!line.includes('DF9C1B6128B9FC4B005DCF58') && !line.includes('DF9C1B6028B9FC4B005DCF58')) {
-      fileStream.write(line + '\n');
-    }
-  });
-  rl.on('close', function() {
-    fileStream.end(function() {
-      fs.fsyncSync(fileStream.fd);
-      fs.unlinkSync(rbxprojInfoPath);
-      fs.renameSync(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj.temp'), rbxprojInfoPath);
-    });
-  });
 }
 
 module.exports = create;

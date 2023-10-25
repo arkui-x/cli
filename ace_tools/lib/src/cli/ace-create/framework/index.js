@@ -54,7 +54,7 @@ function copyTemplate(templatePath, libraryPath) {
       'EntryEntryAbilityViewController.h', 'EntryEntryAbilityViewController.m'];
     copy(path.join(templatePath, 'framework'), path.join(libraryPath));
     files.forEach(fileName => {
-      fs.copyFileSync(path.join(templatePath, 'ios/etsapp', fileName),
+      fs.copyFileSync(path.join(templatePath, 'ios/app', fileName),
         path.join(libraryPath, 'MyFramework', fileName));
     });
   } catch (err) {
