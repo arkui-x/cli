@@ -68,7 +68,7 @@ function cleanAndroid() {
   let cmds = [];
   const androidDir = path.join(projectDir, '.arkui-x', 'android');
   let message = 'Clean android project successful.';
-  if (!fs.existsSync(path.join(projectDir, 'android/app/build'))) {
+  if (!fs.existsSync(path.join(projectDir, '.arkui-x/android/app/build'))) {
     console.log(message);
     return true;
   }

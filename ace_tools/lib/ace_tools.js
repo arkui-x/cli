@@ -33,7 +33,7 @@ const launch = require('./src/cli/ace-launch');
 const run = require('./src/cli/ace-run');
 const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
-const { getAbsolutePath } = require('./src/cli/util');
+const { getAbsolutePath, validOptions } = require('./src/cli/util');
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
@@ -362,6 +362,11 @@ Available subCommands:
       buildSubcommand
         .option('-s, --simulator', 'Build for iOS Simulator.');
     }
+    if (subcommand === 'apk' || subcommand === 'aab' || subcommand === 'aar' || subcommand === 'bundle') {
+      buildSubcommand
+        .option('--target-platform <platform>', 'The target platform for which the apk is compiled ' +
+          '[arm, arm64, x86_64]');
+    }
     if (subcommand === 'hap') {
       buildSubcommand
         .option('--target [moduleName]', 'name of module to be built');
@@ -375,6 +380,15 @@ Available subCommands:
         if (cmd.release && cmd.debug) {
           console.log('\x1B[31m%s\x1B[0m', 'Warning: Release and debug are not allowed to exist at the same time.');
           return false;
+        }
+        if (cmd.targetPlatform && (subcommand === 'apk' || subcommand === 'aab' ||
+        subcommand === 'aar' || subcommand === 'bundle')) {
+          const errValue = validOptions(cmd.targetPlatform, ['arm', 'arm64', 'x86_64']);
+          if (errValue) {
+            console.log('\x1B[31m%s\x1B[0m', `Error: ` +
+            `"${errValue}" is an invalid value, please input arm, arm64, x86_64.`);
+            return false;
+          }
         }
         if (subcommand === 'hap' || subcommand === 'bundle') {
           compiler(subcommand, cmd);
