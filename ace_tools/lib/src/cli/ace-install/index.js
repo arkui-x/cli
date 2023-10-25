@@ -21,7 +21,7 @@ const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require(
 const { isSimulator } = require('../ace-devices/index');
 const installHapPackage = [];
 let packageType = '';
-function checkInstallFile(projectDir, fileType, moduleList, installFilePath) {
+function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd) {
   try {
     const filePathList = [];
     let buildDir;
@@ -77,22 +77,34 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath) {
       buildDir = path.join(projectDir, '.arkui-x', 'android', 'app/build/outputs/apk/');
       const fileList = [];
       fs.readdirSync(buildDir).forEach(dir => {
-        if (dir === 'debug' || dir === 'release') {
+        if (dir === 'debug' || dir === 'release' || dir === 'profile') {
           fileList.push(`${dir}/` + fs.readdirSync(path.join(buildDir, dir)).filter(file => {
             return path.extname(file).toLowerCase() === `.${fileType}`;
           }));
         }
       });
-      if (fileList.length === 1 && fileList[0] === `release/app-release-unsigned.${fileType}`) {
-        console.log('\x1B[31m%s\x1B[0m',
-          'Error: Before installing the apk, please sign and rebuild, or build the debug version.');
-      }
-      if (fileList.includes(`release/app-release.${fileType}`)) {
-        filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
-        packageType = 'Release';
-      } else if (fileList.includes(`debug/app-debug.${fileType}`)) {
-        filePathList.push(path.join(buildDir, `debug/app-debug.${fileType}`));
-        packageType = 'Debug';
+      if (cmd.release || cmd.debug || cmd.profile) {
+        if (cmd.release) {
+          filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
+          packageType = 'Release';
+        } else if (cmd.debug) {
+          filePathList.push(path.join(buildDir, `debug/app-debug.${fileType}`));
+          packageType = 'Debug';
+        } else if (cmd.profile) {
+          filePathList.push(path.join(buildDir, `profile/app-profile.${fileType}`));
+          packageType = 'Profile';
+        }
+      } else {
+        if (fileList.includes(`release/app-release.${fileType}`)) {
+          filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
+          packageType = 'Release';
+        } else if (fileList.includes(`debug/app-debug.${fileType}`)) {
+          filePathList.push(path.join(buildDir, `debug/app-debug.${fileType}`));
+          packageType = 'Debug';
+        } else if (fileList.includes(`profile/app-profile.${fileType}`)) {
+          filePathList.push(path.join(buildDir, `profile/app-profile.${fileType}`));
+          packageType = 'Profile';
+        }
       }
     }
     return filePathList;
@@ -102,7 +114,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath) {
   }
 }
 
-function install(fileType, device, moduleListInput, installFilePath) {
+function install(fileType, device, moduleListInput, installFilePath, cmd) {
   const projectDir = process.cwd();
   if (!installFilePath && !isProjectRootDir(projectDir)) {
     return false;
@@ -125,7 +137,7 @@ function install(fileType, device, moduleListInput, installFilePath) {
     }
   }
   moduleListInput = moduleListInput.split(' ');
-  const filePathList = checkInstallFile(projectDir, fileType, moduleListInput, installFilePath);
+  const filePathList = checkInstallFile(projectDir, fileType, moduleListInput, installFilePath, cmd);
   if (!filePathList || filePathList.length === 0) {
     console.error('There is no file to install');
     return false;

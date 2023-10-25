@@ -86,6 +86,8 @@ function buildAPK(cmd) {
   }
   if (cmd.debug) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
+  } else if (cmd.profile) {
+    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleProfile`);
   } else {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
   }
@@ -126,6 +128,8 @@ function buildAab(cmd) {
   }
   if (cmd.debug) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:bundleDebug`);
+  } else if (cmd.profile) {
+    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleProfile`);
   } else {
     cmds.push(`cd ${androidDir} && ./gradlew :app:bundleRelease`);
   }
@@ -165,6 +169,8 @@ function buildAAR(cmd) {
   if (aarNameList.length === 1) {
     if (cmd.debug) {
       cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleDebug`);
+    } else if (cmd.profile) {
+      cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleProfile`);
     } else {
       cmds.push(`cd ${aarDir} && ./gradlew :${aarNameList[0]}:assembleRelease`);
     }
@@ -173,7 +179,9 @@ function buildAAR(cmd) {
     aarNameList.forEach(aarName => {
       if (cmd.debug) {
         cmdStr = cmdStr + `${aarName}:assembleDebug `;
-      } else {
+      } else if (cmd.profile) {
+        cmdStr = cmdStr + `${aarName}:assembleProfile `;
+      }  else {
         cmdStr = cmdStr + `${aarName}:assembleRelease `;
       }
     });
@@ -207,6 +215,8 @@ function buildFramework(cmd) {
   let mode = 'Release';
   if (cmd.debug) {
     mode = 'Debug';
+  } else if (cmd.profile) {
+    mode = 'Profile';
   }
   let gradleMessage = 'Build ios-framework successful.';
   let isBuildSuccess = true;
@@ -247,6 +257,8 @@ function buildXcFramework(cmd) {
   let mode = 'Release';
   if (cmd.debug) {
     mode = 'Debug';
+  } else if (cmd.profile) {
+    mode = 'Profile';
   }
   let gradleMessage = 'Build ios-xcframework successful.';
   let isBuildSuccess = true;
