@@ -16,7 +16,6 @@
 #import "AppDelegate.h"
 #import "EntryEntryAbilityViewController.h"
 #import <libarkui_ios/StageApplication.h>
-#import <AVFoundation/AVFoundation.h>
 
 #define BUNDLE_DIRECTORY @"arkui-x"
 #define BUNDLE_NAME @"packageName"
@@ -30,8 +29,6 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     [StageApplication configModuleWithBundleDirectory:BUNDLE_DIRECTORY];
     [StageApplication launchApplication];
-
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:nil];
     
     NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",BUNDLE_NAME, @"entry", @"EntryAbility"];
     EntryEntryAbilityViewController *mainView = [[EntryEntryAbilityViewController alloc] initWithInstanceName:instanceName];
