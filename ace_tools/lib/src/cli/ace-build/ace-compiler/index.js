@@ -27,7 +27,7 @@ const {
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
-  getCrossPlatformModules, modifyAndroidAbi } = require('../../util');
+  getCrossPlatformModules, modifyAndroidAbi, syncHvigor } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
@@ -382,6 +382,9 @@ function compiler(fileType, cmd) {
       console.warn('\x1B[31m%s\x1B[0m', `Build ${fileType} failed, current project is not application project.`);
       return false;
     }
+  }
+  if (!syncHvigor(projectDir)) {
+    return false;
   }
   currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
