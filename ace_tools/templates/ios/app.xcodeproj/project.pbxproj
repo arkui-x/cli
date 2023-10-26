@@ -311,7 +311,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MCN34247SC;
 				ENABLE_BITCODE = NO;
-				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = app/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
@@ -342,7 +341,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = MCN34247SC;
 				ENABLE_BITCODE = NO;
-				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = app/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;

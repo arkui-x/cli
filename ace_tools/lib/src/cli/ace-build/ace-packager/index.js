@@ -17,6 +17,7 @@ const path = require('path');
 const fs = require('fs');
 const exec = require('child_process').execSync;
 const os = require('os');
+const JSON5 = require('json5');
 const {
   Platform,
   platform
@@ -359,6 +360,10 @@ function buildiOS(cmd) {
   const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
     + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
+  let manifestPath = path.join(projectDir, 'AppScope/app.json5');
+  let manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
+  process.env.ACE_VERSION_CODE = manifestJsonObj.app.versionCode;
+  process.env.ACE_VERSION_NAME = manifestJsonObj.app.versionName;
   let message = 'Build ios successful.';
   let isBuildSuccess = true;
   console.log('Start building ios...');
