@@ -39,7 +39,7 @@ function run(fileType, device, cmd) {
   }
   let installFlag = true;
   cmd.target = cmd.target || 'entry';
-  installFlag = install(fileType, device, cmd.target, undefined);
+  installFlag = install(fileType, device, cmd.target, undefined, cmd);
   if (installFlag) {
     if (fileType === 'ios') {
       log(fileType, device, cmd.test);

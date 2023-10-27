@@ -142,9 +142,8 @@ function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap)
   let compileType = 'release';
   if (cmd.debug) {
     compileType = 'debug';
-  }
-  if (cmd.release) {
-    compileType = 'release';
+  } else if (cmd.profile) {
+    compileType = 'profile';
   }
   const subProjectNameList = getSubProjectDir(fileType, projectDir);
   let allCheckMap = new Map();

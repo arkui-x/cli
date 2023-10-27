@@ -352,7 +352,8 @@ Available subCommands:
     const buildSubcommand = buildCmd.command(subcommand, { hidden: true }).usage('[arguments]');
     buildSubcommand
       .option('-r, --release', 'Build a release version of your app.')
-      .option('--debug', 'Build a debug version of your app.');
+      .option('--debug', 'Build a debug version of your app.')
+      .option('--profile', 'Build a version of your app specialized for performance profiling.');
     if (subcommand === 'ios') {
       buildSubcommand
         .option('--nosign', 'Build without sign.')
@@ -377,8 +378,8 @@ Available subCommands:
     buildSubcommand
       .action((cmd) => {
         cmd.simulator = cmd.simulator && platform === Platform.MacOS;
-        if (cmd.release && cmd.debug) {
-          console.log('\x1B[31m%s\x1B[0m', 'Warning: Release and debug are not allowed to exist at the same time.');
+        if (cmd.release && cmd.debug || cmd.release && cmd.profile || cmd.profile && cmd.debug) {
+          console.log('\x1B[31m%s\x1B[0m', 'Warning: Multiple build models are not allowed to exist at the same time.');
           return false;
         }
         if (cmd.targetPlatform && (subcommand === 'apk' || subcommand === 'aab' ||
@@ -462,6 +463,9 @@ function parseRun() {
     .usage('[arguments]')
     .description(`Run your ArkUI cross-platform app on an attached device.`)
     .option('--target [moduleName]', 'Name of module to be installed.')
+    .option('-r, --release', 'Run a release version of your app.')
+    .option('--debug', 'Run a debug version of your app.')
+    .option('--profile', 'Run a version of your app specialized for performance profiling.')
     .on('--help', () => {
       if (!subCommands.some(sub => process.argv.includes(sub))) {
         console.log(`

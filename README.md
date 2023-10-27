@@ -331,14 +331,16 @@ ace build <subCommand> [arguments]
 
 - arguments
 
-| 参数                  | 子命令                                                       | 说明                                         |
-| --------------------- | ------------------------------------------------------------ | -------------------------------------------- |
-| --debug               | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为debug。                  |
-| --nosign              | ios、ios-framework、ios-xcframework                          | 构建出未签名的应用程序。                     |
-| --target [moduleName] | hap                                                          | 指定目标模块名进行构建。                     |
-| -r --release          | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为release(默认为release)。 |
-| -s --simulator        | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
-| -h --help             | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
+| 参数                           | 子命令                                                       | 说明                                         |
+| ------------------------------ | ------------------------------------------------------------ | -------------------------------------------- |
+| --debug                        | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为debug。                  |
+| -r --release                   | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为release(默认为release)。 |
+| --profile                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为profile。                |
+| --nosign                       | ios、ios-framework、ios-xcframework                          | 构建出未签名的应用程序。                     |
+| --target [moduleName]          | hap                                                          | 指定目标模块名进行构建。                     |
+| --target-platform \<platform\> | apk、aab、aar、bundle                                        | 编译apk的目标平台[arm, arm64, x86_64]        |
+| -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
+| -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
 
 构建完成，提示包生成路径:
 
@@ -509,6 +511,9 @@ ace run [arguments]
 
 | 参数          | 说明                   |
 | ------------------- | ---------------------- |
+| --debug | 构建并运行debug版本应用。 |
+| -r --release | 构建并运行release版本应用。 |
+| --profile | 构建并运行profile版本应用。 |
 | --target [moduleName] | 指定目标模块名进行运行。 |
 | -d --device \<deviceId\> | 指定运行应用的设备Id。 |
 | -h --help             | 显示帮助信息。            |
