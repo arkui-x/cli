@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
+const { copy } = require('../ace-create/util');
 const { devices, getDeviceID, devicesList } = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
@@ -366,6 +367,23 @@ function cleanLibs(projectDir, abiFilters, fileType) {
   }
 }
 
+function syncHvigor(projectDir) {
+  let pathTemplate = path.join(__dirname, 'template');
+  if (fs.existsSync(pathTemplate)) {
+    copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+    return true;
+  } else {
+    pathTemplate = globalThis.templatePath;
+    if (fs.existsSync(pathTemplate)) {
+      copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+      return true;
+    } else {
+      console.error('Error: Template is not exist!');
+      return false;
+    }
+  }
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -382,5 +400,6 @@ module.exports = {
   getAbsolutePath,
   getCrossPlatformModules,
   modifyAndroidAbi,
-  validOptions
+  validOptions,
+  syncHvigor
 };
