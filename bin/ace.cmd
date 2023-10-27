@@ -80,12 +80,13 @@ if NOT EXIST "%dp0%\..\ace_tools\lib\src" (
 
 set missing=
 set isMissing=0
+set bd=%cd%
 cd "%dp0%\..\ace_tools"
 for /f "tokens=4 delims= " %%s in ('npm list 2^>nul ^| findstr "UNMET DEPENDENCY"') do (
     set isMissing=2
     set "missing=!missing!echo     %%s&"
 )
-cd %dp0%
+cd %bd%
 if %isMissing% neq 0 (
     echo Missing following node modules
     %missing%echo.
