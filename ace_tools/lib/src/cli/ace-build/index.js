@@ -16,9 +16,9 @@
 const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 
-function build(target, cmd) {
+function build(target, cmd,options) {
   if (compiler(target, cmd)) {
-    packager(target, cmd);
+    packager(target, cmd,options);
   }
 }
 

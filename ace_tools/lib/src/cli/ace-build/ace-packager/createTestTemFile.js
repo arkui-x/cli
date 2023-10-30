@@ -58,7 +58,7 @@ function recoverStageAbilityInAndroid(moduleName, abilityName) {
 
 function recoverStageAbilityInIOS(moduleName, abilityName) {
   try {
-    const destClassName = getDestName(moduleName, abilityName, 'ios');
+    const destClassName = getDestName(moduleName, abilityName, 'app');
     const viewControllerh = path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.h');
     const viewControllerm = path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.m');
     if (fs.existsSync(viewControllerh)) {

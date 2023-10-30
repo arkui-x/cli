@@ -28,7 +28,7 @@ let projectRootLen = 0;
 function getSubProjectDir(fileType, projectDir) {
   if (fileType === 'apk') {
     return ['app'];
-  } else if (fileType === 'ios' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
+  } else if (fileType === 'app' || fileType === 'framework' || fileType === 'xcframework') {
     return ['ios'];
   } else if (fileType === 'aar') {
     return getAarName(projectDir);
@@ -81,10 +81,11 @@ function getJsonConfig(apiConfigPath) {
   }
 }
 
-function getCpuList(buildProject, projectDir, system, cmd) {
+function getCpuList(buildProject, projectDir, system) {
   if (system === 'android') {
     const androidGradlePath = path.join(projectDir,
       '.arkui-x/android/' + buildProject + '/build.gradle');
+    console.log('\nandroid Gradle File:', androidGradlePath);
     if (fs.existsSync(androidGradlePath)) {
       let gradleData = fs.readFileSync(androidGradlePath, 'utf-8');
       gradleData = gradleData.trim().split('\n');
@@ -96,21 +97,7 @@ function getCpuList(buildProject, projectDir, system, cmd) {
         }
       });
       if (!ndkList) {
-        if (!cmd.targetPlatform) {
-          ndkList = ['arm64-v8a'];
-        } else {
-          const abiList = [];
-          cmd.targetPlatform.split(',').forEach(abi => {
-            if (abi === 'arm64') {
-              abiList.push("arm64-v8a");
-            } else if (abi === 'arm') {
-              abiList.push("armeabi-v7a");
-            } else if (abi === 'x86_64') {
-              abiList.push("x86_64");
-            }
-          });
-          ndkList = abiList;
-        }
+        console.log('could not find  abiFilters , please check');
       }
       return ndkList;
     }
@@ -142,14 +129,15 @@ function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap)
   let compileType = 'release';
   if (cmd.debug) {
     compileType = 'debug';
-  } else if (cmd.profile) {
-    compileType = 'profile';
+  }
+  if (cmd.release) {
+    compileType = 'release';
   }
   const subProjectNameList = getSubProjectDir(fileType, projectDir);
   let allCheckMap = new Map();
   let depCheckMap = new Map();
   subProjectNameList.forEach(buildProject => {
-    const cpuList = getCpuList(buildProject, projectDir, system, cmd);
+    const cpuList = getCpuList(buildProject, projectDir, system);
     printLog('\nbuildSubProject : ', buildProject, '  Cpu List : ', cpuList);
     for (const cpuIndex in cpuList) {
       const archType = appCpu2SdkLibMap[system][cpuList[cpuIndex]][compileType][0];
