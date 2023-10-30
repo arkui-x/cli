@@ -25,7 +25,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
   try {
     const filePathList = [];
     let buildDir;
-    if(installFilePath){
+    if (installFilePath) {
       filePathList.push(installFilePath);
       return filePathList;
     }
@@ -83,16 +83,16 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
           }));
         }
       });
-      if (cmd.release || cmd.debug || cmd.profile) {
-        if (cmd.release) {
-          filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
-          packageType = 'Release';
-        } else if (cmd.debug) {
+      if (cmd) {
+        if (cmd.debug) {
           filePathList.push(path.join(buildDir, `debug/app-debug.${fileType}`));
           packageType = 'Debug';
         } else if (cmd.profile) {
           filePathList.push(path.join(buildDir, `profile/app-profile.${fileType}`));
           packageType = 'Profile';
+        } else {
+          filePathList.push(path.join(buildDir, `release/app-release.${fileType}`));
+          packageType = 'Release';
         }
       } else {
         if (fileList.includes(`release/app-release.${fileType}`)) {
