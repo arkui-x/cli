@@ -156,6 +156,13 @@ function replaceiOSProjectInfo(projectPath, bundleName) {
   files.push(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
   replaceInfos.push('packageName');
   strs.push(bundleName);
+  files.push(path.join(projectPath, '.arkui-x/ios/app/Info.plist'));
+  replaceInfos.push('{{CFBundleName}}');
+  let iosCFBundleName = bundleName.split('.').at(-1).toLowerCase();
+  strs.push(iosCFBundleName);
+  files.push(path.join(projectPath, '.arkui-x/ios/app/Info.plist'));
+  replaceInfos.push('{{CFBundleDisplayName}}');
+  strs.push(iosCFBundleName.slice(0, 1).toUpperCase() + iosCFBundleName.slice(1));
   replaceInfo(files, replaceInfos, strs);
 }
 
