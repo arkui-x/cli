@@ -137,6 +137,7 @@ function parseCreate() {
         return;
       }
       const initInfo = {};
+      initInfo.currentProjectPath = outputDir;
       if (!cmd.template || cmd.template === 'app') {
         initInfo.proType = '1';
         initInfo.template = '1';

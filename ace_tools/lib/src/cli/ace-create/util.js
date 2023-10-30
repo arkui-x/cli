@@ -16,6 +16,11 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
+const exec = require('child_process').execSync;
+const {
+  Platform,
+  platform
+} = require('../ace-check/platform');
 
 function replaceInfo(files, replaceInfos, strs) {
   files.forEach((filePath, index) => {
@@ -68,7 +73,7 @@ function createPackageFile(packagePaths, packageArray) {
     const files = fs.readdirSync(packagePath);
     const oldPath = packagePath;
     packageArray.forEach(packageInfo => {
-      fs.mkdirSync(path.join(packagePath, packageInfo));
+      fs.mkdirSync(path.join(packagePath, packageInfo), { recursive: true });
       packagePath = path.join(packagePath, packageInfo);
     });
     files.forEach(javaFile => {
@@ -77,10 +82,6 @@ function createPackageFile(packagePaths, packageArray) {
       if (fs.statSync(srcEle).isFile()) {
         fs.writeFileSync(dstEle, fs.readFileSync(srcEle));
         fs.unlinkSync(srcEle);
-      } else {
-        fs.mkdirSync(dstEle);
-        copy(srcEle, dstEle);
-        rmdir(srcEle);
       }
     });
   });
@@ -177,6 +178,52 @@ function addCrosssPlatform(projectPath, module) {
   }
 }
 
+function signIOS(configFile) {
+  if (platform !== Platform.MacOS) {
+    return true;
+  }
+  try {
+    exec('which security', { stdio: 'pipe' });
+    exec('which openssl', { stdio: 'pipe' });
+    const files = [];
+    const replaceInfos = [];
+    const strs = [];
+    const identityResult = [];
+    const findIdentityCmd = 'security find-identity -p codesigning -v';
+    const result = exec(`${findIdentityCmd}`, { stdio: 'pipe' }).toString().split('\n').filter(item => {
+      return (/^\s*\d+\).+"(.+Develop(ment|er).+)"$/g).exec(item);
+    });
+    result.forEach(item => {
+      identityResult.push((/^\s*\d+\).+"(.+Develop(ment|er).+)"$/g).exec(item)[1]);
+    });
+    if (identityResult.length === 0) {
+      return false;
+    }
+    const identity = identityResult[0].match(RegExp(/.*\(([a-zA-Z0-9]+)\)/))[1];
+    const findCertificateCmd = `security find-certificate -c ${identity} -p | openssl x509 -subject`;
+    const certificateResult = exec(`${findCertificateCmd}`, { stdio: 'pipe' }).toString().match(RegExp(/OU\s*=\s*([a-zA-Z0-9]+)/))[1];
+
+    files.push(configFile);
+    replaceInfos.push('Manual');
+    strs.push('Automatic');
+    files.push(configFile);
+    replaceInfos.push('MCN34247SC');
+    strs.push(certificateResult);
+    files.push(configFile);
+    replaceInfos.push('iPhone Distribution: ');
+    strs.push('Apple Development');
+    files.push(configFile);
+    replaceInfos.push('shiseido sc adhoc');
+    strs.push('');
+    replaceInfo(files, replaceInfos, strs);
+    console.log(`Signing iOS app for device deployment using developer identity: "${identityResult[0]}"`);
+    return true;
+  } catch (err) {
+    console.log(err)
+    return false;
+  }
+}
+
 module.exports = {
   copy,
   rmdir,
@@ -184,5 +231,6 @@ module.exports = {
   replaceInfo,
   modifyHarmonyOSConfig,
   modifyNativeCppConfig,
-  addCrosssPlatform
+  addCrosssPlatform,
+  signIOS
 };

@@ -16,18 +16,15 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const check = require('../../ace-check');
-
 const createAar = require('../aar');
 const createFramework = require('../framework');
 const { copy, rmdir, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
-  modifyNativeCppConfig } = require('../util');
+  modifyNativeCppConfig, signIOS } = require('../util');
 const aceHarmonyOS = '2';
 const aceTemplateNC = '2';
 const aceProType = '2';
 
 function create(args) {
-  check();
   const question = [{
     name: 'delete',
     type: 'input',
@@ -40,7 +37,7 @@ function create(args) {
       }
     }
   }];
-  const { outputDir,project, bundleName, runtimeOS, proType, template } = args;
+  const { outputDir, project, bundleName, runtimeOS, proType, template, currentProjectPath } = args;
   const projectPath = outputDir;
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
@@ -52,26 +49,34 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, bundleName, project, runtimeOS, proType, template);
+        createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, bundleName, project, runtimeOS, proType, template);
+    createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath);
   }
 }
 
-function createProject(projectPath, bundleName, project, runtimeOS, proType, template) {
+function createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath) {
   try {
-    fs.mkdirSync(projectPath);
+    fs.mkdirSync(projectPath, { recursive: true });
     findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template);
     if (proType === aceProType) {
       if (!(createAar(projectPath, project) && createFramework(projectPath, project))) {
         return false;
       }
     }
-    console.log('Project created successfully! Target directory: ' + projectPath + '.');
+    console.log(`
+Project created successfully! Target directory:  ${projectPath}.
+
+In order to run your application, type:
+    
+    $ cd ${currentProjectPath}
+    $ ace run
+      
+Your application code is in ${path.join(currentProjectPath, 'entry')}.`);
   } catch (error) {
     console.log('Project created failed! Target directory: ' + projectPath + '.' + error);
   }
@@ -84,7 +89,6 @@ function findStageTemplate(projectPath, bundleName, project, runtimeOS, proType,
     replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template);
   } else {
     pathTemplate = globalThis.templatePath;
-    console.log(pathTemplate);
     if (fs.existsSync(pathTemplate)) {
       copyStageTemplate(pathTemplate, projectPath, proType, template);
       replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template);
@@ -150,7 +154,8 @@ function replaceiOSProjectInfo(projectPath, bundleName) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
-  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  const configFile = path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
+  files.push(configFile);
   replaceInfos.push('bundleIdentifier');
   strs.push(bundleName);
   files.push(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
@@ -164,6 +169,7 @@ function replaceiOSProjectInfo(projectPath, bundleName) {
   replaceInfos.push('{{CFBundleDisplayName}}');
   strs.push(iosCFBundleName.slice(0, 1).toUpperCase() + iosCFBundleName.slice(1));
   replaceInfo(files, replaceInfos, strs);
+  signIOS(configFile);
 }
 
 function replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template) {
@@ -264,7 +270,7 @@ function copyStageTemplate(templatePath, projectPath, proType, template) {
       return false;
     }
   }
-  fs.mkdirSync(path.join(projectPath, '.arkui-x'));
+  fs.mkdirSync(path.join(projectPath, '.arkui-x'), { recursive: true });
   fs.writeFileSync(path.join(projectPath, '.arkui-x/arkui-x-config.json5'), fs.readFileSync(path.join(templatePath, 'arkui-x-config.json5').toString()));
   if (proType !== aceProType) {
     if (!copyAndroidiOSTemplate(templatePath, projectPath, template)) {
