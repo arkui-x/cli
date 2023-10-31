@@ -17,31 +17,37 @@ const appCpu2SdkLibMap = {
   'android': {
     'arm64-v8a': {
       'debug': ['android-arm64-release'],
-      'release': ['android-arm64-release']
+      'release': ['android-arm64-release'],
+      'profile': ['android-arm64-release']
     },
     'armeabi-v7a': {
       'debug': ['android-arm-release'],
-      'release': ['android-arm-release', 'android-arm']
+      'release': ['android-arm-release', 'android-arm'],
+      'profile': ['android-arm-release', 'android-arm']
     },
     'x86_64': {
-      'debug': ['android-x86_64-release'],
-      'release': ['android-x86_64-release', 'android-x86_64']
+     'debug': ['android-x86_64'],
+     'release': ['android-x86_64', 'android-x86_64-release'],
+     'profile': ['android-x86_64', 'android-x86_64-release']
     }
   },
   'ios': {
     'arm64': {
       'debug': ['ios-release'],
-      'release': ['ios-release']
+      'release': ['ios-release'],
+      'profile': ['ios-release']
     }
   },
   'ios-simulator': {
     'arm64': {
       'debug': ['ios-release'],
-      'release': ['ios-release']
+      'release': ['ios-release'],
+      'profile': ['ios-release']
     },
     'x86_64': {
       'debug': ['ios-release'],
-      'release': ['ios-release']
+      'release': ['ios-release'],
+      'profile': ['ios-release']
     }
   }
 };

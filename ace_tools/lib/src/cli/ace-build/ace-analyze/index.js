@@ -3,7 +3,6 @@ const fs = require('fs');
 const projectDir = process.cwd();
 const JSZip = require("./jszip.min.js");
 const exec = require('child_process').exec;
-// const express = require('../../../../../node_modules/express');
 const express = require('../../../../../node_modules/express');
 const ejs = require('../../../../../node_modules/ejs');
 const net = require('net');
@@ -24,9 +23,9 @@ function analyze(fileType) {
         if (err) throw err;
         JSZip.loadAsync(data)
             .then(function (zip) {
-                apkTojson(zip,fileType) // 读取apk包，生成json数据
-                writeJsonFile(fileType)      //将json数据写入json文件并保存到本地
-                renderHtmlPage() //渲染html文件
+                apkTojson(zip,fileType) 
+                writeJsonFile(fileType)
+                renderHtmlPage() 
             })
             .catch(function (error) {
                 console.error('解压缩失败:', error);
