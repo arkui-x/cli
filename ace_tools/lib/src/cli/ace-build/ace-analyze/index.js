@@ -115,7 +115,7 @@ function mkDirsSync(dirname) {
             return true;
         }
     }
-};
+}
 // 渲染html页面
 function renderHtmlPage() {
     app = express();
