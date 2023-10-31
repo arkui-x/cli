@@ -94,6 +94,9 @@ function showDeviceInfo(device, icon) {
     type = JSON.parse(device)['title'].trim();
   }
   console.log('\x1B[32m%s\x1B[0m', `${icon}`, `${title} (${id}) [${type}]`);
+  if (title === undefined) {
+    console.log('\x1B[31m%s\x1B[0m', `The current ios device ${id} is not trusted, please re-plug and trust it.`);
+  }
 }
 
 function getDeviceTitle(device) {
@@ -103,7 +106,11 @@ function getDeviceTitle(device) {
   }
   else if (device.split(/[\t\s]+/)[0] === 'iOS') {
     const id = getDeviceID(device);
-    title = exec(`idevicename -u ${id}`).toString().trimEnd();
+    try {
+      title = exec(`idevicename -u ${id}`, { stdio: 'pipe' }).toString().trimEnd();
+    } catch (err) {
+      return undefined;
+    }
   } else {
     if (device.includes(':')) {
       title = device.split(/:/g)[2].split(/[\t\s]+/)[0];

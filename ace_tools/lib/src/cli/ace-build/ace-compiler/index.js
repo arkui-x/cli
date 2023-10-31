@@ -60,6 +60,8 @@ function readConfig() {
 
 function writeLocalProperties() {
   const filePath = path.join(projectDir, 'local.properties');
+  const androidFilePath = path.join(projectDir, '.arkui-x/android/local.properties');
+  fs.rmSync(androidFilePath, { recursive: true, force: true });
   let content = `nodejs.dir=${nodejsDir}\narkui-x.dir=${arkuiXSdkDir}`;
   if (currentSystem === 'HarmonyOS') {
     content += `\nhwsdk.dir=${harmonyOsSdkDir}`;
@@ -341,8 +343,8 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
   if (readConfig()
     && writeLocalProperties()
     && runGradle(fileType, cmd, moduleListSpecified)
-    && copyStageBundleToAndroidAndIOS(moduleListSpecified)
-    && copyTestStageBundleToAndroidAndIOS(moduleListSpecified, fileType, cmd)) {
+    && copyStageBundleToAndroidAndIOS(crossPlatformModules)
+    && copyTestStageBundleToAndroidAndIOS(crossPlatformModules, fileType, cmd)) {
     if (fileType === 'hap') {
       console.log(`Build hap successfully.`);
       copyHaptoOutput(moduleListSpecified);

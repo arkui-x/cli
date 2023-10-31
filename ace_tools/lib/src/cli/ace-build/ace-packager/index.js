@@ -26,7 +26,7 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid} = require('../../ace-check/configs');
+const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi } = require('../../util');
 const projectDir = process.cwd();
@@ -182,7 +182,7 @@ function buildAAR(cmd) {
         cmdStr = cmdStr + `${aarName}:assembleDebug `;
       } else if (cmd.profile) {
         cmdStr = cmdStr + `${aarName}:assembleProfile `;
-      }  else {
+      } else {
         cmdStr = cmdStr + `${aarName}:assembleRelease `;
       }
     });
@@ -382,10 +382,20 @@ function buildiOS(cmd) {
   cmds.forEach(cmd => {
     try {
       exec(cmd, {
-        encoding: 'utf-8',
-        stdio: 'inherit'
+        encoding: 'utf-8'
       });
     } catch (error) {
+      if (error.stdout !== null) {
+        console.log(error.stdout);
+        if (error.stdout.toString().includes('Automatic signing is disabled and unable to generate a profile')) {
+          console.log('\x1B[31m%s\x1B[0m', `
+It appears that there was a problem signing your application prior to installation on the device.
+
+Verify that the Bundle Identifier in your project is your signing id in Xcode
+  open .arkui-x/ios/app.xcodeproj
+          `);
+        }
+      }
       message = 'Build ios failed.';
       isBuildSuccess = false;
     }
