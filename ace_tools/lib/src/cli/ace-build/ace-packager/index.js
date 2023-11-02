@@ -382,7 +382,8 @@ function buildiOS(cmd) {
   cmds.forEach(cmd => {
     try {
       exec(cmd, {
-        encoding: 'utf-8'
+        encoding: 'utf-8',
+        stdio: 'pipe'
       });
     } catch (error) {
       if (error.stdout !== null) {
