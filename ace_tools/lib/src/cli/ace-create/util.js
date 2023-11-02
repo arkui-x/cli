@@ -87,7 +87,23 @@ function createPackageFile(packagePaths, packageArray) {
   });
 }
 
-function modifyHarmonyOSConfig(projectPath, moduleName) {
+function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
+  if (openharmonyosVersion === '10') {
+    return;
+  }
+  const buildProfile = path.join(projectPath, 'build-profile.json5');
+  if (fs.existsSync(buildProfile)) {
+    const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
+    const productsInfo = buildProfileInfo.app.products;
+    for (let index = 0; index < productsInfo.length; index++) {
+      productsInfo[index].compileSdkVersion = Number(openharmonyosVersion);
+      productsInfo[index].compatibleSdkVersion = Number(openharmonyosVersion);
+    }
+    fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
+  }
+}
+
+function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
   const buildProfile = path.join(projectPath, 'build-profile.json5');
   const configFile = [path.join(projectPath, moduleName, 'src/main/module.json5'),
     path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
@@ -98,10 +114,26 @@ function modifyHarmonyOSConfig(projectPath, moduleName) {
     const productsInfo = buildProfileInfo.app.products;
     for (let index = 0; index < productsInfo.length; index++) {
       if (productsInfo[index].name === 'default' && productsInfo[index].runtimeOS !== 'HarmonyOS') {
-        productsInfo[index].compileSdkVersion = '4.0.0(10)';
-        productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
-        productsInfo[index].runtimeOS = 'HarmonyOS';
-        break;
+        switch (sdkVersion) {
+          case '10':{
+            productsInfo[index].compileSdkVersion = '4.0.0(10)';
+            productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
+            productsInfo[index].runtimeOS = 'HarmonyOS';
+            break;
+          }
+          case '11':{
+            productsInfo[index].compileSdkVersion = '4.1.0(11)';
+            productsInfo[index].compatibleSdkVersion = '4.1.0(11)';
+            productsInfo[index].runtimeOS = 'HarmonyOS';
+            break;
+          }
+          default:{
+            productsInfo[index].compileSdkVersion = '4.0.0(10)';
+            productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
+            productsInfo[index].runtimeOS = 'HarmonyOS';
+            break;
+          }
+        }
       }
     }
     fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
@@ -232,5 +264,6 @@ module.exports = {
   modifyHarmonyOSConfig,
   modifyNativeCppConfig,
   addCrosssPlatform,
-  signIOS
+  signIOS,
+  modifyOpenHarmonyOSConfig
 };

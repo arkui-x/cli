@@ -384,6 +384,21 @@ function syncHvigor(projectDir) {
   }
 }
 
+function getSdkVersion(projectDir) {
+  const buildProfilePath = path.join(projectDir, 'build-profile.json5');
+  if (fs.existsSync(buildProfilePath)) {
+    const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfilePath).toString());
+    if (buildProfileInfo.app.products[0].compileSdkVersion === '4.0.0(10)') {
+      return '10';
+    } else if (buildProfileInfo.app.products[0].compileSdkVersion === '4.1.0(11)') {
+      return '11';
+    }
+    return buildProfileInfo.app.products[0].compileSdkVersion;
+  } else {
+    return null;
+  }
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -401,5 +416,6 @@ module.exports = {
   getCrossPlatformModules,
   modifyAndroidAbi,
   validOptions,
-  syncHvigor
+  syncHvigor,
+  getSdkVersion
 };
