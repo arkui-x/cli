@@ -88,7 +88,7 @@ function getToolchains(systemType, key) {
   } else if (systemType === 'HarmonyOS') {
     toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
     if (!fs.existsSync(toolchainsPath)) {
-      const ideToolPath = path.join(harmonyOsSdkDir, '/hmscore');
+      const ideToolPath = path.join(harmonyOsSdkDir, '/openharmony');
       const ideHdcPath = getIdeToolPath(ideToolPath);
       if (ideHdcPath) {
         hdcPath[`${key}`] = ideHdcPath;
@@ -105,12 +105,22 @@ function getToolchains(systemType, key) {
 
 function getIdeToolPath(ideToolPath) {
   let toolPath = '';
+  const versionList = ['10'];
   if (fs.existsSync(ideToolPath)) {
     const fileArr = fs.readdirSync(ideToolPath);
     if (fileArr && fileArr.length > 0) {
       fileArr.forEach(item => {
-        if (!isNaN(item.substring(0, 1))) {
-          toolPath = getVaildToolPath(path.join(ideToolPath, item, '/toolchains'));
+        if (!isNaN(item) && parseInt(item) >= 10) {
+          versionList.push(item);
+        }
+      });
+      const sortList = versionList.sort(function (a, b) {
+        return a - b;
+      });
+      sortList.forEach(item => {
+        const tempPath = getVaildToolPath(path.join(ideToolPath, item, '/toolchains'));
+        if (tempPath) {
+          toolPath = tempPath;
         }
       });
     }
@@ -156,9 +166,9 @@ function getOhpmTools() {
 function getAapt() {
   const androidSdkBuildToolsPath = path.join(androidSdkDir, 'build-tools');
   if (fs.existsSync(androidSdkBuildToolsPath)) {
-    let androidSdkBuildTools = fs.readdirSync(androidSdkBuildToolsPath);
+    const androidSdkBuildTools = fs.readdirSync(androidSdkBuildToolsPath);
     for (let i = 0; i < androidSdkBuildTools.length; i++) {
-      const aaptDir = path.join(androidSdkBuildToolsPath, androidSdkBuildTools[i], 'aapt')
+      const aaptDir = path.join(androidSdkBuildToolsPath, androidSdkBuildTools[i], 'aapt');
       if (platform === Platform.Windows && fs.existsSync(aaptDir + '.exe')) {
         return aaptDir;
       }
