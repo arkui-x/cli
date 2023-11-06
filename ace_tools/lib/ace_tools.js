@@ -153,7 +153,11 @@ function parseCreate() {
       }
       outputDir = getAbsolutePath(outputDir);
       const projectName = path.basename(outputDir);
-
+      if (!isProjectNameValid(projectName)) {
+        console.log('The project dir must contain 1 to 200 characters, start with a ' +
+        'letter, and include only letters, digits and underscores (_)');
+        return;
+      }
       inquirer.prompt([{
         name: 'project',
         type: 'input',
