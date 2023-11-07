@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright (c) 2022 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,11 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+NODE_VERSION="v16.20.2"
+
 basedir=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
 
 case `uname` in
     *CYGWIN*|*MINGW*|*MSYS*) basedir=`cygpath -w "$basedir"`;;
 esac
+
+function version_check {
+    local node_path="$1"
+    if [ $# -eq 0 ]; then
+        node_path="node"
+    fi
+    local current_version="$($node_path -v)"
+    if [ "$(echo -e "$current_version\n$NODE_VERSION" | sort -V | head -n1)" == "$NODE_VERSION" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
 
 function check_depency {
     if [ ! -d "$basedir/../ace_tools/lib/src" ]; then
@@ -50,55 +65,63 @@ function check_depency {
 }
 
 if [ -x "$basedir/node/bin/node" ]; then
+    if version_check "$basedir/node/bin/node"; then
+        export PATH="$basedir/node/bin:$PATH"
+        check_depency
+        "$basedir/node/bin/node" "$basedir/../ace_tools/lib/ace_tools.js" "$@"
+        exit $?
+    fi
+fi
+
+if command -v node >/dev/null 2>&1; then
+    if version_check; then
+        check_depency
+        node "$basedir/../ace_tools/lib/ace_tools.js" "$@"
+        exit $?
+    else
+        echo The minimum version required for Node.js is $NODE_VERSION, the current version is lower than the required version.
+    fi
+else
+    echo No Node.js detected, Node.js is a necessary condition for operation.
+fi
+echo Do you want to install it: [Y/N]
+read userInput
+userInputLower=$(echo "$userInput" | tr '[:upper:]' '[:lower:]')
+if [ "$userInputLower" != "${userInputLower#[Yy]}" ] ;then
+    basePath=$(cd `dirname $0`; pwd)
+    INSTALL_PATH="$basePath/node"
+    NODE_OS=""
+    NODE_ARCH=""
+    if [ "$(uname)" = "Linux" ]; then
+        NODE_OS="linux"
+        NODE_ARCH="x64"
+    else
+        NODE_OS="darwin"
+        if [ "$(uname -m)" = "x86_64" ]; then
+            NODE_ARCH="x64"
+        else
+            NODE_ARCH="arm64"
+        fi
+    fi
+    echo "start install Node.js($NODE_VERSION)"
+    URL="https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz"
+    if [ "$(uname)" = "Linux" ]; then
+        wget $URL
+    else
+        curl -O $URL
+    fi
+    tar -xf "node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz"
+    if [ -d "$INSTALL_PATH" ]; then
+	    rm -rf "$INSTALL_PATH"
+    fi
+    mv "node-$NODE_VERSION-$NODE_OS-$NODE_ARCH" "$INSTALL_PATH"
+    rm -f "node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz"
+    echo "\033[1;32mNode installation path: $INSTALL_PATH\033[0m"
     export PATH="$basedir/node/bin:$PATH"
     check_depency
     "$basedir/node/bin/node" "$basedir/../ace_tools/lib/ace_tools.js" "$@"
-    ret=$?
+    exit $?
 else
-    if command -v node >/dev/null 2>&1;then
-        check_depency
-        node  "$basedir/../ace_tools/lib/ace_tools.js" "$@"
-        ret=$?
-    else
-        echo No Node.js detected, Node.js is a necessary condition for operation.
-        echo Do you want to install it: [Y/N]
-        read userInput
-        userInputLower=$(echo "$userInput" | tr '[:upper:]' '[:lower:]')
-        if [ "$userInputLower" != "${userInputLower#[Yy]}" ] ;then
-            NODE_VERSION="v16.20.0"
-            basePath=$(cd `dirname $0`; pwd)
-            INSTALL_PATH="$basePath/node"
-            NODE_OS=""
-            NODE_ARCH=""
-            if [ "$(uname)" = "Linux" ]; then
-                NODE_OS="linux"
-                NODE_ARCH="x64"
-            else
-                NODE_OS="darwin"
-                if [ "$(uname -m)" = "x86_64" ]; then
-                    NODE_ARCH="x64"
-                else
-                    NODE_ARCH="arm64"
-                fi
-            fi
-            echo "start install Node.js($NODE_VERSION)"
-            URL="https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz"
-            if [ "$(uname)" = "Linux" ]; then
-                wget $URL
-            else
-                curl -O $URL
-            fi
-            tar -xf "node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz"
-            mv "node-$NODE_VERSION-$NODE_OS-$NODE_ARCH" "$INSTALL_PATH"
-            rm -f "node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz"
-            echo "\033[1;32mNode installation path: $INSTALL_PATH\033[0m"
-            export PATH="$basedir/node/bin:$PATH"
-            check_depency
-            "$basedir/node/bin/node" "$basedir/../ace_tools/lib/ace_tools.js" "$@"
-            ret=$?
-        else
-            exit 0
-        fi
-    fi
+    exit 0
 fi
-exit $ret
+

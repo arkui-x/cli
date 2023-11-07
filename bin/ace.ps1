@@ -14,13 +14,29 @@
 
 $basedir=Split-Path $MyInvocation.MyCommand.Definition -Parent
 $exe=""
+$node_version="v16.20.2"
 
 function ExistNodeJs {
     $nodeExecutable = "node.exe"
-    $path = [System.Environment]::GetEnvironmentVariable("PATH", [System.EnvironmentVariableTarget]::Machine)
-    $nodeExists = $path -split ";" | Where-Object { Test-Path (Join-Path $_ $nodeExecutable) }
+    $path = $env:path
+    $nodeExists = $path.TrimEnd(";+") -split ";+" | Where-Object { Test-Path (Join-Path $_ $nodeExecutable) }
 
     if ($nodeExists) {
+        return $true
+    } else {
+        return $false
+    }
+}
+
+function CheckVersion () {
+    param (
+        [string]$nodePath
+    )
+    if ($nodePath -eq "") {
+        $nodePath = "node$exe"
+    }
+    $currentVersion = & $nodePath -v
+    if ([version]($currentVersion.Trim('v')) -ge [version]$node_version.Trim('v')) {
         return $true
     } else {
         return $false
@@ -63,37 +79,54 @@ if ($PSVersionTable.PSVersion -lt "6.0" -or $IsWindows) {
     $exe=".exe"
 }
 $ret=0
-if (Test-Path "$basedir/node$exe") {
-    CheckDepency
-    & "$basedir/node$exe"  "$basedir/../ace_tools/lib/ace_tools.js" $args
-    $ret=$LASTEXITCODE
+if (Test-Path "$basedir/node.exe") {
+    $ret = CheckVersion -nodePath $basedir/node$exe
+    if ($ret -eq $True) {
+        $Env:path = "$($Env:path):$basedir"
+        CheckDepency
+        & "$basedir/node$exe"  "$basedir/../ace_tools/lib/ace_tools.js" $args
+        exit $LASTEXITCODE
+    } else {
+        Rename-item $basedir/node.exe -NewName node-old-version.exe
+    }
+}
+
+if (ExistNodeJs) {
+    $ret = CheckVersion
+    if ($ret -eq $True) {
+        CheckDepency
+        & "node$exe" "$basedir/../ace_tools/lib/ace_tools.js" $args
+        exit $LASTEXITCODE
+    } else {
+        Write-Host "The minimum version required for Node.js is $node_version, the current version is lower than the required version."
+    }
 } else {
-    if (ExistNodeJs) {
+    Write-Host "No Node.js detected, Node.js is a necessary condition for operation."
+}
+
+choice /c yn /m "Do you want to install it:"
+if ($LASTEXITCODE -eq 1) {
+    $message = "start install Node.js(" + $node_version + ")"
+    Write-Host $message
+    $msiurl = "https://nodejs.org/dist/"+$node_version+"/node-"+$node_version+"-x64.msi"
+    $process = Start-Process "msiexec" -ArgumentList "/i $msiurl" -Wait -PassThru
+    if ($process.ExitCode -eq 0) {
+        Write-Host "Refreshing environment variables from system for terminal. Please wait..."
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+        $ret = CheckVersion
+        if ($ret -eq $False) {
+            echo "The required version of nodejs has been installed, but the system still uses the lower version by default. Please uninstall or remove the lower version of nodejs from the path and rerun this program."
+            exit 1
+        }
         CheckDepency
         & "node$exe" "$basedir/../ace_tools/lib/ace_tools.js" $args
         $ret=$LASTEXITCODE
     } else {
-        $node_version="v16.20.0"
-        Write-Host "No Node.js detected, Node.js is a necessary condition for operation."
-        choice /c yn /m "Do you want to install it:"
-        if ($LASTEXITCODE -eq 1) {
-            $message = "start install Node.js(" + $node_version + ")"
-            Write-Host $message
-            $msiurl = "https://nodejs.org/dist/"+$node_version+"/node-"+$node_version+"-x64.msi"
-            $process = Start-Process "msiexec" -ArgumentList "/i $msiurl" -Wait -PassThru
-            if ($process.ExitCode -eq 0) {
-                Write-Host "Refreshing environment variables from system for terminal. Please wait..."
-                $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-                CheckDepency
-                & "node$exe" "$basedir/../ace_tools/lib/ace_tools.js" $args
-                $ret=$LASTEXITCODE
-            } else {
-                Write-Host "You have cancelled the installation."
-                $ret=$LASTEXITCODE
-            }
-        } else {
-            $ret=$LASTEXITCODE
-        }
+        Write-Host "You have cancelled the installation."
+        $ret=$LASTEXITCODE
     }
+} else {
+    $ret=$LASTEXITCODE
 }
+
 exit $ret
