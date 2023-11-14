@@ -49,7 +49,7 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath);
+        createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath, sdkVersion);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
