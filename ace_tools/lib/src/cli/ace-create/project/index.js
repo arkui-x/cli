@@ -16,18 +16,15 @@
 const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
-const check = require('../../ace-check');
-
 const createAar = require('../aar');
 const createFramework = require('../framework');
 const { copy, rmdir, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
-  modifyNativeCppConfig } = require('../util');
+  modifyOpenHarmonyOSConfig, modifyNativeCppConfig, signIOS } = require('../util');
 const aceHarmonyOS = '2';
 const aceTemplateNC = '2';
 const aceProType = '2';
 
 function create(args) {
-  check();
   const question = [{
     name: 'delete',
     type: 'input',
@@ -40,7 +37,7 @@ function create(args) {
       }
     }
   }];
-  const { outputDir,project, bundleName, runtimeOS, proType, template } = args;
+  const { outputDir, project, bundleName, runtimeOS, proType, template, currentProjectPath, sdkVersion } = args;
   const projectPath = outputDir;
   if (fs.existsSync(project)) {
     question.message = question.message + projectPath;
@@ -52,42 +49,49 @@ function create(args) {
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
         }
-        createProject(projectPath, bundleName, project, runtimeOS, proType, template);
+        createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath, sdkVersion);
       } else {
         console.log('Failed to create project, project directory already exists.');
       }
     });
   } else {
-    createProject(projectPath, bundleName, project, runtimeOS, proType, template);
+    createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath, sdkVersion);
   }
 }
 
-function createProject(projectPath, bundleName, project, runtimeOS, proType, template) {
+function createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath, sdkVersion) {
   try {
-    fs.mkdirSync(projectPath);
-    findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template);
+    fs.mkdirSync(projectPath, { recursive: true });
+    findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template, sdkVersion);
     if (proType === aceProType) {
       if (!(createAar(projectPath, project) && createFramework(projectPath, project))) {
         return false;
       }
     }
-    console.log('Project created successfully! Target directory: ' + projectPath + '.');
+    console.log(`
+Project created successfully! Target directory:  ${projectPath}.
+
+In order to run your application, type:
+    
+    $ cd ${currentProjectPath}
+    $ ace run
+      
+Your application code is in ${path.join(currentProjectPath, 'entry')}.`);
   } catch (error) {
     console.log('Project created failed! Target directory: ' + projectPath + '.' + error);
   }
 }
 
-function findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template) {
+function findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template, sdkVersion) {
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
-    copyStageTemplate(pathTemplate, projectPath, proType, template);
-    replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template);
+    copyStageTemplate(pathTemplate, projectPath, proType, template, sdkVersion);
+    replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template, sdkVersion);
   } else {
     pathTemplate = globalThis.templatePath;
-    console.log(pathTemplate);
     if (fs.existsSync(pathTemplate)) {
-      copyStageTemplate(pathTemplate, projectPath, proType, template);
-      replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template);
+      copyStageTemplate(pathTemplate, projectPath, proType, template, sdkVersion);
+      replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template, sdkVersion);
     } else {
       console.log('Error: Template is not exist!');
     }
@@ -150,7 +154,8 @@ function replaceiOSProjectInfo(projectPath, bundleName) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
-  files.push(path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj'));
+  const configFile = path.join(projectPath, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
+  files.push(configFile);
   replaceInfos.push('bundleIdentifier');
   strs.push(bundleName);
   files.push(path.join(projectPath, '.arkui-x/ios/app/AppDelegate.m'));
@@ -164,9 +169,10 @@ function replaceiOSProjectInfo(projectPath, bundleName) {
   replaceInfos.push('{{CFBundleDisplayName}}');
   strs.push(iosCFBundleName.slice(0, 1).toUpperCase() + iosCFBundleName.slice(1));
   replaceInfo(files, replaceInfos, strs);
+  signIOS(configFile);
 }
 
-function replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template) {
+function replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, proType, template, sdkVersion) {
   if (!bundleName) {
     bundleName = 'com.example.arkuicross';
   }
@@ -217,12 +223,15 @@ function replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, pr
     replaceAndroidProjectInfo(projectPath, bundleName, project, template);
     replaceiOSProjectInfo(projectPath, bundleName);
   }
+  if (runtimeOS !== aceHarmonyOS && sdkVersion !== '10') {
+    modifyOpenHarmonyOSConfig(projectPath, sdkVersion);
+  }
   if (runtimeOS === aceHarmonyOS) {
-    modifyHarmonyOSConfig(projectPath, 'entry');
+    modifyHarmonyOSConfig(projectPath, 'entry', sdkVersion);
   }
 }
 
-function copyAndroidiOSTemplate(templatePath, projectPath, template) {
+function copyAndroidiOSTemplate(templatePath, projectPath, template, sdkVersion) {
   if (!copy(path.join(templatePath, '/android'), path.join(projectPath, '.arkui-x/android'))) {
     return false;
   }
@@ -236,6 +245,11 @@ function copyAndroidiOSTemplate(templatePath, projectPath, template) {
     if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectPath, '.arkui-x/ios/app.xcodeproj'))) {
       return false;
     }
+    if (sdkVersion !== '10') {
+      let data = fs.readFileSync(path.join(projectPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'), 'utf8');
+      data = data.replace(`$ENV{ARKUIX_SDK_HOME}/10`, `$ENV{ARKUIX_SDK_HOME}/${sdkVersion}`);
+      fs.writeFileSync(path.join(projectPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'), data);
+    }
   }
 
   fs.renameSync(path.join(projectPath, '.arkui-x/ios/app/AppDelegate_stage.m'),
@@ -245,7 +259,7 @@ function copyAndroidiOSTemplate(templatePath, projectPath, template) {
   return true;
 }
 
-function copyStageTemplate(templatePath, projectPath, proType, template) {
+function copyStageTemplate(templatePath, projectPath, proType, template, sdkVersion) {
   if (!copy(path.join(templatePath, '/ohos_stage'), projectPath)) {
     return false;
   }
@@ -264,10 +278,10 @@ function copyStageTemplate(templatePath, projectPath, proType, template) {
       return false;
     }
   }
-  fs.mkdirSync(path.join(projectPath, '.arkui-x'));
+  fs.mkdirSync(path.join(projectPath, '.arkui-x'), { recursive: true });
   fs.writeFileSync(path.join(projectPath, '.arkui-x/arkui-x-config.json5'), fs.readFileSync(path.join(templatePath, 'arkui-x-config.json5').toString()));
   if (proType !== aceProType) {
-    if (!copyAndroidiOSTemplate(templatePath, projectPath, template)) {
+    if (!copyAndroidiOSTemplate(templatePath, projectPath, template, sdkVersion)) {
       return false;
     }
   }

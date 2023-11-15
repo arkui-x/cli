@@ -17,7 +17,8 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
-const { copy, modifyHarmonyOSConfig, addCrosssPlatform } = require('../util');
+const { copy, modifyHarmonyOSConfig, addCrosssPlatform, modifyOpenHarmonyOSConfig } = require('../util');
+const { getSdkVersion } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability')
 const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj,
   isAppProject } = require('../../util');
@@ -262,8 +263,12 @@ function replaceStageProjectInfo(moduleName) {
       console.error('Please check stage project.');
       return false;
     }
+    const sdkVersion = getSdkVersion(projectDir);
+    if (currentSystem === 'OpenHarmony' && String(sdkVersion) !== '10') {
+      modifyOpenHarmonyOSConfig(projectDir, sdkVersion);
+    }
     if (currentSystem === 'HarmonyOS') {
-      modifyHarmonyOSConfig(projectDir, moduleName);
+      modifyHarmonyOSConfig(projectDir, moduleName, sdkVersion);
     }
     return true;
   } catch (error) {

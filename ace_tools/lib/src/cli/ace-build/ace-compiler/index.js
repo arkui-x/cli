@@ -24,6 +24,7 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
+const { getSdkVersion } = require('../../util/index');
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
@@ -51,7 +52,8 @@ function readConfig() {
         return false;
       }
     }
-    arkuiXSdkPath = path.join(arkuiXSdkDir, '10', 'arkui-x');
+    const version = getSdkVersion(projectDir);
+    arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
     return true;
   } catch (error) {
     console.error(`Please 'ace check' first.`);

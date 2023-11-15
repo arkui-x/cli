@@ -138,6 +138,7 @@ function parseCreate() {
         return;
       }
       const initInfo = {};
+      initInfo.currentProjectPath = outputDir;
       if (!cmd.template || cmd.template === 'app') {
         initInfo.proType = '1';
         initInfo.template = '1';
@@ -153,7 +154,11 @@ function parseCreate() {
       }
       outputDir = getAbsolutePath(outputDir);
       const projectName = path.basename(outputDir);
-
+      if (!isProjectNameValid(projectName)) {
+        console.log('The project dir must contain 1 to 200 characters, start with a ' +
+        'letter, and include only letters, digits and underscores (_)');
+        return;
+      }
       inquirer.prompt([{
         name: 'project',
         type: 'input',
@@ -202,8 +207,22 @@ function parseCreate() {
             }
           }]).then(answers => {
             initInfo.runtimeOS = answers.runtimeOS;
-            initInfo.sdkVersion = '10';
-            create(initInfo);
+            inquirer.prompt([{
+              name: 'Complie SDk',
+              type: 'input',
+              message: 'Please select the Complie SDk (1: 10, 2: 11):',
+              validate(val) {
+                if (val === '1' || val === '2') {
+                  return true;
+                } else {
+                  return 'input must be an integer: 1 or 2.';
+                }
+              }
+            }]).then(answers =>{
+              initInfo.sdkVersion = answers['Complie SDk'] === '1' ? '10' : '11';
+              create(initInfo);
+            })
+            
           });
         });
       });

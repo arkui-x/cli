@@ -234,28 +234,22 @@ ace create <output directory>
 在当前目录创建test工程：
 
 ```shell
-ohos@user Desktop % ace create test
-? Please enter the project name(test): # 输入工程名称，不输入默认为文件夹名称
+ohos@user:~/cli-project$ ace create test
+? Please enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
 ? Please enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
 ? Please enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
-Check summary (to see all details, run ace check -v)
-[√] ArkUI-X (ArkUI-X SDK version 1.1.1.5)
-[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.9.6)
-[√] HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version 3.1.0)
-[√] Android toolchains - develop for Android devices (Android SDK version 34.0.0)
-[√] DevEco Studio (version 4.0.3)
-[√] Android Studio (version 2022.3)
-[√] Xcode - develop for iOS (Xcode 14.3.1)
-Tools info :[√] OpenHarmony hdc installed
-            [√] HarmonyOS hdc installed
-            [√] adb installed
-            [√] ios-deploy installed
-[√] Connected device (1 available)
-  •  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
+? Please select the Complie SDk (1: 10, 2: 11): 2 # 输入编译SDK版本
+? The project already exists. Do you want to delete the directory (y / n): y
+Delete directory successfully, creating new project.
 
-  √ ACE Tools found no issues.
-? The project already exists. Do you want to delete the directory (y / n): n
-Failed to create project, project directory already exists.
+Project created successfully! Target directory:  /home/ohos/cli-project/test.
+
+In order to run your application, type:
+
+    $ cd test
+    $ ace run
+
+Your application code is in test/entry.
 ```
 
 删除已有项目提示：
@@ -267,7 +261,7 @@ The project already exists. Do you want to delete the directory (y / n):
 删除已有项目成功:
 
 ```shell
-Delete directory successfully, creating new project...:
+Delete directory successfully, creating new project.
 ```
 
 删除已有项目失败:
@@ -471,7 +465,7 @@ ace log [arguments]
 | 参数 | 说明                                                         |
 | ---- | ------------------------------------------------------------ |
 | apk  | 查看Android应用日志。                                        |
-| hap  | 查看OpenHarmony/HarmonyOS应用日志。                          |                    
+| hap  | 查看OpenHarmony/HarmonyOS应用日志。                          |
 | ios  | 查看iOS应用日志。                                            |
 
 | 参数            | 说明                   |
@@ -590,7 +584,7 @@ Clean project successfully
 语法：
 
 ```shell
-ace help [command]
+ace help <command>
 ```
 - command
 

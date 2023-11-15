@@ -120,20 +120,20 @@ function getNamesAppByInstallFile(installFilePath) {
 
 function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
   try {
-    let aapt = getAapt();
+    const aapt = getAapt();
     if (aapt === '') {
       console.error('Can not get aapt from anfroid build tools. ');
       return false;
     }
     const getPackageNameCmd = `${aapt} dump badging ${installFilePath}`;
-    apkData = exec(`${getPackageNameCmd}`, { encoding: 'utf8' }).trim().split('\n');
+    const apkData = exec(`${getPackageNameCmd}`, { encoding: 'utf8' }).trim().split('\n');
     apkData.forEach(element => {
       if (element.indexOf(`package: name=`) !== -1) {
         packageName = element.split("'")[1];
       }
     });
     bundleName = apkBundleName;
-    androidclassName = '.' + moduleName.replace(/\b\w/g, function (l) {
+    androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + 'EntryAbilityActivity';
     if (!bundleName || !packageName || !androidclassName) {
@@ -213,7 +213,7 @@ function launch(fileType, device, options) {
       return true;
     } catch (error) {
       console.error(`Launch ${fileType.toUpperCase()} failed.`);
-      console.log("you need to install the app first");
+      console.log('you need to install the app first');
       return false;
     }
   } else {
@@ -243,7 +243,7 @@ function getCmdLaunch(toolObj, device, options) {
       const deviceOption = device ? `${device}` : 'booted';
       const bundleName = getBundleName();
       cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
-    } else{
+    } else {
       const cmdPath = toolObj['ios-deploy'];
       const deviceOption = device ? `--id ${device}` : '';
       let testOption = '';
