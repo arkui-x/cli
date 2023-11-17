@@ -99,11 +99,32 @@ function getModuleList(settingPath) {
   }
 }
 
+function getModulePathList(projDir) {
+  try {
+    const modulePathList = {};
+    const settingPath = path.join(projDir, 'build-profile.json5');
+    if (fs.existsSync(settingPath)) {
+      const buildProfileInfo = JSON5.parse(fs.readFileSync(settingPath).toString());
+      for (let index = 0; index < buildProfileInfo.modules.length; index++) {
+        modulePathList[buildProfileInfo.modules[index].name] = buildProfileInfo.modules[index].srcPath;
+      }
+      return modulePathList;
+    } else {
+      console.error(`Please check ${settingPath}.`);
+      return null;
+    }
+  } catch (error) {
+    console.error(`Please check ${settingPath}.`);
+    return null;
+  }
+}
+
 function getModuleAbilityList(projDir, moduleList) {
   try {
     const moduleAbilityList = [];
+    const modulePathList = getModulePathList(projDir);
     for (let index = 0; index < moduleList.length; index++) {
-      const moduleJsonPath = path.join(projDir, moduleList[index],
+      const moduleJsonPath = path.join(projDir, modulePathList[moduleList[index]],
         'src/main/module.json5');
       const moduleJsonFile = JSON5.parse(fs.readFileSync(moduleJsonPath));
       moduleJsonFile.module.abilities.forEach(component => {
@@ -162,7 +183,7 @@ function getCurrentProjectSystem(projDir) {
 }
 
 function isNativeCppTemplate(projDir) {
-  const checkFile = path.join(projDir, 'entry/build-profile.json5');
+  const checkFile = path.join(projDir, `${getModulePathList(projDir)['entry']}/build-profile.json5`);
   if (!fs.existsSync(checkFile)) {
     return false;
   }
@@ -417,5 +438,6 @@ module.exports = {
   modifyAndroidAbi,
   validOptions,
   syncHvigor,
-  getSdkVersion
+  getSdkVersion,
+  getModulePathList
 };

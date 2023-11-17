@@ -28,7 +28,7 @@ const { getSdkVersion } = require('../../util/index');
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
-  getCrossPlatformModules, modifyAndroidAbi, syncHvigor } = require('../../util');
+  getCrossPlatformModules, modifyAndroidAbi, syncHvigor, getModulePathList } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
@@ -37,6 +37,7 @@ const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject')
 let projectDir;
 let arkuiXSdkPath;
 let currentSystem;
+let modulePathList;
 
 function readConfig() {
   try {
@@ -101,11 +102,11 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
-    const src = path.join(projectDir, module, `build/default/intermediates/loader_out/${fileName}/ets`);
-    const resindex = path.join(projectDir, module,
+    const src = path.join(projectDir, modulePathList[module], `build/default/intermediates/loader_out/${fileName}/ets`);
+    const resindex = path.join(projectDir, modulePathList[module],
       `build/default/intermediates/res/${fileName}/resources.index`);
-    const resPath = path.join(projectDir, module, `build/default/intermediates/res/${fileName}/resources`);
-    const moduleJsonPath = path.join(projectDir, module,
+    const resPath = path.join(projectDir, modulePathList[module], `build/default/intermediates/res/${fileName}/resources`);
+    const moduleJsonPath = path.join(projectDir, modulePathList[module],
       `build/default/intermediates/res/${fileName}/module.json`);
     const destClassName = module + moduleOption;
     const distAndroid = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/', destClassName + '/ets');
@@ -157,7 +158,7 @@ function deleteOldFile(deleteFilePath) {
 
 function copyHaptoOutput(moduleListSpecified) {
   moduleListSpecified.forEach(module => {
-    const src = path.join(projectDir, module, '/build/default/outputs/default');
+    const src = path.join(projectDir, modulePathList[module], '/build/default/outputs/default');
     const filePath = copyToBuildDir(src);
     console.log(`filepath: ${filePath}`);
   });
@@ -171,11 +172,11 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
     deleteOldFile(buildPath);
     moduleListSpecified.forEach(module => {
       // Now only consider one ability
-      const src = path.join(projectDir, module, 'build/default/intermediates/loader_out/default/ets');
-      const resindex = path.join(projectDir, module,
+      const src = path.join(projectDir, modulePathList[module], 'build/default/intermediates/loader_out/default/ets');
+      const resindex = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/resources.index');
-      const resPath = path.join(projectDir, module, 'build/default/intermediates/res/default/resources');
-      const moduleJsonPath = path.join(projectDir, module,
+      const resPath = path.join(projectDir, modulePathList[module], 'build/default/intermediates/res/default/resources');
+      const moduleJsonPath = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/module.json');
 
       const destClassName = module;
@@ -317,11 +318,11 @@ function copyStageBundleToAAR(moduleList) {
     deleteOldFile(path.join(aarPath, 'src/main/assets/arkui-x'));
     moduleList.forEach(module => {
       // Now only consider one ability
-      const src = path.join(projectDir, module, 'build/default/intermediates/loader_out/default/ets');
-      const resindex = path.join(projectDir, module,
+      const src = path.join(projectDir, modulePathList[module], 'build/default/intermediates/loader_out/default/ets');
+      const resindex = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/resources.index');
-      const resPath = path.join(projectDir, module, 'build/default/intermediates/res/default/resources');
-      const moduleJsonPath = path.join(projectDir, module,
+      const resPath = path.join(projectDir, modulePathList[module], 'build/default/intermediates/res/default/resources');
+      const moduleJsonPath = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/module.json');
       const destClassName = module.toLowerCase();
       const distAndroid = path.join(aarPath, 'src/main/assets/arkui-x/', destClassName + '/ets');
@@ -398,7 +399,9 @@ function compiler(fileType, cmd) {
   updateCrossPlatformModules(currentSystem);
   const settingPath = path.join(projectDir, 'build-profile.json5');
   const moduleListAll = getModuleList(settingPath);
-  if (moduleListAll === null || moduleListAll.length === 0) {
+  modulePathList = getModulePathList(projectDir);
+  if (moduleListAll === null || moduleListAll.length === 0 ||
+    modulePathList === null || modulePathList.length === 0) {
     console.error('There is no module in project.');
     return false;
   }
