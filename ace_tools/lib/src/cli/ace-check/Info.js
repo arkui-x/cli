@@ -68,6 +68,8 @@ class Info {
       'DevEco Studio is required, visit https://developer.harmonyos.com/cn/develop/deveco-studio to download latest.';
     this.warnMacTools =
       'Xcode, libimobiledevice, ios-deploy tools is required, please download and install them by yourself.';
+    this.warnXcodeVersion = 
+      'Xcode version should be greater than or equal to 15.0.1, unless IOS17 is not supported.';
   }
 
   hasOhpm(ohpmDir) {

@@ -62,12 +62,16 @@ function uninstallApp(toolObj, device, bundle) {
     cmdPath = 'xcrun simctl uninstall';
     deviceOption = device ? device : 'booted';
   }
-  else if ('ios-deploy' in toolObj) {
+  else if ('xcrun devicectl' in toolObj) {
+    cmdPath = toolObj['xcrun devicectl'] + ' device uninstall app ';
+    deviceOption = device ? `--device ${device}` : '';
+  } else if ('ios-deploy' in toolObj) {
     cmdPath = toolObj['ios-deploy'];
     cmdUninstallOption = '--uninstall_only --bundle_id';
     deviceOption = device ? `--id ${device}` : '';
-  } else {
-    console.error('Internal error with ios-deploy checking');
+  }
+  else {
+    console.error(`ios-deploy is not installed or Xcode's version is below 15.0`);
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;

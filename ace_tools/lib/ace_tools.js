@@ -606,7 +606,11 @@ Available subCommands:
       if (fileType === 'apk' || fileType === 'ios') {
         options.test = 'test';
         options.debug = true;
-        test(fileType, cmd.parent._optionValues.device, options);
+        if (!cmd.parent._optionValues.device) {
+          chooseDevice(fileType, options, test);
+        } else {
+          test(fileType, cmd.parent._optionValues.device, options);
+        }
       } else {
         console.log(`Please use ace test with subCommand : apk or ios.`);
       }

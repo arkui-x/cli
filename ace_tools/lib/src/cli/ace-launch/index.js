@@ -21,6 +21,7 @@ const { log, getBundleName } = require('../ace-log');
 const { getToolByType, getAapt } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
+const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 let bundleName;
 let packageName;
 let ohosclassName;
@@ -224,7 +225,13 @@ function launch(fileType, device, options) {
 
 function getCmdLaunch(toolObj, device, options) {
   let cmdLaunch = '';
-  if ('hdc' in toolObj) {
+  if (isSimulator(device)) {
+    const cmdPath = 'xcrun simctl launch';
+    const deviceOption = device ? `${device}` : 'booted';
+    const bundleName = getBundleName();
+    cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
+  }
+  else if ('hdc' in toolObj) {
     const cmdPath = toolObj['hdc'];
     const deviceOption = device ? `-t ${device}` : '';
     cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${className} -m ${packageName} -b ${bundleName}`;
@@ -237,30 +244,32 @@ function getCmdLaunch(toolObj, device, options) {
     }
     cmdLaunch =
       `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
-  } else if ('ios-deploy' in toolObj) {
-    if (isSimulator(device)) {
-      const cmdPath = 'xcrun simctl launch';
-      const deviceOption = device ? `${device}` : 'booted';
-      const bundleName = getBundleName();
-      cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
-    } else {
-      const cmdPath = toolObj['ios-deploy'];
-      const deviceOption = device ? `--id ${device}` : '';
-      let testOption = '';
-      if (options.test) {
-        testOption = getTestOption(options, '');
-      }
-      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch -m`;
+  } else if ('xcrun devicectl' in toolObj) {
+    const cmdPath = `${toolObj['xcrun devicectl']} device process launch`;
+    const deviceOption = device ? `-d ${device}` : '';
+    let testOption = '';
+    if (options.test) {
+      testOption = getTestOption(options, '', xcrunDevicectlTool);
     }
-  } else {
-    console.error('Internal error with hdc and adb checking.');
+    cmdLaunch = `${cmdPath} ${deviceOption} ${getBundleName()} --terminate-existing ${testOption}`;
+  } else if ('ios-deploy' in toolObj) {
+    const cmdPath = `${toolObj['ios-deploy']}`;
+    const deviceOption = device ? `--id ${device}` : '';
+    let testOption = '';
+    if (options.test) {
+      testOption = getTestOption(options, '', iosDeployTool);
+    }
+    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch -m`;
+  }
+  else {
+    console.error(`Internal error with hdc, adb, ios-deploy and Xcode's version checking.`);
   }
   return cmdLaunch;
 }
 
-function getTestOption(options, esOption) {
-  const cmdPrefix = esOption ? 'test test' : '--args "test';
-  const cmdSuffix = esOption ? '' : '"';
+function getTestOption(options, esOption, toolType = undefined) {
+  const cmdPrefix = esOption? 'test test' : toolType === iosDeployTool? '--args "test':'-e test';
+  const cmdSuffix = toolType !== iosDeployTool? '' : '"';
   const testBundleName = `${esOption}bundleName ${options.b}`;
   const testModuleName = `${esOption}moduleName ${options.m}`;
   const unittest = `${esOption}unittest ${options.unittest}`;

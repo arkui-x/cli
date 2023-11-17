@@ -219,14 +219,21 @@ function installCmdConstruct(fileType, toolObj, device) {
       }
     }
     else {
-      if (!('ios-deploy' in toolObj)) {
-        console.error('Internal error with ios-deploy checking');
-        return undefined;
+      if ('ios-deploy' in toolObj) {
+        cmdPath = toolObj['ios-deploy'];
+        cmdInstallOption = '--no-wifi --bundle';
+        if (device) {
+          deviceOption = `--id ${device}`;
+        }
       }
-      cmdPath = toolObj['ios-deploy'];
-      cmdInstallOption = '--no-wifi --bundle';
-      if (device) {
-        deviceOption = `--id ${device}`;
+      else if ('xcrun devicectl' in toolObj) {
+        cmdPath = toolObj['xcrun devicectl'] + ' device install app';
+        if (device) {
+          deviceOption = `--device ${device}`;
+        }
+      }
+      else {
+        console.error(`ios-deploy is not installed or Xcode's version is below 15.0`);
       }
     }
   }

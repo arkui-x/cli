@@ -117,7 +117,7 @@ function checkRequired(errorTimes, showdetail = false) {
       requirementInfo(info.iosXcodeDirInfo(xCodeDir), xCodeVersion, showdetail);
       requirementInfo(info.iosXcodeVersionInfo(mes), xCodeVersion, showdetail);
     }
-    errorTimes = !xCodeVersion || !iDeviceVersion || !deployVersion ? errorTimes++ : errorTimes;
+    (!xCodeVersion || !iDeviceVersion || !deployVersion) ? errorTimes++ : errorTimes;
   }
   showWarning();
   return errorTimes;
@@ -145,14 +145,18 @@ function showWarning() {
     info.warnAndroidSdk,
     info.warnAndroidStudio,
     info.warnDevEcoStudio,
-    info.warnMacTools
+    info.warnMacTools,
+    info.warnXcodeVersion
   ];
   const msgs = [];
   if (platform !== Platform.Linux) {
     needSdks.push(devEcoStudioDir);
   }
   if (platform === Platform.MacOS) {
-    needSdks.push(xCodeVersion && iDeviceVersion && deployVersion);
+    needSdks.push(xCodeVersion && iDeviceVersion && iDeviceVersion);
+  }
+  if (platform === Platform.MacOS) {
+    needSdks.push(Number(xCodeVersion[0].split(' ')[1].split('.')[0]) >= 15);
   }
 
   needSdks.forEach((sdk, index) => {

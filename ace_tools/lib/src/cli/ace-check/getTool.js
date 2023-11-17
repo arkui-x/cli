@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('./platform');
-const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir } = require('./configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion } = require('./configs');
 function getTools() {
   const toolPaths = [];
   let hdcPath = {};
@@ -35,11 +35,15 @@ function getTools() {
       toolPaths.push(hdcPath);
     }
   }
-  if (platform === Platform.MacOS && deployVersion) {
-    toolPaths.push({ 'ios-deploy': 'ios-deploy' });
-  }
   if (platform === Platform.MacOS && xCodeDir) {
     toolPaths.push({'xcrun simctl': 'xcrun simctl'});
+    if (Number(xCodeVersion[0].split(' ')[1].split('.')[0]) >= 15) {
+      toolPaths.push({'xcrun devicectl': 'xcrun devicectl'});
+    }
+    else if (platform === Platform.MacOS && deployVersion) {
+      toolPaths.push({ 'ios-deploy': 'ios-deploy' });
+    } 
+    
   }
   return toolPaths;
 }
@@ -58,7 +62,11 @@ function getToolByType(fileType, currentSystem, isLogTool) {
   }
   if (fileType === 'ios' && platform === Platform.MacOS) {
     if (!isLogTool) {
-      toolPath = { 'ios-deploy': 'ios-deploy' };
+      if (Number(xCodeVersion[0].split(' ')[1].split('.')[0]) >= 15) {
+        toolPath = { 'xcrun simctl': 'xcrun simctl', 'xcrun devicectl': 'xcrun devicectl'};
+      } else {
+        toolPath = { 'xcrun simctl': 'xcrun simctl', 'ios-deploy': 'ios-deploy'};
+      }
     } else {
       toolPath = { 'idevicesyslog': 'idevicesyslog' };
     }
