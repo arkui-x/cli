@@ -199,7 +199,7 @@ function getPid(device, fileType) {
     return;
   }
   if (fileType === 'ios') {
-    return getAppPid(device, fileType, bundleName);
+    return 'app';
   } else {
     try {
       if (device) {
@@ -236,25 +236,6 @@ function getPid(device, fileType) {
         }
       }
     }
-  }
-}
-
-function getAppPid(device, fileType, bundleName) {
-  if (isSimulator(device)) {
-    return 'app';
-  }
-  const toolIosDeploy = getToolByType(fileType);
-  if (!validTool(toolIosDeploy)) {
-    return undefined;
-  }
-  try {
-    const deviceStr = device ? '--id ' + device : '';
-    const output = execSync(`${toolIosDeploy['ios-deploy']} -e --bundle_id ${bundleName} ${deviceStr}`);
-    const result = output.indexOf('true') === -1 ? undefined : 'app';
-    return result;
-  } catch (err) {
-    console.error(err);
-    return undefined;
   }
 }
 
