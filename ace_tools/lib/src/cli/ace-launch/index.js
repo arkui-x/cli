@@ -20,7 +20,7 @@ const JSON5 = require('json5');
 const { log, getBundleName } = require('../ace-log');
 const { getToolByType, getAapt } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
-const { isSimulator } = require('../ace-devices/index');
+const { isSimulator, getIosVersion } = require('../ace-devices/index');
 const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 let bundleName;
 let packageName;
@@ -150,6 +150,12 @@ function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
   }
 }
 
+function getIosSignName(projectDir) {
+  let projfile = fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj')).toString().trim();
+  const signName = projfile.match(/PRODUCT_BUNDLE_IDENTIFIER = ([^"]*)/g);
+  return signName[0].split('=')[1].split(';')[0].trim();
+}
+
 function isPackageInAndroid(toolObj, device) {
   let comd = '';
   if ('adb' in toolObj) {
@@ -244,15 +250,15 @@ function getCmdLaunch(toolObj, device, options) {
     }
     cmdLaunch =
       `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
-  } else if ('xcrun devicectl' in toolObj) {
+  } else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
     const cmdPath = `${toolObj['xcrun devicectl']} device process launch`;
     const deviceOption = device ? `-d ${device}` : '';
     let testOption = '';
     if (options.test) {
       testOption = getTestOption(options, '', xcrunDevicectlTool);
     }
-    cmdLaunch = `${cmdPath} ${deviceOption} ${getBundleName()} --terminate-existing ${testOption}`;
-  } else if ('ios-deploy' in toolObj) {
+    cmdLaunch = `${cmdPath} ${deviceOption} ${getIosSignName(process.cwd())} --terminate-existing ${testOption}`;
+  } else if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
     const cmdPath = `${toolObj['ios-deploy']}`;
     const deviceOption = device ? `--id ${device}` : '';
     let testOption = '';
