@@ -18,7 +18,7 @@ const exec = require('child_process').execSync;
 const { getToolByType } = require('../ace-check/getTool');
 const { validInputDevice } = require('../util');
 const { openHarmonySdkDir, harmonyOsSdkDir } = require('../ace-check/configs');
-const { isSimulator } = require('../ace-devices/index');
+const { isSimulator, getIosVersion } = require('../ace-devices/index');
 function uninstall(fileType, device, bundle) {
   let toolObj;
   if (!validInputDevice(device)) {
@@ -62,10 +62,10 @@ function uninstallApp(toolObj, device, bundle) {
     cmdPath = 'xcrun simctl uninstall';
     deviceOption = device ? device : 'booted';
   }
-  else if ('xcrun devicectl' in toolObj) {
+  else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
     cmdPath = toolObj['xcrun devicectl'] + ' device uninstall app ';
     deviceOption = device ? `--device ${device}` : '';
-  } else if ('ios-deploy' in toolObj) {
+  } else if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
     cmdPath = toolObj['ios-deploy'];
     cmdUninstallOption = '--uninstall_only --bundle_id';
     deviceOption = device ? `--id ${device}` : '';

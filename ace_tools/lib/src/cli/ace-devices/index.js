@@ -227,11 +227,33 @@ function isSimulator(device) {
   return false;
 }
 
+function getIosVersion(device) {
+  if (device === undefined) {
+    if (devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')) {
+      let devicedata = JSON.parse(devicesList.available[0]);
+      return devicedata['iosVersion'];
+    }
+    else {
+      return undefined;
+    }
+  }
+  for (let i = 0; i < devicesList.available.length; i++) {
+    if (devicesList.available[i].startsWith('{') && devicesList.available[i].endsWith('}')) {
+      let devicedata = JSON.parse(devicesList.available[i]);
+      if (device === devicedata['udid']) {
+        return devicedata['iosVersion'];
+      }
+    }
+  }
+  return undefined;
+}
+
 module.exports = {
   devices,
   getDeviceID,
   showValidDevice,
   getDeviceType,
   devicesList,
-  isSimulator
+  isSimulator,
+  getIosVersion
 };

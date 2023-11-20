@@ -15,7 +15,6 @@
 
 const process = require('child_process');
 const { getTools } = require('./getTool');
-const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 function checkDevices() {
   let deviceCommand;
   let checkHuaweiDeviceCmd;
@@ -35,11 +34,11 @@ function checkDevices() {
     } else if ('adb' in toolObj[i]) {
       title = 'Android Devices\t';
       deviceCommand = `${toolObj[i]['adb']} devices -l`;
-    } else if ('xcrun devicectl' in toolObj[i]) {
+    } else if ('xcrun xcdevice' in toolObj[i]) {
       title = 'iOS Devices\t';
-      deviceCommand = `${toolObj[i]['xcrun devicectl']} list devices`;
-      const commandOutput = process.execSync(deviceCommand).toString().trim();
-      const jsonlist = getIosDevices(commandOutput, xcrunDevicectlTool);
+      deviceCommand = `${toolObj[i]['xcrun xcdevice']} list --timeout 3`;
+      const commandOutput = process.execSync(deviceCommand, { stdio: 'pipe' }).toString().trim();
+      const jsonlist = getIosDevices(commandOutput);
       devicesOutputs.push(...jsonlist);
       continue;
     } else if ('xcrun simctl' in toolObj[i]) {
@@ -59,14 +58,6 @@ function checkDevices() {
           devicesOutputs.push(JSON.stringify(devicesjson));
         });
       });
-      continue;
-    }
-    else if ('ios-deploy' in toolObj[i]) {
-      title = 'iOS Devices\t';
-      deviceCommand = `${toolObj[i]['ios-deploy']} -c -t 1`;
-      const commandOutput = process.execSync(deviceCommand).toString().trim();
-      const jsonlist = getIosDevices(commandOutput, iosDeployTool);
-      devicesOutputs.push(...jsonlist);
       continue;
     }
     else {
@@ -95,41 +86,22 @@ function checkDevices() {
   return devicesOutputs;
 }
 
-function getIosDevices(out, tool) {
+function getIosDevices(out) {
   const devices = [];
-  const splitArr = out.split(/[\r\n]+/);
-  if (tool === xcrunDevicectlTool) {
-    splitArr.forEach(item => {
-      if (item.indexOf('iPhone') !== -1) {
-        const itemArr = item.split("   ");
-        if (itemArr[3] !== 'unavailable') {
-          const json = {
-            'name': itemArr[4].split("(")[0].trim(),
-            'udid': itemArr[1].split('.')[0],
-            'title': 'iOS Devices\t',
-            'Simulator': false
-          }
-          devices.push(JSON.stringify(json));
-        }
-      }
-    });
-  } else {
-    splitArr.forEach(item => {
-      if (item.indexOf('Found') !== -1) {
-        const itemArr = item.split(/[,]+/);
-        const name = itemArr[1].trim();
-        const udid = itemArr[0].split(/[\s]+/)[2];
-        const json = {
-          'name': name,
-          'udid': udid,
-          'title': 'iOS Devices\t',
-          'Simulator': false
-        }
-        devices.push(JSON.stringify(json));
-      }
-    });
-
-  }
+  const devicelist = JSON.parse(out);
+  devicelist.forEach(item => {
+    if (item['simulator'] === true || item['available'] !== true || item['platform'] === 'com.apple.platform.macosx') {
+      return;
+    }
+    let devicesjson = {
+      'name': item['name'],
+      'udid': item['identifier'],
+      'title': 'iOS Devices\t',
+      'Simulator': false,
+      'iosVersion': item['operatingSystemVersion']
+    }
+    devices.push(JSON.stringify(devicesjson));
+  });
   return devices;
 }
 

@@ -37,10 +37,11 @@ function getTools() {
   }
   if (platform === Platform.MacOS && xCodeDir) {
     toolPaths.push({'xcrun simctl': 'xcrun simctl'});
+    toolPaths.push({'xcrun xcdevice': 'xcrun xcdevice'});
     if (Number(xCodeVersion[0].split(' ')[1].split('.')[0]) >= 15) {
       toolPaths.push({'xcrun devicectl': 'xcrun devicectl'});
     }
-    else if (platform === Platform.MacOS && deployVersion) {
+    if (deployVersion) {
       toolPaths.push({ 'ios-deploy': 'ios-deploy' });
     } 
     
@@ -63,7 +64,7 @@ function getToolByType(fileType, currentSystem, isLogTool) {
   if (fileType === 'ios' && platform === Platform.MacOS) {
     if (!isLogTool) {
       if (Number(xCodeVersion[0].split(' ')[1].split('.')[0]) >= 15) {
-        toolPath = { 'xcrun simctl': 'xcrun simctl', 'xcrun devicectl': 'xcrun devicectl'};
+        toolPath = { 'xcrun simctl': 'xcrun simctl', 'xcrun devicectl': 'xcrun devicectl', 'ios-deploy': 'ios-deploy'};
       } else {
         toolPath = { 'xcrun simctl': 'xcrun simctl', 'ios-deploy': 'ios-deploy'};
       }
