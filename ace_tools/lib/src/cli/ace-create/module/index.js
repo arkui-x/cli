@@ -472,12 +472,16 @@ function createModule() {
 function updateCrossPlatformModules(currentSystem) {
   try {
     const updateModuleDir = [];
-    const originDir = ['.arkui-x', '.hvigor', 'AppScope', 'entry', 'hvigor', 'oh_modules'];
+    const originDir = ['.arkui-x', '.hvigor', 'AppScope', 'hvigor', 'oh_modules'];
     const buildProfile = path.join(projectDir, 'build-profile.json5');
     const moduleListAll = getModuleList(buildProfile);
     fs.readdirSync(projectDir).forEach(dir => {
-      if (!fs.statSync(dir).isDirectory() || originDir.includes(dir) || moduleListAll.includes(dir)) return;
-      if (isModuleDir(dir)) updateModuleDir.push(dir);
+      if (!fs.statSync(dir).isDirectory() || originDir.includes(dir)) {
+        return;
+      }
+      if (isExternalModuleDir(dir, moduleListAll)) {
+        updateModuleDir.push(dir);
+      }
     });
     if (updateModuleDir.length === 0) {
       return;
@@ -527,12 +531,17 @@ function updateRuntimeOS(moduleName, currentSystem) {
   });
 }
 
-function isModuleDir(dir) {
+function isExternalModuleDir(dir, moduleListAll) {
   let isContinue = true;
   const files = ['build-profile.json5', 'hvigorfile.ts', 'oh-package.json5', 'src/main/ets'];
   files.forEach(file => {
     isContinue = isContinue && fs.existsSync(path.join(projectDir, dir, file));
   });
+
+  if (isContinue) {
+    const packageInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, dir, 'oh-package.json5')));
+    isContinue = isContinue && !moduleListAll.includes(packageInfo.name);
+  }
   return isContinue;
 }
 

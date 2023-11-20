@@ -48,6 +48,7 @@ function create(args) {
           console.log('Delete directory successfully, creating new project.');
         } catch (err) {
           console.log(`Failed to delete ${projectPath}, please delete it do yourself.`);
+          return;
         }
         createProject(projectPath, bundleName, project, runtimeOS, proType, template, currentProjectPath, sdkVersion);
       } else {
