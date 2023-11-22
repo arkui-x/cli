@@ -92,7 +92,7 @@ function buildAPK(cmd) {
   } else {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
   }
-  let gradleMessage = 'Build apk successful.';
+  let gradleMessage = 'Build apk successfully.';
   let isBuildSuccess = true;
   console.log('Start building apk...');
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
@@ -135,7 +135,7 @@ function buildAab(cmd) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:bundleRelease`);
   }
 
-  let gradleMessage = 'Build aab successful.';
+  let gradleMessage = 'Build aab successfully.';
   let isBuildSuccess = true;
   console.log('Start building aab...');
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
@@ -189,7 +189,7 @@ function buildAAR(cmd) {
     cmds.push(cmdStr);
   }
 
-  let gradleMessage = 'Build aar successful.';
+  let gradleMessage = 'Build aar successfully.';
   let isBuildSuccess = true;
   console.log('Start building aar...');
   cmds.forEach(cmd => {
@@ -219,7 +219,7 @@ function buildFramework(cmd) {
   } else if (cmd.profile) {
     mode = 'Profile';
   }
-  let gradleMessage = 'Build ios-framework successful.';
+  let gradleMessage = 'Build ios-framework successfully.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -261,7 +261,7 @@ function buildXcFramework(cmd) {
   } else if (cmd.profile) {
     mode = 'Profile';
   }
-  let gradleMessage = 'Build ios-xcframework successful.';
+  let gradleMessage = 'Build ios-xcframework successfully.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -376,7 +376,7 @@ function buildiOS(cmd) {
   let manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
   process.env.ACE_VERSION_CODE = manifestJsonObj.app.versionCode;
   process.env.ACE_VERSION_NAME = manifestJsonObj.app.versionName;
-  let message = 'Build ios successful.';
+  let message = 'Build ios successfully.';
   let isBuildSuccess = true;
   console.log('Start building ios...');
   cmds.forEach(cmd => {

@@ -22,7 +22,7 @@ const { copy, rmdir, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
   modifyOpenHarmonyOSConfig, modifyNativeCppConfig, signIOS } = require('../util');
 const aceHarmonyOS = '2';
 const aceTemplateNC = '2';
-const aceProType = '2';
+const aceLibrary = '2';
 
 function create(args) {
   const question = [{
@@ -64,12 +64,13 @@ function createProject(projectPath, bundleName, project, runtimeOS, proType, tem
   try {
     fs.mkdirSync(projectPath, { recursive: true });
     findStageTemplate(projectPath, bundleName, project, runtimeOS, proType, template, sdkVersion);
-    if (proType === aceProType) {
+    if (proType === aceLibrary) {
       if (!(createAar(projectPath, project) && createFramework(projectPath, project))) {
         return false;
       }
     }
-    console.log(`
+    if (proType !== aceLibrary) {
+      console.log(`
 Project created successfully! Target directory:  ${projectPath}.
 
 In order to run your application, type:
@@ -78,6 +79,12 @@ In order to run your application, type:
     $ ace run
       
 Your application code is in ${path.join(currentProjectPath, 'entry')}.`);
+    }
+    else {
+      console.log(`
+Project created successfully! Target directory:  ${projectPath}.
+Your application code is in ${path.join(currentProjectPath, 'entry')}.`);
+    }
   } catch (error) {
     console.log('Project created failed! Target directory: ' + projectPath + '.' + error);
   }
@@ -220,7 +227,7 @@ function replaceStageProjectInfo(projectPath, bundleName, project, runtimeOS, pr
     strs.push(project);
   }
   replaceInfo(files, replaceInfos, strs);
-  if (proType !== aceProType) {
+  if (proType !== aceLibrary) {
     replaceAndroidProjectInfo(projectPath, bundleName, project, template);
     replaceiOSProjectInfo(projectPath, bundleName);
   }
@@ -281,7 +288,7 @@ function copyStageTemplate(templatePath, projectPath, proType, template, sdkVers
   }
   fs.mkdirSync(path.join(projectPath, '.arkui-x'), { recursive: true });
   fs.writeFileSync(path.join(projectPath, '.arkui-x/arkui-x-config.json5'), fs.readFileSync(path.join(templatePath, 'arkui-x-config.json5').toString()));
-  if (proType !== aceProType) {
+  if (proType !== aceLibrary) {
     if (!copyAndroidiOSTemplate(templatePath, projectPath, template, sdkVersion)) {
       return false;
     }
