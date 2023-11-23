@@ -234,7 +234,7 @@ function getCmdLaunch(toolObj, device, options) {
   if (isSimulator(device)) {
     const cmdPath = 'xcrun simctl launch';
     const deviceOption = device ? `${device}` : 'booted';
-    const bundleName = getBundleName();
+    const bundleName = getIosSignName(process.cwd());
     cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
   }
   else if ('hdc' in toolObj) {
