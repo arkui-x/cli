@@ -18,7 +18,7 @@ const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
 const { copy } = require('../ace-create/util');
-const { devices, getDeviceID, devicesList } = require('../ace-devices');
+const { getDeviceID, devicesList } = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -209,7 +209,7 @@ function getFrameworkName(projectDir) {
   const frameworkName = [];
   const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
   iosDir.forEach(dir => {
-    if (dir.includes('.xcodeproj')) {
+    if (dir.includes('.xcodeproj') && dir != 'app.xcodeproj') {
       frameworkName.push(dir.split('.')[0]);
     }
   });
@@ -420,6 +420,17 @@ function getSdkVersion(projectDir) {
   }
 }
 
+function checkProjectType(projectDir) {
+  if (fs.existsSync(path.join(projectDir, 'entry/src/main/cpp'))
+    || fs.existsSync(path.join(projectDir, '.arkui-x/android/app/src/main/cpp'))) {
+    return 'plugin_napi';
+  } else if (getAarName(projectDir).length !== 0 || getFrameworkName(projectDir).length !== 0) {
+    return 'library';
+  } else {
+    return 'app';
+  }
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -439,5 +450,6 @@ module.exports = {
   validOptions,
   syncHvigor,
   getSdkVersion,
-  getModulePathList
+  getModulePathList,
+  checkProjectType
 };
