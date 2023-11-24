@@ -411,7 +411,7 @@ Available subCommands:
           }
         }
         if (subcommand === 'hap' || subcommand === 'bundle') {
-          compiler(subcommand, cmd, options);
+          compiler(subcommand, cmd);
         } else if (subcommand === 'apk' || subcommand === 'ios' || subcommand === 'aar' ||
           subcommand === 'ios-framework' || subcommand === 'ios-xcframework' || subcommand === 'aab') {
           build(subcommand, cmd);
