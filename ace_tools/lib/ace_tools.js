@@ -395,7 +395,7 @@ Available subCommands:
       subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand)
     }
     buildSubcommand
-      .action((cmd, options) => {
+      .action((cmd) => {
         cmd.simulator = cmd.simulator && platform === Platform.MacOS;
         if (cmd.release && cmd.debug || cmd.release && cmd.profile || cmd.profile && cmd.debug) {
           console.log('\x1B[31m%s\x1B[0m', 'Warning: Multiple build models are not allowed to exist at the same time.');
