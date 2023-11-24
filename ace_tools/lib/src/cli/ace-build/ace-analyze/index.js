@@ -36,7 +36,6 @@ function analyze(fileType) {
                 console.error('解压缩失败:', error);
             });
     });
-
 }
 // 读取apk包，生成json数据
 function apkTojson(zip,fileType) {
