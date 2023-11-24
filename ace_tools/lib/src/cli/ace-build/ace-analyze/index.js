@@ -64,7 +64,6 @@ function createdJson(filename, filevalue = 0) {
         if (checkroot) {
             index++;
             createChildren(checkroot, filenameArr[index])
-
         } else {
             if (!root.children) {
                 root.children = []
@@ -143,8 +142,6 @@ function renderHtmlPage() {
             });
         });
     });
-    
-    
     portusable()
     app.use(express.static(path.join(__dirname, '\\json')));
 }
