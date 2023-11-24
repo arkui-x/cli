@@ -395,7 +395,7 @@ Available subCommands:
       subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand)
     }
     buildSubcommand
-      .action((cmd, fileType, options) => {
+      .action((cmd, options) => {
         cmd.simulator = cmd.simulator && platform === Platform.MacOS;
         if (cmd.release && cmd.debug || cmd.release && cmd.profile || cmd.profile && cmd.debug) {
           console.log('\x1B[31m%s\x1B[0m', 'Warning: Multiple build models are not allowed to exist at the same time.');
@@ -414,7 +414,7 @@ Available subCommands:
           compiler(subcommand, cmd, options);
         } else if (subcommand === 'apk' || subcommand === 'ios' || subcommand === 'aar' ||
           subcommand === 'ios-framework' || subcommand === 'ios-xcframework' || subcommand === 'aab') {
-          build(subcommand, cmd, options);
+          build(subcommand, cmd);
         }
       });
     buildSubcommand.unknownOption = () => unknownOptions();
