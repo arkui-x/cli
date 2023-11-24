@@ -156,7 +156,7 @@ function parseCreate() {
       const projectName = path.basename(outputDir);
       if (!isProjectNameValid(projectName)) {
         console.log('The project dir must contain 1 to 200 characters, start with a ' +
-        'letter, and include only letters, digits and underscores (_)');
+          'letter, and include only letters, digits and underscores (_)');
         return;
       }
       inquirer.prompt([{
@@ -187,7 +187,7 @@ function parseCreate() {
             }
             if (!isBundleNameValid(val)) {
               return 'The bundle name must contain 7 to 128 characters,start with a letter,and include ' +
-                'only lowercase letters, digits,underscores(_) and at least one separator(.).';
+              'only lowercase letters, digits,underscores(_) and at least one separator(.).';
             }
             return true;
           }
@@ -218,11 +218,11 @@ function parseCreate() {
                   return 'input must be an integer: 1 or 2.';
                 }
               }
-            }]).then(answers =>{
+            }]).then(answers => {
               initInfo.sdkVersion = answers['Complie SDk'] === '1' ? '10' : '11';
               create(initInfo);
             })
-            
+
           });
         });
       });
@@ -397,26 +397,26 @@ Available subCommands:
       subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand)
     }
     buildSubcommand
-      .action((cmd,fileType, options) => {
+      .action((cmd, fileType, options) => {
         cmd.simulator = cmd.simulator && platform === Platform.MacOS;
         if (cmd.release && cmd.debug || cmd.release && cmd.profile || cmd.profile && cmd.debug) {
           console.log('\x1B[31m%s\x1B[0m', 'Warning: Multiple build models are not allowed to exist at the same time.');
           return false;
         }
         if (cmd.targetPlatform && (subcommand === 'apk' || subcommand === 'aab' ||
-          subcommand === 'aar' || subcommand === 'bundle')) {
+        subcommand === 'aar' || subcommand === 'bundle')) {
           const errValue = validOptions(cmd.targetPlatform, ['arm', 'arm64', 'x86_64']);
           if (errValue) {
             console.log('\x1B[31m%s\x1B[0m', `Error: ` +
-              `"${errValue}" is an invalid value, please input arm, arm64, x86_64.`);
+            `"${errValue}" is an invalid value, please input arm, arm64, x86_64.`);
             return false;
           }
         }
         if (subcommand === 'hap' || subcommand === 'bundle') {
-          compiler(subcommand, cmd,options);
+          compiler(subcommand, cmd, options);
         } else if (subcommand === 'apk' || subcommand === 'ios' || subcommand === 'aar' ||
           subcommand === 'ios-framework' || subcommand === 'ios-xcframework' || subcommand === 'aab') {
-          build(subcommand, cmd,options);
+          build(subcommand, cmd, options);
         }
       });
     buildSubcommand.unknownOption = () => unknownOptions();

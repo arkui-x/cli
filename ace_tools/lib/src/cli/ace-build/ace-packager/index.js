@@ -75,7 +75,7 @@ function copyLibraryToOutput(fileType) {
   }
 }
 
-function buildAPK(target,cmd) {
+function buildAPK(target, cmd) {
   modifyAndroidAbi(projectDir, cmd);
   copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
@@ -118,7 +118,7 @@ function buildAPK(target,cmd) {
     return false;
   }
   console.log(gradleMessage);
-  if (isBuildSuccess && gradleMessage == 'Build apk successful.'){
+  if (isBuildSuccess && gradleMessage == 'Build apk successful.') {
     if (cmd.analyze) {
       analyze(target)
     }
@@ -311,7 +311,7 @@ function packager(target, cmd) {
   }
   if (target === 'apk') {
     if (isAndroidSdkVaild() && writeLocalProperties()) {
-      if (buildAPK(target,cmd)) {
+      if (buildAPK(target, cmd)) {
         copyToOutput(target);
         return true;
       }
@@ -331,7 +331,7 @@ function packager(target, cmd) {
       }
     }
   } else if (target === 'ios') {
-    if (buildiOS(target,cmd)) {
+    if (buildiOS(target, cmd)) {
       copyToOutput(target);
       return true;
     }
@@ -349,7 +349,7 @@ function packager(target, cmd) {
   return false;
 }
 
-function buildiOS(target,cmd) {
+function buildiOS(target, cmd) {
   copyLibraryToProject('ios', cmd, projectDir, 'ios');
   const cmds = [];
   let mode = 'Release';
@@ -413,7 +413,7 @@ Verify that the Bundle Identifier in your project is your signing id in Xcode
     return false;
   }
   console.log(message);
-  if (isBuildSuccess && gradleMessage == 'Build ios successful.'){
+  if (isBuildSuccess && gradleMessage == 'Build ios successful.') {
     if (cmd.analyze) {
       analyze(target)
     }
