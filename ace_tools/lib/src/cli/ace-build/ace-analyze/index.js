@@ -13,7 +13,12 @@ let packSrc;
 let root = {} //存放json文件中保存的数据
 function analyze(fileType) {
     if (fileType === "apk") {
-        packSrc = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release-unsigned.apk`
+        let filePath = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`
+        if(fs.existsSync(filePath)) {
+            packSrc = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`
+        } else {
+            packSrc = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release-unsigned.apk`
+        }
     } else if (fileType === "hap") {
         packSrc = `${projectDir}/entry/build/default/outputs/default/entry-default-signed.hap`
     } else if (fileType === "app") {
