@@ -33,7 +33,6 @@ const launch = require('./src/cli/ace-launch');
 const run = require('./src/cli/ace-run');
 const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
-
 const { getAbsolutePath, validOptions } = require('./src/cli/util');
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 
@@ -222,7 +221,6 @@ function parseCreate() {
               initInfo.sdkVersion = answers['Complie SDk'] === '1' ? '10' : '11';
               create(initInfo);
             })
-
           });
         });
       });
@@ -373,7 +371,7 @@ Available subCommands:
     buildSubcommand
       .option('-r, --release', 'Build a release version of your app.')
       .option('--debug', 'Build a debug version of your app.')
-      .option('--analyze', "anslyze/diff paceage size")
+      .option('--analyze', "analyze/diff paceage size")
       .option('--profile', 'Build a version of your app specialized for performance profiling.');
     if (subcommand === 'ios') {
       buildSubcommand

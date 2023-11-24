@@ -34,7 +34,6 @@ const { copyLibraryToProject } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 
 const analyze = require('../ace-analyze/index')
-
 function isAndroidSdkVaild() {
   if (androidSdkDir) {
     return true;
