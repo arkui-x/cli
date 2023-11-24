@@ -490,7 +490,6 @@
             readerOnload()
         }
         document.getElementById("analyzeFilename").innerHTML = "总大小分析：" + document.form.path.value
-
     }
     // 点击和拖拽上传读取文件后共同操作
     function readerOnload() {
@@ -499,7 +498,6 @@
         document.getElementById('analysisPage').style.display = "block";
         createMenu(fileDateResult, root, 1)  //解析json文件
         document.getElementById('name').style.border = "1px solid #dee2e6"
-
     }
     //diff解析文件
     function diffUploadFile() {
@@ -545,10 +543,7 @@
         document.getElementById('diff-name').style.border = "1px solid #dee2e6"
         notAnalyze()
     }
-    // 创建筛选全部/仅看增加/仅看减少的构造函数
-    function onlyDateObj(name, negative, value, idTitle, idTitle, itemStyle, children) {
 
-    }
     // 筛选全部/仅看增加/仅看减少
     function selectData(onlyDate) {
         let selectIndex = document.getElementById('form-select').value;
@@ -629,7 +624,6 @@
                             } else {
                                 createMenu(d.children, detailsEle, 0)
                             }
-
                         } else {
                             detailsEle.removeAttribute("open")
                             createChart(d, diff)
@@ -707,7 +701,6 @@
                     } else {
                         return params.data.name + '[' + (params.data.negative ? formatFileSize(params.data.value) : formatFileSize(params.data.value)) + ']';
                     }
-
                 }
             },
             series: [
@@ -759,7 +752,6 @@
                         {
                             colorSaturation: [0.3, 0.5]
                         }
-
                     ]
                 }
             ]
@@ -787,7 +779,6 @@
                 }
             }
             selectFileStyle(sumaryEle)
-
         })
     }
     // 判断details是否打开状态
@@ -798,7 +789,6 @@
             }
             checkOpen(obj.parentNode)
         }
-
     }
     // diff数据处理（将新旧文件数据合并）
     var rightDiffDataFlag = false;
@@ -889,7 +879,6 @@
                 } else {
                     file1.push(obj)
                 }
-
             }
         }
     }
@@ -911,7 +900,6 @@
                 } else {
                     insreaseOnly(arr[i].children, data)
                 }
-
             }
         }
         data.negative = true
@@ -967,9 +955,7 @@
             for (let i = 0; i < arr.length; i++) {
                 sum = sum + (arr[i].value ? arr[i].value : computedRoot(arr[i].children))
             }
-
         }
-
         return sum
     }
     function deleteSymbol(str) {
