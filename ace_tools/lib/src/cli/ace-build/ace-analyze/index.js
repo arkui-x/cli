@@ -10,7 +10,7 @@ var port = 3000;
 var analyzeFileUrl = "";
 var analyzeFileName = "";
 let packSrc;
-let root = {} //存放json文件中保存的数据
+let root = {} //Store data saved in JSON files
 function analyze(fileType) {
     if (fileType === "apk") {
         let filePath = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`
@@ -33,11 +33,11 @@ function analyze(fileType) {
                 renderHtmlPage() 
             })
             .catch(function (error) {
-                console.error('解压缩失败:', error);
+                console.error('Decompression failed:', error);
             });
     });
 }
-// 读取apk包，生成json数据
+// Read APK package and generate JSON data
 function apkTojson(zip,fileType) {
     root.n = "root";
     root.value = 0;
@@ -48,7 +48,7 @@ function apkTojson(zip,fileType) {
         createdJson(filename, filevalue)
     });
 }
-// 创建json数据
+// Create JSON data
 function createdJson(filename, filevalue = 0) {
     let filenameArr = filename.split('/')
     let index = 0
@@ -75,7 +75,7 @@ function createdJson(filename, filevalue = 0) {
         }
     }
 }
-// 检查是否已经存在目录
+// Check if the directory already exists
 function checkList(checkroot, item) {
     if (checkroot.children) {
         for (let i = 0; i < checkroot.children.length; i++) {
@@ -86,7 +86,7 @@ function checkList(checkroot, item) {
         return false
     }
 }
-// 将json数据写入json文件并保存到本地
+// Write JSON data into a JSON file and save it locally
 function writeJsonFile(fileType) {
     root = typeof root === 'object' ? JSON.stringify(root, undefined, 4) : root
     const analyzeFileSaveUrl = analyzeFile(fileType)
@@ -98,7 +98,7 @@ function writeJsonFile(fileType) {
         }
     })
 }
-// json文件保存位置及名称
+// JSON file save location and name
 function analyzeFile(fileType) {
     const user_home = process.env.HOME || process.env.USERPROFILE
     mkDirsSync(user_home + "\\.ace-devtools\\" + fileType)
@@ -107,7 +107,7 @@ function analyzeFile(fileType) {
     analyzeFileName = "\\" + fileType + "-code-size-analysis_" + ((files.length + 1) >= 10 ? (files.length + 1) : ('0' + (files.length + 1))) + '.json'
     return analyzeFileUrl + analyzeFileName
 }
-// 创建文件夹目录
+// Create folder directory
 function mkDirsSync(dirname) {
     if (fs.existsSync(dirname)) {
         return true;
@@ -118,7 +118,7 @@ function mkDirsSync(dirname) {
         }
     }
 }
-// 渲染html页面
+// Rendering HTML pages
 function renderHtmlPage() {
     app = express();
     app.set('views', path.join(__dirname, '\\json'));
@@ -160,7 +160,7 @@ function portusable(){
         console.error(err);
     });
 }
-// 获取正在监听的端口
+// Get the port being listened on
 function checkPort(port) {
     const server = net.createServer();
     return new Promise((resolve, reject) => {
@@ -179,7 +179,7 @@ function checkPort(port) {
         server.listen(port);
     });
 }
-// 在浏览器打开html文件
+// Open HTML file in browser
 function openHtmlInBrowser(port) {
     const openDefaultBrowser = function (url) {
         switch (process.platform) {
