@@ -14,7 +14,7 @@
 
 $basedir=Split-Path $MyInvocation.MyCommand.Definition -Parent
 $exe=""
-$node_version="v16.20.2"
+$node_version="v16.20.1"
 
 function ExistNodeJs {
     $nodeExecutable = "node.exe"
