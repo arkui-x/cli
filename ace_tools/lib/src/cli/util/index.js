@@ -390,18 +390,46 @@ function cleanLibs(projectDir, abiFilters, fileType) {
 
 function syncHvigor(projectDir) {
   let pathTemplate = path.join(__dirname, 'template');
+  const proHvigorVersion = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5'))).hvigorVersion;
   if (fs.existsSync(pathTemplate)) {
-    copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+    const tempHvigorVersion = JSON5.parse(fs.readFileSync(
+      path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
+    if (isCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
+      copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+    }
     return true;
   } else {
     pathTemplate = globalThis.templatePath;
     if (fs.existsSync(pathTemplate)) {
-      copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+      const tempHvigorVersion = JSON5.parse(fs.readFileSync(
+        path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
+      if (isCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
+        copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+      }
       return true;
     } else {
       console.error('Error: Template is not exist!');
       return false;
     }
+  }
+}
+
+function isCopyHvigor(currentVersion, tempVersion) {
+  try {
+    const currentVers = currentVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
+    const tempVers = tempVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
+    for (let i = 0; i < currentVers.length; i++) {
+      if (parseInt(currentVers[i]) === parseInt(tempVers[i])) {
+        continue;
+      } else if (parseInt(currentVers[i]) < parseInt(tempVers[i])) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  } catch (err) {
+    return true;
   }
 }
 
