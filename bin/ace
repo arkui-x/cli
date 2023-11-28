@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-NODE_VERSION="v16.20.2"
+NODE_VERSION="v16.20.1"
 
 basedir=$(dirname "$(echo "$0" | sed -e 's,\\,/,g')")
 

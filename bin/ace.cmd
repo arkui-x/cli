@@ -16,7 +16,7 @@
 @echo off
 setlocal enabledelayedexpansion
 call :find_dp0
-set "node_version=v16.20.2"
+set "node_version=v16.20.1"
 if exist "%dp0%\node.exe" (
     set "node_path=%dp0%\node.exe"
     call :check_version
