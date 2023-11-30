@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
+const fs = require('fs');
 const path = require('path');
 const program = require('commander');
 const inquirer = require('inquirer');
 const { Platform, platform } = require('./src/cli/ace-check/platform');
-const create = require('./src/cli/ace-create/project');
+const { create, repairProject, createProject } = require('./src/cli/ace-create/project');
 const { createModule } = require('./src/cli/ace-create/module');
 const { createAbility } = require('./src/cli/ace-create/ability');
 const { setConfig } = require('./src/cli/ace-config');
@@ -33,8 +34,9 @@ const launch = require('./src/cli/ace-launch');
 const run = require('./src/cli/ace-run');
 const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
-const { getAbsolutePath, validOptions } = require('./src/cli/util');
+const { getAbsolutePath, validOptions, checkProjectType } = require('./src/cli/util');
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
+const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util')
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
@@ -138,21 +140,49 @@ function parseCreate() {
       }
       const initInfo = {};
       initInfo.currentProjectPath = outputDir;
-      if (!cmd.template || cmd.template === 'app') {
-        initInfo.proType = '1';
-        initInfo.template = '1';
-      } else if (cmd.template === 'library') {
-        initInfo.proType = '2';
-        initInfo.template = '1';
-      } else if (cmd.template === 'plugin_napi') {
-        initInfo.proType = '1';
-        initInfo.template = '2';
+      const absolutePath = getAbsolutePath(outputDir);
+      const projectName = path.basename(absolutePath);
+
+      if (!cmd.template) {
+        initInfo.template = 'app'
+      } else if (cmd.template === 'app' || cmd.template === 'library' || cmd.template === 'plugin_napi') {
+        initInfo.template = cmd.template;
       } else {
         console.log(`Create project failed, template option does not support the value of ${cmd.template}.\nPlease choose one of app/library/plugin_napi.`);
         return;
       }
-      outputDir = getAbsolutePath(outputDir);
-      const projectName = path.basename(outputDir);
+
+      if (fs.existsSync(path.join(absolutePath, 'oh-package.json5'))) {
+        const currentProjectTemplate = checkProjectType(absolutePath);
+        if (initInfo.template !== currentProjectTemplate) {
+          console.log('\x1B[31m%s\x1B[0m', `"${outputDir}" project already exists, the requested template type doesn't match the existing template type.`);
+          return false;
+        }
+        inquirer.prompt([{
+          name: 'repair',
+          type: 'input',
+          message: `The project already exists. Do you want to repair the project (y / n):`,
+          validate(val) {
+            if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
+              return 'Please enter y / n!';
+            } else {
+              return true;
+            }
+          }
+        }]).then(answers => {
+          if (answers.repair.toLowerCase() === 'y') {
+            const projectInfo = getProjectInfo(absolutePath);
+            const projectTempPath = getTempPath(outputDir);
+            createProject(absolutePath, projectTempPath, projectInfo.bundleName, projectName, projectInfo.runtimeOS,
+              initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion);
+            repairProject(absolutePath, outputDir);
+          } else {
+            console.log("Failed to repair project, preserve existing project.");
+          }
+        })
+        return true;
+      }
+
       if (!isProjectNameValid(projectName)) {
         console.log('The project dir must contain 1 to 200 characters, start with a ' +
         'letter, and include only letters, digits and underscores (_)');
@@ -175,6 +205,7 @@ function parseCreate() {
       }]).then(answers => {
         initInfo.platform = '';
         initInfo.project = answers.project || projectName;
+        initInfo.projectAbsolutePath = absolutePath;
         initInfo.outputDir = outputDir;
         inquirer.prompt([{
           name: 'bundleName',
@@ -217,11 +248,10 @@ function parseCreate() {
                   return 'input must be an integer: 1 or 2.';
                 }
               }
-            }]).then(answers =>{
+            }]).then(answers => {
               initInfo.sdkVersion = answers['Complie SDk'] === '1' ? '10' : '11';
               create(initInfo);
             })
-            
           });
         });
       });
