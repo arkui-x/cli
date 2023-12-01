@@ -337,7 +337,7 @@ function createStageModule(moduleList, templateDir) {
     const question = [{
       name: 'moduleName',
       type: 'input',
-      message: 'Please enter the module name:',
+      message: 'Enter the module name:',
       validate(val) {
         if (!isModuleNameQualified(val)) {
           console.log('Module name must contain 1 to 31 characters, start with a letter, ' +
@@ -352,7 +352,7 @@ function createStageModule(moduleList, templateDir) {
       inquirer.prompt([{
         name: 'cross',
         type: 'input',
-        message: 'The module is or not cross platform (y / n):',
+        message: 'Specify whether the module is a cross-platform module (y / n):',
         validate(val) {
           if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
             return 'Please enter y / n!';
@@ -447,7 +447,7 @@ function replaceFileString(file, oldString, newString) {
 
 function createModule() {
   if (!fs.existsSync(path.join(projectDir, 'hvigorw'))) {
-    console.error(`Please go to project directory under ace project path and create module again.`);
+    console.error(`Operation failed. Go to your ArkUI cross-platform project directory and try again.`);
     return false;
   }
 

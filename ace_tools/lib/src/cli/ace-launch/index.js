@@ -182,6 +182,11 @@ function isPackageInAndroid(toolObj, device) {
 function launch(fileType, device, options) {
   const projectDir = process.cwd();
   const moduleName = options.target;
+  const fileTypeDict = {
+    'ios': 'iOS APP',
+    'apk': 'APK',
+    'hap': 'HAP'
+  }
   if (!options.path && !isProjectRootDir(projectDir)) {
     return false;
   }
@@ -216,15 +221,15 @@ function launch(fileType, device, options) {
         console.error(result);
         return false;
       }
-      console.log(`Launch ${fileType.toUpperCase()} successfully.`);
+      console.log(`${fileTypeDict[fileType]} launched.`);
       return true;
     } catch (error) {
-      console.error(`Launch ${fileType.toUpperCase()} failed.`);
+      console.log(`${fileTypeDict[fileType]} launched failed.`);
       console.log('you need to install the app first');
       return false;
     }
   } else {
-    console.error(`Launch ${fileType.toUpperCase()} failed.`);
+    console.log(`${fileTypeDict[fileType]} launched failed.`);
     return false;
   }
 }

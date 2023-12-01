@@ -51,17 +51,17 @@ class Info {
     this.warnOpenHarmonySdk =
       'OpenHarmony sdk is required, please refer to the HarmonyOS Developer to download and install it.';
     this.warnHarmonyOsSdk =
-      'HarmonyOS Sdk is required, please refer to the HarmonyOS Developer to download and install it.';
+      'HarmonyOS SDK is required, please refer to the HarmonyOS Developer to download and install it.';
     this.warnNodejs =
-      'Node is required, please download versions between v14.19.1 and v16.';
+      'Node is required, please download versions 16.20.1 or above';
     this.warnOhpm =
       'Ohpm is required, please download it with DevEco Studio or Command Line Tools.';
     this.warnJavaSdk =
-      'Java Sdk is required, JAVA_HOME is not set and no \'java\' command could be found in your PATH. JDK 17 or later is recommended.';
+      'Java SDK is required, JAVA_HOME is not set and no \'java\' command could be found in your PATH. JDK 17 or later is recommended.';
     this.warnArkuiXSdk =
       'ArkUI-X Sdk is required, please download the latest version.';
     this.warnAndroidSdk =
-      'Android Sdk is required, please download it with Android Studio.';
+      'Android SDK is required, please download it with Android Studio.';
     this.warnAndroidStudio =
       'Android Studio is required, visit https://developer.android.google.cn/studio to download it.';
     this.warnDevEcoStudio =
@@ -93,7 +93,7 @@ class Info {
   }
 
   hasJavaSdk(javaSdkDir) {
-    return `Java Sdk at ${javaSdkDir}`;
+    return `Java SDK at ${javaSdkDir}`;
   }
 
   hasAndroidSdk(androidSdkDir) {

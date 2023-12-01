@@ -94,7 +94,7 @@ ohos@user ~ % ace check
 [√] OpenHarmony toolchains - develop for OpenHarmony devices
   • SDK at /Users/ohos/Desktop/sdk
   • Node.js Runtime Environment at /usr/local/bin/node
-  • Java Sdk at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
+  • Java SDK at /Library/Java/JavaVirtualMachines/jdk-18.0.2.1.jdk/Contents/Home
 [√] Android toolchains - develop for Android devices
   • SDK at /Users/ohos/Library/Android/sdk
 [√] DevEco Studio
@@ -190,7 +190,7 @@ Please enter the ACE version (1: ArkTS-based declarative development paradigm, 2
 Prompt indicating that the project is created successfully:
 
 ```shell
-Project created successfully! Target directory: ${projectName}
+Project created. Target directory: ${projectName}
 ```
 
 ### ace create module
@@ -240,8 +240,8 @@ You can build HAP and APK packages on Windows and Linux, and build HAP, APK, and
 Reference command output:
 
 ```shell
-Build hap successfully.
-filepath: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
+HAP file built successfully..
+File path: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
 ```
 
 ### ace install
@@ -416,7 +416,7 @@ ace clean
 Command output:
 
 ```shell
-Clean project successfully
+Project cleaned up.
 ```
 
 ### ace help
@@ -461,12 +461,12 @@ Commands:
   devices                         list the connected devices.
   config [options]                
           --openharmony-sdk [OpenHarmony SDK]
-          --android-sdk   [Android Sdk]
+          --android-sdk   [Android SDK]
           --deveco-studio-path [DevEco Studio Path]
           --android-studio-path [Android Studio Path]
           --build-dir     [Build Dir]
           --nodejs-dir    [Nodejs Dir]
-          --java-sdk      [Java Sdk]
+          --java-sdk      [Java SDK]
   build [options] [fileType]      build hap/apk/app of moduleName
   install [options] [fileType]    install hap/apk/app on device
   uninstall [options] [fileType]  uninstall hap/apk/app on device

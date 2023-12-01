@@ -47,10 +47,15 @@ function uninstall(fileType, device, bundle) {
   } else if (fileType === 'ios') {
     successFlag = uninstallApp(toolObj, device, bundle);
   }
+  const fileTypeDict = {
+    'ios': 'iOS APP',
+    'apk': 'APK',
+    'hap': 'HAP'
+  }
   if (successFlag) {
-    console.log(`Uninstall ${fileType.toUpperCase()} successfully.`);
+    console.log(`${fileTypeDict[fileType]} uninstalled.`);
   } else {
-    console.error(`Uninstall ${fileType.toUpperCase()} failed.`);
+    console.log(`${fileTypeDict[fileType]} uninstalled failed.`);
   }
   return successFlag;
 }

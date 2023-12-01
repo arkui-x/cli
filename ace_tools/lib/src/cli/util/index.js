@@ -30,7 +30,7 @@ function isProjectRootDir(currentDir) {
     fs.accessSync(androidGradlePath);
     return true;
   } catch (error) {
-    console.error(`Please go to your projectDir and run again.`);
+    console.error(`Operation failed. Go to your project directory and try again.`);
     return false;
   }
 }
@@ -147,7 +147,7 @@ function validInputDevice(device) {
       console.error(`Error: more than one devices/emulators found, please use '--device <deviceId>'.`);
       return false;
     } else {
-      console.error(`Error: device not found.`);
+      console.error(`Error: Device not found.`);
       return false;
     }
   } else {
@@ -156,7 +156,7 @@ function validInputDevice(device) {
         return true;
       }
     }
-    console.error(`Error: device not found.`);
+    console.error(`Error: Device not found.`);
     return false;
   }
 }

@@ -178,7 +178,7 @@ function showValidDevice(fileType) {
   }
 
   if (validDevices.length === 0) {
-    console.error('\x1B[31m%s\x1B[0m', `Error: no available ${flag} Device.`);
+    console.error('\x1B[31m%s\x1B[0m', `Error: No available ${flag} Device.`);
     return;
   } else if (validDevices.length === 1) {
     mapDevice.set('0', validDevices[0]);

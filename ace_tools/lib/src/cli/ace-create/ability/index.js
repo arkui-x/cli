@@ -31,7 +31,7 @@ function checkAbilityName(abilityName, abilityList, moduleName) {
 
   for (let index = 0; index < abilityList.length; index++) {
     if (abilityList[index].toLowerCase() === (moduleName + '_' + abilityName + 'Ability').toLowerCase()) {
-      console.error('\n abilityName already exists!');
+      console.error('\n The ability name already exists.');
       return false;
     }
   }
@@ -243,7 +243,7 @@ function createAbility() {
   currentDir = process.cwd(); // it should be module directory
   const buildFilePath = path.join(currentDir, '../build-profile.json5');
   if (!fs.existsSync(buildFilePath)) {
-    console.error(`Please go to your module directory and create ability again.`);
+    console.error(`Operation failed. Go to your module directory and try again.`);
     return false;
   }
   const moduleListForAbility = getModuleList(buildFilePath);
@@ -257,7 +257,7 @@ function createAbility() {
   const question = [{
     name: 'abilityName',
     type: 'input',
-    message: 'Please enter the ability name:',
+    message: 'Enter the ability name:',
     validate(val) {
       if (!isAbilityNameQualified(val)) {
         console.log('The ability name must contain 1 to 50 characters, start with a letter,' +
