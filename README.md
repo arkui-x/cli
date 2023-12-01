@@ -205,8 +205,6 @@ Tools info :[√] OpenHarmony hdc installed
 
 创建跨平台应用工程。
 
-如果项目已存在，提示并询问开发者是否删除当前项目。
-
 创建过程中，需要开发者依次填写工程名称和包名称，如果开发者不输入包名称，默认为com.example.工程名。
 
 
@@ -239,11 +237,8 @@ ohos@user:~/cli-project$ ace create test
 ? Please enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
 ? Please enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
 ? Please select the Complie SDk (1: 10, 2: 11): 2 # 输入编译SDK版本
-? The project already exists. Do you want to delete the directory (y / n): y
-Delete directory successfully, creating new project.
 
 Project created successfully! Target directory:  /home/ohos/cli-project/test.
-
 In order to run your application, type:
 
     $ cd test
@@ -252,23 +247,6 @@ In order to run your application, type:
 Your application code is in test/entry.
 ```
 
-删除已有项目提示：
-
-```shell
-The project already exists. Do you want to delete the directory (y / n):
-```
-
-删除已有项目成功:
-
-```shell
-Delete directory successfully, creating new project.
-```
-
-删除已有项目失败:
-
-```shell
-Failed to create project, project directory already exists!
-```
 
 ### ace new module
 
