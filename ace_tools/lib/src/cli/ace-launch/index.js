@@ -280,6 +280,9 @@ function getTestOption(options, esOption, toolType = undefined) {
   const testModuleName = `${esOption}moduleName ${options.m}`;
   const unittest = `${esOption}unittest ${options.unittest}`;
   const testClass = options.class ? `${esOption}class ${options.class}` : '';
+  if (!options.timeout) {
+    options.timeout = 5000;
+  }
   const timeout = options.timeout ? `${esOption}timeout ${options.timeout}` : '';
   const testOption =
     `${esOption}${cmdPrefix} ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout}${cmdSuffix}`;
