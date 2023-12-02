@@ -54,18 +54,18 @@ function createProject(projectAbsolutePath, projectTempPath, bundleName, project
     }
     if (template !== aceLibraryProType) {
       console.log(`
-Project created successfully! Target directory:  ${projectAbsolutePath}.
-In order to run your application, type:
+Project created. Target directory:  ${projectAbsolutePath}.
+In order to run your app, type:
     
     $ cd ${currentProjectPath}
     $ ace run
       
-Your application code is in ${path.join(currentProjectPath, 'entry')}.`);
+Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
     }
     else {
       console.log(`
-Project created successfully! Target directory:  ${projectAbsolutePath}.
-Your application code is in ${path.join(currentProjectPath, 'entry')}.`);
+Project created. Target directory:  ${projectAbsolutePath}.
+Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
     }
   } catch (error) {
     console.log('Project created failed! Target directory: ' + projectAbsolutePath + '.' + error);

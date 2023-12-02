@@ -137,24 +137,24 @@ ohos@user ~ % ace check -v
 [√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.9.6)
   • OpenHarmony SDK at /Users/ohos/Library/OpenHarmony/Sdk
   • Ohpm at /Users/ohos/Library/Huawei/ohpm
-  • Java Sdk at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
 [√] HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version 3.1.0)
   • HarmonyOS SDK at /Users/ohos/Library/Huawei/Sdk
   • Ohpm at /Users/ohos/Library/Huawei/ohpm
-  • Java Sdk at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
 [√] Android toolchains - develop for Android devices (Android SDK version 34.0.0)
   • Android SDK at /Users/ohos/Library/Android/sdk
-  • Java Sdk at /Applications/Android Studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/Android Studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
 [√] DevEco Studio (version 4.0.3)
   • DevEco Studio at /Applications/deveco-studio.app
-  • Java Sdk at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
 [√] Android Studio (version 2022.3)
   • Android Studio at /Applications/Android Studio.app
-  • Java Sdk at /Applications/Android Studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/Android Studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
 [√] Xcode - develop for iOS (Xcode 14.3.1)
   • Xcode at /Applications/Xcode.app
@@ -233,18 +233,19 @@ ace create <output directory>
 
 ```shell
 ohos@user:~/cli-project$ ace create test
-? Please enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
-? Please enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
-? Please enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
+? Enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
+? Enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
+? Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
 ? Please select the Complie SDk (1: 10, 2: 11): 2 # 输入编译SDK版本
 
-Project created successfully! Target directory:  /home/ohos/cli-project/test.
-In order to run your application, type:
+Project created. Target directory:  /home/ohos/cli-project/test.
+
+In order to run your app, type:
 
     $ cd test
     $ ace run
 
-Your application code is in test/entry.
+Your app code is in test/entry.
 ```
 
 
@@ -256,7 +257,7 @@ Your application code is in test/entry.
 需要在新建的跨平台应用工程的根目录下执行，提示输入module名称：
 
 ```shell
-Please enter the module name:
+Enter the module name:
 ```
 
 如果此module name已存在，会提示开发者${module name} already exists.，开发者修改名称后，回车确认，可以成功新建出跨平台应用模块(Module)。
@@ -269,7 +270,7 @@ Please enter the module name:
 需要在新建的跨平台应用工程的根目录/具体module目录下执行，提示输入Ability名称：
 
 ```shell
-Please enter the ability name:
+Enter the ability name:
 ```
 
 如果此ability name已存在，会提示开发者abilityName name already exists!.，开发者修改名称后，回车确认，可以成功新建出跨平台应用Ability。
@@ -317,8 +318,8 @@ ace build <subCommand> [arguments]
 构建完成，提示包生成路径:
 
 ```shell
-Build hap successfully.
-filepath: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
+HAP file built successfully..
+File path: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
 ```
 
 ### ace install
@@ -358,7 +359,7 @@ ohos@user % ace install ios
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Install IOS successfully.
+iOS APP installed.
 ```
 
 ### ace uninstall
@@ -391,7 +392,7 @@ ohos@user % ace uninstall ios --bundle com.example.${projectName}
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Uninstall IOS successfully.
+iOS APP uninstalled.
 ```
 
 ### ace launch
@@ -424,7 +425,7 @@ ohos@user % ace launch ios
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Launch IOS successfully.
+iOS APP launched.
 ```
 
 ### ace log
@@ -552,7 +553,7 @@ ace clean [arguments]
 清理完成：
 
 ```shell
-Clean project successfully
+Project cleaned up.
 ```
 
 ### ace help
@@ -616,14 +617,14 @@ Device:
   devices                List the connected devices.
 
 Environment:
-  check                  Show information about the installed tooling.
+  check                  Show information about the installed tools.
   config                 Configure ArkUI cross-platform settings.
 
 Project:
-  build                  Build an executable app or install bundle.
+  build                  Build an executable app or install a bundle.
   clean                  Delete the build/ directories.
   create                 Create a new ArkUI cross-platform project.
-  new                    Create a new ability or module to your project.
+  new                    Create a new ability or module for your project.
 
 Run "ace help <command>" for more information about a command.
 ```

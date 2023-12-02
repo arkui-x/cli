@@ -29,7 +29,7 @@ function clean() {
     return false;
   }
   if (!fs.existsSync(path.join(projectDir, 'oh_modules'))) {
-    console.log('Clean project successfully');
+    console.log('Project cleaned up.');
     return;
   }
   let successFlag = true;
@@ -57,7 +57,7 @@ function clean() {
     successFlag = false;
   }
   if (successFlag) {
-    console.log('Clean project successfully');
+    console.log('Project cleaned up.');
   } else {
     console.log('Clean project failed');
     console.log(failedMsg);
@@ -67,7 +67,7 @@ function clean() {
 function cleanAndroid() {
   let cmds = [];
   const androidDir = path.join(projectDir, '.arkui-x', 'android');
-  let message = 'Clean android project successful.';
+  let message = 'Android project cleaned up.';
   if (!fs.existsSync(path.join(projectDir, '.arkui-x/android/app/build'))) {
     console.log(message);
     return true;
@@ -77,7 +77,7 @@ function cleanAndroid() {
   }
   cmds.push(`cd ${androidDir} && ./gradlew clean`);
   let isBuildSuccess = true;
-  console.log('Start clean android project...');
+  console.log('Cleaning up the Android project...');
   cmds = cmds.join(' && ');
   console.log(cmds);
   if (platform === Platform.Windows) {
@@ -101,9 +101,9 @@ function cleanIOS() {
   let cmds = [];
   const iosDir = path.join(projectDir, '.arkui-x', 'ios');
   cmds.push(`cd ${iosDir} && xcodebuild clean`);
-  let message = 'Clean ios project successful.';
+  let message = 'iOS project cleaned up.';
   let isBuildSuccess = true;
-  console.log('Start clean ios project...');
+  console.log('Cleaning up the iOS project...');
   cmds = cmds.join(' && ');
   console.log(cmds);
   if (platform === Platform.Windows) {
@@ -136,9 +136,9 @@ function cleanOHOS() {
     cmds.push(`chmod 755 hvigorw`);
   }
   cmds.push(`./hvigorw  clean`);
-  let message = 'Clean ohos project successful.';
+  let message = 'OpenHarmony/HarmonyOS project cleaned up.';
   let isBuildSuccess = true;
-  console.log('Start clean ohos project...');
+  console.log('Cleaning up the OpenHarmony/HarmonyOS project...');
   cmds = cmds.join(' && ');
   if (platform === Platform.Windows) {
     cmds = cmds.replace(/\//g, '\\');

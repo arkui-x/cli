@@ -30,13 +30,13 @@ function subcommandHelp(helpCmd, subArgs, subcommand, helpSubCmd) {
 function unknownOptions() {
   const unknownOption = program.args.filter(arg => arg.startsWith('-'));
   console.log('\x1B[31m%s\x1B[0m', `Could not find an option with short name "${unknownOption}".\n\n`);
-  console.log('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ace commands and options.`);
+  console.log('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ACE Tools commands and options.`);
   process.exit(1);
 }
 
 function unknownCommands(unknownCommand) {
   console.log('\x1B[31m%s\x1B[0m', `Could not find a command named "${unknownCommand}".\n\n`);
-  console.log('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ace commands and options.`);
+  console.log('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ACE Tools commands and options.`);
   process.exit(1);
 }
 

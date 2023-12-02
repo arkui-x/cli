@@ -52,7 +52,7 @@ function copyToOutput(fileType) {
   const typePath = fileType == 'ios' ? '.arkui-x/ios' : '.arkui-x/android/app';
   const src = path.join(projectDir, `/${typePath}/build/outputs/${fileType}/`);
   const filePath = copyToBuildDir(src);
-  console.log(`filepath: ${filePath}`);
+  console.log(`File path: ${filePath}`);
 }
 
 function copyLibraryToOutput(fileType) {
@@ -61,14 +61,14 @@ function copyLibraryToOutput(fileType) {
     aarNameList.forEach(aarName => {
       const src = path.join(projectDir, `.arkui-x/android/${aarName}/build/outputs/${fileType}/`);
       const filePath = copyToBuildDir(src);
-      console.log(`filepath: ${filePath}`);
+      console.log(`File path: ${filePath}`);
     });
   } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework') {
     const frameworkNameList = getFrameworkName(projectDir);
     frameworkNameList.forEach(frameworkName => {
       const src = path.join(projectDir, `.arkui-x/ios/build/outputs/${fileType}/`);
       const filePath = copyToBuildDir(src);
-      console.log(`filepath: ${filePath}`);
+      console.log(`File path: ${filePath}`);
     });
   }
 }
@@ -92,9 +92,9 @@ function buildAPK(cmd) {
   } else {
     cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
   }
-  let gradleMessage = 'Build apk successfully.';
+  let gradleMessage = 'APK file built successfully..';
   let isBuildSuccess = true;
-  console.log('Start building apk...');
+  console.log('Building an APK file...');
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
   setJavaSdkDirInEnv(javaSdkDirAndroid);
   cmds.forEach(cmd => {
@@ -135,7 +135,7 @@ function buildAab(cmd) {
     cmds.push(`cd ${androidDir} && ./gradlew :app:bundleRelease`);
   }
 
-  let gradleMessage = 'Build aab successfully.';
+  let gradleMessage = 'Android App Bundle file built successfully.';
   let isBuildSuccess = true;
   console.log('Start building aab...');
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
@@ -150,7 +150,7 @@ function buildAab(cmd) {
         stdio: 'inherit',
       });
     } catch (error) {
-      gradleMessage = 'Build aab failed.';
+      gradleMessage = 'Failed to build the Android App Bundle file.';
       isBuildSuccess = false;
     }
   });
@@ -189,7 +189,7 @@ function buildAAR(cmd) {
     cmds.push(cmdStr);
   }
 
-  let gradleMessage = 'Build aar successfully.';
+  let gradleMessage = 'AAR file built successfully.';
   let isBuildSuccess = true;
   console.log('Start building aar...');
   cmds.forEach(cmd => {
@@ -203,7 +203,7 @@ function buildAAR(cmd) {
         stdio: 'inherit'
       });
     } catch (error) {
-      gradleMessage = 'Build aar failed.';
+      gradleMessage = 'Failed to build the AAR file.';
       isBuildSuccess = false;
     }
   });
@@ -219,7 +219,7 @@ function buildFramework(cmd) {
   } else if (cmd.profile) {
     mode = 'Profile';
   }
-  let gradleMessage = 'Build ios-framework successfully.';
+  let gradleMessage = 'iOS framework built successfully.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -261,7 +261,7 @@ function buildXcFramework(cmd) {
   } else if (cmd.profile) {
     mode = 'Profile';
   }
-  let gradleMessage = 'Build ios-xcframework successfully.';
+  let gradleMessage = 'iOS XCFramework built successfully.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -376,9 +376,9 @@ function buildiOS(cmd) {
   let manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
   process.env.ACE_VERSION_CODE = manifestJsonObj.app.versionCode;
   process.env.ACE_VERSION_NAME = manifestJsonObj.app.versionName;
-  let message = 'Build ios successfully.';
+  let message = 'iOS APP file built successfully.';
   let isBuildSuccess = true;
-  console.log('Start building ios...');
+  console.log('Building an iOS APP file...');
   cmds.forEach(cmd => {
     try {
       exec(cmd, {
