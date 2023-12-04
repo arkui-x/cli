@@ -3,6 +3,8 @@
 ## Introduction
 ACE Tools is a command line (CLI) tool that allows ArkUI-X project developers to build applications on the OpenHarmony, Android, and iOS platforms. Its functions include development environment check, project creation, building and packaging, and installation and debugging.
 
+For details about setting up an environment for using ACE Tools，see [ACE Tools Quick Guide](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md).
+
 ACE stands for Ability Cross-platform Environment. It is a cross-platform programming framework dedicated to OpenHarmony.
 
 **Figure 1** Structure of ACE Tools
