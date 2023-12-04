@@ -49,7 +49,8 @@ function writeLocalProperties() {
 }
 
 function copyToOutput(fileType) {
-  const typePath = fileType == 'ios' ? '.arkui-x/ios' : '.arkui-x/android/app';
+  const typePath = fileType === 'ios' ? '.arkui-x/ios' : '.arkui-x/android/app';
+  fileType === 'ios' ? fileType = 'app' : '';
   const src = path.join(projectDir, `/${typePath}/build/outputs/${fileType}/`);
   const filePath = copyToBuildDir(src);
   console.log(`File path: ${filePath}`);
@@ -354,7 +355,7 @@ function buildiOS(cmd) {
     return false;
   }
   const projectSettingDir = path.join(projectDir, '.arkui-x/ios', 'app.xcodeproj');
-  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/ios/');
+  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
   let arch = "arm64";

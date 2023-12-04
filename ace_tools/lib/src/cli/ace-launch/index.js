@@ -50,7 +50,7 @@ function getNames(projectDir, fileType, moduleName, installFilePath, bundleName)
 
 function getNamesApp(projectDir) {
   const appName = 'app.app';
-  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/ios/', appName);
+  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/app/', appName);
   return true;
 }
 
