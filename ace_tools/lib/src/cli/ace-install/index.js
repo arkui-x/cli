@@ -60,7 +60,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
     }
     // android and ios only have one apk or app
     if (fileType === 'ios') {
-      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/ios/');
+      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/app/');
       const fileList = fs.readdirSync(buildDir).filter(file => {
         return path.extname(file).toLowerCase() === `.app`;
       });
