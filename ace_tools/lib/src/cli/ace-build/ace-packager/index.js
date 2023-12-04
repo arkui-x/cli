@@ -28,10 +28,11 @@ const {
 } = require('../ace-build');
 const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
-const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi } = require('../../util');
-const projectDir = process.cwd();
+const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi, getAndroidModule,
+  getIosProjectName } = require('../../util');
 const { copyLibraryToProject } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
+const projectDir = process.cwd();
 
 function isAndroidSdkVaild() {
   if (androidSdkDir) {
@@ -86,13 +87,17 @@ function buildAPK(cmd) {
     console.error('createTestTem apk failed.');
     return false;
   }
-  if (cmd.debug) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
-  } else if (cmd.profile) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleProfile`);
-  } else {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
-  }
+
+  const moduleList = getAndroidModule(projectDir);
+  moduleList.forEach(item => {
+    if (cmd.debug) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:assembleDebug`);
+    } else if (cmd.profile) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:assembleProfile`);
+    } else {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:assembleRelease`);
+    }
+  });
   let gradleMessage = 'APK file built successfully..';
   let isBuildSuccess = true;
   console.log('Building an APK file...');
@@ -128,13 +133,17 @@ function buildAab(cmd) {
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
-  if (cmd.debug) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleDebug`);
-  } else if (cmd.profile) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleProfile`);
-  } else {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleRelease`);
-  }
+
+  const moduleList = getAndroidModule(projectDir);
+  moduleList.forEach(item => {
+    if (cmd.debug) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:bundleDebug`);
+    } else if (cmd.profile) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:bundleProfile`);
+    } else {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:bundleRelease`);
+    }
+  });
 
   let gradleMessage = 'Android App Bundle file built successfully.';
   let isBuildSuccess = true;
@@ -354,7 +363,8 @@ function buildiOS(cmd) {
     console.error('createTestTem ios failed.');
     return false;
   }
-  const projectSettingDir = path.join(projectDir, '.arkui-x/ios', 'app.xcodeproj');
+  const iosProjectName = getIosProjectName(projectDir);
+  const projectSettingDir = path.join(projectDir, '.arkui-x/ios', `${iosProjectName}.xcodeproj`);
   const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -394,7 +404,7 @@ function buildiOS(cmd) {
 It appears that there was a problem signing your application prior to installation on the device.
 
 Verify that the Bundle Identifier in your project is your signing id in Xcode
-  open .arkui-x/ios/app.xcodeproj
+  open .arkui-x/ios/${iosProjectName}.xcodeproj
           `);
         }
       }

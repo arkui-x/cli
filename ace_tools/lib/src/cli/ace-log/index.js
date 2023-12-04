@@ -18,7 +18,7 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 const JSON5 = require('json5');
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice, isProjectRootDir, getCurrentProjectSystem } = require('../util');
+const { validInputDevice, isProjectRootDir, getCurrentProjectSystem, getIosProjectName } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 const { exit } = require('process');
 
@@ -199,7 +199,7 @@ function getPid(device, fileType) {
     return;
   }
   if (fileType === 'ios') {
-    return 'app';
+    return getIosProjectName(projectDir);
   } else {
     try {
       if (device) {

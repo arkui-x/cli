@@ -228,12 +228,14 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
       fileName + '; sourceTree = "<group>"; };';
     const addPBXGroupInfo = '\n				' + headFileUUID + ' /* ' + fileName + ' */,';
     const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
-    const pBXBuildIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.h; sourceTree = "<group>"; };');
-    const pBXGroupIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.h */,');
-    const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, pBXBuildIndex + 41) + addPBXBuildInfo +
-      pbxprojFileInfo.slice(pBXBuildIndex + 41, pBXGroupIndex + 20) +
-      addPBXGroupInfo + pbxprojFileInfo.slice(pBXGroupIndex + 20);
-    fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    if (!pbxprojFileInfo.includes(' /* ' + fileName + ' */,')) {
+      const pBXBuildIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.h; sourceTree = "<group>"; };');
+      const pBXGroupIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.h */,');
+      const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, pBXBuildIndex + 41) + addPBXBuildInfo +
+        pbxprojFileInfo.slice(pBXBuildIndex + 41, pBXGroupIndex + 20) +
+        addPBXGroupInfo + pbxprojFileInfo.slice(pBXGroupIndex + 20);
+      fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    }
   } else if (fileType === 'sourcefile') {
     const sourceFileFirstUUID = getUUID(pbxprojFilePath);
     const sourceFileSecondUUID = getUUID(pbxprojFilePath);
@@ -249,16 +251,18 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const addchildren = '\n				' + sourceFileSecondUUID + ' /* ' + fileName + ' */,';
     const addPBXSourcesBuildPhase = '\n				' + sourceFileFirstUUID + ' /* ' + fileName + ' in Sources */,';
     const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
-    const addPBXBuildInfoIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */; };');
-    const addPBXFileReferenceIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m; sourceTree = "<group>"; };');
-    const addchildrenIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */,');
-    const addPBXSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m in Sources */,');
-    const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addPBXBuildInfoIndex + 23) + addPBXBuildInfo +
-      pbxprojFileInfo.slice(addPBXBuildInfoIndex + 23, addPBXFileReferenceIndex + 41) + addPBXFileReference +
-      pbxprojFileInfo.slice(addPBXFileReferenceIndex + 41, addchildrenIndex + 20) + addchildren +
-      pbxprojFileInfo.slice(addchildrenIndex + 20, addPBXSourcesBuildPhaseIndex + 28) + addPBXSourcesBuildPhase +
-      pbxprojFileInfo.slice(addPBXSourcesBuildPhaseIndex + 28);
-    fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    if (!pbxprojFileInfo.includes(' /* ' + fileName + ' in Sources */,')) {
+      const addPBXBuildInfoIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */; };');
+      const addPBXFileReferenceIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m; sourceTree = "<group>"; };');
+      const addchildrenIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */,');
+      const addPBXSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m in Sources */,');
+      const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addPBXBuildInfoIndex + 23) + addPBXBuildInfo +
+        pbxprojFileInfo.slice(addPBXBuildInfoIndex + 23, addPBXFileReferenceIndex + 41) + addPBXFileReference +
+        pbxprojFileInfo.slice(addPBXFileReferenceIndex + 41, addchildrenIndex + 20) + addchildren +
+        pbxprojFileInfo.slice(addchildrenIndex + 20, addPBXSourcesBuildPhaseIndex + 28) + addPBXSourcesBuildPhase +
+        pbxprojFileInfo.slice(addPBXSourcesBuildPhaseIndex + 28);
+      fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    }
   } else if (fileType === 'cfile') {
     const cBuildFileUUID = getUUID(pbxprojFilePath);
     const cFileReferenceUUID = getUUID(pbxprojFilePath);
@@ -291,6 +295,39 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
         addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length) +
       addSourcesBuildPhase + pbxprojFileInfo.slice(addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length);
     fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+  } else if (fileType === 'resource') {
+    const resourceBuildFileUUID = getUUID(pbxprojFilePath);
+    const resourceFileReferenceUUID = getUUID(pbxprojFilePath);
+    if (resourceBuildFileUUID === undefined || resourceFileReferenceUUID === undefined) {
+      console.log('get UUID Failed');
+      return false;
+    }
+    const addBuildFile = '\n		' + resourceBuildFileUUID + ' /* ' + fileName +
+      ' in Resources */ = {isa = PBXBuildFile; fileRef = ' + resourceFileReferenceUUID + ' /* ' + fileName + ' */; };';
+    const addFileReference = '\n		' + resourceFileReferenceUUID + ' /* ' + fileName +
+      ' */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ' + fileName + '; sourceTree = "<group>"; };';
+    const addGroupChildren = '\n				' + resourceFileReferenceUUID + ' /* ' + fileName + ' */,';
+    const addResourcesBuildPhase = '\n				' + resourceBuildFileUUID + ' /* ' + fileName + ' in Resources */,';
+    const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
+    if (!pbxprojFileInfo.includes(' /* ' + fileName + ' in Resources */,')) {
+      const searchBuildFile = '/* main.m */; };';
+      const searchFileReference = 'main.m; sourceTree = "<group>"; };';
+      const searchGroupChildren = '/* Products */,';
+      const searchResourcesBuildPhase = '/* LaunchScreen.storyboard in Resources */,';
+      const addBuildFileIndex = pbxprojFileInfo.lastIndexOf(searchBuildFile);
+      const addFileReferenceIndex = pbxprojFileInfo.lastIndexOf(searchFileReference);
+      const addGroupChildrenIndex = pbxprojFileInfo.lastIndexOf(searchGroupChildren);
+      const addResourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf(searchResourcesBuildPhase);
+      const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addBuildFileIndex + searchBuildFile.length) +
+        addBuildFile + pbxprojFileInfo.slice(addBuildFileIndex + searchBuildFile.length,
+          addFileReferenceIndex + searchFileReference.length) +
+        addFileReference + pbxprojFileInfo.slice(addFileReferenceIndex + searchFileReference.length,
+          addGroupChildrenIndex + searchGroupChildren.length) +
+        addGroupChildren + pbxprojFileInfo.slice(addGroupChildrenIndex + searchGroupChildren.length,
+          addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length) +
+        addResourcesBuildPhase + pbxprojFileInfo.slice(addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length);
+      fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    }
   } else {
     console.log('filetype error');
     return false;
@@ -459,6 +496,33 @@ function checkProjectType(projectDir) {
   }
 }
 
+function getAndroidModule(projectDir) {
+  const moduleName = [];
+  const settingsGradle = path.join(projectDir, '.arkui-x/android/settings.gradle');
+  if (!fs.existsSync(settingsGradle)) {
+    return moduleName;
+  }
+  fs.readFileSync(settingsGradle).toString().split(/\r\n|\n|\r/gm).forEach(line => {
+    if (line.indexOf(`include ':`) !== -1) {
+      moduleName.push(line.split("'")[1].substring(1));
+    }
+  });
+  return moduleName;
+}
+
+function getIosProjectName(projectDir) {
+  let iosName = '';
+  const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
+  for (let i = 0; i < iosDir.length; i++) {
+    if (iosDir[i].includes('.xcodeproj')) {
+      iosName = iosDir[i].split('.')[0];
+      break;
+    }
+  }
+  iosName = iosName || 'app';
+  return iosName;
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -479,5 +543,7 @@ module.exports = {
   syncHvigor,
   getSdkVersion,
   getModulePathList,
-  checkProjectType
+  checkProjectType,
+  getAndroidModule,
+  getIosProjectName
 };
