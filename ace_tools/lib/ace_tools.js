@@ -606,7 +606,7 @@ function parseTest() {
     .option('--skipInstall', 'Specifies the name of the app you want to skip installation. Works only when the app has been installed.')
     .option('--target [moduleName]', 'Specifies the name of the module to install.')
     .option('--timeout [timeout]', 'Specifies the timeout time.')
-    .option('--unittest [testRunner]', 'Specifies the name of the test runner..')
+    .option('--unittest [testRunner]', 'Specifies the name of the test runner.')
     .description(`Run ArkUI cross-platform unit tests for the current project.`)
     .on('--help', () => {
       if (!['apk', 'ios'].some(sub => process.argv.includes(sub))) {
