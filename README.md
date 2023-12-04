@@ -5,7 +5,7 @@ ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工�
 
 如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
 
-**注释：** ACE - 元能力跨平台运行环境 (Ability Cross-platform Environment)。
+**注释：** ACE - ArkUI跨平台运行环境 (ArkUI Cross-platform Environment)。
 
 图1 ACE Tools命令行工具模块结构
 
@@ -343,9 +343,9 @@ ace install [arguments]
 
 | 参数 | 说明                                                         |
 | ---- | ------------------------------------------------------------ |
-| apk  | 安装Android应用 apk 包。                                     |
-| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包。                       |
-| ios  | 安装iOS应用 app 包。                                         |
+| apk  | 安装Android应用 apk 包，可选。                                 |
+| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包，可选。                   |
+| ios  | 安装iOS应用 app 包，可选。                                     |
 
 | 参数           | 说明                     |
 | --------------------- | ------------------------ |
@@ -357,7 +357,7 @@ ace install [arguments]
 安装完成：
 
 ```shell
-ohos@user % ace install ios
+ohos@user % ace install
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
@@ -376,21 +376,21 @@ ace uninstall [arguments]
 - arguments
 
 | 参数 | 说明                                                         |
-| ---- | ------------------------------------------------------------ |
-| apk  | 卸载Android应用 apk 包。                                     |
-| hap  | 卸载OpenHarmony/HarmonyOS应用 hap 包。                       |
-| ios  | 卸载iOS应用 app 包。                                         |
+| ---- | ---------------------------------------------------------------- |
+| apk  | 卸载Android应用 apk 包，可选。                                     |
+| hap  | 卸载OpenHarmony/HarmonyOS应用 hap 包，可选。                       |
+| ios  | 卸载iOS应用 app 包，可选。                                         |
 
 | 参数    | 说明                   |
-| --------------------- | ---------------------- |
-| --bundle \<bundleName\> | 指定卸载应用的包名。   |
-| -d --device \<deviceId\> | 指定运行应用的设备Id。|
-| -h --help             | 显示帮助信息。          |
+| --------------------- | -------------------------------------- |
+| --bundle \<bundleName\> | 指定卸载应用的包名，iOS需为实际签名。   |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。                |
+| -h --help             | 显示帮助信息。                          |
 
 卸载完成：
 
 ```shell
-ohos@user % ace uninstall ios --bundle com.example.${projectName}
+ohos@user % ace uninstall --bundle com.example.${projectName}
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
@@ -409,10 +409,10 @@ ace launch [arguments]
 - arguments
 
 | 参数 | 说明                                                         |
-| ---- | ------------------------------------------------------------ |
-| apk  | 运行Android应用 apk 包。                                     |
-| hap  | 运行OpenHarmony/HarmonyOS应用 hap 包。                       |
-| ios  | 运行iOS应用 app 包。                                         |
+| ---- | ---------------------------------------------------------------- |
+| apk  | 运行Android应用 apk 包，可选。                                     |
+| hap  | 运行OpenHarmony/HarmonyOS应用 hap 包，可选。                       |
+| ios  | 运行iOS应用 app 包，可选。                                         |
 
 | 参数          | 说明                   |
 | --------------------- | ---------------------- |
@@ -423,7 +423,7 @@ ace launch [arguments]
 运行完成：
 
 ```shell
-ohos@user % ace launch ios
+ohos@user % ace launch
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
@@ -445,9 +445,9 @@ ace log [arguments]
 
 | 参数 | 说明                                                         |
 | ---- | ------------------------------------------------------------ |
-| apk  | 查看Android应用日志。                                        |
-| hap  | 查看OpenHarmony/HarmonyOS应用日志。                          |
-| ios  | 查看iOS应用日志。                                            |
+| apk  | 查看Android应用日志，可选。                                        |
+| hap  | 查看OpenHarmony/HarmonyOS应用日志，可选。                          |
+| ios  | 查看iOS应用日志，可选。                                            |
 
 | 参数            | 说明                   |
 | ------------------- | ---------------------- |
@@ -456,11 +456,10 @@ ace log [arguments]
 
 
 ```
-ohos@user % ace log ios
+ohos@user % ace log
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Filtering the log data using "process == "app""
 ```
 
 ### ace run
@@ -480,9 +479,9 @@ ace run [arguments]
 
 | 参数 | 说明                                                         |
 | :--- | ------------------------------------------------------------ |
-| apk  | 构建并运行Android应用 apk 包。                               |
-| hap  | 构建并运行OpenHarmony/HarmonyOS应用 hap 包。                 |
-| ios  | 构建并运行iOS应用 app 包。                                   |
+| apk  | 构建并运行Android应用 apk 包，可选。                               |
+| hap  | 构建并运行OpenHarmony/HarmonyOS应用 hap 包，可选。                 |
+| ios  | 构建并运行iOS应用 app 包，可选。                                   |
 
 | 参数          | 说明                   |
 | ------------------- | ---------------------- |
@@ -495,7 +494,7 @@ ace run [arguments]
 
 
 ```
-ohos@user % ace run ios
+ohos@user % ace run
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
@@ -525,14 +524,14 @@ ace test [arguments]
 
 | 参数         | 说明                   |
 | ------------------- | ---------------------- |
-| --b [bundleName] | 指定测试应用的BundleName。 |
+| --b [bundleName] | 指定测试应用的BundleName，iOS需要指定为自行设置的URL Types中的URL Schemes。 |
 | --class [class] | 指定测试应用的class。 |
 | --m [testModuleName] | 指定测试应用的ModuleName。 |
 | --skipInstall | 已安装情况跳过安装直接测试。（仍需依赖app/apk包，若指定了'path'则使用'path'下的app/apk包，否则使用默认路径下的app/apk包） |
 | --target [moduleName] | 指定测试module用于安装测试。 |
 | --timeout [timeout] | 指定测试应用的单条用例的超时时间。 |
 | --unittest [testRunner] | 指定测试应用的testRunner。 |
-| --path [path] | 指定应用包路径用于直接安装测试。 |
+| --path [path] | 指定app/apk包路径用于直接安装测试。 |
 | -d --device \<deviceId\> | 指定运行应用的设备Id。 |
 | -h --help | 显示帮助信息。 |
 
