@@ -14,9 +14,9 @@
 @rem
 
 @echo off
-setlocal enabledelayedexpansion
 call :find_dp0
 set "node_version=v16.20.1"
+setlocal enabledelayedexpansion
 if exist "%dp0%\node.exe" (
     set "node_path=%dp0%\node.exe"
     call :check_version
@@ -68,11 +68,31 @@ if !errorlevel! == 1 (
     exit /b %errorlevel%
 )
 set PATHEXT=%PATHEXT:;.JS;=;%
-endlocal
-echo Refreshing environment variables from system for terminal. Please wait...
-%dp0%resetvars.vbs
-call "%TEMP%\resetvars.bat"
 
+echo Refreshing environment variables from system for terminal. Please wait...
+echo Set WshShell = CreateObject("WScript.Shell") > %TEMP%\resetenv.vbs
+echo filename = WshShell.ExpandEnvironmentStrings("%TEMP%\resetenv.bat") >> %TEMP%\resetenv.vbs
+echo Set fileSystemObject = CreateObject("Scripting.fileSystemObject") >> %TEMP%\resetenv.vbs
+echo Set restenvbat = fileSystemObject.CreateTextFile(filename, TRUE) >> %TEMP%\resetenv.vbs
+echo Set sysEnv=WshShell.Environment("System") >> %TEMP%\resetenv.vbs
+echo for each item in sysEnv  >> %TEMP%\resetenv.vbs
+echo     restenvbat.WriteLine("SET " ^& item) >> %TEMP%\resetenv.vbs
+echo next >> %TEMP%\resetenv.vbs
+echo path = sysEnv("PATH") >> %TEMP%\resetenv.vbs
+echo Set userEnv=WshShell.Environment("User") >> %TEMP%\resetenv.vbs
+echo for each item in userEnv  >> %TEMP%\resetenv.vbs
+echo     restenvbat.WriteLine("SET " ^& item) >> %TEMP%\resetenv.vbs
+echo next >> %TEMP%\resetenv.vbs
+echo path = path ^& ";" ^& userEnv("PATH") >> %TEMP%\resetenv.vbs
+echo restenvbat.WriteLine("SET PATH=" ^& path) >> %TEMP%\resetenv.vbs
+echo restenvbat.Close >> %TEMP%\resetenv.vbs
+
+endlocal
+%TEMP%\resetenv.vbs
+call "%TEMP%\resetenv.bat"
+setlocal enabledelayedexpansion
+
+set "node_path=node.exe"
 call :check_version
 if !returnValue! neq 0 (
     echo The required version of nodejs has been installed, but the system still uses the lower version by default. Please uninstall or remove the lower version of nodejs from the path and rerun this program.
@@ -131,7 +151,7 @@ for /f %%v in ('%node_path% -v 2^>^&1') do (
     set "current_version_num=!current_version:~1,10!"
     set "required_version_num=!node_version:~1,10!"
 )
-for /f  %%c in ("!current_version_num!") do (
+for /f "tokens=1 delims=." %%c in ("!current_version_num!") do (
     for /f "tokens=1 delims=." %%r in ("!required_version_num!") do (
         if %%c lss %%r (
             set returnValue=1
@@ -143,7 +163,7 @@ for /f  %%c in ("!current_version_num!") do (
         )
     )
 )
-for /f  %%c in ("!current_version_num!") do (
+for /f "tokens=2 delims=." %%c in ("!current_version_num!") do (
     for /f "tokens=2 delims=." %%r in ("!required_version_num!") do (
         if %%c lss %%r (
             set returnValue=1
@@ -155,7 +175,7 @@ for /f  %%c in ("!current_version_num!") do (
         )
     )
 )
-for /f  %%c in ("!current_version_num!") do (
+for /f "tokens=3 delims=." %%c in ("!current_version_num!") do (
     for /f "tokens=3 delims=." %%r in ("!required_version_num!") do (
         if %%c lss %%r (
             set returnValue=1
