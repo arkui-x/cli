@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 const path = require('path');
 const fs = require('fs');
 const projectDir = process.cwd();
@@ -6,108 +21,106 @@ const exec = require('child_process').exec;
 const express = require('../../../../../node_modules/express');
 const ejs = require('../../../../../node_modules/ejs');
 const net = require('net');
-var port = 3000;
-var analyzeFileUrl = "";
-var analyzeFileName = "";
-let packSrc;
-let root = {} //Store data saved in JSON files
+
 function analyze(fileType) {
+    let packSrc;
     if (fileType === "apk") {
-        let filePath = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`
+        let filePath = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`;
         if(fs.existsSync(filePath)) {
-            packSrc = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`
+            packSrc = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`;
         } else {
-            packSrc = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release-unsigned.apk`
+            packSrc = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release-unsigned.apk`;
         }
     } else if (fileType === "hap") {
-        packSrc = `${projectDir}/entry/build/default/outputs/default/entry-default-signed.hap`
+        packSrc = `${projectDir}/entry/build/default/outputs/default/entry-default-signed.hap`;
     } else if (fileType === "app") {
-        packSrc = `${projectDir}/.arkui-x/ios/build/outputs/ios/app.app`
+        packSrc = `${projectDir}/.arkui-x/ios/build/outputs/ios/app.app`;
     }
     fs.readFile(packSrc, function (err, data) {
         if (err) throw err;
         JSZip.loadAsync(data)
             .then(function (zip) {
-                apkTojson(zip,fileType) 
-                writeJsonFile(fileType)
-                renderHtmlPage() 
+                apkTojson(zip,fileType) ;
+                writeJsonFile(fileType);
+                renderHtmlPage();
             })
             .catch(function (error) {
                 console.error('Decompression failed:', error);
             });
     });
 }
-// Read APK package and generate JSON data
+
 function apkTojson(zip,fileType) {
+    root = {}
     root.n = "root";
     root.value = 0;
     root.type = fileType;
     zip.forEach(function (relativePath, zipEntry) {
         let filename = zipEntry.name;
-        let filevalue = zipEntry._data.uncompressedSize || 0
-        createdJson(filename, filevalue)
+        let filevalue = zipEntry._data.uncompressedSize || 0;
+        createdJson(filename, filevalue);
     });
 }
-// Create JSON data
+
 function createdJson(filename, filevalue = 0) {
-    let filenameArr = filename.split('/')
-    let index = 0
+    let filenameArr = filename.split('/');
+    let index = 0;
     createChildren(root, filenameArr[index])
     function createChildren(root, name) {
-        let obj = {}
-        obj.n = name
+        let obj = {};
+        obj.n = name;
         if (index == filenameArr.length - 1) {
-            obj.value = filevalue
+            obj.value = filevalue;
         }
         let checkroot = checkList(root, filenameArr[index])
         if (checkroot) {
             index++;
-            createChildren(checkroot, filenameArr[index])
+            createChildren(checkroot, filenameArr[index]);
         } else {
             if (!root.children) {
-                root.children = []
+                root.children = [];
             }
-            root.children.push(obj)
+            root.children.push(obj);
             index++;
             if (index < filenameArr.length) {
-                createChildren(root.children[root.children.length - 1], filenameArr[index])
+                createChildren(root.children[root.children.length - 1], filenameArr[index]);
             }
         }
     }
 }
-// Check if the directory already exists
+
 function checkList(checkroot, item) {
     if (checkroot.children) {
         for (let i = 0; i < checkroot.children.length; i++) {
             if (checkroot.children[i].n == item) {
-                return checkroot.children[i]
+                return checkroot.children[i];
             }
         }
-        return false
+        return false;
     }
 }
-// Write JSON data into a JSON file and save it locally
+
 function writeJsonFile(fileType) {
-    root = typeof root === 'object' ? JSON.stringify(root, undefined, 4) : root
-    const analyzeFileSaveUrl = analyzeFile(fileType)
+    root = typeof root === 'object' ? JSON.stringify(root, undefined, 4) : root;
+    const analyzeFileSaveUrl = analyzeFile(fileType);
     fs.writeFile(analyzeFileSaveUrl, root, err => {
         if (!err) {
-            console.log("A summary of your APK analysis can be found at:", analyzeFileSaveUrl)
+            console.log("A summary of your APK analysis can be found at:", analyzeFileSaveUrl);
         } else {
-            console.log(err)
+            console.log(err);
         }
     })
 }
-// JSON file save location and name
+
 function analyzeFile(fileType) {
-    const user_home = process.env.HOME || process.env.USERPROFILE
-    mkDirsSync(user_home + "\\.ace-devtools\\" + fileType)
-    analyzeFileUrl = user_home + "\\.ace-devtools\\" + fileType
+    const user_home = process.env.HOME || process.env.USERPROFILE;
+    mkDirsSync(user_home + "\\.ace-devtools\\" + fileType);
+    analyzeFileUrl = user_home + "\\.ace-devtools\\" + fileType;
     const files = fs.readdirSync(analyzeFileUrl);
-    analyzeFileName = "\\" + fileType + "-code-size-analysis_" + ((files.length + 1) >= 10 ? (files.length + 1) : ('0' + (files.length + 1))) + '.json'
-    return analyzeFileUrl + analyzeFileName
+    analyzeFileName = "\\" + fileType + "-code-size-analysis_" + ((files.length + 1) >= 10 ? (files.length + 1) : ('0' + (files.length + 1))) + '.json';
+    return analyzeFileUrl + analyzeFileName;
 }
-// Create folder directory
+
 function mkDirsSync(dirname) {
     if (fs.existsSync(dirname)) {
         return true;
@@ -118,18 +131,18 @@ function mkDirsSync(dirname) {
         }
     }
 }
-// Rendering HTML pages
+
 function renderHtmlPage() {
     app = express();
     app.set('views', path.join(__dirname, '\\json'));
     app.engine('html', ejs.__express);
-    app.set('view engine', 'html')
+    app.set('view engine', 'html');
     app.get('/appsize', function (request, response) {
         const ReqJsonPath = request.query.appSizeBase ? request.query.appSizeBase : '';
         if (ReqJsonPath) {
             fs.readFile(ReqJsonPath, 'utf-8', (err, data) => {
                 response.render(path.join(__dirname, '\\json\\index.html'), {
-                    jsonPath: !err ? JSON.stringify(data) : "", totalSizeAnalyze: ReqJsonPath
+                    jsonPath: !err ? JSON.stringify(data) : "", totalSizeAnalyze: ReqJsonPath,
                 });
             });
         }
@@ -137,30 +150,32 @@ function renderHtmlPage() {
     app.get('/', function (request, response) {
         fs.readFile(analyzeFileUrl + analyzeFileName, 'utf-8', (err, data) => {
             response.render(path.join(__dirname, '\\json\\index.html'), {
-                jsonPath: !err ? JSON.stringify(root) : "", totalSizeAnalyze: analyzeFileUrl + analyzeFileName
+                jsonPath: !err ? JSON.stringify(root) : "", totalSizeAnalyze: analyzeFileUrl + analyzeFileName,
             });
         });
     });
     portusable()
     app.use(express.static(path.join(__dirname, '\\json')));
 }
+
 function portusable(){
+    let port = 3000;
     checkPort(port)
     .then((isAvailable) => {
         if (isAvailable) {
             console.log('http://127.0.0.1:' + port);
             app.listen(port);
-            openHtmlInBrowser(port)
+            openHtmlInBrowser(port);
         } else {
             port++;
-            portusable()
+            portusable();
         }
     })
     .catch((err) => {
         console.error(err);
     });
 }
-// Get the port being listened on
+
 function checkPort(port) {
     const server = net.createServer();
     return new Promise((resolve, reject) => {
@@ -179,7 +194,7 @@ function checkPort(port) {
         server.listen(port);
     });
 }
-// Open HTML file in browser
+
 function openHtmlInBrowser(port) {
     const openDefaultBrowser = function (url) {
         switch (process.platform) {
@@ -193,7 +208,7 @@ function openHtmlInBrowser(port) {
                 exec('xdg-open', [url]);
         }
     }
-    openDefaultBrowser("http://127.0.0.1:" + port + '/appsize?appSizeBase=' + analyzeFileUrl + analyzeFileName)
-    port++
+    openDefaultBrowser("http://127.0.0.1:" + port + '/appsize?appSizeBase=' + analyzeFileUrl + analyzeFileName);
+    port++;
 }
 module.exports = analyze;

@@ -1,10 +1,23 @@
+<!-- /*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */ -->
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- <title>AceTools</title> -->
     <title></title>
     <link href="./bootstrap.min.css" rel="stylesheet">
     <style>
@@ -18,7 +31,6 @@
             height: 100%;
         }
 
-        /* navigation */
         .nav-tabs {
             position: relative;
             height: 2.6rem;
@@ -56,7 +68,6 @@
             height: calc(100% - 2.6rem);
         }
 
-        /* Upload files */
         #uploadPage,
         #analysisPage,
         #diff-analysisPage {
@@ -65,7 +76,6 @@
             height: 100%;
         }
 
-        /* Drag upload area */
         #dropArea {
             width: 100%;
             height: 100%;
@@ -91,12 +101,10 @@
             width: 100%;
         }
 
-        /* Parse File Button */
         .btn-secondary {
             margin: 2rem 0rem 0rem 0rem;
         }
 
-        /* Load Page */
         #load {
             position: relative;
             width: 100%;
@@ -110,14 +118,12 @@
             transform: translate(-50%, -50%);
         }
 
-        /* echarts */
         #analysisPage,
         #container,
         #diff-container {
             width: 100%;
         }
 
-        /* file directory */
         #name,
         #diff-name {
             margin-top: 1rem;
@@ -176,9 +182,7 @@
             border-bottom-color: transparent;
         }
 
-        /* diff--File upload */
         #diff {
-            /* padding: 1rem 2rem 2rem 2rem; */
             height: calc(100% - 2.6rem);
         }
 
@@ -198,7 +202,6 @@
             padding: 0 3rem;
         }
 
-        /* Parse File Button*/
         #diff .btn-secondary {
             margin: 0 1rem;
             width: 7rem;
@@ -330,88 +333,85 @@
     </div>
 </body>
 <script type="text/javascript" src="./echarts.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
+<script src="../jszip.min.js"></script>
 <script>
     window.addEventListener('load', function (e) {
         document.getElementById('analysisPage').style.display = "none";
         document.getElementById('uploadPage').style.display = "block";
         document.getElementById('diff-analysisPage').style.display = "none";
         document.getElementById('diff-uploadPage').style.display = "flex";
-        document.getElementById('form-select').style.display = "none"
-        switchPage(0)
+        document.getElementById('form-select').style.display = "none";
+        switchPage(0);
         if (document.getElementById('renderData').innerHTML.length != 14) {
-            root = JSON.parse(document.getElementById('renderData').innerHTML)
-            fileDateResult = nToName([JSON.parse(root)])
-            // console.log('fileDateResult', fileDateResult)
-            document.form.path.value = "上传了apk包"
-            uploadFile()
-            document.getElementById("analyzeFilename").innerHTML = "总大小分析：" + document.getElementById('totalSizeAnalyze').innerHTML
+            root = JSON.parse(document.getElementById('renderData').innerHTML);
+            fileDateResult = nToName([JSON.parse(root)]);
+            document.form.path.value = "上传了apk包";
+            uploadFile();
+            document.getElementById("analyzeFilename").innerHTML = "总大小分析：" + document.getElementById('totalSizeAnalyze').innerHTML;
         }
     });
 </script>
+
 <script>
-    // Navigation Switch tab
     let li = document.getElementsByClassName("nav-link");
     for (let i = 0; i < li.length; i++) {
         li[i].onclick = function () {
             for (let j = 0; j < li.length; j++) {
-                li[j].classList.remove('active')
+                li[j].classList.remove('active');
             }
-            this.classList.add('active')
+            this.classList.add('active');
             switchPage(i)
         }
     }
-    // Switch pages
+   
     let pageIndex = 0
     function switchPage(index) {
         pageIndex = index
         if (index == 0) {
             document.getElementById('analysis').style.display = "block";
             document.getElementById('diff').style.display = "none";
-            document.getElementById('form-select').style.display = "none"
+            document.getElementById('form-select').style.display = "none";
         } else if (index == 1) {
             document.getElementById('analysis').style.display = "none";
             document.getElementById('diff').style.display = "block";
-            document.getElementById('form-select').style.display = "block"
+            document.getElementById('form-select').style.display = "block";
         }
     }
-    // Filter View Data
+   
     document.getElementById('form-select').addEventListener('change', function () {
         if (document.getElementById('diff-analysisPage').style.display != "block") {
-            return
+            return;
         }
         document.getElementById('diff-name').innerHTML = "";
-        // diffFileDateResult.length = 0
-        diffUploadFile()
+        diffUploadFile();
     })
-    //Clear button
+    
     function clearPrintScreen() {
         if (pageIndex == 0) {
-            fileDateResult = null
+            fileDateResult = null;
             document.getElementById('uploadPage').style.display = "block";
-            document.getElementById('analysisPage').style.display = "none"
+            document.getElementById('analysisPage').style.display = "none";
             document.getElementById('name').innerHTML = "";
-            document.getElementById('file').value = ""
-            document.form.path.value = ""
-            myChart.clear()
-
+            document.getElementById('file').value = "";
+            document.form.path.value = "";
+            myChart.clear();
         } else {
-            rightDiffDataFlag = false
-            diffFileDateResult.length = 0
+            rightDiffDataFlag = false;
+            diffFileDateResult.length = 0;
             document.getElementById('diff-uploadPage').style.display = "flex";
             document.getElementById('diff-analysisPage').style.display = "none";
-            document.getElementById('diff-title').style.display = "flex"
-            document.getElementById('diff-name').innerHTML = ""
-            document.getElementById('diff-file1').value = ""
-            document.getElementById('diff-file2').value = ""
+            document.getElementById('diff-title').style.display = "flex";
+            document.getElementById('diff-name').innerHTML = "";
+            document.getElementById('diff-file1').value = "";
+            document.getElementById('diff-file2').value = "";
             document.form1.path1.value = "";
             document.form2.path2.value = "";
-            myChart.clear()
+            myChart.clear();
         }
     }
 </script>
+
 <script>
-    // Dragging and uploading files
     const dropArea = document.getElementById('dropArea');
     let fileDateResult = null
     dropArea.addEventListener('dragover', function (e) {
@@ -426,20 +426,19 @@
         e.preventDefault();
         dropArea.classList.remove('dragover');
         const files = e.dataTransfer.files;
-        // console.log('files[0]', files[0])
         document.form.path.value = files[0].name
-        var reader = new FileReader();//Create a new FileReader
-        reader.readAsText(files[0], "UTF-8");//read file
-        reader.onload = function (evt) { //After reading the file, I will come back here
-            let fileData = JSON.parse(evt.target.result); // Read file content
-            fileDateResult = nToName([fileData])
-            document.getElementById('name').style.border = "1px solid #dee2e6"
+        var reader = new FileReader();
+        reader.readAsText(files[0], "UTF-8");
+        reader.onload = function (evt) {
+            let fileData = JSON.parse(evt.target.result);
+            fileDateResult = nToName([fileData]);
+            document.getElementById('name').style.border = "1px solid #dee2e6";
         }
     });
-    // Diff drag and drop upload file
-    let diffFileData
+
+    let diffFileData;
     const diffDropArea = document.getElementsByClassName('diff-dropArea');
-    var diffFileDateResult = []
+    var diffFileDateResult = [];
     for (let i = 0; i < diffDropArea.length; i++) {
         diffDropArea[i].addEventListener('dragover', function (e) {
             e.preventDefault();
@@ -453,131 +452,124 @@
             e.preventDefault();
             diffDropArea[i].classList.remove('dragover');
             const files = e.dataTransfer.files;
-            var reader = new FileReader();//Create a new FileReader
-            reader.readAsText(files[0], "UTF-8");//read file
-            reader.onload = function (evt) { //After reading the file, I will come back here
-                diffFileDateResult[i] = JSON.parse(evt.target.result); // Read file content
+            var reader = new FileReader();
+            reader.readAsText(files[0], "UTF-8");
+            reader.onload = function (evt) {
+                diffFileDateResult[i] = JSON.parse(evt.target.result);
                 if (diffFileDateResult[0] != undefined && diffFileDateResult[1] != undefined) {
-                    diffFileData = diffData([JSON.parse(JSON.stringify(diffFileDateResult[0]))], [JSON.parse(JSON.stringify(diffFileDateResult[1]))])
-                    
+                    diffFileData = diffData([JSON.parse(JSON.stringify(diffFileDateResult[0]))], [JSON.parse(JSON.stringify(diffFileDateResult[1]))]);
                 }
-                document.getElementById('diff-name').style.border = "1px solid #dee2e6"
+                document.getElementById('diff-name').style.border = "1px solid #dee2e6";
             }
             if (i == 0) {
-                document.form1.path1.value = files[0].name
+                document.form1.path1.value = files[0].name;
             } else if (i == 1) {
-                document.form2.path2.value = files[0].name
+                document.form2.path2.value = files[0].name;
             }
         });
     }
 </script>
+
 <script>
-    // Click to parse the file
     function uploadFile() {
         if (!document.form.path.value) { alert("请先上传文件"); return }
         if (!fileDateResult) {
-            let file_ele = document.getElementById('file')
+            let file_ele = document.getElementById('file');
             var reader = new FileReader();
             reader.readAsText(file_ele.files[0], "UTF-8");
             reader.onload = function (evt) { 
                 let fileData = JSON.parse(evt.target.result); 
-               
-                fileDateResult = nToName([fileData])
-                
-                readerOnload()
+                fileDateResult = nToName([fileData]);
+                readerOnload();
             }
         } else {
-            readerOnload()
+            readerOnload();
         }
         document.getElementById("analyzeFilename").innerHTML = "总大小分析：" + document.form.path.value
     }
-    // Click and drag to upload and read files together for operation
+    
     function readerOnload() {
-        const root = document.getElementById('name')
+        const root = document.getElementById('name');
         document.getElementById('uploadPage').style.display = "none";
         document.getElementById('analysisPage').style.display = "block";
-        createMenu(fileDateResult, root, 1)  //Parsing json Files
-        document.getElementById('name').style.border = "1px solid #dee2e6"
+        createMenu(fileDateResult, root, 1);
+        document.getElementById('name').style.border = "1px solid #dee2e6";
     }
-    //diff Parsing Files
+    
     function diffUploadFile() {
         if (!document.form1.path1.value || !document.form2.path2.value) { alert("请先上传文件"); return }
         if (diffFileDateResult.length == 0) {
-            let file_ele = document.getElementsByClassName('diff-file')
+            let file_ele = document.getElementsByClassName('diff-file');
             for (let i = 0; i < file_ele.length; i++) {
                 var reader = new FileReader();
                 reader.readAsText(file_ele[i].files[0], "UTF-8");
                 reader.onload = function (evt) { 
                     diffFileDateResult[i] = JSON.parse(evt.target.result); 
                     if (diffFileDateResult[0] != undefined && diffFileDateResult[1] != undefined) {
-                        
-                        diffReaderOnload()
+                        diffReaderOnload();
                     }
                 }
             }
         } else {
-            diffReaderOnload()
+            diffReaderOnload();
         }
-        document.getElementById("diffanalyzeFilename").innerHTML = "对比总大小分析：" + document.form1.path1.value + "[OLD] vs [NEW]" + document.form2.path2.value
+        document.getElementById("diffanalyzeFilename").innerHTML = "对比总大小分析：" + document.form1.path1.value + "[OLD] vs [NEW]" + document.form2.path2.value;
     }
-    // diff点击和拖拽上传读取文件后共同操作
+    
     function diffReaderOnload() {
-        console.log('diffFileDateResult',diffFileDateResult)
+        console.log('diffFileDateResult',diffFileDateResult);
         if(diffFileDateResult[0].type!=diffFileDateResult[1].type){alert("包类型不一致，无法比较");clearPrintScreen();return}
-        const root = document.getElementById('diff-name')
-        diffFileData = diffData([JSON.parse(JSON.stringify(diffFileDateResult[0]))], [JSON.parse(JSON.stringify(diffFileDateResult[1]))])
-        // console.log("处理后的数据", diffFileData)
-        let onlyDate = {}
-        onlyDate.name = diffFileData.name
-        onlyDate.negative = diffFileData.negative
-        onlyDate.value = diffFileData.value
-        onlyDate.idTitle = diffFileData.idTitle
-        onlyDate.itemStyle = diffFileData.itemStyle
-        onlyDate.children = []
-        selectData(onlyDate)
+        const root = document.getElementById('diff-name');
+        diffFileData = diffData([JSON.parse(JSON.stringify(diffFileDateResult[0]))], [JSON.parse(JSON.stringify(diffFileDateResult[1]))]);
+        let onlyDate = {};
+        onlyDate.name = diffFileData.name;
+        onlyDate.negative = diffFileData.negative;
+        onlyDate.value = diffFileData.value;
+        onlyDate.idTitle = diffFileData.idTitle;
+        onlyDate.itemStyle = diffFileData.itemStyle;
+        onlyDate.children = [];
+        selectData(onlyDate);
         document.getElementById('diff-uploadPage').style.display = "none";
         document.getElementById('diff-analysisPage').style.display = "block";
-        document.getElementById('diff-title').style.display = "none"
-        // console.log("diffFileData", diffFileData)
-        createMenu((diffFileData instanceof Array) ? diffFileData : [diffFileData], root, 1, 1)
-        document.getElementById('diff-name').style.border = "1px solid #dee2e6"
-        notAnalyze()
+        document.getElementById('diff-title').style.display = "none";
+        createMenu((diffFileData instanceof Array) ? diffFileData : [diffFileData], root, 1, 1);
+        document.getElementById('diff-name').style.border = "1px solid #dee2e6";
+        notAnalyze();
     }
 
-    // 筛选全部/仅看增加/仅看减少
     function selectData(onlyDate) {
         let selectIndex = document.getElementById('form-select').value;
         if (selectIndex == 2) {
-            diffFileData = insreaseOnly(diffFileData.children, onlyDate)
-            diffFileData.value = computedRoot(diffFileData.children, 'diffonly')
+            diffFileData = insreaseOnly(diffFileData.children, onlyDate);
+            diffFileData.value = computedRoot(diffFileData.children, 'diffonly');
         } else if (selectIndex == 3) {
-            diffFileData = decreaseOnly(diffFileData.children, onlyDate)
-            diffFileData.value = computedRoot(diffFileData.children, 'diffonly')
+            diffFileData = decreaseOnly(diffFileData.children, onlyDate);
+            diffFileData.value = computedRoot(diffFileData.children, 'diffonly');
         }
     }
-    // diff文件相同时，显示文件上传页面
+
     function notAnalyze() {
         if (document.querySelector('#diff-name details summary').style.display == "none") {
             document.getElementById('diff-uploadPage').style.display = "flex";
             document.getElementById('diff-analysisPage').style.display = "none";
-            document.getElementById('diff-title').style.display = "flex"
-            clearPrintScreen()
+            document.getElementById('diff-title').style.display = "flex";
+            clearPrintScreen();
         }
     }
-    // 创建文件目录
+    
     function createMenu(data, root, load = 0, diff = 0) {
-        data.sort(function (a, b) { return b.value - a.value })
+        data.sort(function (a, b) { return b.value - a.value });
         if(data[0].negative){
-            data.sort(function (a,b){return b.negative-a.negative})
+            data.sort(function (a,b){return b.negative-a.negative});
         }else{
-            data.sort(function (a,b){return a.negative-b.negative})
+            data.sort(function (a,b){return a.negative-b.negative});
         }
         if (data.length) {
             data.forEach(d => {
                 const detailsEle = document.createElement('details');
                 const sumaryEle = document.createElement('summary'); sumaryEle.id = d.idTitle;
                 const name = document.createElement('span');
-                const size = document.createElement('span'); size.className = "filesize"
+                const size = document.createElement('span'); size.className = "filesize";
                 name.innerText = d.name;
                 if (diff == 1) {
                     size.innerText = d.negative ? ('  [+' + formatFileSize(d.value || 0) + ']') : ('  [-' + formatFileSize(d.value || 0) + ']');
@@ -585,34 +577,33 @@
                 } else {
                     size.innerText = "  [" + formatFileSize(d.value || 0) + "]";
                 }
-                sumaryEle.appendChild(name)
+                sumaryEle.appendChild(name);
                 sumaryEle.appendChild(size);
-                detailsEle.appendChild(sumaryEle)
-                root.appendChild(detailsEle)
+                detailsEle.appendChild(sumaryEle);
+                root.appendChild(detailsEle);
                 if (diff == 1 && d.value == 0) {
-                    sumaryEle.style.display = "none"
+                    sumaryEle.style.display = "none";
                 }
                 if (d.children?.length) {
-                    sumaryEle.className = "openfileIcon"
+                    sumaryEle.className = "openfileIcon";
                 }
                 if (load == 1) {
                     sumaryEle.style.backgroundColor = 'rgb(108, 117, 125)';
-                    sumaryEle.style.color = "rgb(255,255,255)"
-                    detailsEle.open = true
+                    sumaryEle.style.color = "rgb(255,255,255)";
+                    detailsEle.open = true;
                     if (diff == 1) {
                         if (d.children) {
-                            createMenu(d.children, detailsEle, 0, 1)
+                            createMenu(d.children, detailsEle, 0, 1);
                         }
                     } else {
                         if (d.children) {
-                            createMenu(d.children, detailsEle, 0)
+                            createMenu(d.children, detailsEle, 0);
                         }
                     }
-                    createChart(d, diff)
+                    createChart(d, diff);
                 }
                 sumaryEle.onclick = function () {
-                    // console.log(d.children?.length)
-                    selectFileStyle(sumaryEle)
+                    selectFileStyle(sumaryEle);
                     if (d.children?.length) {
                         if (!detailsEle.open) {
                             let tagArr = getChildren(detailsEle);
@@ -620,31 +611,30 @@
                                 detailsEle.removeChild(tagArr[i]);
                             }
                             if (diff == 1) {
-                                createMenu(d.children, detailsEle, 0, 1)
+                                createMenu(d.children, detailsEle, 0, 1);
                             } else {
-                                createMenu(d.children, detailsEle, 0)
+                                createMenu(d.children, detailsEle, 0);
                             }
                         } else {
-                            detailsEle.removeAttribute("open")
-                            createChart(d, diff)
-                            return false
+                            detailsEle.removeAttribute("open");
+                            createChart(d, diff);
+                            return false;
                         }
-                        createChart(d, diff)
+                        createChart(d, diff);
                     } else {
                         let tempArr = JSON.parse(JSON.stringify(d));
-                        let obj = {}
-                        obj['children'] = [tempArr]
-                        createChart(obj, diff)
+                        let obj = {};
+                        obj['children'] = [tempArr];
+                        createChart(obj, diff);
                     }
                 }
             })
         }
     }
-    // 获取list的子元素，不包括后代元素
+    
     function getChildren(parentNode) {
         var children, length, nodeArray = [], i = 0;
         if (parentNode.nodeType === 1) {
-            //兼顾一下ff3.6以下的版本
             children = parentNode.children || parentNode.childNodes;
             length = children.length;
             for (; i < length; i++) {
@@ -659,33 +649,32 @@
             return null;
         }
     }
-    // 选中文件修改样式
+    
     function selectFileStyle(sumaryEle) {
-        let sumaryEleArr = document.getElementsByTagName('summary')
+        let sumaryEleArr = document.getElementsByTagName('summary');
         for (let i = 0; i < sumaryEleArr.length; i++) {
             if (sumaryEleArr[i].style.backgroundColor == 'rgb(108, 117, 125)') {
-                sumaryEleArr[i].style.backgroundColor = 'rgb(255,255,255)'
-                sumaryEleArr[i].style.color = "rgb(0,0,0)"
+                sumaryEleArr[i].style.backgroundColor = 'rgb(255,255,255)';
+                sumaryEleArr[i].style.color = "rgb(0,0,0)";
             }
         }
         sumaryEle.style.backgroundColor = 'rgb(108, 117, 125)';
-        sumaryEle.style.color = "rgb(255,255,255)"
+        sumaryEle.style.color = "rgb(255,255,255)";
     }
-    // 创建echart文件大小分布
+    
     var myChart;
     function createChart(rawData, diff) {
-        // console.log("rawData.children", rawData)
         let chartWidth;
         let chartHeight;
         let container;
         if (pageIndex == 0) {
             container = document.getElementById('container');
-            chartWidth = document.getElementById('analysisPage').width
-            chartHeight = document.getElementById('container').height
+            chartWidth = document.getElementById('analysisPage').width;
+            chartHeight = document.getElementById('container').height;
         } else if (pageIndex == 1) {
             container = document.getElementById('diff-container');
-            chartWidth = document.getElementById('diff-analysisPage').width
-            chartHeight = document.getElementById('diff-container').height
+            chartWidth = document.getElementById('diff-analysisPage').width;
+            chartHeight = document.getElementById('diff-container').height;
         }
         myChart = echarts.init(container, null, {
             renderer: 'canvas',
@@ -724,14 +713,14 @@
                         }
                     },
                     breadcrumb: {
-                        show: false
+                        show: false,
                     },
                     levels: [
                         {
                             itemStyle: {
                                 borderColor: '#555',
                                 borderWidth: 4,
-                                gapWidth: 4
+                                gapWidth: 4,
                             }
                         },
                         {
@@ -739,128 +728,128 @@
                             itemStyle: {
                                 borderColorSaturation: 0.7,
                                 gapWidth: 2,
-                                borderWidth: 2
+                                borderWidth: 2,
                             }
                         },
                         {
                             colorSaturation: [0.3, 0.5],
                             itemStyle: {
                                 borderColorSaturation: 0.6,
-                                gapWidth: 1
+                                gapWidth: 1,
                             }
                         },
                         {
-                            colorSaturation: [0.3, 0.5]
-                        }
-                    ]
-                }
-            ]
+                            colorSaturation: [0.3, 0.5],
+                        },
+                    ],
+                },
+            ],
         };
         if (option && typeof option === 'object') {
             myChart.setOption(option);
         }
         window.onresize = function () {
-            myCharts.resize()
+            myCharts.resize();
         }
-        myChart.off('click')
+        myChart.off('click');
         myChart.on('click', params => {
-            // console.log("params", params)
-            // console.log(deleteSymbol(params.name) + params.value)
-            const sumaryEle = document.getElementById(deleteSymbol(params.name) + params.value)
-            const detailsEle = document.getElementById(deleteSymbol(params.name) + params.value).parentNode
-            // console.log("detailsEle", detailsEle)
-            checkOpen(sumaryEle)
+            const sumaryEle = document.getElementById(deleteSymbol(params.name) + params.value);
+            const detailsEle = document.getElementById(deleteSymbol(params.name) + params.value).parentNode;
+            checkOpen(sumaryEle);
             if (params.data.children) {
-                detailsEle.open = true
+                detailsEle.open = true;
                 if (diff == 1) {
-                    createMenu(params.data.children, detailsEle, 0, 1)
+                    createMenu(params.data.children, detailsEle, 0, 1);
                 } else {
-                    createMenu(params.data.children, detailsEle, 0)
+                    createMenu(params.data.children, detailsEle, 0);
                 }
             }
-            selectFileStyle(sumaryEle)
-        })
+            selectFileStyle(sumaryEle);
+        });
     }
-    // 判断details是否打开状态
+    
     function checkOpen(obj) {
         if (obj.parentNode) {
             if (obj.parentNode.open == false) {
                 obj.parentNode.open = true;
             }
-            checkOpen(obj.parentNode)
+            checkOpen(obj.parentNode);
         }
     }
-    // diff数据处理（将新旧文件数据合并）
+    
     var rightDiffDataFlag = false;
     function diffData(file1, file2) {
-        leftdiffData(file1, file2)
+        leftdiffData(file1, file2);
         if (rightDiffDataFlag) {
-            rightDiffData(file2, file1)
+            rightDiffData(file2, file1);
         }
-        return file1[0]
+        return file1[0];
     }
+
     function leftdiffData(file1, file2) {
         for (let i = 0; i < file1.length; i++) {
             var leftChildren = file1[i].children;
             var leftName = file1[i].n;
-            var leftValue = file1[i].value ? file1[i].value : computedRoot(leftChildren)
+            var leftValue = file1[i].value ? file1[i].value : computedRoot(leftChildren);
             for (var j = 0; j < file2.length; j++) {
                 var rightChildren = file2[j].children;
                 var rightName = file2[j].n;
-                var rightValue = file2[j].value ? file2[j].value : computedRoot(rightChildren)
+                var rightValue = file2[j].value ? file2[j].value : computedRoot(rightChildren);
                 if (leftName == rightName) {
-                    file1[i].negative = rightValue >= leftValue ? true : false
-                    file1[i].value = Math.abs(rightValue - leftValue)
-                    file1[i].valueFlag = true
-                    file1[i].name = leftName
-                    delete file1[i].n
-                    file1[i].idTitle = deleteSymbol(leftName) + (file1[i].value)
-                    file1[i].itemStyle = file1[i].negative ? { color: '#91CC75' } : { color: '#EB5555' }    //矩形的颜色
+                    file1[i].negative = rightValue >= leftValue ? true : false;
+                    file1[i].value = Math.abs(rightValue - leftValue);
+                    file1[i].valueFlag = true;
+                    file1[i].name = leftName;
+                    delete file1[i].n;
+                    file1[i].idTitle = deleteSymbol(leftName) + (file1[i].value);
+                    file1[i].itemStyle = file1[i].negative ? { color: '#91CC75' } : { color: '#EB5555' };
                     if (leftChildren && rightChildren) {
-                        leftdiffData(leftChildren, rightChildren)
+                        leftdiffData(leftChildren, rightChildren);
                     }
                     break;
                 }
             }
             if (j >= file2.length) {
-                rightDiffDataFlag = true
-                file1[i].negative = false
-                file1[i].value = leftValue
-                file1[i].name = leftName
-                delete file1[i].n
-                file1[i].idTitle = deleteSymbol(leftName) + (file1[i].value)
-                file1[i].itemStyle = { color: '#EB5555' }    //矩形的颜色
+                rightDiffDataFlag = true;
+                file1[i].negative = false;
+                file1[i].value = leftValue;
+                file1[i].name = leftName;
+                delete file1[i].n;
+                file1[i].idTitle = deleteSymbol(leftName) + (file1[i].value);
+                file1[i].itemStyle = { color: '#EB5555' };
                 if (file1[i].children) {
-                    diffDataChildren(file1[i].children, "-")
+                    diffDataChildren(file1[i].children, "-");
                 }
             }
         }
     }
+
     function diffDataChildren(children, symbol) {
         for (let i = 0; i < children.length; i++) {
-            children[i].negative = symbol == "-" ? false : true
-            children[i].value = children[i].value ? children[i].value : computedRoot(children[i].children)
-            children[i].name = children[i].n
-            delete children[i].n
-            children[i].idTitle = deleteSymbol(children[i].name) + (children[i].value)
-            children[i].itemStyle = symbol == "-" ? { color: '#EB5555' } : { color: '#91CC75' }     //矩形的颜色
+            children[i].negative = symbol == "-" ? false : true;
+            children[i].value = children[i].value ? children[i].value : computedRoot(children[i].children);
+            children[i].name = children[i].n;
+            delete children[i].n;
+            children[i].idTitle = deleteSymbol(children[i].name) + (children[i].value);
+            children[i].itemStyle = symbol == "-" ? { color: '#EB5555' } : { color: '#91CC75' };
             if (children[i].children) {
-                diffDataChildren(children[i].children, symbol)
+                diffDataChildren(children[i].children, symbol);
             }
         }
     }
+
     function rightDiffData(file2, file1) {
         for (let i = 0; i < file2.length; i++) {
             var rightChildren = file2[i].children;
             var rightName = file2[i].n;
-            var rightValue = file2[i].value ? file2[i].value : computedRoot(rightChildren)
+            var rightValue = file2[i].value ? file2[i].value : computedRoot(rightChildren);
             for (var j = 0; j < file1.length; j++) {
                 var leftChildren = file1[j].children;
                 var leftName = file1[j].name;
-                var leftValue = (file1[j].valueFlag || file1[j].value) ? file1[j].value : computedRoot(leftChildren)
+                var leftValue = (file1[j].valueFlag || file1[j].value) ? file1[j].value : computedRoot(leftChildren);
                 if (leftName == rightName) {
                     if (rightChildren && leftChildren) {
-                        rightDiffData(rightChildren, leftChildren)
+                        rightDiffData(rightChildren, leftChildren);
                     }
                     break;
                 }
@@ -870,96 +859,96 @@
                 obj.negative = true;
                 obj.value = rightValue;
                 obj.name = rightName;
-                obj.idTitle = deleteSymbol(rightName) + (obj.value)
-                obj.itemStyle = { color: '#91CC75' }
+                obj.idTitle = deleteSymbol(rightName) + (obj.value);
+                obj.itemStyle = { color: '#91CC75' };
                 if (file2[i].children) {
-                    obj.children = file2[i].children
-                    file1.push(obj)
-                    diffDataChildren(file1[file1.length - 1].children, "+")
+                    obj.children = file2[i].children;
+                    file1.push(obj);
+                    diffDataChildren(file1[file1.length - 1].children, "+");
                 } else {
-                    file1.push(obj)
+                    file1.push(obj);
                 }
             }
         }
     }
-    // 只看增加
+    
     function insreaseOnly(arr, data) {
         for (let i = 0; i < arr.length; i++) {
             if (arr[i].negative) {
-                data.children[data.children.length] = {}
-                data.children[data.children.length - 1].name = arr[i].name
-                data.children[data.children.length - 1].negative = arr[i].negative
-                data.children[data.children.length - 1].value = arr[i].value
-                data.children[data.children.length - 1].idTitle = arr[i].idTitle
-                data.children[data.children.length - 1].itemStyle = arr[i].itemStyle
+                data.children[data.children.length] = {};
+                data.children[data.children.length - 1].name = arr[i].name;
+                data.children[data.children.length - 1].negative = arr[i].negative;
+                data.children[data.children.length - 1].value = arr[i].value;
+                data.children[data.children.length - 1].idTitle = arr[i].idTitle;
+                data.children[data.children.length - 1].itemStyle = arr[i].itemStyle;
             }
             if (arr[i].children) {
                 if (arr[i].negative) {
-                    data.children[data.children.length - 1].children = []
-                    insreaseOnly(arr[i].children, data.children[data.children.length - 1])
+                    data.children[data.children.length - 1].children = [];
+                    insreaseOnly(arr[i].children, data.children[data.children.length - 1]);
                 } else {
-                    insreaseOnly(arr[i].children, data)
+                    insreaseOnly(arr[i].children, data);
                 }
             }
         }
-        data.negative = true
-        return data
+        data.negative = true;
+        return data;
     }
-    // 只看减少
+    
     function decreaseOnly(arr, data) {
         for (let i = 0; i < arr.length; i++) {
             if (!arr[i].negative) {
-                data.children[data.children.length] = {}
-                data.children[data.children.length - 1].name = arr[i].name
-                data.children[data.children.length - 1].negative = arr[i].negative
-                data.children[data.children.length - 1].value = arr[i].value
-                data.children[data.children.length - 1].idTitle = arr[i].idTitle
-                data.children[data.children.length - 1].itemStyle = arr[i].itemStyle
+                data.children[data.children.length] = {};
+                data.children[data.children.length - 1].name = arr[i].name;
+                data.children[data.children.length - 1].negative = arr[i].negative;
+                data.children[data.children.length - 1].value = arr[i].value;
+                data.children[data.children.length - 1].idTitle = arr[i].idTitle;
+                data.children[data.children.length - 1].itemStyle = arr[i].itemStyle;
             }
             if (arr[i].children) {
                 if (!arr[i].negative) {
-                    data.children[data.children.length - 1].children = []
-                    decreaseOnly(arr[i].children, data.children[data.children.length - 1])
+                    data.children[data.children.length - 1].children = [];
+                    decreaseOnly(arr[i].children, data.children[data.children.length - 1]);
                 } else {
-                    decreaseOnly(arr[i].children, data)
+                    decreaseOnly(arr[i].children, data);
                 }
             }
         }
         data.negative = false;
-        return data
+        return data;
     }
-    // 属性名n转为name
+    
     function nToName(list) {
         list.forEach(item => {
             if (item.n) {
                 item.name = item.n;
-                item.value = item.value ? item.value : computedRoot(item.children)
-                item.idTitle = deleteSymbol(item.name) + item.value
-                item.itemStyle = { color: '#5470c6' }
+                item.value = item.value ? item.value : computedRoot(item.children);
+                item.idTitle = deleteSymbol(item.name) + item.value;
+                item.itemStyle = { color: '#5470c6' };
                 delete item.n;
             }
             if (item.children) {
-                nToName(item.children)
+                nToName(item.children);
             }
         });
-        return list
+        return list;
     }
-    // 计算文件夹大小
+    
     function computedRoot(arr, flag) {
         let sum = 0;
         if (flag == "diffonly") {
             for (let i = 0; i < arr.length; i++) {
-                sum = sum + arr[i].value
+                sum = sum + arr[i].value;
             }
         } else {
             for (let i = 0; i < arr.length; i++) {
-                sum = sum + (arr[i].value ? arr[i].value : computedRoot(arr[i].children))
+                sum = sum + (arr[i].value ? arr[i].value : computedRoot(arr[i].children));
             }
         }
-        return sum
+        return sum;
     }
+
     function deleteSymbol(str) {
-        //[]内输入你要过滤的字符，这里是我的
         let pattern = new RegExp("[`:~%!@#^=''?~《》！@#￥……&——‘”“'？*()（），,。.、<>]");
         let rs = "";
         for (let i = 0; i < str.length; i++) {
@@ -967,7 +956,7 @@
         }
         return rs;
     }
-    //将byte转化为'KB', 'MB', 'GB'
+    
     function formatFileSize(bytes) {
         const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
         let unitIndex = 0;

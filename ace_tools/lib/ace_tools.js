@@ -371,11 +371,11 @@ Available subCommands:
     buildSubcommand
       .option('-r, --release', 'Build a release version of your app.')
       .option('--debug', 'Build a debug version of your app.')
-      .option('--analyze', "analyze/diff paceage size")
       .option('--profile', 'Build a version of your app specialized for performance profiling.');
     if (subcommand === 'ios') {
       buildSubcommand
         .option('--nosign', 'Build without sign.')
+        .option('--analyze', "analyze/diff package size")
         .option('-s, --simulator', 'Build for iOS Simulator.');
     }
     if (subcommand === 'ios-framework' || subcommand === 'ios-xcframework') {
@@ -386,9 +386,15 @@ Available subCommands:
       buildSubcommand
         .option('--target-platform <platform>', 'The target platform for which the apk is compiled ' +
           '[arm, arm64, x86_64]');
+      
+    }
+    if (subcommand === 'apk') {
+      buildSubcommand
+        .option('--analyze', "analyze/diff package size");
     }
     if (subcommand === 'hap') {
       buildSubcommand
+        .option('--analyze', "analyze/diff package size")
         .option('--target [moduleName]', 'name of module to be built');
     }
     if (process.argv[2] === 'help' && process.argv[3] === 'build') {

@@ -32,8 +32,8 @@ const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi } = req
 const projectDir = process.cwd();
 const { copyLibraryToProject } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
+const analyze = require('../ace-analyze/index');
 
-const analyze = require('../ace-analyze/index')
 function isAndroidSdkVaild() {
   if (androidSdkDir) {
     return true;
