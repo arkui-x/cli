@@ -1,0 +1,29 @@
+{
+  "bin": {
+    "ace": "lib/ace_tools.js"
+  },
+  "name": "ace_tools",
+  "version": "1.0.0",
+  "description": "ace command-line interface tools",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint -c .eslintrc lib/** --fix",
+    "build": "rollup -c rollup.config.js --bundleConfigAsCjs"
+  },
+  "license": "Apache 2.0",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "inquirer": "^8.2.6"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "24.1.0",
+    "@rollup/plugin-terser": "0.3.0",
+    "@rollup/plugin-json": "6.0.0",
+    "@rollup/plugin-node-resolve":"15.0.1",
+    "@rollup/plugin-babel":"6.0.3",
+    "@babel/core": "7.20.12",
+    "eslint": "^8.34.0",
+    "rollup": "^3.19.1",
+    "rollup-plugin-preserve-shebang": "^1.0.1"
+  }
+}
