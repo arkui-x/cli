@@ -158,8 +158,7 @@ function renderHtmlPage() {
     app.use(express.static(path.join(__dirname, '\\json')));
 }
 
-function portusable(){
-    let port = 3000;
+function portusable(port = 3000){
     checkPort(port)
     .then((isAvailable) => {
         if (isAvailable) {
@@ -168,7 +167,7 @@ function portusable(){
             openHtmlInBrowser(port);
         } else {
             port++;
-            portusable();
+            portusable(port);
         }
     })
     .catch((err) => {
