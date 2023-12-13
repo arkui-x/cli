@@ -352,7 +352,7 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
       console.log(`Build hap successfully.`);
       copyHaptoOutput(moduleListSpecified);
       if (cmd.analyze) {
-        analyze(fileType)
+        analyze(fileType);
       }
       return true;
     } else if (fileType === 'bundle') {

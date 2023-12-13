@@ -119,7 +119,7 @@ function buildAPK(target, cmd) {
   console.log(gradleMessage);
   if (isBuildSuccess && gradleMessage == 'Build apk successful.') {
     if (cmd.analyze) {
-      analyze(target)
+      analyze(target);
     }
   }
   return isBuildSuccess;
@@ -310,7 +310,7 @@ function packager(target, cmd) {
   }
   if (target === 'apk') {
     if (isAndroidSdkVaild() && writeLocalProperties()) {
-      if (buildAPK(target, cmd)) {
+      if (buildAPK(target,cmd)) {
         copyToOutput(target);
         return true;
       }
@@ -330,7 +330,7 @@ function packager(target, cmd) {
       }
     }
   } else if (target === 'ios') {
-    if (buildiOS(target, cmd)) {
+    if (buildiOS(target,cmd)) {
       copyToOutput(target);
       return true;
     }
@@ -414,7 +414,7 @@ Verify that the Bundle Identifier in your project is your signing id in Xcode
   console.log(message);
   if (isBuildSuccess && gradleMessage == 'Build ios successful.') {
     if (cmd.analyze) {
-      analyze(target)
+      analyze(target);
     }
   }
   return isBuildSuccess;
