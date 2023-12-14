@@ -386,7 +386,6 @@ Available subCommands:
       buildSubcommand
         .option('--target-platform <platform>', 'The target platform for which the apk is compiled ' +
           '[arm, arm64, x86_64]');
-      
     }
     if (subcommand === 'apk') {
       buildSubcommand

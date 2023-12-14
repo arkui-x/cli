@@ -412,7 +412,7 @@ Verify that the Bundle Identifier in your project is your signing id in Xcode
     return false;
   }
   console.log(message);
-  if (isBuildSuccess && gradleMessage == 'Build ios successful.') {
+  if (isBuildSuccess && message == 'Build ios successful.') {
     if (cmd.analyze) {
       analyze(target);
     }
