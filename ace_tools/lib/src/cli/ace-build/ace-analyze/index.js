@@ -24,7 +24,7 @@ const net = require('net');
 const archiver = require('../../../../../node_modules/archiver')
 
 function analyze(fileType) {
-    let packSrc="";
+    let packSrc = "";
     if (fileType === "apk") {
         let filePath = `${projectDir}/.arkui-x/android/app/build/outputs/${fileType}/release/app-release.apk`;
         if(fs.existsSync(filePath)) {
@@ -178,11 +178,11 @@ function renderHtmlPage() {
             });
         });
     });
-    portuSable()
+    portUsable()
     app.use(express.static(path.join(__dirname, '/json')));
 }
 
-function portuSable(port = 3000){
+function portUsable(port = 3000){
     checkPort(port)
     .then((isAvailable) => {
         if (isAvailable) {
@@ -191,7 +191,7 @@ function portuSable(port = 3000){
             openHtmlInBrowser(port);
         } else {
             port++;
-            portuSable(port);
+            portUsable(port);
         }
     })
     .catch((err) => {
