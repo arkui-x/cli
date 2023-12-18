@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
+const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getModulePathList } = require('../util');
 const { isSimulator, getIosVersion } = require('../ace-devices/index');
 const installHapPackage = [];
 let packageType = '';
@@ -35,8 +35,9 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
     }
     // ohos will install all module hap
     if (fileType === 'hap') {
+      const modulePathList = getModulePathList(projectDir)
       moduleList.forEach(module => {
-        buildDir = path.join(projectDir, module, 'build/default/outputs/default');
+        buildDir = path.join(projectDir, modulePathList[module], 'build/default/outputs/default');
         const fileList = fs.readdirSync(buildDir).filter(function(file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
         });
