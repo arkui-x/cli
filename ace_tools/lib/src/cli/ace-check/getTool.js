@@ -21,7 +21,7 @@ function getTools() {
   const toolPaths = [];
   let hdcPath = {};
   if (androidSdkDir) {
-    toolPaths.push({ 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') });
+    toolPaths.push({ 'adb': `"${path.join(androidSdkDir, 'platform-tools', 'adb')}"` });
   }
   if (openHarmonySdkDir) {
     hdcPath = getToolchains('OpenHarmony');
@@ -59,7 +59,7 @@ function getToolByType(fileType, currentSystem, isLogTool) {
     }
   }
   if (fileType === 'apk' && androidSdkDir) {
-    toolPath = { 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') };
+    toolPath = { 'adb': `"${path.join(androidSdkDir, 'platform-tools', 'adb')}"` };
   }
   if (fileType === 'ios' && platform === Platform.MacOS) {
     if (!isLogTool) {
@@ -86,12 +86,12 @@ function getToolchains(systemType, key) {
     if (!fs.existsSync(toolchainsPath)) {
       const ideHdcPath = getIdeToolPath(openHarmonySdkDir);
       if (ideHdcPath) {
-        hdcPath[`${key}`] = ideHdcPath;
+        hdcPath[`${key}`] = `"${ideHdcPath}"`;
       }
     } else {
       const cliHdcPath = getCliToolPath(toolchainsPath);
       if (cliHdcPath) {
-        hdcPath[`${key}`] = cliHdcPath;
+        hdcPath[`${key}`] = `"${cliHdcPath}"`;
       }
     }
   } else if (systemType === 'HarmonyOS') {
@@ -100,12 +100,12 @@ function getToolchains(systemType, key) {
       const ideToolPath = path.join(harmonyOsSdkDir, '/openharmony');
       const ideHdcPath = getIdeToolPath(ideToolPath);
       if (ideHdcPath) {
-        hdcPath[`${key}`] = ideHdcPath;
+        hdcPath[`${key}`] = `"${ideHdcPath}"`;
       }
     } else {
       const cliHdcPath = getCliToolPath(toolchainsPath);
       if (cliHdcPath) {
-        hdcPath[`${key}`] = cliHdcPath;
+        hdcPath[`${key}`] = `"${cliHdcPath}"`;
       }
     }
   }
