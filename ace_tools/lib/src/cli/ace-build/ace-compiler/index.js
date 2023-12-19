@@ -28,7 +28,7 @@ const { getSdkVersion } = require('../../util/index');
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
-  getCrossPlatformModules, modifyAndroidAbi, syncHvigor } = require('../../util');
+  getCrossPlatformModules, modifyAndroidAbi, syncHvigor, getModulePathList } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
@@ -38,17 +38,18 @@ const analyze = require('../ace-analyze/index');
 let projectDir;
 let arkuiXSdkPath;
 let currentSystem;
+let modulePathList;
 
 function readConfig() {
   try {
     if (currentSystem === 'HarmonyOS') {
       if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        console.error(`Please check HarmonyOS Sdk, ArkUI-X SDK, nodejs and ohpm in your environment.`);
+        console.error(`Please check HarmonyOS SDK, ArkUI-X SDK, nodejs and ohpm in your environment.`);
         return false;
       }
     } else {
       if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        console.error(`Please check OpenHarmony Sdk, ArkUI-X SDK, nodejs and ohpm in your environment.`);
+        console.error(`Please check OpenHarmony SDK, ArkUI-X SDK, nodejs and ohpm in your environment.`);
         return false;
       }
     }
@@ -102,11 +103,11 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
-    const src = path.join(projectDir, module, `build/default/intermediates/loader_out/${fileName}/ets`);
-    const resindex = path.join(projectDir, module,
+    const src = path.join(projectDir, modulePathList[module], `build/default/intermediates/loader_out/${fileName}/ets`);
+    const resindex = path.join(projectDir, modulePathList[module],
       `build/default/intermediates/res/${fileName}/resources.index`);
-    const resPath = path.join(projectDir, module, `build/default/intermediates/res/${fileName}/resources`);
-    const moduleJsonPath = path.join(projectDir, module,
+    const resPath = path.join(projectDir, modulePathList[module], `build/default/intermediates/res/${fileName}/resources`);
+    const moduleJsonPath = path.join(projectDir, modulePathList[module],
       `build/default/intermediates/res/${fileName}/module.json`);
     const destClassName = module + moduleOption;
     const distAndroid = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/', destClassName + '/ets');
@@ -158,9 +159,9 @@ function deleteOldFile(deleteFilePath) {
 
 function copyHaptoOutput(moduleListSpecified) {
   moduleListSpecified.forEach(module => {
-    const src = path.join(projectDir, module, '/build/default/outputs/default');
+    const src = path.join(projectDir, modulePathList[module], '/build/default/outputs/default');
     const filePath = copyToBuildDir(src);
-    console.log(`filepath: ${filePath}`);
+    console.log(`File path: ${filePath}`);
   });
 }
 
@@ -172,11 +173,11 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
     deleteOldFile(buildPath);
     moduleListSpecified.forEach(module => {
       // Now only consider one ability
-      const src = path.join(projectDir, module, 'build/default/intermediates/loader_out/default/ets');
-      const resindex = path.join(projectDir, module,
+      const src = path.join(projectDir, modulePathList[module], 'build/default/intermediates/loader_out/default/ets');
+      const resindex = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/resources.index');
-      const resPath = path.join(projectDir, module, 'build/default/intermediates/res/default/resources');
-      const moduleJsonPath = path.join(projectDir, module,
+      const resPath = path.join(projectDir, modulePathList[module], 'build/default/intermediates/res/default/resources');
+      const moduleJsonPath = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/module.json');
 
       const destClassName = module;
@@ -206,7 +207,7 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
     console.log(`Generate build directory failed\n`, err);
     return false;
   }
-  console.log(`filepath: ${buildPath}`);
+  console.log(`File path: ${buildPath}`);
   return isContinue;
 }
 
@@ -268,7 +269,7 @@ function runGradle(fileType, cmd, moduleList) {
       debugStr = '-p buildMode=debug';
     }
     cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap --no-daemon`);
-    gradleMessage = 'Start building hap...';
+    gradleMessage = 'Building a HAP file...';
   } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework'
     || fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
     let moduleStr = '';
@@ -312,17 +313,17 @@ function copyStageBundleToAAR(moduleList) {
   aarNameList.forEach(aarName => {
     const aarPath = path.join(projectDir, '.arkui-x/android', aarName);
     if (!fs.existsSync(aarPath)) {
-      console.error(`Build aar failed.\nPlease check ${aarPath} directory existing.`);
+      console.error(`Failed to build the AAR file.\nPlease check ${aarPath} directory existing.`);
       return false;
     }
     deleteOldFile(path.join(aarPath, 'src/main/assets/arkui-x'));
     moduleList.forEach(module => {
       // Now only consider one ability
-      const src = path.join(projectDir, module, 'build/default/intermediates/loader_out/default/ets');
-      const resindex = path.join(projectDir, module,
+      const src = path.join(projectDir, modulePathList[module], 'build/default/intermediates/loader_out/default/ets');
+      const resindex = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/resources.index');
-      const resPath = path.join(projectDir, module, 'build/default/intermediates/res/default/resources');
-      const moduleJsonPath = path.join(projectDir, module,
+      const resPath = path.join(projectDir, modulePathList[module], 'build/default/intermediates/res/default/resources');
+      const moduleJsonPath = path.join(projectDir, modulePathList[module],
         'build/default/intermediates/res/default/module.json');
       const destClassName = module.toLowerCase();
       const distAndroid = path.join(aarPath, 'src/main/assets/arkui-x/', destClassName + '/ets');
@@ -349,7 +350,7 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
     && copyStageBundleToAndroidAndIOS(crossPlatformModules)
     && copyTestStageBundleToAndroidAndIOS(crossPlatformModules, fileType, cmd)) {
     if (fileType === 'hap') {
-      console.log(`Build hap successfully.`);
+      console.log(`HAP file built successfully.`);
       copyHaptoOutput(moduleListSpecified);
       if (cmd.analyze) {
         analyze(fileType);
@@ -381,13 +382,22 @@ function compiler(fileType, cmd) {
     return false;
   }
   if (isAppProject(projectDir)) {
+    const fileTypeDict = {
+      'aab': 'Android App Bundle file',
+      'aar': 'AAR file',
+      'ios-framework': 'iOS framework',
+      'ios-xcframework': 'iOS XCFramework',
+      'apk': 'Android APK file',
+      'bundle': 'bundle file',
+      'ios': 'iOS APP file',
+    }
     if (fileType === 'aar' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
-      console.warn('\x1B[31m%s\x1B[0m', `Build ${fileType} failed, current project is not library project.`);
+      console.warn('\x1B[31m%s\x1B[0m', `Failed to build the ${fileTypeDict[fileType]}, because this project is not a library project.`);
       return false;
     }
   } else {
     if ((fileType === 'ios' || fileType === 'apk' || fileType === 'aab' || fileType === 'bundle')) {
-      console.warn('\x1B[31m%s\x1B[0m', `Build ${fileType} failed, current project is not application project.`);
+      console.warn('\x1B[31m%s\x1B[0m', `Failed to build the ${fileTypeDict[fileType]}, because this project is not an application project.`);
       return false;
     }
   }
@@ -402,7 +412,9 @@ function compiler(fileType, cmd) {
   updateCrossPlatformModules(currentSystem);
   const settingPath = path.join(projectDir, 'build-profile.json5');
   const moduleListAll = getModuleList(settingPath);
-  if (moduleListAll === null || moduleListAll.length === 0) {
+  modulePathList = getModulePathList(projectDir);
+  if (moduleListAll === null || moduleListAll.length === 0 ||
+    modulePathList === null || modulePathList.length === 0) {
     console.error('There is no module in project.');
     return false;
   }

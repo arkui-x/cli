@@ -19,8 +19,10 @@ const exec = require('child_process').execSync;
 const JSON5 = require('json5');
 const { log, getBundleName } = require('../ace-log');
 const { getToolByType, getAapt } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
-const { isSimulator } = require('../ace-devices/index');
+const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getIosProjectName,
+  getModulePathList } = require('../util');
+const { isSimulator, getIosVersion } = require('../ace-devices/index');
+const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 let bundleName;
 let packageName;
 let ohosclassName;
@@ -48,14 +50,15 @@ function getNames(projectDir, fileType, moduleName, installFilePath, bundleName)
 }
 
 function getNamesApp(projectDir) {
-  const appName = 'app.app';
-  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/ios/', appName);
+  const appName = getIosProjectName(projectDir);
+  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/app/', `${appName}.app`);
   return true;
 }
 
 function getNameStageHaps(projectDir, moduleName) {
   try {
-    const ohosJsonPath = path.join(projectDir, moduleName, 'src/main/module.json5');
+    const modulePathList = getModulePathList(projectDir)
+    const ohosJsonPath = path.join(projectDir, modulePathList[moduleName], 'src/main/module.json5');
     const appJsonPath = path.join(projectDir, '/AppScope/app.json5');
     if (fs.existsSync(ohosJsonPath) && fs.existsSync(appJsonPath)) {
       ohosclassName = JSON5.parse(fs.readFileSync(ohosJsonPath)).module.abilities[0].name;
@@ -85,18 +88,24 @@ function getNamesApk(projectDir, moduleName) {
     if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
       let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
       xmldata = xmldata.trim().split('\n');
-      xmldata.forEach(element => {
-        if (element.indexOf(`package="`) !== -1) {
-          packageName = element.split('"')[1];
+      for (let i = 0; i < xmldata.length; i++) {
+        if (xmldata[i].indexOf(`package="`) !== -1) {
+          packageName = xmldata[i].split('"')[1];
         }
-        if (element.indexOf('<activity android:name') !== -1) {
-          androidclassName = element.split('"')[1];
+        if (xmldata[i].search(/<activity .*android:name=/) !== -1 ||
+          (xmldata[i].search(/android:name=/) !== -1 && xmldata[i - 1].trim() === '<activity')) {
+          androidclassName = xmldata[i].split('android:name="')[1].split('"')[0];
+          break;
         }
-      });
+      }
+
       bundleName = JSON5.parse(fs.readFileSync(manifestPath)).app.bundleName;
-      androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
-        return l.toUpperCase();
-      }) + 'EntryAbilityActivity';
+      packageName = packageName || bundleName;
+      if (!androidclassName) {
+        androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
+          return l.toUpperCase();
+        }) + 'EntryAbilityActivity';
+      }
       if (!bundleName || !packageName || !androidclassName) {
         console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
         return false;
@@ -149,6 +158,12 @@ function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
   }
 }
 
+function getIosSignName(projectDir) {
+  let projfile = fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj')).toString().trim();
+  const signName = projfile.match(/PRODUCT_BUNDLE_IDENTIFIER = ([^"]*)/g);
+  return signName[0].split('=')[1].split(';')[0].trim();
+}
+
 function isPackageInAndroid(toolObj, device) {
   let comd = '';
   if ('adb' in toolObj) {
@@ -175,6 +190,11 @@ function isPackageInAndroid(toolObj, device) {
 function launch(fileType, device, options) {
   const projectDir = process.cwd();
   const moduleName = options.target;
+  const fileTypeDict = {
+    'ios': 'iOS APP',
+    'apk': 'APK',
+    'hap': 'HAP'
+  }
   if (!options.path && !isProjectRootDir(projectDir)) {
     return false;
   }
@@ -209,22 +229,28 @@ function launch(fileType, device, options) {
         console.error(result);
         return false;
       }
-      console.log(`Launch ${fileType.toUpperCase()} successfully.`);
+      console.log(`${fileTypeDict[fileType]} launched.`);
       return true;
     } catch (error) {
-      console.error(`Launch ${fileType.toUpperCase()} failed.`);
+      console.log(`${fileTypeDict[fileType]} launched failed.`);
       console.log('you need to install the app first');
       return false;
     }
   } else {
-    console.error(`Launch ${fileType.toUpperCase()} failed.`);
+    console.log(`${fileTypeDict[fileType]} launched failed.`);
     return false;
   }
 }
 
 function getCmdLaunch(toolObj, device, options) {
   let cmdLaunch = '';
-  if ('hdc' in toolObj) {
+  if (isSimulator(device)) {
+    const cmdPath = 'xcrun simctl launch';
+    const deviceOption = device ? `${device}` : 'booted';
+    const bundleName = getIosSignName(process.cwd());
+    cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
+  }
+  else if ('hdc' in toolObj) {
     const cmdPath = toolObj['hdc'];
     const deviceOption = device ? `-t ${device}` : '';
     cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${className} -m ${packageName} -b ${bundleName}`;
@@ -237,34 +263,39 @@ function getCmdLaunch(toolObj, device, options) {
     }
     cmdLaunch =
       `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
-  } else if ('ios-deploy' in toolObj) {
-    if (isSimulator(device)) {
-      const cmdPath = 'xcrun simctl launch';
-      const deviceOption = device ? `${device}` : 'booted';
-      const bundleName = getBundleName();
-      cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
-    } else {
-      const cmdPath = toolObj['ios-deploy'];
-      const deviceOption = device ? `--id ${device}` : '';
-      let testOption = '';
-      if (options.test) {
-        testOption = getTestOption(options, '');
-      }
-      cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch -m`;
+  } else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
+    const cmdPath = `${toolObj['xcrun devicectl']} device process launch`;
+    const deviceOption = device ? `-d ${device}` : '';
+    let testOption = '';
+    if (options.test) {
+      testOption = getTestOption(options, '', xcrunDevicectlTool);
     }
-  } else {
-    console.error('Internal error with hdc and adb checking.');
+    cmdLaunch = `${cmdPath} ${deviceOption} ${getIosSignName(process.cwd())} --terminate-existing ${testOption}`;
+  } else if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
+    const cmdPath = `${toolObj['ios-deploy']}`;
+    const deviceOption = device ? `--id ${device}` : '';
+    let testOption = '';
+    if (options.test) {
+      testOption = getTestOption(options, '', iosDeployTool);
+    }
+    cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch -m`;
+  }
+  else {
+    console.error(`Internal error with hdc, adb, ios-deploy and Xcode's version checking.`);
   }
   return cmdLaunch;
 }
 
-function getTestOption(options, esOption) {
-  const cmdPrefix = esOption ? 'test test' : '--args "test';
-  const cmdSuffix = esOption ? '' : '"';
+function getTestOption(options, esOption, toolType = undefined) {
+  const cmdPrefix = esOption? 'test test' : toolType === iosDeployTool? '--args "test':'-e test';
+  const cmdSuffix = toolType !== iosDeployTool? '' : '"';
   const testBundleName = `${esOption}bundleName ${options.b}`;
   const testModuleName = `${esOption}moduleName ${options.m}`;
   const unittest = `${esOption}unittest ${options.unittest}`;
   const testClass = options.class ? `${esOption}class ${options.class}` : '';
+  if (!options.timeout) {
+    options.timeout = 5000;
+  }
   const timeout = options.timeout ? `${esOption}timeout ${options.timeout}` : '';
   const testOption =
     `${esOption}${cmdPrefix} ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout}${cmdSuffix}`;

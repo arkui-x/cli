@@ -17,6 +17,7 @@ const exec = require('child_process').execSync;
 const { type } = require('os');
 const { checkDevices } = require('../ace-check/checkDevices');
 const { getTools } = require('../ace-check/getTool');
+const { deployVersion } = require('../ace-check/configs');
 const { Platform, platform } = require('../ace-check/platform');
 const devicesList = getDevicesList();
 
@@ -79,7 +80,7 @@ function showTools(tools) {
     ohHdcTitle = tools[i]['hdc'] ? '[√] OpenHarmony hdc installed' : ohHdcTitle;
     hoHdcTitle = tools[i]['hohdc'] ? '[√] HarmonyOS hdc installed' : hoHdcTitle;
     adbTitle = tools[i]['adb'] ? '[√] adb installed' : adbTitle;
-    iosDeployTitle = tools[i]['ios-deploy'] ? '[√] ios-deploy installed' : iosDeployTitle;
+    iosDeployTitle = deployVersion ? '[√] ios-deploy installed' : iosDeployTitle;
   }
   iosDeployTitle = platform !== Platform.MacOS ? '' : iosDeployTitle;
   const toolMsg = ohHdcTitle + '\n            ' + hoHdcTitle + '\n            ' + adbTitle + '\n            ' + iosDeployTitle;
@@ -177,7 +178,7 @@ function showValidDevice(fileType) {
   }
 
   if (validDevices.length === 0) {
-    console.error('\x1B[31m%s\x1B[0m', `Error: no available ${flag} Device.`);
+    console.error('\x1B[31m%s\x1B[0m', `Error: No available ${flag} Device.`);
     return;
   } else if (validDevices.length === 1) {
     mapDevice.set('0', validDevices[0]);
@@ -208,7 +209,8 @@ function getTypeDevice(validDevices, flag) {
 function isSimulator(device) {
   if (device === undefined) {
     if (devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')) {
-      return true;
+      let devicedata = JSON.parse(devicesList.available[0]);
+      return devicedata['Simulator'];
     }
     else {
       return false;
@@ -216,12 +218,34 @@ function isSimulator(device) {
   }
   for (let i = 0; i < devicesList.available.length; i++) {
     if (devicesList.available[i].startsWith('{') && devicesList.available[i].endsWith('}')) {
-      if (device === JSON.parse(devicesList.available[i])['udid']) {
-        return true;
+      let devicedata = JSON.parse(devicesList.available[i]);
+      if (device === devicedata['udid']) {
+        return devicedata['Simulator'];
       }
     }
   }
   return false;
+}
+
+function getIosVersion(device) {
+  if (device === undefined) {
+    if (devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')) {
+      let devicedata = JSON.parse(devicesList.available[0]);
+      return devicedata['iosVersion'];
+    }
+    else {
+      return undefined;
+    }
+  }
+  for (let i = 0; i < devicesList.available.length; i++) {
+    if (devicesList.available[i].startsWith('{') && devicesList.available[i].endsWith('}')) {
+      let devicedata = JSON.parse(devicesList.available[i]);
+      if (device === devicedata['udid']) {
+        return devicedata['iosVersion'];
+      }
+    }
+  }
+  return undefined;
 }
 
 module.exports = {
@@ -230,5 +254,6 @@ module.exports = {
   showValidDevice,
   getDeviceType,
   devicesList,
-  isSimulator
+  isSimulator,
+  getIosVersion
 };

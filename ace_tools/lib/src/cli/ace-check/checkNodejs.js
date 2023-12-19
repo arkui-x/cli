@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { getConfig } = require('../ace-config');
 const Process = require('child_process');
 
@@ -27,13 +29,43 @@ function checkNodejs() {
 }
 
 function getNodejsVersion() {
-  try {
-    let nodejsVersion = Process.execSync(`node -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
-    nodejsVersion = nodejsVersion.replace(/\r/g, '');
-    return nodejsVersion;
-  } catch (err) {
-    return '';
+  let nodejsVersion = '';
+  let nodeDir = checkNodejs();
+  if (fs.existsSync(nodeDir)) {
+    if (fs.statSync(nodeDir).isFile()) {
+      try {
+        nodejsVersion = Process.execSync(`${nodeDir} -v`, { stdio: 'pipe' }).toString().replace(/[\r\n]+/g, '');
+      } catch (err) {
+        // ignore
+      }
+    } else {
+      let nodePath = path.join(nodeDir, 'bin', 'node');
+      if (fs.existsSync(nodePath)) {
+        try {
+          nodejsVersion = Process.execSync(`${nodePath} -v`, { stdio: 'pipe' }).toString().replace(/[\r\n]+/g, '');
+        } catch (err) {
+          // ignore
+        }
+      } else {
+        nodePath = path.join(nodeDir, 'node');
+        try {
+          nodejsVersion = Process.execSync(`${nodePath} -v`, { stdio: 'pipe' }).toString().replace(/[\r\n]+/g, '');
+        } catch (err) {
+          // ignore
+        }
+      }
+    }
   }
+  if (!nodejsVersion) {
+    try {
+      let nodejsVersion = Process.execSync(`node -v`, { stdio: 'pipe' }).toString().replace(/\n/g, '');
+      nodejsVersion = nodejsVersion.replace(/\r/g, '');
+      return nodejsVersion;
+    } catch (err) {
+      return '';
+    }
+  }
+  return nodejsVersion;
 }
 
 module.exports = {

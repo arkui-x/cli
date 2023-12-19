@@ -45,7 +45,7 @@ function run(fileType, device, cmd) {
       log(fileType, device, cmd.test);
     }
     if (launch(fileType, device, cmd)) {
-      console.log('Run successful.');
+      console.log('Run successfully.');
       if (fileType !== 'ios') {
         log(fileType, device, cmd.test);
       }

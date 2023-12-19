@@ -17,8 +17,8 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 const { getToolByType } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice, getCurrentProjectSystem } = require('../util');
-const { isSimulator } = require('../ace-devices/index');
+const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getModulePathList } = require('../util');
+const { isSimulator, getIosVersion } = require('../ace-devices/index');
 const installHapPackage = [];
 let packageType = '';
 function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd) {
@@ -35,8 +35,9 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
     }
     // ohos will install all module hap
     if (fileType === 'hap') {
+      const modulePathList = getModulePathList(projectDir)
       moduleList.forEach(module => {
-        buildDir = path.join(projectDir, module, 'build/default/outputs/default');
+        buildDir = path.join(projectDir, modulePathList[module], 'build/default/outputs/default');
         const fileList = fs.readdirSync(buildDir).filter(function(file) {
           return path.extname(file).toLowerCase() === `.${fileType}`;
         });
@@ -60,7 +61,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
     }
     // android and ios only have one apk or app
     if (fileType === 'ios') {
-      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/ios/');
+      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/app/');
       const fileList = fs.readdirSync(buildDir).filter(file => {
         return path.extname(file).toLowerCase() === `.app`;
       });
@@ -128,11 +129,11 @@ function install(fileType, device, moduleListInput, installFilePath, cmd) {
   if (fileType === 'ios'){
     const buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build', 'app.build');
     if (isSimulator(device) && fs.existsSync(path.join(buildDir, 'Release-iphoneos'))) {
-        console.error('Please run "ace build ios -s or --simulator" to build simulator ios first');
+        console.error('Run "ace build ios -s" or "--simulator" to build an iOS APP file for the emulator first.');
         return false;
     }
     if (!isSimulator(device) && fs.existsSync(path.join(buildDir, 'Release-iphonesimulator'))) {
-      console.error('Your app is simulator app, please run "ace build ios" to build ios first');
+      console.error('Your app is an emulator app. Run "ace build ios" to build an iOS APP file first.');
       return false;
     }
   }
@@ -171,16 +172,26 @@ function install(fileType, device, moduleListInput, installFilePath, cmd) {
   } else {
     isInstalled = false;
   }
-  let stateStr = 'successfully';
+  let success = true;
   if (!isInstalled) {
-    stateStr = 'failed';
+    success = false;
   }
-  if (fileType === 'hap') {
-    console.log(`Install ${fileType.toUpperCase()} ` + `[${installHapPackage.join('/')}]` + ` ${stateStr}.`);
-  } else if (fileType === 'apk') {
-    console.log(`Install ${packageType} ${fileType.toUpperCase()} ${stateStr}.`);
+  if (success) {
+    if (fileType === 'hap') {
+      console.log(`${fileType.toUpperCase()} ` + `[${installHapPackage.join('/')}]` + ` installed.`);
+    } else if (fileType === 'apk') {
+      console.log(`${packageType} ${fileType.toUpperCase()} installed.`);
+    } else {
+      console.log(`iOS installed.`);
+    }
   } else {
-    console.log(`Install ${fileType.toUpperCase()} ${stateStr}.`);
+    if (fileType === 'hap') {
+      console.log(`${fileType.toUpperCase()} ` + `[${installHapPackage.join('/')}]` + ` installed failed.`);
+    } else if (fileType === 'apk') {
+      console.log(`${packageType} ${fileType.toUpperCase()} installed failed.`);
+    } else {
+      console.log(`iOS installed failed.`);
+    }
   }
   return isInstalled;
 }
@@ -219,14 +230,21 @@ function installCmdConstruct(fileType, toolObj, device) {
       }
     }
     else {
-      if (!('ios-deploy' in toolObj)) {
-        console.error('Internal error with ios-deploy checking');
-        return undefined;
+      if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
+        cmdPath = toolObj['ios-deploy'];
+        cmdInstallOption = '--no-wifi --bundle';
+        if (device) {
+          deviceOption = `--id ${device}`;
+        }
       }
-      cmdPath = toolObj['ios-deploy'];
-      cmdInstallOption = '--no-wifi --bundle';
-      if (device) {
-        deviceOption = `--id ${device}`;
+      else if ('xcrun devicectl' in toolObj&& Number(getIosVersion(device).split('.')[0]) >= 17) {
+        cmdPath = toolObj['xcrun devicectl'] + ' device install app';
+        if (device) {
+          deviceOption = `--device ${device}`;
+        }
+      }
+      else {
+        console.error(`ios-deploy is not installed or Xcode's version is below 15.0`);
       }
     }
   }

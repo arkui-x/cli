@@ -3,7 +3,9 @@
 ## 简介
 ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，支持在Windows/Ubuntu/macOS平台运行，用于构建OpenHarmony/HarmonyOS、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
-**注释：** ACE - 元能力跨平台运行环境 (Ability Cross-platform Environment)。
+如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
+
+**注释：** ACE - ArkUI跨平台运行环境 (ArkUI Cross-platform Environment)。
 
 图1 ACE Tools命令行工具模块结构
 
@@ -137,24 +139,24 @@ ohos@user ~ % ace check -v
 [√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.9.6)
   • OpenHarmony SDK at /Users/ohos/Library/OpenHarmony/Sdk
   • Ohpm at /Users/ohos/Library/Huawei/ohpm
-  • Java Sdk at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
 [√] HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version 3.1.0)
   • HarmonyOS SDK at /Users/ohos/Library/Huawei/Sdk
   • Ohpm at /Users/ohos/Library/Huawei/ohpm
-  • Java Sdk at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
 [√] Android toolchains - develop for Android devices (Android SDK version 34.0.0)
   • Android SDK at /Users/ohos/Library/Android/sdk
-  • Java Sdk at /Applications/Android Studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/Android Studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
 [√] DevEco Studio (version 4.0.3)
   • DevEco Studio at /Applications/deveco-studio.app
-  • Java Sdk at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
 [√] Android Studio (version 2022.3)
   • Android Studio at /Applications/Android Studio.app
-  • Java Sdk at /Applications/Android Studio.app/Contents/jbr/Contents/Home
+  • Java SDK at /Applications/Android Studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
 [√] Xcode - develop for iOS (Xcode 14.3.1)
   • Xcode at /Applications/Xcode.app
@@ -205,8 +207,6 @@ Tools info :[√] OpenHarmony hdc installed
 
 创建跨平台应用工程。
 
-如果项目已存在，提示并询问开发者是否删除当前项目。
-
 创建过程中，需要开发者依次填写工程名称和包名称，如果开发者不输入包名称，默认为com.example.工程名。
 
 
@@ -235,40 +235,21 @@ ace create <output directory>
 
 ```shell
 ohos@user:~/cli-project$ ace create test
-? Please enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
-? Please enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
-? Please enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
+? Enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
+? Enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
+? Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
 ? Please select the Complie SDk (1: 10, 2: 11): 2 # 输入编译SDK版本
-? The project already exists. Do you want to delete the directory (y / n): y
-Delete directory successfully, creating new project.
 
-Project created successfully! Target directory:  /home/ohos/cli-project/test.
+Project created. Target directory:  /home/ohos/cli-project/test.
 
-In order to run your application, type:
+In order to run your app, type:
 
     $ cd test
     $ ace run
 
-Your application code is in test/entry.
+Your app code is in test/entry.
 ```
 
-删除已有项目提示：
-
-```shell
-The project already exists. Do you want to delete the directory (y / n):
-```
-
-删除已有项目成功:
-
-```shell
-Delete directory successfully, creating new project.
-```
-
-删除已有项目失败:
-
-```shell
-Failed to create project, project directory already exists!
-```
 
 ### ace new module
 
@@ -278,7 +259,7 @@ Failed to create project, project directory already exists!
 需要在新建的跨平台应用工程的根目录下执行，提示输入module名称：
 
 ```shell
-Please enter the module name:
+Enter the module name:
 ```
 
 如果此module name已存在，会提示开发者${module name} already exists.，开发者修改名称后，回车确认，可以成功新建出跨平台应用模块(Module)。
@@ -291,7 +272,7 @@ Please enter the module name:
 需要在新建的跨平台应用工程的根目录/具体module目录下执行，提示输入Ability名称：
 
 ```shell
-Please enter the ability name:
+Enter the ability name:
 ```
 
 如果此ability name已存在，会提示开发者abilityName name already exists!.，开发者修改名称后，回车确认，可以成功新建出跨平台应用Ability。
@@ -339,8 +320,8 @@ ace build <subCommand> [arguments]
 构建完成，提示包生成路径:
 
 ```shell
-Build hap successfully.
-filepath: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
+HAP file built successfully..
+File path: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
 ```
 
 ### ace install
@@ -362,9 +343,9 @@ ace install [arguments]
 
 | 参数 | 说明                                                         |
 | ---- | ------------------------------------------------------------ |
-| apk  | 安装Android应用 apk 包。                                     |
-| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包。                       |
-| ios  | 安装iOS应用 app 包。                                         |
+| apk  | 安装Android应用 apk 包，可选。                                 |
+| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包，可选。                   |
+| ios  | 安装iOS应用 app 包，可选。                                     |
 
 | 参数           | 说明                     |
 | --------------------- | ------------------------ |
@@ -376,11 +357,11 @@ ace install [arguments]
 安装完成：
 
 ```shell
-ohos@user % ace install ios
+ohos@user % ace install
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Install IOS successfully.
+iOS APP installed.
 ```
 
 ### ace uninstall
@@ -395,25 +376,25 @@ ace uninstall [arguments]
 - arguments
 
 | 参数 | 说明                                                         |
-| ---- | ------------------------------------------------------------ |
-| apk  | 卸载Android应用 apk 包。                                     |
-| hap  | 卸载OpenHarmony/HarmonyOS应用 hap 包。                       |
-| ios  | 卸载iOS应用 app 包。                                         |
+| ---- | ---------------------------------------------------------------- |
+| apk  | 卸载Android应用 apk 包，可选。                                     |
+| hap  | 卸载OpenHarmony/HarmonyOS应用 hap 包，可选。                       |
+| ios  | 卸载iOS应用 app 包，可选。                                         |
 
 | 参数    | 说明                   |
-| --------------------- | ---------------------- |
-| --bundle \<bundleName\> | 指定卸载应用的包名。   |
-| -d --device \<deviceId\> | 指定运行应用的设备Id。|
-| -h --help             | 显示帮助信息。          |
+| --------------------- | -------------------------------------- |
+| --bundle \<bundleName\> | 指定卸载应用的包名，iOS需为实际签名。   |
+| -d --device \<deviceId\> | 指定运行应用的设备Id。                |
+| -h --help             | 显示帮助信息。                          |
 
 卸载完成：
 
 ```shell
-ohos@user % ace uninstall ios --bundle com.example.${projectName}
+ohos@user % ace uninstall --bundle com.example.${projectName}
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Uninstall IOS successfully.
+iOS APP uninstalled.
 ```
 
 ### ace launch
@@ -428,10 +409,10 @@ ace launch [arguments]
 - arguments
 
 | 参数 | 说明                                                         |
-| ---- | ------------------------------------------------------------ |
-| apk  | 运行Android应用 apk 包。                                     |
-| hap  | 运行OpenHarmony/HarmonyOS应用 hap 包。                       |
-| ios  | 运行iOS应用 app 包。                                         |
+| ---- | ---------------------------------------------------------------- |
+| apk  | 运行Android应用 apk 包，可选。                                     |
+| hap  | 运行OpenHarmony/HarmonyOS应用 hap 包，可选。                       |
+| ios  | 运行iOS应用 app 包，可选。                                         |
 
 | 参数          | 说明                   |
 | --------------------- | ---------------------- |
@@ -442,11 +423,11 @@ ace launch [arguments]
 运行完成：
 
 ```shell
-ohos@user % ace launch ios
+ohos@user % ace launch
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Launch IOS successfully.
+iOS APP launched.
 ```
 
 ### ace log
@@ -464,9 +445,9 @@ ace log [arguments]
 
 | 参数 | 说明                                                         |
 | ---- | ------------------------------------------------------------ |
-| apk  | 查看Android应用日志。                                        |
-| hap  | 查看OpenHarmony/HarmonyOS应用日志。                          |
-| ios  | 查看iOS应用日志。                                            |
+| apk  | 查看Android应用日志，可选。                                        |
+| hap  | 查看OpenHarmony/HarmonyOS应用日志，可选。                          |
+| ios  | 查看iOS应用日志，可选。                                            |
 
 | 参数            | 说明                   |
 | ------------------- | ---------------------- |
@@ -475,11 +456,10 @@ ace log [arguments]
 
 
 ```
-ohos@user % ace log ios
+ohos@user % ace log
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
-Filtering the log data using "process == "app""
 ```
 
 ### ace run
@@ -499,9 +479,9 @@ ace run [arguments]
 
 | 参数 | 说明                                                         |
 | :--- | ------------------------------------------------------------ |
-| apk  | 构建并运行Android应用 apk 包。                               |
-| hap  | 构建并运行OpenHarmony/HarmonyOS应用 hap 包。                 |
-| ios  | 构建并运行iOS应用 app 包。                                   |
+| apk  | 构建并运行Android应用 apk 包，可选。                               |
+| hap  | 构建并运行OpenHarmony/HarmonyOS应用 hap 包，可选。                 |
+| ios  | 构建并运行iOS应用 app 包，可选。                                   |
 
 | 参数          | 说明                   |
 | ------------------- | ---------------------- |
@@ -514,7 +494,7 @@ ace run [arguments]
 
 
 ```
-ohos@user % ace run ios
+ohos@user % ace run
 [1]:  iPhone 14 Pro (67B40DC8-111C-4B30-9987-08E3BE30016A) [iOS Simulator]
 [2]:  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ? Please choose one (or "q" to quit): 2
@@ -544,14 +524,14 @@ ace test [arguments]
 
 | 参数         | 说明                   |
 | ------------------- | ---------------------- |
-| --b [bundleName] | 指定测试应用的BundleName。 |
+| --b [bundleName] | 指定测试应用的BundleName，iOS需要指定为自行设置的URL Types中的URL Schemes。 |
 | --class [class] | 指定测试应用的class。 |
 | --m [testModuleName] | 指定测试应用的ModuleName。 |
 | --skipInstall | 已安装情况跳过安装直接测试。（仍需依赖app/apk包，若指定了'path'则使用'path'下的app/apk包，否则使用默认路径下的app/apk包） |
 | --target [moduleName] | 指定测试module用于安装测试。 |
 | --timeout [timeout] | 指定测试应用的单条用例的超时时间。 |
 | --unittest [testRunner] | 指定测试应用的testRunner。 |
-| --path [path] | 指定应用包路径用于直接安装测试。 |
+| --path [path] | 指定app/apk包路径用于直接安装测试。 |
 | -d --device \<deviceId\> | 指定运行应用的设备Id。 |
 | -h --help | 显示帮助信息。 |
 
@@ -574,7 +554,7 @@ ace clean [arguments]
 清理完成：
 
 ```shell
-Clean project successfully
+Project cleaned up.
 ```
 
 ### ace help
@@ -638,14 +618,14 @@ Device:
   devices                List the connected devices.
 
 Environment:
-  check                  Show information about the installed tooling.
+  check                  Show information about the installed tools.
   config                 Configure ArkUI cross-platform settings.
 
 Project:
-  build                  Build an executable app or install bundle.
+  build                  Build an executable app or install a bundle.
   clean                  Delete the build/ directories.
   create                 Create a new ArkUI cross-platform project.
-  new                    Create a new ability or module to your project.
+  new                    Create a new ability or module for your project.
 
 Run "ace help <command>" for more information about a command.
 ```

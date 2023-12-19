@@ -60,7 +60,7 @@ function test(fileType, device, cmd) {
   let installFlag = true;
   cmd.target = cmd.target || 'entry';
   // ios launch command contain install
-  installFlag = install(fileType, device, cmd.target, undefined);
+  installFlag = install(fileType, device, cmd.target, undefined, cmd);
   if (installFlag && launch(fileType, device, cmd)) {
     return true;
   }

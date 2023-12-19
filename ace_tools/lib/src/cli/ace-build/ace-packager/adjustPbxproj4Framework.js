@@ -24,7 +24,7 @@ const xFileReferenceEnd = '/* End PBXFileReference section */';
 const xFrameworksBuildPhaseStart = '/* Begin PBXFrameworksBuildPhase section */';
 const xGroupStart = '/* Begin PBXGroup section */';
 const itemLineStartTab = '\t\t';
-const {getFrameworkName, generateUUID } = require('../../util');
+const { getFrameworkName, generateUUID, getIosProjectName } = require('../../util');
 
 function getTypeSettingSection(sectionDefStartList, sectionDefEnd, pbxprojFileInfo,
   existProcessor) {
@@ -367,7 +367,7 @@ function savePbxprojConfig(pbxprojFilePath, updatepbxprojFileInfo) {
 function updateIosProjectPbxproj(fileType, projectDir, depMap, system,
   removeUnused, funcOnRemoved, allLibSet) {
   if (fileType === 'ios') {
-    const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios', 'app.xcodeproj/project.pbxproj');
+    const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios', `${getIosProjectName(projectDir)}.xcodeproj/project.pbxproj`);
     let pbxprojFileInfo = readPbxprojFile(pbxprojFilePath);
     const xcframeworkList = getXcframeworkList(depMap, system, pbxprojFileInfo);
     pbxprojFileInfo = updateXBuildFileContent(fileType, xcframeworkList, pbxprojFileInfo,

@@ -28,11 +28,12 @@ const {
 } = require('../ace-build');
 const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
-const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi } = require('../../util');
-const projectDir = process.cwd();
+const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi, getAndroidModule,
+  getIosProjectName } = require('../../util');
 const { copyLibraryToProject } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 const analyze = require('../ace-analyze/index');
+const projectDir = process.cwd();
 
 function isAndroidSdkVaild() {
   if (androidSdkDir) {
@@ -50,10 +51,11 @@ function writeLocalProperties() {
 }
 
 function copyToOutput(fileType) {
-  const typePath = fileType == 'ios' ? '.arkui-x/ios' : '.arkui-x/android/app';
+  const typePath = fileType === 'ios' ? '.arkui-x/ios' : '.arkui-x/android/app';
+  fileType === 'ios' ? fileType = 'app' : '';
   const src = path.join(projectDir, `/${typePath}/build/outputs/${fileType}/`);
   const filePath = copyToBuildDir(src);
-  console.log(`filepath: ${filePath}`);
+  console.log(`File path: ${filePath}`);
 }
 
 function copyLibraryToOutput(fileType) {
@@ -62,14 +64,14 @@ function copyLibraryToOutput(fileType) {
     aarNameList.forEach(aarName => {
       const src = path.join(projectDir, `.arkui-x/android/${aarName}/build/outputs/${fileType}/`);
       const filePath = copyToBuildDir(src);
-      console.log(`filepath: ${filePath}`);
+      console.log(`File path: ${filePath}`);
     });
   } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework') {
     const frameworkNameList = getFrameworkName(projectDir);
     frameworkNameList.forEach(frameworkName => {
       const src = path.join(projectDir, `.arkui-x/ios/build/outputs/${fileType}/`);
       const filePath = copyToBuildDir(src);
-      console.log(`filepath: ${filePath}`);
+      console.log(`File path: ${filePath}`);
     });
   }
 }
@@ -86,16 +88,20 @@ function buildAPK(target, cmd) {
     console.error('createTestTem apk failed.');
     return false;
   }
-  if (cmd.debug) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleDebug`);
-  } else if (cmd.profile) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleProfile`);
-  } else {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:assembleRelease`);
-  }
-  let gradleMessage = 'Build apk successful.';
+
+  const moduleList = getAndroidModule(projectDir);
+  moduleList.forEach(item => {
+    if (cmd.debug) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:assembleDebug`);
+    } else if (cmd.profile) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:assembleProfile`);
+    } else {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:assembleRelease`);
+    }
+  });
+  let gradleMessage = 'APK file built successfully..';
   let isBuildSuccess = true;
-  console.log('Start building apk...');
+  console.log('Building an APK file...');
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
   setJavaSdkDirInEnv(javaSdkDirAndroid);
   cmds.forEach(cmd => {
@@ -133,15 +139,19 @@ function buildAab(cmd) {
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
-  if (cmd.debug) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleDebug`);
-  } else if (cmd.profile) {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleProfile`);
-  } else {
-    cmds.push(`cd ${androidDir} && ./gradlew :app:bundleRelease`);
-  }
 
-  let gradleMessage = 'Build aab successful.';
+  const moduleList = getAndroidModule(projectDir);
+  moduleList.forEach(item => {
+    if (cmd.debug) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:bundleDebug`);
+    } else if (cmd.profile) {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:bundleProfile`);
+    } else {
+      cmds.push(`cd ${androidDir} && ./gradlew :${item}:bundleRelease`);
+    }
+  });
+
+  let gradleMessage = 'Android App Bundle file built successfully.';
   let isBuildSuccess = true;
   console.log('Start building aab...');
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
@@ -156,7 +166,7 @@ function buildAab(cmd) {
         stdio: 'inherit',
       });
     } catch (error) {
-      gradleMessage = 'Build aab failed.';
+      gradleMessage = 'Failed to build the Android App Bundle file.';
       isBuildSuccess = false;
     }
   });
@@ -195,7 +205,7 @@ function buildAAR(cmd) {
     cmds.push(cmdStr);
   }
 
-  let gradleMessage = 'Build aar successful.';
+  let gradleMessage = 'AAR file built successfully.';
   let isBuildSuccess = true;
   console.log('Start building aar...');
   cmds.forEach(cmd => {
@@ -209,7 +219,7 @@ function buildAAR(cmd) {
         stdio: 'inherit'
       });
     } catch (error) {
-      gradleMessage = 'Build aar failed.';
+      gradleMessage = 'Failed to build the AAR file.';
       isBuildSuccess = false;
     }
   });
@@ -225,7 +235,7 @@ function buildFramework(cmd) {
   } else if (cmd.profile) {
     mode = 'Profile';
   }
-  let gradleMessage = 'Build ios-framework successful.';
+  let gradleMessage = 'iOS framework built successfully.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -267,7 +277,7 @@ function buildXcFramework(cmd) {
   } else if (cmd.profile) {
     mode = 'Profile';
   }
-  let gradleMessage = 'Build ios-xcframework successful.';
+  let gradleMessage = 'iOS XCFramework built successfully.';
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
@@ -359,8 +369,9 @@ function buildiOS(target, cmd) {
     console.error('createTestTem ios failed.');
     return false;
   }
-  const projectSettingDir = path.join(projectDir, '.arkui-x/ios', 'app.xcodeproj');
-  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/ios/');
+  const iosProjectName = getIosProjectName(projectDir);
+  const projectSettingDir = path.join(projectDir, '.arkui-x/ios', `${iosProjectName}.xcodeproj`);
+  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
   let arch = "arm64";
@@ -382,9 +393,9 @@ function buildiOS(target, cmd) {
   let manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
   process.env.ACE_VERSION_CODE = manifestJsonObj.app.versionCode;
   process.env.ACE_VERSION_NAME = manifestJsonObj.app.versionName;
-  let message = 'Build ios successful.';
+  let message = 'iOS APP file built successfully.';
   let isBuildSuccess = true;
-  console.log('Start building ios...');
+  console.log('Building an iOS APP file...');
   cmds.forEach(cmd => {
     try {
       exec(cmd, {
@@ -399,7 +410,7 @@ function buildiOS(target, cmd) {
 It appears that there was a problem signing your application prior to installation on the device.
 
 Verify that the Bundle Identifier in your project is your signing id in Xcode
-  open .arkui-x/ios/app.xcodeproj
+  open .arkui-x/ios/${iosProjectName}.xcodeproj
           `);
         }
       }

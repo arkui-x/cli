@@ -21,7 +21,7 @@ const { copy, modifyHarmonyOSConfig, addCrosssPlatform, modifyOpenHarmonyOSConfi
 const { getSdkVersion } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability')
 const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj,
-  isAppProject } = require('../../util');
+  isAppProject, getIosProjectName } = require('../../util');
 
 const projectDir = process.cwd();
 let currentSystem;
@@ -105,17 +105,19 @@ function createStageInAndroid(moduleName, templateDir) {
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
       + moduleName + ':' + capitalize(moduleName) + 'Ability:'));
-    const createActivityXmlInfo =
-      '    <activity \n' +
-      '            android:name=".' + destClassName + '"\n' +
-      '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
-    const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
-    const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
-    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
-      createActivityXmlInfo +
-      curManifestXmlInfo.slice(insertIndex);
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    if (fs.existsSync(path.join(dest, 'EntryEntryAbilityActivity.java'))) {
+      const createActivityXmlInfo =
+        '    <activity \n' +
+        '            android:name=".' + destClassName + '"\n' +
+        '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
+      const curManifestXmlInfo =
+        fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
+      const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
+      const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
+        createActivityXmlInfo +
+        curManifestXmlInfo.slice(insertIndex);
+      fs.writeFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    }
     if (isNativeCppTemplate(projectDir)) {
       replaceAndroidNativeCpp(moduleName);
     }
@@ -164,27 +166,27 @@ function createStageModuleInSource(moduleName, templateDir) {
   }
 }
 
-function replaceStageProfile(moduleName) {
+function replaceStageProfile(moduleName, modulePath) {
   try {
     if (moduleName !== 'entry') {
-      const srcModulePath = path.join(projectDir, moduleName, 'src/main/module.json5');
+      const srcModulePath = path.join(projectDir, modulePath, 'src/main/module.json5');
       const modulePathJson = JSON5.parse(fs.readFileSync(srcModulePath).toString());
       delete modulePathJson.module.abilities[0].skills;
       fs.writeFileSync(srcModulePath, JSON5.stringify(modulePathJson, '', '  '));
-      modifyModuleBuildProfile(projectDir, moduleName);
+      modifyModuleBuildProfile(projectDir, moduleName, modulePath);
       if (isNativeCppTemplate(projectDir)) {
         const appName = getAppNameForModule();
         if (appName === '') {
           return false;
         }
-        replaceNativeCppTemplate(moduleName, appName);
+        replaceNativeCppTemplate(moduleName, appName, modulePath);
       }
     }
     const srcBuildPath = path.join(projectDir, 'build-profile.json5');
     const buildPathJson = JSON5.parse(fs.readFileSync(srcBuildPath).toString());
     const moduleInfo = {
       'name': moduleName,
-      'srcPath': './' + moduleName,
+      'srcPath': './' + modulePath,
       'targets': [
         {
           'name': 'default',
@@ -259,7 +261,7 @@ function replaceStageProjectInfo(moduleName) {
       fs.writeFileSync(filePath,
         fs.readFileSync(filePath).toString().replace(new RegExp(replaceInfos[index], 'g'), strs[index]));
     });
-    if (!replaceStageProfile(moduleName)) {
+    if (!replaceStageProfile(moduleName, moduleName)) {
       console.error('Please check stage project.');
       return false;
     }
@@ -282,37 +284,39 @@ function createStageInIOS(moduleName, templateDir) {
     return true;
   }
   try {
+    const iosPath = getIosProjectName(projectDir);
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + capitalize(moduleName) + 'AbilityViewController';
-    const srcFilePath = path.join(templateDir, 'ios/app/EntryEntryAbilityViewController');
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.h'),
+    const srcFilePath = path.join(templateDir, `ios/app/EntryEntryAbilityViewController`);
+    fs.writeFileSync(path.join(projectDir, `.arkui-x/ios/${iosPath}/` + destClassName + '.h'),
       fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.m'),
+    fs.writeFileSync(path.join(projectDir, `.arkui-x/ios/${iosPath}/` + destClassName + '.m'),
       fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
-    const createViewControlInfo =
-      '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
-      '  isEqualToString:@"' + capitalize(moduleName) + 'Ability"]) {\n' +
-      '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",' +
-      'bundleName, moduleName, abilityName];\n' +
-      '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
-      'initWithInstanceName:instanceName];\n' +
-      '        entryOtherVC.params = params;\n' +
-      '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
-      '    } // other ViewController\n';
-    const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m')).toString();
-    const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
-    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
-    '#import "' + destClassName + '.h"\n' +
-    curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
-    createViewControlInfo +
-      curManifestXmlInfo.slice(insertIndex + 26);
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
-    const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
+    if (iosPath === 'app') {
+      const createViewControlInfo =
+        '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
+        '  isEqualToString:@"' + capitalize(moduleName) + 'Ability"]) {\n' +
+        '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",' +
+        'bundleName, moduleName, abilityName];\n' +
+        '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
+        'initWithInstanceName:instanceName];\n' +
+        '        entryOtherVC.params = params;\n' +
+        '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
+        '    } // other ViewController\n';
+      const curManifestXmlInfo =
+        fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m')).toString();
+      const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
+      const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
+      const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
+        '#import "' + destClassName + '.h"\n' +
+        curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
+        createViewControlInfo + curManifestXmlInfo.slice(insertIndex + 26);
+      fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    }
+    const pbxprojFilePath = path.join(projectDir, `.arkui-x/ios/${iosPath}.xcodeproj/project.pbxproj`);
     if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
       !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
       return false;
@@ -337,7 +341,7 @@ function createStageModule(moduleList, templateDir) {
     const question = [{
       name: 'moduleName',
       type: 'input',
-      message: 'Please enter the module name:',
+      message: 'Enter the module name:',
       validate(val) {
         if (!isModuleNameQualified(val)) {
           console.log('Module name must contain 1 to 31 characters, start with a letter, ' +
@@ -352,7 +356,7 @@ function createStageModule(moduleList, templateDir) {
       inquirer.prompt([{
         name: 'cross',
         type: 'input',
-        message: 'The module is or not cross platform (y / n):',
+        message: 'Specify whether the module is a cross-platform module (y / n):',
         validate(val) {
           if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
             return 'Please enter y / n!';
@@ -365,7 +369,7 @@ function createStageModule(moduleList, templateDir) {
           if (createStageModuleInSource(moduleName, templateDir)
             && createStageInAndroid(moduleName, templateDir)
             && createStageInIOS(moduleName, templateDir)) {
-              addCrosssPlatform(projectDir, moduleName);
+            addCrosssPlatform(projectDir, moduleName);
             return replaceStageProjectInfo(moduleName);
           }
         } else {
@@ -378,8 +382,8 @@ function createStageModule(moduleList, templateDir) {
   }
 }
 
-function modifyModuleBuildProfile(projectDir, moduleName) {
-  const moduleBuildProfile = path.join(projectDir, moduleName, '/build-profile.json5');
+function modifyModuleBuildProfile(projectDir, moduleName, modulePath) {
+  const moduleBuildProfile = path.join(projectDir, modulePath, '/build-profile.json5');
   if (moduleName !== 'entry' && fs.existsSync(moduleBuildProfile)) {
     const moduleBuildProfileInfo = JSON5.parse(fs.readFileSync(moduleBuildProfile));
     moduleBuildProfileInfo.entryModules = ['entry'];
@@ -397,9 +401,9 @@ function copyNativeToModule(moduleName, templateDir) {
   return true;
 }
 
-function replaceNativeCppTemplate(moduleName, appName) {
+function replaceNativeCppTemplate(moduleName, appName, modulePath) {
   try {
-    const baseModulePath = path.join(projectDir, moduleName);
+    const baseModulePath = path.join(projectDir, modulePath);
     const packageJsonPath = path.join(baseModulePath, 'oh-package.json5');
     const moduleToLower = moduleName.toLowerCase();
     const cMakeFile = path.join(baseModulePath, `src/main/cpp/CMakeLists.txt`);
@@ -447,7 +451,7 @@ function replaceFileString(file, oldString, newString) {
 
 function createModule() {
   if (!fs.existsSync(path.join(projectDir, 'hvigorw'))) {
-    console.error(`Please go to project directory under ace project path and create module again.`);
+    console.error(`Operation failed. Go to your ArkUI cross-platform project directory and try again.`);
     return false;
   }
 
@@ -471,47 +475,51 @@ function createModule() {
 
 function updateCrossPlatformModules(currentSystem) {
   try {
-    const updateModuleDir = [];
-    const originDir = ['.arkui-x', '.hvigor', 'AppScope', 'entry', 'hvigor', 'oh_modules'];
+    const updateModuleDir = new Map();
+    const originDir = ['.arkui-x', '.hvigor', 'AppScope', 'hvigor', 'oh_modules'];
     const buildProfile = path.join(projectDir, 'build-profile.json5');
     const moduleListAll = getModuleList(buildProfile);
     fs.readdirSync(projectDir).forEach(dir => {
-      if (!fs.statSync(dir).isDirectory() || originDir.includes(dir) || moduleListAll.includes(dir)) return;
-      if (isModuleDir(dir)) updateModuleDir.push(dir);
+      if (!fs.statSync(dir).isDirectory() || originDir.includes(dir)) {
+        return;
+      }
+      if (isExternalModuleDir(dir, moduleListAll)) {
+        let module = JSON5.parse(fs.readFileSync(path.join(projectDir, dir, 'oh-package.json5'))).name;
+        updateModuleDir.set(module, dir);
+      }
     });
-    if (updateModuleDir.length === 0) {
+    if (updateModuleDir.size === 0) {
       return;
     }
     let templateDir = path.join(__dirname, 'template');
     if (!fs.existsSync(templateDir)) {
       templateDir = globalThis.templatePath;
     }
-
-    updateModuleDir.forEach(module => {
+    updateModuleDir.forEach((modulePath, module) => {
       addCrosssPlatform(projectDir, module);
-      replaceStageProfile(module);
-      updateRuntimeOS(module, currentSystem);
-      const moduleJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, module, 'src/main/module.json5')));
-      const currentDir = path.join(projectDir, module);
+      replaceStageProfile(module, modulePath);
+      updateRuntimeOS(modulePath, currentSystem);
+      const moduleJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, modulePath, 'src/main/module.json5')));
+      const currentDir = path.join(projectDir, modulePath);
       moduleJsonInfo.module.abilities.forEach(component => {
         createStageAbilityInIOS(module, component['name'], templateDir, currentDir);
         createStageAbilityInAndroid(module, component['name'], templateDir, currentDir);
       });
     })
   } catch (err) {
-    console.log('update cross platform modules failed')
+    console.log('update cross platform modules failed.')
   }
 }
 
-function updateRuntimeOS(moduleName, currentSystem) {
-  const buildProfile = path.join(projectDir, moduleName, 'build-profile.json5');
+function updateRuntimeOS(modulePath, currentSystem) {
+  const buildProfile = path.join(projectDir, modulePath, 'build-profile.json5');
   const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
   if (buildProfileInfo.targets[0].runtimeOS) {
     delete buildProfileInfo.targets[0].runtimeOS;
     fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
   }
-  const configFile = [path.join(projectDir, moduleName, 'src/main/module.json5'),
-  path.join(projectDir, moduleName, 'src/ohosTest/module.json5')];
+  const configFile = [path.join(projectDir, modulePath, 'src/main/module.json5'),
+  path.join(projectDir, modulePath, 'src/ohosTest/module.json5')];
   let deviceTypes;
   if (currentSystem === 'OpenHarmony') {
     deviceTypes = ['default', 'tablet'];
@@ -527,12 +535,17 @@ function updateRuntimeOS(moduleName, currentSystem) {
   });
 }
 
-function isModuleDir(dir) {
+function isExternalModuleDir(dir, moduleListAll) {
   let isContinue = true;
   const files = ['build-profile.json5', 'hvigorfile.ts', 'oh-package.json5', 'src/main/ets'];
   files.forEach(file => {
     isContinue = isContinue && fs.existsSync(path.join(projectDir, dir, file));
   });
+
+  if (isContinue) {
+    const packageInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, dir, 'oh-package.json5')));
+    isContinue = isContinue && !moduleListAll.includes(packageInfo.name);
+  }
   return isContinue;
 }
 
