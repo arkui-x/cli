@@ -122,8 +122,12 @@ function buildAPK(target, cmd) {
     console.error('recoverTestTem apk failed.');
     return false;
   }
+  if(cmd.debug&&cmd.analyze){
+    console.log('WARN: Unable to support analyzing ...');
+    return false;
+  }
   console.log(gradleMessage);
-  if (isBuildSuccess && gradleMessage == 'Build apk successful.') {
+  if (isBuildSuccess && gradleMessage == 'APK file built successfully..') {
     if (cmd.analyze) {
       analyze(target);
     }

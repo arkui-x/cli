@@ -59,7 +59,10 @@ function analyze(fileType) {
 
 function readJsonFile(packSrc,fileType){
 	fs.readFile(packSrc, function (err, data) {
-	    if (err) throw err;
+	    if (err){
+            console.log('WARN: Unable to support analyzing ...');
+            return false;
+        }
 	    JSZip.loadAsync(data)
 	        .then(function (zip) {
 	            apkTojson(zip,fileType) ;
