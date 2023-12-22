@@ -60,7 +60,7 @@ function analyze(fileType) {
 function readJsonFile(packSrc,fileType){
 	fs.readFile(packSrc, function (err, data) {
 	    if (err){
-            console.log('WARN: Unable to support analyzing ...');
+            console.log("\x1b[33m%s\x1b[0m",'WARN: Unable to support analyzing package size for unsigned HAP.\nIf needed,configure the signingConfigs in '+`${projectDir}\build-profile.json5`);
             return false;
         }
 	    JSZip.loadAsync(data)

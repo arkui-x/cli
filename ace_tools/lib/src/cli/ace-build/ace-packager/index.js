@@ -123,7 +123,7 @@ function buildAPK(target, cmd) {
     return false;
   }
   if(cmd.debug&&cmd.analyze){
-    console.log('WARN: Unable to support analyzing ...');
+    console.log("\x1b[33m%s\x1b[0m","WARN: Unable to support analyzing package size for debug APK, only support analyzing release APK.");
     return false;
   }
   console.log(gradleMessage);
