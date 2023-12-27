@@ -32,6 +32,7 @@ const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi, getAnd
   getIosProjectName } = require('../../util');
 const { copyLibraryToProject } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
+const analyze = require('../ace-analyze/index');
 const projectDir = process.cwd();
 
 function isAndroidSdkVaild() {
@@ -75,7 +76,7 @@ function copyLibraryToOutput(fileType) {
   }
 }
 
-function buildAPK(cmd) {
+function buildAPK(target, cmd) {
   modifyAndroidAbi(projectDir, cmd);
   copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
@@ -121,7 +122,16 @@ function buildAPK(cmd) {
     console.error('recoverTestTem apk failed.');
     return false;
   }
+  if(cmd.debug&&cmd.analyze){
+    console.log("\x1b[33m%s\x1b[0m","WARN: Unable to support analyzing package size for debug APK, only support analyzing release APK.");
+    return false;
+  }
   console.log(gradleMessage);
+  if (isBuildSuccess && gradleMessage == 'APK file built successfully..') {
+    if (cmd.analyze) {
+      analyze(target);
+    }
+  }
   return isBuildSuccess;
 }
 
@@ -314,7 +324,7 @@ function packager(target, cmd) {
   }
   if (target === 'apk') {
     if (isAndroidSdkVaild() && writeLocalProperties()) {
-      if (buildAPK(cmd)) {
+      if (buildAPK(target,cmd)) {
         copyToOutput(target);
         return true;
       }
@@ -334,7 +344,7 @@ function packager(target, cmd) {
       }
     }
   } else if (target === 'ios') {
-    if (buildiOS(cmd)) {
+    if (buildiOS(target,cmd)) {
       copyToOutput(target);
       return true;
     }
@@ -352,7 +362,7 @@ function packager(target, cmd) {
   return false;
 }
 
-function buildiOS(cmd) {
+function buildiOS(target, cmd) {
   copyLibraryToProject('ios', cmd, projectDir, 'ios');
   const cmds = [];
   let mode = 'Release';
@@ -417,6 +427,11 @@ Verify that the Bundle Identifier in your project is your signing id in Xcode
     return false;
   }
   console.log(message);
+  if (isBuildSuccess && message == 'Build ios successful.') {
+    if (cmd.analyze) {
+      analyze(target);
+    }
+  }
   return isBuildSuccess;
 }
 

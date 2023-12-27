@@ -33,6 +33,7 @@ const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
+const analyze = require('../ace-analyze/index');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -351,6 +352,9 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
     if (fileType === 'hap') {
       console.log(`HAP file built successfully.`);
       copyHaptoOutput(moduleListSpecified);
+      if (cmd.analyze) {
+        analyze(fileType);
+      }
       return true;
     } else if (fileType === 'bundle') {
       console.log(`Build bundle successfully.`);

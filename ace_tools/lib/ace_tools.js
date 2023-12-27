@@ -185,7 +185,7 @@ function parseCreate() {
 
       if (!isProjectNameValid(projectName)) {
         console.log('The project dir must contain 1 to 200 characters, start with a ' +
-        'letter, and include only letters, digits and underscores (_)');
+          'letter, and include only letters, digits and underscores (_)');
         return;
       }
       inquirer.prompt([{
@@ -406,6 +406,7 @@ Available subcommands:
     if (subcommand === 'ios') {
       buildSubcommand
         .option('--nosign', 'Build without sign.')
+        .option('--analyze', "analyze/diff package size")
         .option('-s, --simulator', 'Build for iOS Simulator.');
     }
     if (subcommand === 'ios-framework' || subcommand === 'ios-xcframework') {
@@ -417,8 +418,13 @@ Available subcommands:
         .option('--target-platform <platform>', 'The target platform for which the apk is compiled ' +
           '[arm, arm64, x86_64]');
     }
+    if (subcommand === 'apk') {
+      buildSubcommand
+        .option('--analyze', "analyze/diff package size");
+    }
     if (subcommand === 'hap') {
       buildSubcommand
+        .option('--analyze', "analyze/diff package size")
         .option('--target [moduleName]', 'name of module to be built');
     }
     if (process.argv[2] === 'help' && process.argv[3] === 'build') {
