@@ -160,7 +160,7 @@ function install(fileType, device, moduleListInput, installFilePath, cmd) {
       for (let index = 0; index < filePathList.length; index++) {
         const filePath = filePathList[index];
         const result = exec(`${installCmd} ${filePath}`).toString().trim();
-        if (result.toLowerCase().includes('fail')) {
+        if (result.toLowerCase().includes('failed') || result.toLowerCase().includes('failure')) {
           console.error(result);
           isInstalled = false;
         }
