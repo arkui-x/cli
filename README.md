@@ -315,6 +315,7 @@ ace build <subCommand> [arguments]
 | --target [moduleName]          | hap                                                          | 指定目标模块名进行构建。                     |
 | --target-platform \<platform\> | apk、aab、aar、bundle                                        | 编译apk的目标平台[arm, arm64, x86_64]        |
 | -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
+| -analyze                 	     | hap、apk、ios                          						| 针对构建出的包生成包大小解析文档[rom size工具使用方法](https://wenote.welink.huaweicloud.com/wapp/pages/view/share/s/3uzJqw1UB17K2cEiuz15v7Y53hPdAM2pnN7K2-Ox4N05QdMh)。             |
 | -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
 
 构建完成，提示包生成路径:
