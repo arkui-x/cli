@@ -57,9 +57,16 @@ function getToolByType(fileType, currentSystem, isLogTool) {
     } else if (openHarmonySdkDir && currentSystem === 'OpenHarmony') {
       toolPath = getToolchains('OpenHarmony');
     }
+    if (isLogTool) {
+      toolPath['hdc'] = toolPath['hdc'].replace(/^"|"$/g, '');
+    }
   }
   if (fileType === 'apk' && androidSdkDir) {
-    toolPath = { 'adb': `"${path.join(androidSdkDir, 'platform-tools', 'adb')}"` };
+    if (isLogTool) {
+      toolPath = { 'adb': `${path.join(androidSdkDir, 'platform-tools', 'adb')}` };
+    } else {
+      toolPath = { 'adb': `"${path.join(androidSdkDir, 'platform-tools', 'adb')}"` };
+    }
   }
   if (fileType === 'ios' && platform === Platform.MacOS) {
     if (!isLogTool) {
