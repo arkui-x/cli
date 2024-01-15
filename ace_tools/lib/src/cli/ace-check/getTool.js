@@ -104,7 +104,7 @@ function getToolchains(systemType, key) {
   } else if (systemType === 'HarmonyOS') {
     toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
     if (!fs.existsSync(toolchainsPath)) {
-      const ideToolPath = path.join(harmonyOsSdkDir, '/openharmony');
+      const ideToolPath = path.join(harmonyOsSdkDir, '/base');
       const ideHdcPath = getIdeToolPath(ideToolPath);
       if (ideHdcPath) {
         hdcPath[`${key}`] = `"${ideHdcPath}"`;
@@ -122,7 +122,9 @@ function getToolchains(systemType, key) {
 function getIdeToolPath(ideToolPath) {
   let toolPath = '';
   const versionList = ['10'];
-  if (fs.existsSync(ideToolPath)) {
+  if (getVaildToolPath(path.join(ideToolPath, '/toolchains'))) {
+    toolPath = getVaildToolPath(path.join(ideToolPath, '/toolchains'));
+  } else if (fs.existsSync(ideToolPath)) {
     const fileArr = fs.readdirSync(ideToolPath);
     if (fileArr && fileArr.length > 0) {
       fileArr.forEach(item => {
