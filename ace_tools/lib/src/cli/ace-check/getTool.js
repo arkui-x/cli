@@ -15,6 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const JSON5 = require('json5');
 const { Platform, platform } = require('./platform');
 const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion } = require('./configs');
 function getTools() {
@@ -102,29 +103,78 @@ function getToolchains(systemType, key) {
       }
     }
   } else if (systemType === 'HarmonyOS') {
-    toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
-    if (!fs.existsSync(toolchainsPath)) {
-      const ideToolPath = path.join(harmonyOsSdkDir, '/base');
-      const ideHdcPath = getIdeToolPath(ideToolPath);
-      if (ideHdcPath) {
-        hdcPath[`${key}`] = `"${ideHdcPath}"`;
-      }
+    const hmsToolPath = getHmsToolPath(harmonyOsSdkDir);
+    if (hmsToolPath) {
+      hdcPath[`${key}`] = `"${hmsToolPath}"`;
     } else {
-      const cliHdcPath = getCliToolPath(toolchainsPath);
-      if (cliHdcPath) {
-        hdcPath[`${key}`] = `"${cliHdcPath}"`;
+      toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
+      if (!fs.existsSync(toolchainsPath)) {
+        const ideToolPath = path.join(harmonyOsSdkDir, '/openharmony');
+        const ideHdcPath = getIdeToolPath(ideToolPath);
+        if (ideHdcPath) {
+          hdcPath[`${key}`] = `"${ideHdcPath}"`;
+        }
+      } else {
+        const cliHdcPath = getCliToolPath(toolchainsPath);
+        if (cliHdcPath) {
+          hdcPath[`${key}`] = `"${cliHdcPath}"`;
+        }
       }
     }
   }
   return hdcPath;
 }
 
+function getHmsToolPath(newPath) {
+  let toolPath;
+  const sdkPlatformVersion = new Map();
+  fs.readdirSync(newPath).forEach(dir => {
+    if (dir.includes('HarmonyOS')) {
+      const platformVersion = JSON5.parse(fs.readFileSync(
+        path.join(newPath, dir, 'sdk-pkg.json5'))).data.platformVersion;
+      sdkPlatformVersion.set(platformVersion, dir);
+    }
+  });
+  if (sdkPlatformVersion.size === 0) {
+    toolPath = '';
+  } else if (sdkPlatformVersion.size === 1) {
+    toolPath = getVaildToolPath(path.join(newPath, sdkPlatformVersion.values()[0], 'base/toolchains'));
+  } else {
+    const compareVer = sdkPlatformVersion.keys();
+    for (let i = 0; i < compareVer.length - 1; i++) {
+      if (cmpVersion(compareVer[i], compareVer[i + 1])) {
+        let tmp = compareVer[i];
+        compareVer[i] = compareVer[i + 1];
+        compareVer[i + 1] = tmp;
+      }
+    }
+    const maxVersion = compareVer[compareVer.length - 1];
+    toolPath = getVaildToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), 'base/toolchains'));
+  }
+  return toolPath;
+}
+
+function cmpVersion(version1, version2) {
+  const subVersions1 = version1.split('.');
+  const subVersions2 = version2.split('.');
+  const limit = subVersions1.length;
+  for (let i = 0; i < limit; i++) {
+    if (parseInt(subVersions1[i]) === parseInt(subVersions2[i])) {
+      continue;
+    }
+    if (parseInt(subVersions1[i]) > parseInt(subVersions2[i])) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+
 function getIdeToolPath(ideToolPath) {
   let toolPath = '';
   const versionList = ['10'];
-  if (getVaildToolPath(path.join(ideToolPath, '/toolchains'))) {
-    toolPath = getVaildToolPath(path.join(ideToolPath, '/toolchains'));
-  } else if (fs.existsSync(ideToolPath)) {
+  if (fs.existsSync(ideToolPath)) {
     const fileArr = fs.readdirSync(ideToolPath);
     if (fileArr && fileArr.length > 0) {
       fileArr.forEach(item => {
