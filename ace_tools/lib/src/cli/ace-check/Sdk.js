@@ -305,5 +305,6 @@ module.exports = {
   openHarmonySdk,
   harmonyOsSdk,
   arkuiXSdk,
-  androidSdk
+  androidSdk,
+  cmpVersion
 };

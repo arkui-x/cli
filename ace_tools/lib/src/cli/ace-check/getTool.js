@@ -16,6 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
+const cmpVersion = require('./Sdk');
 const { Platform, platform } = require('./platform');
 const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion } = require('./configs');
 function getTools() {
@@ -142,7 +143,7 @@ function getHmsToolPath(newPath) {
   } else {
     const compareVer = [...sdkPlatformVersion.keys()];
     for (let i = 0; i < compareVer.length - 1; i++) {
-      if (cmpVersion(compareVer[i], compareVer[i + 1])) {
+      if (cmpVersion(compareVer[i], compareVer[i + 1]) > 0) {
         let tmp = compareVer[i];
         compareVer[i] = compareVer[i + 1];
         compareVer[i + 1] = tmp;
@@ -152,23 +153,6 @@ function getHmsToolPath(newPath) {
     toolPath = getVaildToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), 'base/toolchains'));
   }
   return toolPath;
-}
-
-function cmpVersion(version1, version2) {
-  const subVersions1 = version1.split('.');
-  const subVersions2 = version2.split('.');
-  const limit = subVersions1.length;
-  for (let i = 0; i < limit; i++) {
-    if (parseInt(subVersions1[i]) === parseInt(subVersions2[i])) {
-      continue;
-    }
-    if (parseInt(subVersions1[i]) > parseInt(subVersions2[i])) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  return true;
 }
 
 function getIdeToolPath(ideToolPath) {
