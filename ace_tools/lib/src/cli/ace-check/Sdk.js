@@ -15,6 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const JSON5 = require('json5');
 const { getConfig, arkUIXSdkPathCheck } = require('../ace-config');
 
 const {
