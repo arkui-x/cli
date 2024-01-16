@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const cmpVersion = require('./Sdk');
+const { cmpVersion } = require('./Sdk');
 const { Platform, platform } = require('./platform');
 const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion } = require('./configs');
 function getTools() {
