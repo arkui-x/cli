@@ -138,12 +138,9 @@ function getHmsToolPath(newPath) {
   if (sdkPlatformVersion.size === 0) {
     toolPath = '';
   } else if (sdkPlatformVersion.size === 1) {
-    toolPath = getVaildToolPath(path.join(newPath, sdkPlatformVersion.values()[0], 'base/toolchains'));
+    toolPath = getVaildToolPath(path.join(newPath, [...sdkPlatformVersion.values()][0], 'base/toolchains'));
   } else {
-    const compareVer = [];
-    for (const key of sdkPlatformVersion.keys()) {
-      compareVer.push(key);
-    }
+    const compareVer = [...sdkPlatformVersion.keys()];
     for (let i = 0; i < compareVer.length - 1; i++) {
       if (cmpVersion(compareVer[i], compareVer[i + 1])) {
         let tmp = compareVer[i];
