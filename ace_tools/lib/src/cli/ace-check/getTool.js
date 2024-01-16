@@ -131,7 +131,7 @@ function getHmsToolPath(newPath) {
   fs.readdirSync(newPath).forEach(dir => {
     if (dir.includes('HarmonyOS')) {
       const platformVersion = JSON5.parse(fs.readFileSync(
-        path.join(newPath, dir, 'sdk-pkg.json5'))).data.platformVersion;
+        path.join(newPath, dir, 'sdk-pkg.json'))).data.platformVersion;
       sdkPlatformVersion.set(platformVersion, dir);
     }
   });
@@ -140,7 +140,10 @@ function getHmsToolPath(newPath) {
   } else if (sdkPlatformVersion.size === 1) {
     toolPath = getVaildToolPath(path.join(newPath, sdkPlatformVersion.values()[0], 'base/toolchains'));
   } else {
-    const compareVer = sdkPlatformVersion.keys();
+    const compareVer = [];
+    for (const key of sdkPlatformVersion.keys()) {
+      compareVer.push(key);
+    }
     for (let i = 0; i < compareVer.length - 1; i++) {
       if (cmpVersion(compareVer[i], compareVer[i + 1])) {
         let tmp = compareVer[i];

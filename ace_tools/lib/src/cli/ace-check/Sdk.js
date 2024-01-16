@@ -224,7 +224,7 @@ function getHarmonyOsSdkVersion(sdkDir) {
   fs.readdirSync(sdkDir).forEach(dir => {
     if (dir.includes('HarmonyOS')) {
       const platformVersion = JSON5.parse(fs.readFileSync(
-        path.join(sdkDir, dir, 'sdk-pkg.json5'))).data.platformVersion;
+        path.join(sdkDir, dir, 'sdk-pkg.json'))).data.platformVersion;
       versionList.push(platformVersion);
     }
   });
@@ -233,7 +233,7 @@ function getHarmonyOsSdkVersion(sdkDir) {
       return versionList[0];
     } else {
       for (let i = 0; i < versionList.length - 1; i++) {
-        if (cmpVersion(versionList[i], versionList[i + 1] > 0)) {
+        if (cmpVersion(versionList[i], versionList[i + 1]) > 0) {
           let tmp = versionList[i];
           versionList[i] = versionList[i + 1];
           versionList[i + 1] = tmp;
