@@ -216,28 +216,53 @@ function getAndroidSdkVersion(sdkDir) {
 }
 
 function getHarmonyOsSdkVersion(sdkDir) {
-  if (!sdkDir || !fs.existsSync(path.join(sdkDir, 'hmscore'))) {
+  if (!sdkDir) {
     return 'unknown';
   }
-  const files = fs.readdirSync(path.join(sdkDir, 'hmscore'));
-  const numOfFile = files.length;
-  if (!files || numOfFile <= 0) {
-    return 'unknown';
-  }
-  let target = '0.0.0';
-  let sign = false;
-  files.forEach((file) => {
-    if (isVersionValid(file, 3)) {
-      if (cmpVersion(file, target) > 0) {
-        sign = true;
-        target = file;
-      }
+  const versionList = [];
+  fs.readdirSync(sdkDir).forEach(dir => {
+    if (dir.includes('HarmonyOS')) {
+      const platformVersion = JSON5.parse(fs.readFileSync(
+        path.join(sdkDir, dir, 'sdk-pkg.json5'))).data.platformVersion;
+      versionList.push(platformVersion);
     }
   });
-  if (sign) {
-    return target;
+  if (versionList.length !== 0) {
+    if (versionList.length === 1) {
+      return versionList[0];
+    } else {
+      for (let i = 0; i < versionList.length - 1; i++) {
+        if (cmpVersion(versionList[i], versionList[i + 1] > 0)) {
+          let tmp = versionList[i];
+          versionList[i] = versionList[i + 1];
+          versionList[i + 1] = tmp;
+        }
+      }
+      return versionList[versionList.length - 1];
+    }
+  } else {
+    if (fs.existsSync(path.join(sdkDir, 'hmscore'))) {
+      const files = fs.readdirSync(path.join(sdkDir, 'hmscore'));
+      const numOfFile = files.length;
+      if (!files || numOfFile <= 0) {
+        return 'unknown';
+      }
+      let target = '0.0.0';
+      let sign = false;
+      files.forEach((file) => {
+        if (isVersionValid(file, 3)) {
+          if (cmpVersion(file, target) > 0) {
+            sign = true;
+            target = file;
+          }
+        }
+      });
+      if (sign) {
+        return target;
+      }
+      return 'unknown';
+    }
   }
-  return 'unknown';
 }
 
 const openHarmonySdk = new Sdk(
