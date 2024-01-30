@@ -49,7 +49,7 @@ class Info {
     this.noXcodedir = 'Xcode is not installed, you can install in app store';
 
     this.warnOpenHarmonySdk =
-      'OpenHarmony sdk is required, please refer to the HarmonyOS Developer to download and install it.';
+      'OpenHarmony SDK is required, please refer to the HarmonyOS Developer to download and install it.';
     this.warnHarmonyOsSdk =
       'HarmonyOS SDK is required, please refer to the HarmonyOS Developer to download and install it.';
     this.warnNodejs =
@@ -59,7 +59,7 @@ class Info {
     this.warnJavaSdk =
       'Java SDK is required, JAVA_HOME is not set and no \'java\' command could be found in your PATH. JDK 17 or later is recommended.';
     this.warnArkuiXSdk =
-      'ArkUI-X Sdk is required, please download the latest version.';
+      'ArkUI-X SDK is required, please download the latest version.';
     this.warnAndroidSdk =
       'Android SDK is required, please download it with Android Studio.';
     this.warnAndroidStudio =
