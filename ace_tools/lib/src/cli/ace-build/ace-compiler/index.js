@@ -43,13 +43,35 @@ let modulePathList;
 function readConfig() {
   try {
     if (currentSystem === 'HarmonyOS') {
+      if (!harmonyOsSdkDir) {
+        console.error(`Please check HarmonyOS SDK in your environment.`);
+      }
+	  if (!arkuiXSdkDir) {
+        console.error(`Please check ArkUI-X SDK in your environment.`);
+      }
+	  if (!nodejsDir) {
+        console.error(`Please check nodejs in your environment.`);
+      }
+	  if (!ohpmDir) {
+        console.error(`Please check ohpm in your environment.`);
+      }
       if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        console.error(`Please check HarmonyOS SDK, ArkUI-X SDK, nodejs and ohpm in your environment.`);
         return false;
       }
     } else {
+	  if (!openHarmonySdkDir) {
+        console.error(`Please check OpenHarmony SDK in your environment.`);
+      }
+	  if (!arkuiXSdkDir) {
+        console.error(`Please check ArkUI-X SDK in your environment.`);
+      }
+	  if (!nodejsDir) {
+        console.error(`Please check nodejs in your environment.`);
+      }
+	  if (!ohpmDir) {
+        console.error(`Please check ohpm in your environment.`);
+      }
       if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        console.error(`Please check OpenHarmony SDK, ArkUI-X SDK, nodejs and ohpm in your environment.`);
         return false;
       }
     }
