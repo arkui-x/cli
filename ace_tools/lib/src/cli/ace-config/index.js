@@ -52,6 +52,7 @@ function setConfig(configs, isPrint) {
         }
         configContent[key] = configPath;
         setInfo[key] = configs[key];
+		console.log(`Setting "${key}" value to "${setInfo[key]}".`);
       }
     }
   }
