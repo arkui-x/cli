@@ -42,23 +42,23 @@ let modulePathList;
 
 function readConfig() {
   try {
-	let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
-	lackDir = `${lackDir}${nodejsDir ? '' : 'nodejs, '}`;
-	lackDir = `${lackDir}${ohpmDir ? '' : 'ohpm, '}`;
+    let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
+    lackDir += nodejsDir ? '' : 'nodejs, ';
+    lackDir += ohpmDir ? '' : 'ohpm, ';
     if (currentSystem === 'HarmonyOS') {
-	  lackDir = `${harmonyOsSdkDir ? '' : 'HarmonyOS SDK, '}${lackDir}`;
+      lackDir = (harmonyOsSdkDir ? '' : 'HarmonyOS SDK, ') + lackDir;
       if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-		let errorLog = `Please check ${lackDir}in your environment.`;
-		errorLog = errorLog.replace(', in', ' in');
-		console.error(errorLog);
+        let errorLog = `Please check ${lackDir}in your environment.`;
+        errorLog = errorLog.replace(', in', ' in');
+        console.error(errorLog);
         return false;
       }
     } else {
-	  lackDir = `${openHarmonySdkDir ? '' : 'OpenHarmony SDK, '}${lackDir}`;
+      lackDir = (openHarmonySdkDir ? '' : 'OpenHarmony SDK, ') + lackDir;
       if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-		let errorLog = `Please check ${lackDir}in your environment.`;
-		errorLog = errorLog.replace(', in', ' in');
-		console.error(errorLog);
+        let errorLog = `Please check ${lackDir}in your environment.`;
+        errorLog = errorLog.replace(', in', ' in');
+        console.error(errorLog);
         return false;
       }
     }
