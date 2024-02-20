@@ -80,7 +80,6 @@ class Sdk {
           }
           strArray = line.split('=');
           let localSdkDir = strArray[0].split('.')[0];
-          console.log(localSdkDir);
           if (strArray[1].includes('OpenHarmony')) {
             localSdkDir = 'openharmony';
           }
