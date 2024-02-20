@@ -69,6 +69,35 @@ class Sdk {
         defaultPath = path.join(defaultPrefixPath, 'sdk');
         sdkHomeDir = defaultPath;
       }
+
+      let content;
+      try {
+        content = fs.readFileSync('./local.properties', 'utf8');
+        content.split(/\r?\n/).forEach(line => {
+          var strArray;
+          if (line.startsWith('#')) {
+            return;
+          }
+          strArray = line.split('=');
+          let localSdkDir = strArray[0].split('.')[0];
+          console.log(localSdkDir);
+          if (strArray[1].includes('OpenHarmony')) {
+            localSdkDir = 'openharmony';
+          }
+          if (strArray[1].includes('Android')) {
+            localSdkDir = 'android';
+          }
+          if (strArray[1].includes('Huawei')) {
+            localSdkDir = 'harmonyos';
+          }
+          if (this.stdType === localSdkDir) {
+            sdkHomeDir = strArray[1];
+            sdkHomeDir = sdkHomeDir.replace(/\//g, '\\');
+          }
+        });
+      } catch (error) {
+        console.error('get local properties error : ' + error);
+      }
     }
 
     if (sdkHomeDir) {
