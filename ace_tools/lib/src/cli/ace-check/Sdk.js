@@ -91,7 +91,9 @@ class Sdk {
           }
           if (this.stdType === localSdkDir) {
             sdkHomeDir = strArray[1];
-            sdkHomeDir = sdkHomeDir.replace(/\//g, '\\');
+            if (platform === Platform.Windows) {
+              sdkHomeDir = sdkHomeDir.replace(/\//g, '\\');
+            }
           }
         });
       } catch (error) {
