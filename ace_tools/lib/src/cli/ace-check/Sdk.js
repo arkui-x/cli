@@ -54,22 +54,6 @@ class Sdk {
     } else if (this.kSdkRoot in environment) {
       sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
     } else {
-      let defaultPrefixPath = '';
-      if (platform === Platform.Linux) {
-        defaultPrefixPath = homeDir;
-      } else if (platform === Platform.MacOS) {
-        defaultPrefixPath = path.join(homeDir, 'Library');
-      } else if (platform === Platform.Windows) {
-        defaultPrefixPath = path.join(homeDir, 'AppData', 'Local');
-      }
-      let defaultPath = path.join(defaultPrefixPath, 'Sdk');
-      if (fs.existsSync(defaultPath)) {
-        sdkHomeDir = defaultPath;
-      } else {
-        defaultPath = path.join(defaultPrefixPath, 'sdk');
-        sdkHomeDir = defaultPath;
-      }
-
       let content;
       try {
         content = fs.readFileSync('./local.properties', 'utf8');
@@ -83,9 +67,6 @@ class Sdk {
           if (strArray[1].includes('OpenHarmony')) {
             localSdkDir = 'openharmony';
           }
-          if (strArray[1].includes('Android')) {
-            localSdkDir = 'android';
-          }
           if (strArray[1].includes('Huawei')) {
             localSdkDir = 'harmonyos';
           }
@@ -94,10 +75,62 @@ class Sdk {
             if (platform === Platform.Windows) {
               sdkHomeDir = sdkHomeDir.replace(/\//g, '\\');
             }
+            return sdkHomeDir;
           }
         });
       } catch (error) {
         console.error('get local properties error : ' + error);
+      }
+
+      try {
+        content = fs.readFileSync('.arkui-x/android/local.properties', 'utf8');
+        content.split(/\r?\n/).forEach(line => {
+          var strArray;
+          if (line.startsWith('#')) {
+            return;
+          }
+          strArray = line.split('=');
+          let localSdkDir = strArray[0].split('.')[0];
+          if (strArray[1].includes('Android')) {
+            localSdkDir = 'android';
+          }
+          if (this.stdType === localSdkDir) {
+            sdkHomeDir = strArray[1];
+            if (platform === Platform.Windows) {
+              sdkHomeDir = sdkHomeDir.replace(/\//g, '\\');
+            }
+            return sdkHomeDir;
+          }
+        });
+      } catch (error) {
+        console.error('get android local properties error : ' + error);
+      }
+
+      let defaultPrefixPath = '';
+      if (platform === Platform.Linux) {
+        defaultPrefixPath = homeDir;
+      } else if (platform === Platform.MacOS) {
+        defaultPrefixPath = path.join(homeDir, 'Library');
+      } else if (platform === Platform.Windows) {
+        defaultPrefixPath = path.join(homeDir, 'AppData', 'Local');
+      }
+      let localSdkName;
+      if (this.stdType === 'openharmony') {
+        localSdkName = 'OpenHarmony';
+      } else if (this.stdType === 'harmonyos') {
+        localSdkName = 'Huawei';
+      } else if (this.stdType === 'arkui-x') {
+        localSdkName = 'ArkUI-X';
+      } else if (this.stdType === 'android') {
+        localSdkName = 'Android';
+      }
+      defaultPrefixPath = path.join(defaultPrefixPath, localSdkName);
+      let defaultPath = path.join(defaultPrefixPath, 'Sdk');
+      if (fs.existsSync(defaultPath)) {
+        sdkHomeDir = defaultPath;
+      } else {
+        defaultPath = path.join(defaultPrefixPath, 'sdk');
+        sdkHomeDir = defaultPath;
       }
     }
 
