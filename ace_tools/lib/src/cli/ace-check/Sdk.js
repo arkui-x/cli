@@ -53,59 +53,12 @@ class Sdk {
       sdkHomeDir = environment[this.kSdkHome].replace(';', '');
     } else if (this.kSdkRoot in environment) {
       sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
+    } else if (fs.existsSync('./local.properties')) {
+      sdkHomeDir = this.getLocalPropertiesSdkDir('./local.properties');
+      if (this.stdType === 'android') {
+        sdkHomeDir = this.getLocalPropertiesSdkDir('.arkui-x/android/local.properties');
+      }
     } else {
-      let content;
-      try {
-        content = fs.readFileSync('./local.properties', 'utf8');
-        content.split(/\r?\n/).forEach(line => {
-          var strArray;
-          if (line.startsWith('#')) {
-            return;
-          }
-          strArray = line.split('=');
-          let localSdkDir = strArray[0].split('.')[0];
-          if (strArray[1].includes('OpenHarmony')) {
-            localSdkDir = 'openharmony';
-          }
-          if (strArray[1].includes('Huawei')) {
-            localSdkDir = 'harmonyos';
-          }
-          if (this.stdType === localSdkDir) {
-            sdkHomeDir = strArray[1];
-            if (platform === Platform.Windows) {
-              sdkHomeDir = sdkHomeDir.replace(/\//g, '\\');
-            }
-            return sdkHomeDir;
-          }
-        });
-      } catch (error) {
-        console.error('get local properties error : ' + error);
-      }
-
-      try {
-        content = fs.readFileSync('.arkui-x/android/local.properties', 'utf8');
-        content.split(/\r?\n/).forEach(line => {
-          var strArray;
-          if (line.startsWith('#')) {
-            return;
-          }
-          strArray = line.split('=');
-          let localSdkDir = strArray[0].split('.')[0];
-          if (strArray[1].includes('Android')) {
-            localSdkDir = 'android';
-          }
-          if (this.stdType === localSdkDir) {
-            sdkHomeDir = strArray[1];
-            if (platform === Platform.Windows) {
-              sdkHomeDir = sdkHomeDir.replace(/\//g, '\\');
-            }
-            return sdkHomeDir;
-          }
-        });
-      } catch (error) {
-        console.error('get android local properties error : ' + error);
-      }
-
       let defaultPrefixPath = '';
       if (platform === Platform.Linux) {
         defaultPrefixPath = homeDir;
@@ -142,6 +95,41 @@ class Sdk {
     if (this.stdType === 'ArkUI-X') {
       return this.getPackageArkUIXSdkDir();
     }
+  }
+
+  getLocalPropertiesSdkDir(filePath) {
+    let content;
+    let sdkDir;
+      try {
+        content = fs.readFileSync(filePath, 'utf8');
+        content.split(/\r?\n/).forEach(line => {
+          var strArray;
+          if (line.startsWith('#')) {
+            return;
+          }
+          strArray = line.split('=');
+          let localSdkDir = strArray[0].split('.')[0];
+          if (strArray[1].includes('OpenHarmony')) {
+            localSdkDir = 'openharmony';
+          }
+          if (strArray[1].includes('Huawei')) {
+            localSdkDir = 'harmonyos';
+          }
+          if (strArray[1].includes('Android')) {
+            localSdkDir = 'android';
+          }
+          if (this.stdType === localSdkDir) {
+            sdkDir = strArray[1];
+            if (platform === Platform.Windows) {
+              sdkDir = sdkDir.replace(/\//g, '\\');
+            }
+            return sdkDir;
+          }
+        });
+      } catch (error) {
+        console.error('get local properties error : ' + error);
+      }
+      return sdkDir;
   }
 
   getPackageArkUIXSdkDir() {
