@@ -17,7 +17,6 @@ const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
-const { copy } = require('../ace-create/util');
 const { getDeviceID, devicesList } = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
@@ -288,11 +287,11 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const addSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('/* main.m in Sources */,');
     const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addBuildFileIndex + searchBuildFile.length) +
       addBuildFile + pbxprojFileInfo.slice(addBuildFileIndex + searchBuildFile.length,
-        addFileReferenceIndex + searchFileReference.length) +
+      addFileReferenceIndex + searchFileReference.length) +
       addFileReference + pbxprojFileInfo.slice(addFileReferenceIndex + searchFileReference.length,
-        addGroupChildrenIndex + searchGroupChildren.length) +
+      addGroupChildrenIndex + searchGroupChildren.length) +
       addGroupChildren + pbxprojFileInfo.slice(addGroupChildrenIndex + searchGroupChildren.length,
-        addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length) +
+      addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length) +
       addSourcesBuildPhase + pbxprojFileInfo.slice(addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length);
     fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
   } else if (fileType === 'resource') {
@@ -320,11 +319,11 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
       const addResourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf(searchResourcesBuildPhase);
       const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addBuildFileIndex + searchBuildFile.length) +
         addBuildFile + pbxprojFileInfo.slice(addBuildFileIndex + searchBuildFile.length,
-          addFileReferenceIndex + searchFileReference.length) +
+        addFileReferenceIndex + searchFileReference.length) +
         addFileReference + pbxprojFileInfo.slice(addFileReferenceIndex + searchFileReference.length,
-          addGroupChildrenIndex + searchGroupChildren.length) +
+        addGroupChildrenIndex + searchGroupChildren.length) +
         addGroupChildren + pbxprojFileInfo.slice(addGroupChildrenIndex + searchGroupChildren.length,
-          addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length) +
+        addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length) +
         addResourcesBuildPhase + pbxprojFileInfo.slice(addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length);
       fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
     }
@@ -342,7 +341,7 @@ function isAppProject(projectDir) {
 
 function getAbsolutePath(str) {
   if (path.isAbsolute(str)) {
-    return str
+    return str;
   } else {
     return path.join(process.cwd(), str);
   }
@@ -425,51 +424,6 @@ function cleanLibs(projectDir, abiFilters, fileType) {
   }
 }
 
-function syncHvigor(projectDir) {
-  let pathTemplate = path.join(__dirname, 'template');
-  const proHvigorVersion = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5'))).hvigorVersion;
-  if (fs.existsSync(pathTemplate)) {
-    const tempHvigorVersion = JSON5.parse(fs.readFileSync(
-      path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
-    if (isCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
-      copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
-    }
-    return true;
-  } else {
-    pathTemplate = globalThis.templatePath;
-    if (fs.existsSync(pathTemplate)) {
-      const tempHvigorVersion = JSON5.parse(fs.readFileSync(
-        path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
-      if (isCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
-        copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
-      }
-      return true;
-    } else {
-      console.error('Error: Template is not exist!');
-      return false;
-    }
-  }
-}
-
-function isCopyHvigor(currentVersion, tempVersion) {
-  try {
-    const currentVers = currentVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
-    const tempVers = tempVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
-    for (let i = 0; i < currentVers.length; i++) {
-      if (parseInt(currentVers[i]) === parseInt(tempVers[i])) {
-        continue;
-      } else if (parseInt(currentVers[i]) < parseInt(tempVers[i])) {
-        return true;
-      } else {
-        return false;
-      }
-    }
-    return false;
-  } catch (err) {
-    return true;
-  }
-}
-
 function getSdkVersion(projectDir) {
   const buildProfilePath = path.join(projectDir, 'build-profile.json5');
   if (fs.existsSync(buildProfilePath)) {
@@ -540,7 +494,6 @@ module.exports = {
   getCrossPlatformModules,
   modifyAndroidAbi,
   validOptions,
-  syncHvigor,
   getSdkVersion,
   getModulePathList,
   checkProjectType,

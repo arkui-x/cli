@@ -18,9 +18,12 @@ const path = require('path');
 const inquirer = require('inquirer');
 const createAar = require('../aar');
 const createFramework = require('../framework');
+const { getSdkVersion } = require('../../util/index');
+const { getConfig } = require('../../ace-config');
 const { copy, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
   modifyOpenHarmonyOSConfig, modifyNativeCppConfig, signIOS, copyTemp,
-  getFileList, getTempPath } = require('../util');
+  getFileList, getTempPath, createAndroidAndIosBuildArktsShell,
+  createAndroidTaskInBuildGradle, createIosScriptInPbxproj } = require('../util');
 const aceHarmonyOS = '2';
 const acePluginNapiProType = 'plugin_napi';
 const aceLibraryProType = 'library';
@@ -30,15 +33,34 @@ function create(args) {
   const projectTempPath = getTempPath(outputDir);
   createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
   copyTemp(projectTempPath, projectAbsolutePath);
+  if (template !== aceLibraryProType) {
+    createAndroidAndIosShell(projectAbsolutePath);
+  }
+}
+
+function createAndroidAndIosShell(projectAbsolutePath) {
+  createAndroidTaskInBuildGradle(projectAbsolutePath);
+  createIosScriptInPbxproj(projectAbsolutePath);
+  const version = getSdkVersion(projectAbsolutePath);
+  const configContent = getConfig();
+  let ohpmPath = '';
+  let arkuixPath = '';
+  if (configContent['ohpm-dir']) {
+    ohpmPath = path.join(configContent['ohpm-dir'], 'bin/ohpm');
+  }
+  if (configContent['arkui-x-sdk']) {
+    arkuixPath = path.join(configContent['arkui-x-sdk'], String(version), 'arkui-x');
+  }
+  createAndroidAndIosBuildArktsShell(projectAbsolutePath, ohpmPath, arkuixPath);
 }
 
 function repairProject(projectAbsolutePath, outputDir) {
   const projectTempPath = getTempPath(outputDir);
   const absoluteDir = getFileList(projectAbsolutePath);
   const tempDir = getFileList(projectTempPath);
-  const absoluteDirReplace = absoluteDir.map(val => val.slice(projectAbsolutePath.length).replaceAll("\\", "/"));
-  const tempDirReplace = tempDir.map(val => val.slice(projectTempPath.length).replaceAll("\\", "/"));
-  let diffFile = tempDirReplace.filter(value => !absoluteDirReplace.includes(value));
+  const absoluteDirReplace = absoluteDir.map(val => val.slice(projectAbsolutePath.length).replaceAll('\\', '/'));
+  const tempDirReplace = tempDir.map(val => val.slice(projectTempPath.length).replaceAll('\\', '/'));
+  const diffFile = tempDirReplace.filter(value => !absoluteDirReplace.includes(value));
   diffFile.forEach(val => copyTemp(path.join(projectTempPath, val), path.join(projectAbsolutePath, val)));
 }
 
@@ -61,8 +83,7 @@ In order to run your app, type:
     $ ace run
       
 Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
-    }
-    else {
+    } else {
       console.log(`
 Project created. Target directory:  ${projectAbsolutePath}.
 Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
@@ -153,7 +174,7 @@ function replaceiOSProjectInfo(projectTempPath, bundleName) {
   strs.push(bundleName);
   files.push(path.join(projectTempPath, '.arkui-x/ios/app/Info.plist'));
   replaceInfos.push('{{CFBundleName}}');
-  let iosCFBundleName = bundleName.split('.').at(-1).toLowerCase();
+  const iosCFBundleName = bundleName.split('.').at(-1).toLowerCase();
   strs.push(iosCFBundleName);
   files.push(path.join(projectTempPath, '.arkui-x/ios/app/Info.plist'));
   replaceInfos.push('{{CFBundleDisplayName}}');
