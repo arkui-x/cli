@@ -72,6 +72,18 @@ ace config [arguments]
 | --ohpm-dir  | Ohpm路径。 |
 | --openharmony-sdk | OpenHarmony SDK路径。 |
 
+比如配置OpenHarmony SDK路径，执行ace config的时候，如果配置路径中无空格，正常粘贴路径即可；
+```shell
+ohos@user ~ % ace config --openharmony-sdk /Users/jianke/Library/OpenHarmony/Sdk
+Setting "openharmony-sdk" value to "/Users/jianke/Library/OpenHarmony/Sdk".
+```
+
+注意：如果配置路径中有空格，路径需要添加双引号，比如：
+```shell
+ohos@user ~ % ace config --openharmony-sdk "/Users/jianke/Library/Open Harmony/Sdk"
+Setting "openharmony-sdk" value to "/Users/jianke/Library/Open Harmony/Sdk".
+```
+
 ### ace check
 
 查验跨平台应用开发环境。
