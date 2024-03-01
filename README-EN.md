@@ -63,7 +63,7 @@ ace config [options] <path>
 | --android-studio-path | Android Studio installation directory (optional).|
 | --java-sdk | JDK directory.|
 
-For example, when configuring the OpenHarmony SDK path and executing ace config, if there are no spaces in the configuration path, simply paste the path normally;
+For example, using ace config to configure the OpenHarmony SDK path:
 ```shell
 ohos@user ~ % ace config --openharmony-sdk /Users/jianke/Library/OpenHarmony/Sdk
 Setting "openharmony-sdk" value to "/Users/jianke/Library/OpenHarmony/Sdk".

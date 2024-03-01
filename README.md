@@ -72,7 +72,7 @@ ace config [arguments]
 | --ohpm-dir  | Ohpm路径。 |
 | --openharmony-sdk | OpenHarmony SDK路径。 |
 
-比如配置OpenHarmony SDK路径，执行ace config的时候，如果配置路径中无空格，正常粘贴路径即可；
+例如使用ace config配置OpenHarmony SDK路径：
 ```shell
 ohos@user ~ % ace config --openharmony-sdk /Users/jianke/Library/OpenHarmony/Sdk
 Setting "openharmony-sdk" value to "/Users/jianke/Library/OpenHarmony/Sdk".
