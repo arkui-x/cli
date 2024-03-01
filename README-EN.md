@@ -65,14 +65,14 @@ ace config [options] <path>
 
 For example, using ace config to configure the OpenHarmony SDK path:
 ```shell
-ohos@user ~ % ace config --openharmony-sdk /Users/jianke/Library/OpenHarmony/Sdk
-Setting "openharmony-sdk" value to "/Users/jianke/Library/OpenHarmony/Sdk".
+ohos@user ~ % ace config --openharmony-sdk /Users/ohos/Library/OpenHarmony/Sdk
+Set "openharmony-sdk" value to "/Users/ohos/Library/OpenHarmony/Sdk" succeeded.
 ```
 
 Note: If there are spaces in the configuration path, double quotation marks need to be added to the path, for example:
 ```shell
-ohos@user ~ % ace config --openharmony-sdk "/Users/jianke/Library/Open Harmony/Sdk"
-Setting "openharmony-sdk" value to "/Users/jianke/Library/Open Harmony/Sdk".
+ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk"
+Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
 ```
 
 ### ace check

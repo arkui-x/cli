@@ -74,14 +74,14 @@ ace config [arguments]
 
 例如使用ace config配置OpenHarmony SDK路径：
 ```shell
-ohos@user ~ % ace config --openharmony-sdk /Users/jianke/Library/OpenHarmony/Sdk
-Setting "openharmony-sdk" value to "/Users/jianke/Library/OpenHarmony/Sdk".
+ohos@user ~ % ace config --openharmony-sdk /Users/ohos/Library/OpenHarmony/Sdk
+Set "openharmony-sdk" value to "/Users/ohos/Library/OpenHarmony/Sdk" succeeded.
 ```
 
 注意：如果配置路径中有空格，路径需要添加双引号，比如：
 ```shell
-ohos@user ~ % ace config --openharmony-sdk "/Users/jianke/Library/Open Harmony/Sdk"
-Setting "openharmony-sdk" value to "/Users/jianke/Library/Open Harmony/Sdk".
+ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk"
+Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
 ```
 
 ### ace check
