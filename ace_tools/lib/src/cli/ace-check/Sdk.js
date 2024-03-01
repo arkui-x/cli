@@ -53,6 +53,11 @@ class Sdk {
       sdkHomeDir = environment[this.kSdkHome].replace(';', '');
     } else if (this.kSdkRoot in environment) {
       sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
+    } else if (fs.existsSync('./local.properties')) {
+      sdkHomeDir = this.getLocalPropertiesSdkDir('./local.properties');
+      if (this.stdType === 'android') {
+        sdkHomeDir = this.getLocalPropertiesSdkDir('.arkui-x/android/local.properties');
+      }
     } else {
       let defaultPrefixPath = '';
       if (platform === Platform.Linux) {
@@ -62,6 +67,17 @@ class Sdk {
       } else if (platform === Platform.Windows) {
         defaultPrefixPath = path.join(homeDir, 'AppData', 'Local');
       }
+      let localSdkName;
+      if (this.stdType === 'openharmony') {
+        localSdkName = 'OpenHarmony';
+      } else if (this.stdType === 'harmonyos') {
+        localSdkName = 'Huawei';
+      } else if (this.stdType === 'arkui-x') {
+        localSdkName = 'ArkUI-X';
+      } else if (this.stdType === 'android') {
+        localSdkName = 'Android';
+      }
+      defaultPrefixPath = path.join(defaultPrefixPath, localSdkName);
       let defaultPath = path.join(defaultPrefixPath, 'Sdk');
       if (fs.existsSync(defaultPath)) {
         sdkHomeDir = defaultPath;
@@ -79,6 +95,41 @@ class Sdk {
     if (this.stdType === 'ArkUI-X') {
       return this.getPackageArkUIXSdkDir();
     }
+  }
+
+  getLocalPropertiesSdkDir(filePath) {
+    let content;
+    let sdkDir;
+      try {
+        content = fs.readFileSync(filePath, 'utf8');
+        content.split(/\r?\n/).forEach(line => {
+          var strArray;
+          if (line.startsWith('#')) {
+            return;
+          }
+          strArray = line.split('=');
+          let localSdkDir = strArray[0].split('.')[0];
+          if (strArray[1].includes('OpenHarmony')) {
+            localSdkDir = 'openharmony';
+          }
+          if (strArray[1].includes('Huawei')) {
+            localSdkDir = 'harmonyos';
+          }
+          if (strArray[1].includes('Android')) {
+            localSdkDir = 'android';
+          }
+          if (this.stdType === localSdkDir) {
+            sdkDir = strArray[1];
+            if (platform === Platform.Windows) {
+              sdkDir = sdkDir.replace(/\//g, '\\');
+            }
+            return sdkDir;
+          }
+        });
+      } catch (error) {
+        console.error('get local properties error : ' + error);
+      }
+      return sdkDir;
   }
 
   getPackageArkUIXSdkDir() {
