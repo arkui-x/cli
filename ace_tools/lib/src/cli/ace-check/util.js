@@ -45,8 +45,21 @@ function addPrefix(message, valid, correctPrefix, errorPrefix) {
 function showWarningInfo(msgs) {
   console.warn('\x1B[33m%s\x1B[0m', 'Warning: ');
   msgs.forEach(msg => {
-    console.warn('\x1B[33m    %s\x1B[0m', msg);
+    console.warn('\x1B[33m    %s\x1B[0m', `• ${msg}`);
   });
+}
+
+function cmpVersion(version1, version2) {
+  const subVersions1 = version1.split('.');
+  const subVersions2 = version2.split('.');
+  const limit = Math.min(subVersions1.length, subVersions2.length);
+  for (let i = 0; i < limit; i++) {
+    if (parseInt(subVersions1[i]) === parseInt(subVersions2[i])) {
+      continue;
+    }
+    return parseInt(subVersions1[i]) > parseInt(subVersions2[i]);
+  }
+  return 0;
 }
 
 module.exports = {
@@ -55,5 +68,6 @@ module.exports = {
   requirementInfo,
   optionInfo,
   reletedInfo,
-  showWarningInfo
+  showWarningInfo,
+  cmpVersion
 };

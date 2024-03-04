@@ -17,39 +17,100 @@ const fs = require('fs');
 const path = require('path');
 
 const { Platform, platform } = require('./platform');
-const { getConfig } = require('../ace-config');
+const { getConfig, modifyConfigPath } = require('../ace-config');
 const Process = require('child_process');
+const { javaSdkPathCheck } = require('./checkPathLawful');
 
 function getJavaSdkDirInEnv() {
   const environment = process.env;
   const config = getConfig();
-  if (config && config['java-sdk']){
-    if (platform === Platform.Windows) {
-      if (fs.existsSync(path.join(config['java-sdk'], 'bin', 'java.exe'))) {
-        return config['java-sdk'];
-      }
-    } else if (platform === Platform.Linux) {
-      if (fs.existsSync(path.join(config['java-sdk'], 'bin', 'java'))) {
-        return config['java-sdk'];
-      }
-    } else if (platform === Platform.MacOS) {
-      if (fs.existsSync(path.join(config['java-sdk'], 'bin', 'java'))) {
-        return config['java-sdk'];
-      }
+  let javaDir;
+  if (config && config['java-sdk'] && javaSdkPathCheck(config['java-sdk'])) {
+    javaDir = config['java-sdk'];
+  } else if ('JAVA_HOME' in environment && javaSdkPathCheck(environment['JAVA_HOME'].replace(';', ''))) {
+    javaDir = environment['JAVA_HOME'].replace(';', '');
+  } else if (getGlobalJavaSdk()) {
+    javaDir = getGlobalJavaSdk();
+  } else {
+    javaDir = getDefaultJavaSdk();
+  }
+  modifyConfigPath('java-sdk', javaDir);
+  if (javaDir) {
+    return javaDir;
+  }
+}
+
+function getGlobalJavaSdk() {
+  let JavaSdkDir;
+  if (platform === Platform.Windows) {
+    try {
+      JavaSdkDir = path.parse(Process.execSync(`where java`, { stdio: 'pipe' }).toString().split(/\r\n/g)[0]).dir;
+    } catch (err) {
+      // ignore
+    }
+  } else if (platform === Platform.Linux || platform === Platform.MacOS) {
+    try {
+      JavaSdkDir = path.parse(Process.execSync(`which java`, { stdio: 'pipe' }).toString().replace(/\n/g, '')).dir;
+    } catch (err) {
+      // ignore
     }
   }
+  if (JavaSdkDir) {
+    JavaSdkDir = path.dirname(JavaSdkDir);
+    return JavaSdkDir;
+  }
+}
+
+function getDefaultJavaSdk() {
+  let defaultJavaSdk;
+  const defaultWinsDirs = [`C:\\Program Files\\Java`, `D:\\Program Files\\Java`];
+  const defaultLinuxDir = ['/usr/lib/jvm'];
+  const defaultMacDir = ['/Library/Java/JavaVirtualMachines'];
+  const winStart = 'jdk';
+  const linuxStart = 'java';
+  const macStart = 'jdk';
   if (platform === Platform.Windows) {
-    if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java.exe'))) {
-      return environment['JAVA_HOME'];
-    }
+    defaultJavaSdk = getDefaultPath(defaultWinsDirs, winStart);
   } else if (platform === Platform.Linux) {
-    if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java'))) {
-      return environment['JAVA_HOME'];
-    }
+    defaultJavaSdk = getDefaultPath(defaultLinuxDir, linuxStart);
   } else if (platform === Platform.MacOS) {
-    if (environment['JAVA_HOME'] && fs.existsSync(path.join(environment['JAVA_HOME'], 'bin', 'java'))) {
-      return environment['JAVA_HOME'];
+    defaultJavaSdk = getDefaultPath(defaultMacDir, macStart);
+  }
+  if (defaultJavaSdk) {
+    return defaultJavaSdk;
+  }
+}
+
+function getDefaultPath(defaultDirs, typeStart) {
+  let defaultPath;
+  let jdkVersion = 17;
+  let basePath;
+  defaultDirs.forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      return defaultPath;
     }
+    const files = fs.readdirSync(dir);
+    files.forEach(file => {
+      if (fs.statSync(path.join(dir, file)).isDirectory() && file.startsWith(typeStart)) {
+        if (Number(file.match(/-(\d+)/)[1]) === jdkVersion) {
+          basePath = path.join(dir, file);
+          if (platform === Platform.MacOS) {
+            basePath = path.join(basePath, 'Contents', 'Home');
+          }
+          if (javaSdkPathCheck(basePath)) {
+            jdkVersion = file.match(/\d+(?=-)/);
+            defaultPath = basePath;
+            return;
+          }
+        }
+      }
+    });
+    if (defaultPath) {
+      return;
+    }
+  });
+  if (defaultPath) {
+    return defaultPath;
   }
 }
 
