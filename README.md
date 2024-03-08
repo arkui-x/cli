@@ -84,6 +84,8 @@ ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk
 Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
 ```
 
+配置ACE工具链相关环境时，参见[路径合法性判断说明](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/path-legal-judgment-instruction.md)。
+
 ### ace check
 
 查验跨平台应用开发环境。
@@ -262,6 +264,7 @@ In order to run your app, type:
 Your app code is in test/entry.
 ```
 
+创建跨平台应用工程时，对应android和ios目录下生成ArkTS脚本，参见[编译ArkTS脚本说明](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/compile-arkts-introduction.md)。
 
 ### ace new module
 
