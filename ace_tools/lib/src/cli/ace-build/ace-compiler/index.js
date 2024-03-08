@@ -14,6 +14,7 @@
  */
 
 const fs = require('fs');
+const JSON5 = require('json5');
 const path = require('path');
 const exec = require('child_process').execSync;
 const {
@@ -28,12 +29,13 @@ const { getSdkVersion } = require('../../util/index');
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
-  getCrossPlatformModules, modifyAndroidAbi, syncHvigor, getModulePathList } = require('../../util');
+  getCrossPlatformModules, modifyAndroidAbi, getModulePathList } = require('../../util');
 const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
+const { createAndroidAndIosBuildArktsShell } = require('../../ace-create/util');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -149,7 +151,7 @@ function deleteOldFile(deleteFilePath) {
   try {
     if (fs.existsSync(deleteFilePath) && !deleteFilePath.includes(path.join('arkui-x', 'systemres'))) {
       const files = fs.readdirSync(deleteFilePath);
-      files.forEach(function(file, index) {
+      files.forEach(function (file, index) {
         const curPath = path.join(deleteFilePath, file);
         if (fs.statSync(curPath).isDirectory()) {
           deleteOldFile(curPath);
@@ -285,7 +287,7 @@ function runGradle(fileType, cmd, moduleList) {
     if (moduleList) {
       moduleStr = ' -p module=' + moduleList.join(',');
     }
-    let buildtarget = 'default@CompileArkTS' + moduleStr;
+    const buildtarget = 'default@CompileArkTS' + moduleStr;
     let testbBuildtarget = '';
     if (cmd.debug && moduleList) {
       const moduleTestStr = '-p module=' + moduleList.join('@ohosTest,') + '@ohosTest';
@@ -358,6 +360,7 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
     && runGradle(fileType, cmd, moduleListSpecified)
     && copyStageBundleToAndroidAndIOS(crossPlatformModules)
     && copyTestStageBundleToAndroidAndIOS(crossPlatformModules, fileType, cmd)) {
+    process.env.ACEBUILDFLAG = true;
     if (fileType === 'hap') {
       console.log(`HAP file built successfully.`);
       copyHaptoOutput(moduleListSpecified);
@@ -368,8 +371,10 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
     } else if (fileType === 'bundle') {
       console.log(`Build bundle successfully.`);
       return copyBundletoBuild(moduleListSpecified, cmd);
-    } else if (fileType === 'apk' || fileType === 'ios' ||
-      fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aab') {
+    } else if (fileType === 'apk' || fileType === 'aab' || fileType === 'ios') {
+      createAndroidAndIosBuildArktsShell(projectDir, getOhpmTools(), arkuiXSdkPath);
+      return true;
+    } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework') {
       return true;
     } else if (fileType === 'aar') {
       return copyStageBundleToAAR(crossPlatformModules);
@@ -379,9 +384,53 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
   return false;
 }
 
+function syncHvigor(projectDir) {
+  let pathTemplate = path.join(__dirname, 'template');
+  const proHvigorVersion = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5'))).hvigorVersion;
+  if (fs.existsSync(pathTemplate)) {
+    const tempHvigorVersion = JSON5.parse(fs.readFileSync(
+      path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
+    if (needCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
+      copy(path.join(pathTemplate, 'ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+    }
+    return true;
+  } else {
+    pathTemplate = globalThis.templatePath;
+    if (fs.existsSync(pathTemplate)) {
+      const tempHvigorVersion = JSON5.parse(fs.readFileSync(
+        path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
+      if (needCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
+        copy(path.join(pathTemplate, 'ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
+      }
+      return true;
+    }
+  }
+  console.error('Error: Template is not exist!');
+  return false;
+}
+
+function needCopyHvigor(currentVersion, tempVersion) {
+  try {
+    const currentVers = currentVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
+    const tempVers = tempVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
+    for (let i = 0; i < currentVers.length; i++) {
+      if (parseInt(currentVers[i]) === parseInt(tempVers[i])) {
+        continue;
+      } else if (parseInt(currentVers[i]) < parseInt(tempVers[i])) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+    return false;
+  } catch (err) {
+    return true;
+  }
+}
+
 function compiler(fileType, cmd) {
   const moduleListInput = cmd.target;
-  if ((platform !== Platform.MacOS) &&
+  if (platform !== Platform.MacOS &&
     (fileType === 'ios' || fileType === 'ios-framework' || fileType === 'ios-xcframework')) {
     console.warn('\x1B[31m%s\x1B[0m', 'Error: ' + `Please go to your MacOS and build ${fileType}.`);
     return false;
@@ -398,14 +447,14 @@ function compiler(fileType, cmd) {
       'ios-xcframework': 'iOS XCFramework',
       'apk': 'Android APK file',
       'bundle': 'bundle file',
-      'ios': 'iOS APP file',
-    }
+      'ios': 'iOS APP file'
+    };
     if (fileType === 'aar' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
       console.warn('\x1B[31m%s\x1B[0m', `Failed to build the ${fileTypeDict[fileType]}, because this project is not a library project.`);
       return false;
     }
   } else {
-    if ((fileType === 'ios' || fileType === 'apk' || fileType === 'aab' || fileType === 'bundle')) {
+    if (fileType === 'ios' || fileType === 'apk' || fileType === 'aab' || fileType === 'bundle') {
       console.warn('\x1B[31m%s\x1B[0m', `Failed to build the ${fileTypeDict[fileType]}, because this project is not an application project.`);
       return false;
     }
