@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const { cmpVersion } = require('./Sdk');
+const { cmpVersion } = require('./util');
 const { Platform, platform } = require('./platform');
 const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion } = require('./configs');
 function getTools() {
@@ -139,18 +139,18 @@ function getHmsToolPath(newPath) {
   if (sdkPlatformVersion.size === 0) {
     toolPath = '';
   } else if (sdkPlatformVersion.size === 1) {
-    toolPath = getVaildToolPath(path.join(newPath, [...sdkPlatformVersion.values()][0], 'base/toolchains'));
+    toolPath = getValidToolPath(path.join(newPath, [...sdkPlatformVersion.values()][0], 'base/toolchains'));
   } else {
     const compareVer = [...sdkPlatformVersion.keys()];
     for (let i = 0; i < compareVer.length - 1; i++) {
-      if (cmpVersion(compareVer[i], compareVer[i + 1]) > 0) {
+      if (cmpVersion(compareVer[i], compareVer[i + 1])) {
         let tmp = compareVer[i];
         compareVer[i] = compareVer[i + 1];
         compareVer[i + 1] = tmp;
       }
     }
     const maxVersion = compareVer[compareVer.length - 1];
-    toolPath = getVaildToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), 'base/toolchains'));
+    toolPath = getValidToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), 'base/toolchains'));
   }
   return toolPath;
 }
@@ -170,7 +170,7 @@ function getIdeToolPath(ideToolPath) {
         return a - b;
       });
       sortList.forEach(item => {
-        const tempPath = getVaildToolPath(path.join(ideToolPath, item, '/toolchains'));
+        const tempPath = getValidToolPath(path.join(ideToolPath, item, '/toolchains'));
         if (tempPath) {
           toolPath = tempPath;
         }
@@ -187,7 +187,7 @@ function getCliToolPath(cliToolPath) {
     if (fileArr && fileArr.length > 0) {
       fileArr.forEach(item => {
         if (!isNaN(item.substring(0, 1))) {
-          toolPath = getVaildToolPath(path.join(cliToolPath, item));
+          toolPath = getValidToolPath(path.join(cliToolPath, item));
         }
       });
     }
@@ -195,12 +195,12 @@ function getCliToolPath(cliToolPath) {
   return toolPath;
 }
 
-function getVaildToolPath(vaildToolPath) {
-  if (fs.existsSync(vaildToolPath)) {
-    const fileArr = fs.readdirSync(vaildToolPath);
+function getValidToolPath(validToolPath) {
+  if (fs.existsSync(validToolPath)) {
+    const fileArr = fs.readdirSync(validToolPath);
     for (let i = 0; i < fileArr.length; i++) {
       if (fileArr[i].substring(0, 3) === 'hdc') {
-        return path.join(vaildToolPath, fileArr[i]);
+        return path.join(validToolPath, fileArr[i]);
       }
     }
   }

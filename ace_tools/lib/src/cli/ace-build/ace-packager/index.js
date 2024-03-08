@@ -35,7 +35,7 @@ const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 const analyze = require('../ace-analyze/index');
 const projectDir = process.cwd();
 
-function isAndroidSdkVaild() {
+function isAndroidSdkValid() {
   if (androidSdkDir) {
     return true;
   } else {
@@ -323,21 +323,21 @@ function packager(target, cmd) {
     return false;
   }
   if (target === 'apk') {
-    if (isAndroidSdkVaild() && writeLocalProperties()) {
+    if (isAndroidSdkValid() && writeLocalProperties()) {
       if (buildAPK(target,cmd)) {
         copyToOutput(target);
         return true;
       }
     }
   } else if (target === 'aab') {
-    if (isAndroidSdkVaild() && writeLocalProperties()) {
+    if (isAndroidSdkValid() && writeLocalProperties()) {
       if (buildAab(cmd)) {
         copyToOutput('bundle');
         return true;
       }
     }
   } else if (target === 'aar') {
-    if (isAndroidSdkVaild() && writeLocalProperties()) {
+    if (isAndroidSdkValid() && writeLocalProperties()) {
       if (buildAAR(cmd)) {
         copyLibraryToOutput(target);
         return true;

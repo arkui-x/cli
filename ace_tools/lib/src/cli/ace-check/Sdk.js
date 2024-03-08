@@ -16,13 +16,15 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const { getConfig, arkUIXSdkPathCheck } = require('../ace-config');
-
+const { getConfig, modifyConfigPath } = require('../ace-config');
 const {
   Platform,
   platform,
   homeDir
 } = require('./platform');
+const { sdkPathCheck } = require('./checkPathLawful');
+const { readIdeXmlPath } = require('./Ide');
+const { cmpVersion } = require('./util');
 
 const environment = process.env;
 
@@ -46,55 +48,105 @@ class Sdk {
 
   locateSdk() {
     let sdkHomeDir;
-    const config = this.checkConfig();
-    if (config) {
-      sdkHomeDir = config;
-    } else if (this.kSdkHome in environment) {
+    let localPropertiesSdkDir;
+    const configPath = this.checkConfig();
+    if (configPath && sdkPathCheck(configPath, this.type)) {
+      sdkHomeDir = configPath;
+    } else if (this.kSdkHome in environment && sdkPathCheck(environment[this.kSdkHome].replace(';', ''), this.type)) {
       sdkHomeDir = environment[this.kSdkHome].replace(';', '');
-    } else if (this.kSdkRoot in environment) {
+    } else if (this.kSdkRoot in environment && sdkPathCheck(environment[this.kSdkRoot].replace(';', ''), this.type)) {
       sdkHomeDir = environment[this.kSdkRoot].replace(';', '');
     } else if (fs.existsSync('./local.properties')) {
-      sdkHomeDir = this.getLocalPropertiesSdkDir('./local.properties');
+      localPropertiesSdkDir = this.getLocalPropertiesSdkDir('./local.properties');
+      if (localPropertiesSdkDir && sdkPathCheck(localPropertiesSdkDir, this.type)) {
+        sdkHomeDir = localPropertiesSdkDir;
+      }
       if (this.stdType === 'android') {
-        sdkHomeDir = this.getLocalPropertiesSdkDir('.arkui-x/android/local.properties');
+        localPropertiesSdkDir = this.getLocalPropertiesSdkDir('.arkui-x/android/local.properties');
+        if (localPropertiesSdkDir && sdkPathCheck(localPropertiesSdkDir, this.type)) {
+          sdkHomeDir = localPropertiesSdkDir;
+        }
       }
-    } else {
-      let defaultPrefixPath = '';
-      if (platform === Platform.Linux) {
-        defaultPrefixPath = homeDir;
-      } else if (platform === Platform.MacOS) {
-        defaultPrefixPath = path.join(homeDir, 'Library');
-      } else if (platform === Platform.Windows) {
-        defaultPrefixPath = path.join(homeDir, 'AppData', 'Local');
-      }
-      let localSdkName;
-      if (this.stdType === 'openharmony') {
-        localSdkName = 'OpenHarmony';
-      } else if (this.stdType === 'harmonyos') {
-        localSdkName = 'Huawei';
-      } else if (this.stdType === 'arkui-x') {
-        localSdkName = 'ArkUI-X';
-      } else if (this.stdType === 'android') {
-        localSdkName = 'Android';
-      }
-      defaultPrefixPath = path.join(defaultPrefixPath, localSdkName);
-      let defaultPath = path.join(defaultPrefixPath, 'Sdk');
-      if (fs.existsSync(defaultPath)) {
-        sdkHomeDir = defaultPath;
+    }
+    if (!sdkHomeDir) {
+      if (this.getDefaultSdk()) {
+        sdkHomeDir = this.getDefaultSdk();
       } else {
-        defaultPath = path.join(defaultPrefixPath, 'sdk');
-        sdkHomeDir = defaultPath;
+        sdkHomeDir = this.getIdePath();
       }
     }
-
+    modifyConfigPath(this.type, sdkHomeDir);
     if (sdkHomeDir) {
-      if (this.validSdkDir(sdkHomeDir)) {
-        return sdkHomeDir;
+      return sdkHomeDir;
+    }
+    if (this.type === 'ArkUI-X') {
+      const packageArkUIXSdkDir = this.getPackageArkUIXSdkDir();
+      modifyConfigPath(this.type, packageArkUIXSdkDir);
+      return packageArkUIXSdkDir;
+    }
+  }
+
+  getDefaultSdk() {
+    let sdkHomeDir;
+    let defaultPrefixPath = '';
+    if (platform === Platform.Windows) {
+      defaultPrefixPath = path.join(homeDir, 'AppData', 'Local');
+      sdkHomeDir = this.getDefaultSdkPath(defaultPrefixPath);
+    } else if (platform === Platform.Linux) {
+      defaultPrefixPath = homeDir;
+      sdkHomeDir = this.getDefaultSdkPath(defaultPrefixPath);
+    } else if (platform === Platform.MacOS) {
+      defaultPrefixPath = path.join(homeDir, 'Library');
+      sdkHomeDir = this.getDefaultSdkPath(defaultPrefixPath);
+    }
+    return sdkHomeDir;
+  }
+
+  getDefaultSdkPath(defaultPrefixPath) {
+    let localSdkName;
+    let defaultSdkPath;
+    if (this.type === 'OpenHarmony') {
+      localSdkName = 'OpenHarmony';
+    } else if (this.type === 'HarmonyOS') {
+      localSdkName = 'Huawei';
+    } else if (this.type === 'ArkUI-X') {
+      localSdkName = 'ArkUI-X';
+    } else if (this.type === 'Android') {
+      localSdkName = 'Android';
+    }
+    defaultPrefixPath = path.join(defaultPrefixPath, localSdkName);
+    defaultSdkPath = path.join(defaultPrefixPath, 'Sdk');
+    if (sdkPathCheck(defaultSdkPath, this.type)) {
+      return defaultSdkPath;
+    } else {
+      defaultSdkPath = path.join(defaultPrefixPath, 'sdk');
+      if (sdkPathCheck(defaultSdkPath, this.type)) {
+        return defaultSdkPath;
       }
     }
-    if (this.stdType === 'ArkUI-X') {
-      return this.getPackageArkUIXSdkDir();
+  }
+
+  getIdePath() {
+    let sdkIdePath;
+    let sdkHomeDir;
+    const devecoStudio = 'DevEcoStudio';
+    const androidStudio = 'AndroidStudio';
+    if (this.type === 'HarmonyOS') {
+      sdkIdePath = readIdeXmlPath('huawei.sdk.location', devecoStudio);
     }
+    if (this.type === 'OpenHarmony') {
+      sdkIdePath = readIdeXmlPath('oh.sdk.location', devecoStudio);
+    }
+    if (this.type === 'ArkUI-X') {
+      sdkIdePath = readIdeXmlPath('arkuix.sdk.location', devecoStudio);
+    }
+    if (this.type === 'Android') {
+      sdkIdePath = readIdeXmlPath('android.sdk.path', androidStudio);
+    }
+    if (sdkIdePath && sdkPathCheck(sdkIdePath, this.type)) {
+      sdkHomeDir = sdkIdePath;
+    }
+    return sdkHomeDir;
   }
 
   getLocalPropertiesSdkDir(filePath) {
@@ -137,7 +189,7 @@ class Sdk {
     let targetPath = path.join(currentPath, '..', '..', '..', '..', 'arkui-x.json');
     if (fs.existsSync(targetPath)) {
       targetPath = path.join(targetPath, '..', '..', '..');
-      if (arkUIXSdkPathCheck(targetPath)) {
+      if (sdkPathCheck(targetPath, this.type)) {
         return targetPath;
       }
     }
@@ -150,21 +202,6 @@ class Sdk {
     } catch (err) {
       // ignore
     }
-  }
-
-  validSdkDir(dir) {
-    if (this.type === 'ArkUI-X') {
-      return arkUIXSdkPathCheck(dir);
-    }
-    return this.validSdkDirLicenses(dir) || this.validSdkDirTools(dir);
-  }
-
-  validSdkDirLicenses(dir) {
-    return fs.existsSync(path.join(dir, 'licenses'));
-  }
-
-  validSdkDirTools(dir) {
-    return fs.existsSync(path.join(dir, this.toolchainsName));
   }
 }
 
@@ -181,65 +218,63 @@ function isVersionValid(version, limit) {
   return true;
 }
 
-function cmpVersion(version1, version2) {
-  const subVersions1 = version1.split('.');
-  const subVersions2 = version2.split('.');
-  const limit = subVersions1.length;
-  for (let i = 0; i < limit; i++) {
-    if (parseInt(subVersions1[i]) === parseInt(subVersions2[i])) {
-      continue;
+function maxVersion(versionList) {
+  if (versionList.length === 1) {
+    return versionList[0];
+  } else {
+    for (let i = 0; i < versionList.length - 1; i++) {
+      if (cmpVersion(versionList[i], versionList[i + 1])) {
+        const tmp = versionList[i];
+        versionList[i] = versionList[i + 1];
+        versionList[i + 1] = tmp;
+      }
     }
-    if (parseInt(subVersions1[i]) > parseInt(subVersions2[i])) {
-      return 1;
-    } else {
-      return -1;
-    }
+    return versionList[versionList.length - 1];
   }
-  return 0;
 }
 
 function getOpenHarmonySdkVersion(sdkDir) {
+  const versionList = [];
+  let openHarmonySdkPath;
   if (!sdkDir) {
     return 'unknown';
   }
-  const files = fs.readdirSync(sdkDir);
-  const numOfFile = files.length;
-  if (!files || numOfFile <= 0) {
-    return 'unknown';
-  }
-  let target = '0';
-  files.forEach((file) => {
-    if (!isNaN(file) && parseInt(file) > parseInt(target)) {
-      target = file;
+  fs.readdirSync(sdkDir).forEach(dir => {
+    if (!isNaN(dir) && fs.statSync(path.join(sdkDir, dir)).isDirectory() && dir !== 'licenses') {
+      openHarmonySdkPath = path.join(sdkDir, dir, 'ets', 'oh-uni-package.json');
+      if (fs.existsSync(openHarmonySdkPath)) {
+        const ophenHarmonySdkVersion = JSON5.parse(fs.readFileSync(openHarmonySdkPath))['version'];
+        versionList.push(ophenHarmonySdkVersion);
+      }
     }
   });
-  const targetPath = path.join(sdkDir, target, 'ets', 'oh-uni-package.json');
-  if (!fs.existsSync(targetPath)) {
+  if (versionList.length !== 0) {
+    return maxVersion(versionList);
+  } else {
     return 'unknown';
   }
-  return JSON.parse(fs.readFileSync(targetPath))['version'];
 }
 
 function getArkuiXSdkVersion(sdkDir) {
+  const versionList = [];
+  let arkuiXSdkPath;
   if (!sdkDir || !fs.existsSync(sdkDir)) {
     return 'unknown';
   }
-  const files = fs.readdirSync(sdkDir);
-  const numOfFile = files.length;
-  if (!files || numOfFile <= 0) {
-    return 'unknown';
-  }
-  let target = '0';
-  files.forEach((file) => {
-    if (!isNaN(file) && parseInt(file) > parseInt(target)) {
-      target = file;
+  fs.readdirSync(sdkDir).forEach(dir => {
+    if (!isNaN(dir) && fs.statSync(path.join(sdkDir, dir)).isDirectory() && dir !== 'licenses') {
+      arkuiXSdkPath = path.join(sdkDir, dir, 'arkui-x', 'arkui-x.json');
+      if (fs.existsSync(arkuiXSdkPath)) {
+        const arkuiXSdkVersion = JSON5.parse(fs.readFileSync(arkuiXSdkPath))['version'];
+        versionList.push(arkuiXSdkVersion);
+      }
     }
   });
-  const targetPath = path.join(sdkDir, target, 'arkui-x', 'arkui-x.json');
-  if (!fs.existsSync(targetPath)) {
+  if (versionList.length !== 0) {
+    return maxVersion(versionList);
+  } else {
     return 'unknown';
   }
-  return JSON.parse(fs.readFileSync(targetPath))['version'];
 }
 
 function getAndroidSdkVersion(sdkDir) {
@@ -255,7 +290,7 @@ function getAndroidSdkVersion(sdkDir) {
   let sign = false;
   files.forEach((file) => {
     if (isVersionValid(file, 3)) {
-      if (cmpVersion(file, target) > 0) {
+      if (cmpVersion(file, target)) {
         sign = true;
         target = file;
       }
@@ -280,18 +315,7 @@ function getHarmonyOsSdkVersion(sdkDir) {
     }
   });
   if (versionList.length !== 0) {
-    if (versionList.length === 1) {
-      return versionList[0];
-    } else {
-      for (let i = 0; i < versionList.length - 1; i++) {
-        if (cmpVersion(versionList[i], versionList[i + 1]) > 0) {
-          let tmp = versionList[i];
-          versionList[i] = versionList[i + 1];
-          versionList[i + 1] = tmp;
-        }
-      }
-      return versionList[versionList.length - 1];
-    }
+    return maxVersion(versionList);
   } else {
     if (fs.existsSync(path.join(sdkDir, 'hmscore'))) {
       const files = fs.readdirSync(path.join(sdkDir, 'hmscore'));
@@ -303,7 +327,7 @@ function getHarmonyOsSdkVersion(sdkDir) {
       let sign = false;
       files.forEach((file) => {
         if (isVersionValid(file, 3)) {
-          if (cmpVersion(file, target) > 0) {
+          if (cmpVersion(file, target)) {
             sign = true;
             target = file;
           }
@@ -356,6 +380,5 @@ module.exports = {
   openHarmonySdk,
   harmonyOsSdk,
   arkuiXSdk,
-  androidSdk,
-  cmpVersion
+  androidSdk
 };

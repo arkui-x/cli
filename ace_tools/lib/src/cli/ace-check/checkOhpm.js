@@ -17,29 +17,34 @@ const fs = require('fs');
 const path = require('path');
 const { Platform, platform, homeDir } = require('./platform');
 const Process = require('child_process');
-const { getConfig } = require('../ace-config');
+const { getConfig, modifyConfigPath } = require('../ace-config');
+const { ohpmDirPathCheck } = require('./checkPathLawful');
+const { readIdeXmlPath } = require('./Ide');
 
 function checkOhpm() {
-  const environment = process.env;
-  const config = getConfig();
   let ohpmDir;
-  if (config && config['ohpm-dir']) {
+  let getIdePath;
+  const config = getConfig();
+  const environment = process.env;
+  const globalohpm = getGlobalOhpm();
+  if (config && config['ohpm-dir'] && ohpmDirPathCheck(config['ohpm-dir'])) {
     ohpmDir = config['ohpm-dir'];
-    if (validOhpmDir(ohpmDir)) {
-      return ohpmDir;
-    }
-  }
-  if ('OHPM_HOME' in environment) {
+  } else if ('OHPM_HOME' in environment && ohpmDirPathCheck(environment['OHPM_HOME'].replace(';', ''))) {
     ohpmDir = environment['OHPM_HOME'].replace(';', '');
-    if (validOhpmDir(ohpmDir)) {
-      return ohpmDir;
+  } else if (globalohpm) {
+    ohpmDir = globalohpm;
+  } else if (getDefaultOhpm()) {
+    ohpmDir = getDefaultOhpm();
+  } else {
+    getIdePath = readIdeXmlPath('ace.ohpm.path', 'DevEcoStudio');
+    if (getIdePath && ohpmDirPathCheck(getIdePath)) {
+      ohpmDir = getIdePath;
     }
   }
-  ohpmDir = getDefaultOhpm();
+  modifyConfigPath('ohpm-dir', ohpmDir);
   if (ohpmDir) {
     return ohpmDir;
   }
-  return getGlobalOhpm();
 }
 
 function getDefaultOhpm() {
@@ -54,7 +59,7 @@ function getDefaultOhpm() {
   }
   for (let i = 0; i < numOfFile; i++) {
     const targetPath = path.join(ohpmPaths, files[i]);
-    if (validOhpmDir(targetPath)) {
+    if (ohpmDirPathCheck(targetPath)) {
       return targetPath;
     }
   }
@@ -86,26 +91,6 @@ function getGlobalOhpm() {
     ohpmDir = path.dirname(ohpmDir);
     return ohpmDir;
   }
-}
-
-function validOhpmDir(ohpmDir) {
-  if (!fs.existsSync(ohpmDir)) {
-    return false;
-  }
-  const execPath = path.join(ohpmDir, 'bin', 'ohpm');
-  if (!fs.existsSync(execPath) || !fs.statSync(execPath).isFile()) {
-    return false;
-  }
-  try {
-    Process.execSync(`${execPath} -v`, {
-      encoding: 'utf-8',
-      stdio: 'pipe'
-    });
-    return true;
-  } catch (err) {
-    console.log(err);
-  }
-  return false;
 }
 
 module.exports = checkOhpm;

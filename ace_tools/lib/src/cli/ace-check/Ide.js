@@ -18,7 +18,9 @@ const path = require('path');
 const Process = require('child_process');
 
 const { Platform, platform, homeDir } = require('./platform');
-const { getConfig } = require('../ace-config');
+const { getConfig, modifyConfigPath } = require('../ace-config');
+const { typeStudioPathCheck } = require('./checkPathLawful');
+const { cmpVersion } = require('./util');
 
 const environment = process.env;
 
@@ -43,33 +45,104 @@ class Ide {
   locateIde() {
     let ideHomeDir;
     const config = this.checkConfig();
-    if (config) {
+    if (config && typeStudioPathCheck(config, this.type)) {
       ideHomeDir = config;
-    } else if (this.type in environment && this.validIdeFile(environment[this.type].replace(';', ''))) {
+    } else if (this.type in environment && typeStudioPathCheck(environment[this.type].replace(';', ''), this.type)) {
       ideHomeDir = environment[this.type].replace(';', '');
-    } else if (platform === Platform.Linux) {
-      if (this.validIdeFile(this.pointDir)) {
-        ideHomeDir = this.pointDir;
-      } else {
-        ideHomeDir = this.checkDefaultPath(this.defaultLinuxPath);
+    } else if (this.getDefaultPath()) {
+      ideHomeDir = this.getDefaultPath();
+    } else {
+      ideHomeDir = this.readIdeHomePath();
+    }
+    modifyConfigPath(this.type, ideHomeDir);
+    if (ideHomeDir) {
+      return ideHomeDir;
+    }
+  }
+
+  getDefaultPath() {
+    let defaultPath;
+    if (platform === Platform.Windows || platform === Platform.Linux) {
+      if (typeStudioPathCheck(this.pointDir, this.type)) {
+        defaultPath = this.pointDir;
+      } else if (this.checkDefaultPath(this.defaultLinuxPath)) {
+        defaultPath = this.checkDefaultPath(this.defaultLinuxPath);
       }
     } else if (platform === Platform.MacOS) {
       const macApp = this.checkMacApp();
-      if (this.validIdeFile(macApp)) {
-        ideHomeDir = macApp;
-      } else {
-        ideHomeDir = this.checkDefaultPath(this.defaultMacPath);
-      }
-    } else if (platform === Platform.Windows) {
-      if (this.validIdeFile(this.pointDir)) {
-        ideHomeDir = this.pointDir;
-      } else {
-        ideHomeDir = this.checkDefaultPath(this.defaultWinsPath);
+      if (typeStudioPathCheck(macApp, this.type)) {
+        defaultPath = macApp;
+      } else if (this.checkDefaultPath(this.defaultMacPath)) {
+        defaultPath = this.checkDefaultPath(this.defaultMacPath);
       }
     }
+    return defaultPath;
+  }
 
-    if (ideHomeDir) {
-      return ideHomeDir;
+  readIdeHomePath() {
+    let idetype;
+    let fileName;
+    let ideHomePath;
+    let validHomeDir;
+    const fileType = '.home';
+    if (this.type === 'DevEco Studio') {
+      idetype = 'DevEcoStudio';
+      fileName = 'Huawei';
+    } else if (this.type === 'Android Studio') {
+      idetype = 'AndroidStudio';
+      fileName = 'Google';
+    } else {
+      return '';
+    }
+    if (platform === Platform.Windows) {
+      ideHomePath = path.join(homeDir, 'AppData\\Local', fileName);
+      validHomeDir = this.validHomeOrXmlPath(ideHomePath, idetype, fileType);
+    } else if (platform === Platform.Linux) {
+      ideHomePath = path.join(homeDir, '.cache', fileName);
+      validHomeDir = this.validHomeOrXmlPath(ideHomePath, idetype, fileType);
+    } else if (platform === Platform.MacOS) {
+      ideHomePath = path.join(homeDir, 'Library/Caches', fileName);
+      validHomeDir = this.validHomeOrXmlPath(ideHomePath, idetype, fileType);
+    }
+    if (validHomeDir) {
+      validHomeDir = path.join(validHomeDir, fileType);
+      ideHomePath = fs.readFileSync(validHomeDir, 'utf-8');
+      if (platform === Platform.MacOS) {
+        ideHomePath = path.dirname(ideHomePath);
+      }
+      if (ideHomePath && typeStudioPathCheck(ideHomePath, this.type)) {
+        return ideHomePath;
+      }
+    }
+  }
+
+  validHomeOrXmlPath(ideHomePath, idetype, fileType) {
+    const ideValidFiles = [];
+    let maxValidVersionFile;
+    if (fs.existsSync(ideHomePath)) {
+      ideValidFiles.push(...fs.readdirSync(ideHomePath).filter((file) => {
+        return file.startsWith(idetype) && fs.existsSync(path.join(ideHomePath, file, fileType));
+      }));
+    }
+    if (ideValidFiles.length !== 0) {
+      maxValidVersionFile = this.maxIdePath(ideValidFiles);
+      return path.join(ideHomePath, maxValidVersionFile);
+    }
+    return '';
+  }
+
+  maxIdePath(ideValidFiles) {
+    if (ideValidFiles.length === 1) {
+      return ideValidFiles[0];
+    } else {
+      for (let i = 0; i < ideValidFiles.length - 1; i++) {
+        if (cmpVersion(ideValidFiles[i].match(/[0-9]+\.[0-9]+/)[0], ideValidFiles[i + 1].match(/[0-9]+\.[0-9]+/)[0])) {
+          const tmp = ideValidFiles[i];
+          ideValidFiles[i] = ideValidFiles[i + 1];
+          ideValidFiles[i + 1] = tmp;
+        }
+      }
+      return ideValidFiles[ideValidFiles.length - 1];
     }
   }
 
@@ -139,38 +212,10 @@ class Ide {
 
   checkDefaultPath(dirs) {
     for (const i in dirs) {
-      if (fs.existsSync(dirs[i]) && this.validIdeFile(dirs[i])) {
+      if (fs.existsSync(dirs[i]) && typeStudioPathCheck(dirs[i], this.type)) {
         return dirs[i];
       }
     }
-  }
-
-  validIdeFile(dir) {
-    if (!dir) {
-      return false;
-    }
-    return this.validIdeBin(dir) ||
-      this.validIdeBin(path.join(dir, `${platform === Platform.MacOS ? 'Contents/MacOS' : 'bin'}`));
-  }
-
-  validIdeBin(dir) {
-    if (Object.values(Platform).indexOf(platform)) {
-      return this.validIdePath(dir, platform);
-    }
-    return false;
-  }
-
-  validIdePath(dir, platform) {
-    if (this.stdType === 'android-studio') {
-      this.exePrefix = 'studio';
-    }
-    const exe = platform === Platform.Linux ? '.sh' : platform === Platform.MacOS ? '' : '.exe';
-    if (fs.existsSync(path.join(dir, `${this.exePrefix}${exe}`))) {
-      return true;
-    } else if (fs.existsSync(path.join(dir, `${this.exePrefix}64${exe}`))) {
-      return true;
-    }
-    return false;
   }
 
   getVersion(studioDir) {
@@ -190,7 +235,7 @@ class Ide {
       } catch (err) {
         return 'unknown';
       }
-    } else if (platform === Platform.Windows) {
+    } else {
       const targetPath = path.join(studioDir, 'product-info.json');
       if (!fs.existsSync(targetPath)) {
         return 'unknown';
@@ -200,9 +245,49 @@ class Ide {
   }
 }
 
+function readIdeXmlPath(envtype, AnOrDeStudio) {
+  let ideOtherFilePath;
+  let ideXmlFileDir;
+  let fileName;
+  if (AnOrDeStudio === 'DevEcoStudio') {
+    fileName = 'Huawei';
+  } else if (AnOrDeStudio === 'AndroidStudio') {
+    fileName = 'Google';
+  } else {
+    return '';
+  }
+  const fileType = path.join('options', 'other.xml');
+  if (platform === Platform.Windows) {
+    ideOtherFilePath = path.join(homeDir, 'AppData\\Roaming', fileName);
+  } else if (platform === Platform.Linux) {
+    ideOtherFilePath = path.join(homeDir, '.config', fileName);
+  } else if (platform === Platform.MacOS) {
+    ideOtherFilePath = path.join(homeDir, `Library/Application Support`, fileName);
+  }
+  const maxDevEcoStudio = devEcoStudio.validHomeOrXmlPath(ideOtherFilePath, AnOrDeStudio, fileType);
+  if (maxDevEcoStudio) {
+    ideXmlFileDir = path.join(maxDevEcoStudio, fileType);
+    const ideOtherEnvDir = searchXmlPath(ideXmlFileDir, envtype);
+    return ideOtherEnvDir;
+  }
+}
+
+function searchXmlPath(ideXmlFileDir, envtype) {
+  let packageName;
+  let xmldata = fs.readFileSync(ideXmlFileDir, 'utf-8').replace(/&quot;/g, '"');
+  xmldata = xmldata.trim().split('\n');
+  for (let i = 0; i < xmldata.length; i++) {
+    if (xmldata[i].indexOf(`"${envtype}"`) !== -1) {
+      packageName = xmldata[i].split('"')[3];
+      return packageName.replace(/\\\\/g, '\\');
+    }
+  }
+  return null;
+}
+
 const devEcoStudio = new Ide(
   'DevEco Studio',
-  [`/opt/deveco-studio`, `${homeDir}/deveco-studio`],
+  [],
   [],
   [`C:\\Program Files\\Huawei\\DevEco Studio`,
     `D:\\Program Files\\Huawei\\DevEco Studio`],
@@ -220,5 +305,6 @@ const androidStudio = new Ide(
 
 module.exports = {
   devEcoStudio,
-  androidStudio
+  androidStudio,
+  readIdeXmlPath
 };

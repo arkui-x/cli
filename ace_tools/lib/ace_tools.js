@@ -36,7 +36,7 @@ const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
 const { getAbsolutePath, validOptions, checkProjectType } = require('./src/cli/util');
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
-const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util')
+const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
@@ -54,8 +54,8 @@ function parseCommander() {
   program.configureHelp({
     showGlobalOptions: true
   });
-  program.addHelpText("before", 'Manage your ArkUI cross-platform app development.');
-  program.addHelpText("before",
+  program.addHelpText('before', 'Manage your ArkUI cross-platform app development.');
+  program.addHelpText('before',
     `
 Common commands:
 
@@ -95,7 +95,7 @@ Common commands:
     if (!aceCommands.includes(userInputCommand[0]) && process.argv.some(arg => ['--help', '-h'].includes(arg))) {
       unknownCommands(userInputCommand[0]);
     }
-    program.addHelpText("afterAll", `\nRun "ace help" to see global options.`);
+    program.addHelpText('afterAll', `\nRun "ace help" to see global options.`);
     program.parse(process.argv);
   }
 }
@@ -121,7 +121,7 @@ function parseHelp() {
     .usage('[arguments]')
     .description(`help.`)
     .addHelpCommand(false)
-    .addHelpText("afterAll", `\nRun "ace help" to see global options.`)
+    .addHelpText('afterAll', `\nRun "ace help" to see global options.`);
   aceCommands.forEach(subcommand => {
     helpCmd.command(subcommand, { hidden: true });
   });
@@ -144,11 +144,11 @@ function parseCreate() {
       const projectName = path.basename(absolutePath);
 
       if (!cmd.template) {
-        initInfo.template = 'app'
+        initInfo.template = 'app';
       } else if (cmd.template === 'app' || cmd.template === 'library' || cmd.template === 'plugin_napi') {
         initInfo.template = cmd.template;
       } else {
-        console.log(`Failed to create the project.Invaild template type ${cmd.template}.\nChoose from the app,library and plugin_napi options`);
+        console.log(`Failed to create the project.Invalid template type ${cmd.template}.\nChoose from the app,library and plugin_napi options`);
         return;
       }
 
@@ -177,9 +177,9 @@ function parseCreate() {
               initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion);
             repairProject(absolutePath, outputDir);
           } else {
-            console.log("Failed to repair project, preserve existing project.");
+            console.error('Failed to repair project, preserve existing project.');
           }
-        })
+        });
         return true;
       }
 
@@ -251,7 +251,7 @@ function parseCreate() {
             }]).then(answers => {
               initInfo.sdkVersion = answers['Complie SDk'] === '1' ? '10' : '11';
               create(initInfo);
-            })
+            });
           });
         });
       });
@@ -288,7 +288,7 @@ Available subcommands:
         }
       });
     if (process.argv[2] === 'help' && process.argv[3] === 'new') {
-      subcommandHelp(newCmd, newArgs, subcommand, newSubcommand)
+      subcommandHelp(newCmd, newArgs, subcommand, newSubcommand);
     }
     newSubcommand.unknownOption = () => unknownOptions();
   });
@@ -341,9 +341,7 @@ function parseConfig() {
     .option('--openharmony-sdk [OpenHarmony SDK]', 'OpenHarmony SDK path.')
     .description(`Configure ArkUI cross-platform settings.`)
     .action((cmd) => {
-      if (cmd.openharmonySdk || cmd.harmonyosSdk || cmd.androidSdk || cmd.devecoStudioPath || cmd.androidStudioPath
-        || cmd.buildDir ||
-        cmd.nodejsDir || cmd.javaSdk || cmd.signDebug || cmd.signRelease || cmd.arkuiXSdk || cmd.ohpmDir) {
+      if (Object.keys(cmd).length !== 0) {
         setConfig({
           'android-sdk': cmd.androidSdk,
           'android-studio-path': cmd.androidStudioPath,
@@ -406,7 +404,7 @@ Available subcommands:
     if (subcommand === 'ios') {
       buildSubcommand
         .option('--nosign', 'Build without sign.')
-        .option('--analyze', "analyze/diff package size")
+        .option('--analyze', 'analyze/diff package size')
         .option('-s, --simulator', 'Build for iOS Simulator.');
     }
     if (subcommand === 'ios-framework' || subcommand === 'ios-xcframework') {
@@ -420,15 +418,15 @@ Available subcommands:
     }
     if (subcommand === 'apk') {
       buildSubcommand
-        .option('--analyze', "analyze/diff package size");
+        .option('--analyze', 'analyze/diff package size');
     }
     if (subcommand === 'hap') {
       buildSubcommand
-        .option('--analyze', "analyze/diff package size")
+        .option('--analyze', 'analyze/diff package size')
         .option('--target [moduleName]', 'name of module to be built');
     }
     if (process.argv[2] === 'help' && process.argv[3] === 'build') {
-      subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand)
+      subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand);
     }
     buildSubcommand
       .action((cmd) => {
@@ -636,7 +634,7 @@ Available subcommands:
         return false;
       }
       if (options.path !== undefined && options.path.length == 0) {
-        console.log("please input the correct path of install file");
+        console.log('please input the correct path of install file');
         return false;
       }
       if (fileType === 'apk' || fileType === 'ios') {
@@ -691,7 +689,9 @@ function chooseDevice(fileType, options, func) {
       type: 'input',
       message: 'Please choose one (or "q" to quit):',
       validate(val) {
-        if (val.toLowerCase() === 'q' || val.toLowerCase() === 'quit') return true;
+        if (val.toLowerCase() === 'q' || val.toLowerCase() === 'quit') {
+          return true;
+        }
         if (mapDevice.get(val)) {
           return true;
         } else {
@@ -700,7 +700,9 @@ function chooseDevice(fileType, options, func) {
       }
     }]).then(answers => {
       const id = answers.ID;
-      if (id === 'q' || id === 'quit') return false;
+      if (id === 'q' || id === 'quit') {
+        return false;
+      }
       const inputDevice = getDeviceID(mapDevice.get(id));
       if (!fileType) {
         fileType = getDeviceType(inputDevice);
