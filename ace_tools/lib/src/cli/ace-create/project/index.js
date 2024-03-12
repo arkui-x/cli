@@ -15,7 +15,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const inquirer = require('inquirer');
 const createAar = require('../aar');
 const createFramework = require('../framework');
 const { getSdkVersion } = require('../../util/index');
@@ -89,7 +88,7 @@ Project created. Target directory:  ${projectAbsolutePath}.
 Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
     }
   } catch (error) {
-    console.log('Project created failed! Target directory: ' + projectAbsolutePath + '.' + error);
+    console.error('\x1B[31m%s\x1B[0m', 'Project created failed! Target directory: ' + projectAbsolutePath + '.' + error);
   }
 }
 
@@ -104,7 +103,7 @@ function findStageTemplate(projectTempPath, bundleName, project, runtimeOS, temp
       copyStageTemplate(pathTemplate, projectTempPath, template, sdkVersion);
       replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion);
     } else {
-      console.log('Error: Template is not exist!');
+      console.error('\x1B[31m%s\x1B[0m', 'Template is not exist!');
     }
   }
 }
@@ -147,10 +146,10 @@ function replaceAndroidProjectInfo(projectTempPath, bundleName, project, templat
   files.push(path.join(projectTempPath, '.arkui-x/android/app/src/main/AndroidManifest.xml'));
   replaceInfos.push('MainActivity');
   strs.push('EntryEntryAbilityActivity');
-  if (template === acePluginNapiProType) {
-    modifyNativeCppConfig(projectTempPath, files, replaceInfos, strs, project);
-  }
   replaceInfo(files, replaceInfos, strs);
+  if (template === acePluginNapiProType) {
+    modifyNativeCppConfig(projectTempPath, project, 'app');
+  }
 
   fs.renameSync(path.join(projectTempPath, '.arkui-x/android/app/src/main/java/MainActivity.java'), path.join(projectTempPath,
     '.arkui-x/android/app/src/main/java/EntryEntryAbilityActivity.java'));
@@ -224,6 +223,11 @@ function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS
   files.push(path.join(projectTempPath, 'entry/oh-package.json5'));
   replaceInfos.push('module_name');
   strs.push('entry');
+  if (template === aceLibraryProType) {
+    files.push(path.join(projectTempPath, 'hvigorfile.ts'));
+    replaceInfos.push('AppTasksForArkUIX');
+    strs.push('AppTasksForArkUIXLibrary');
+  }
   if (template === acePluginNapiProType) {
     files.push(path.join(projectTempPath, 'entry/src/main/cpp/CMakeLists.txt'));
     replaceInfos.push('appNameValue');
