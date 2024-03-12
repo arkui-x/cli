@@ -17,7 +17,7 @@ const compiler = require('../ace-build/ace-compiler');
 const build = require('../ace-build');
 const {install, isInstallFileExist} = require('../ace-install');
 const launch = require('../ace-launch');
-const { isProjectRootDir, validInputDevice } = require('../util');
+const { isProjectRootDir, validInputDevice, getEntryModule } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 
 function test(fileType, device, cmd) {
@@ -45,7 +45,7 @@ function test(fileType, device, cmd) {
     }
     let installFlag = true;
     cmd.target = cmd.target || 'entry';
-    installFlag = install(fileType, device, cmd.target, cmd.path);
+    installFlag = install(fileType, device, cmd, cmd.path);
     if (installFlag && launch(fileType, device, cmd)) {
       return true;
     }
@@ -58,9 +58,10 @@ function test(fileType, device, cmd) {
     build(fileType, cmd);
   }
   let installFlag = true;
-  cmd.target = cmd.target || 'entry';
+  const entryModule = getEntryModule(projectDir);
+  cmd.target = cmd.target || entryModule;
   // ios launch command contain install
-  installFlag = install(fileType, device, cmd.target, undefined, cmd);
+  installFlag = install(fileType, device, cmd, undefined);
   if (installFlag && launch(fileType, device, cmd)) {
     return true;
   }

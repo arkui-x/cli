@@ -18,7 +18,7 @@ const build = require('../ace-build');
 const {install} = require('../ace-install');
 const launch = require('../ace-launch');
 const { log } = require('../ace-log');
-const { isProjectRootDir, validInputDevice } = require('../util');
+const { isProjectRootDir, validInputDevice, getLaunchModule, validInputModule, getEntryModule } = require('../util');
 const { isSimulator } = require('../ace-devices');
 
 function run(fileType, device, cmd) {
@@ -29,18 +29,24 @@ function run(fileType, device, cmd) {
   if (!validInputDevice(device)) {
     return false;
   }
+  const entryModule = getEntryModule(projectDir);
+  cmd.target = cmd.target || entryModule;
+  const moduleListInput = cmd.target.split(',');
+  if (!validInputModule(projectDir, moduleListInput, fileType)) {
+    return false;
+  }
   if (isSimulator(device) && fileType === 'ios') {
     cmd.simulator = true;
   }
-  if (fileType === 'hap') {
+  if (fileType === 'hap' || fileType === 'haphsp') {
     compiler(fileType, cmd);
   } else {
     build(fileType, cmd);
   }
   let installFlag = true;
-  cmd.target = cmd.target || 'entry';
-  installFlag = install(fileType, device, cmd.target, undefined, cmd);
-  if (installFlag) {
+  installFlag = install(fileType, device, cmd, undefined);
+  cmd.target = getLaunchModule(projectDir, cmd.target);
+  if (installFlag && cmd.target) {
     if (fileType === 'ios') {
       log(fileType, device, cmd.test);
     }
