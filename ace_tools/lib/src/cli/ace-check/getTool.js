@@ -53,7 +53,7 @@ function getTools() {
 
 function getToolByType(fileType, currentSystem, isLogTool) {
   let toolPath = {};
-  if (fileType === 'hap') {
+  if (fileType === 'hap' || fileType === 'hsp' || fileType === 'haphsp') {
     if (harmonyOsSdkDir && currentSystem === 'HarmonyOS') {
       toolPath = getToolchains('HarmonyOS');
     } else if (openHarmonySdkDir && currentSystem === 'OpenHarmony') {
