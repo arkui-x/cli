@@ -108,7 +108,7 @@ function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
 function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
   const buildProfile = path.join(projectPath, 'build-profile.json5');
   const configFile = [path.join(projectPath, moduleName, 'src/main/module.json5'),
-  path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
+    path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
   const deviceTypeName = 'deviceTypes';
 
   if (fs.existsSync(buildProfile)) {
@@ -150,39 +150,40 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
   });
 }
 
-function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project) {
-  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'));
-  replaceInfos.push('appNameValue');
-  strs.push(project);
+function modifyNativeCppConfig(projectPath, projectName, destDir) {
+  const cMakeFile = path.join(projectPath, `.arkui-x/android/${destDir}/src/main/cpp/CMakeLists.txt`);
+  try {
+    fs.writeFileSync(cMakeFile, fs.readFileSync(cMakeFile).toString().replace(/appNameValue/g, projectName));
 
-  const buildGradle = path.join(projectPath, '.arkui-x/android/app/build.gradle');
-  if (fs.existsSync(buildGradle)) {
-    const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').toString();
-    const searchAbi = `testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"`;
-    const searchFeatures = 'dynamicFeatures = []';
-    const addAbiIndex = buildGradleInfo.lastIndexOf(searchAbi);
-    const delFeaturesIndex = buildGradleInfo.lastIndexOf(searchFeatures);
-    const addAbi = `\n
+    const buildGradle = path.join(projectPath, `.arkui-x/android/${destDir}/build.gradle`);
+    if (fs.existsSync(buildGradle)) {
+      const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').toString();
+      const searchAbi = `testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"`;
+      const searchNative = 'sourceSets {';
+      const addAbiIndex = buildGradleInfo.lastIndexOf(searchAbi);
+      const searchNativeIndex = buildGradleInfo.lastIndexOf(searchNative);
+      const addAbi = `\n
         ndk {
             abiFilters "arm64-v8a"
         }
     `;
-    const addPackage = `
+      const addPackage = `
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')
             version '3.22.1'
         }
     }
-
-    packagingOptions {
-        pickFirst 'lib/arm64-v8a/libarkui_android.so'
-    }`;
-
-    const updateBuildGradleInfo = buildGradleInfo.slice(0, addAbiIndex + searchAbi.length) + addAbi +
-      buildGradleInfo.slice(addAbiIndex + searchAbi.length, delFeaturesIndex) + addPackage +
-      buildGradleInfo.slice(delFeaturesIndex + searchFeatures.length);
-    fs.writeFileSync(buildGradle, updateBuildGradleInfo);
+    `;
+      const updateBuildGradleInfo = buildGradleInfo.slice(0, addAbiIndex + searchAbi.length) + addAbi +
+        buildGradleInfo.slice(addAbiIndex + searchAbi.length, searchNativeIndex) + addPackage +
+        buildGradleInfo.slice(searchNativeIndex);
+      fs.writeFileSync(buildGradle, updateBuildGradleInfo);
+    }
+    return true;
+  } catch (e) {
+    console.error('\x1B[31m%s\x1B[0m', `modify ${cMakeFile} failed.`);
+    return false;
   }
 }
 
