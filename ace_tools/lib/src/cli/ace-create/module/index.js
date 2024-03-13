@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
-const { copy, modifyHarmonyOSConfig, addCrosssPlatform, modifyOpenHarmonyOSConfig, modifyNativeCppConfig } = require('../util');
+const { copy, modifyHarmonyOSConfig, addCrossPlatform, modifyOpenHarmonyOSConfig, modifyNativeCppConfig } = require('../util');
 const { getSdkVersion } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability');
 const { getModuleList, getCurrentProjectSystem, getModuleType, addFileToPbxproj,
@@ -159,10 +159,10 @@ function createStageModuleInSource(moduleName, templateDir, moduleType) {
       srcPath = path.join(templateDir, 'share_library');
     } else if (moduleType === 'ShareC++') {
       srcPath = path.join(templateDir, 'share_library');
-      copyFlag = copyFlag && copyNativeToModule(moduleName, templateDir);
+      copyFlag = copyNativeToModule(moduleName, templateDir);
     } else if (moduleType === 'NativeC++') {
       srcPath = path.join(templateDir, 'cpp_ets_stage/source/entry');
-      copyFlag = copyFlag && copyNativeToModule(moduleName, templateDir);
+      copyFlag = copyNativeToModule(moduleName, templateDir);
     } else {
       srcPath = path.join(templateDir, 'ets_stage/source/entry');
     }
@@ -188,9 +188,9 @@ function modifyStageProfile(moduleName, modulePath, moduleType) {
         return false;
       }
       modifyNativeCppTemplate(moduleName, appName, modulePath);
-      if (moduleType === 'ShareC++') {
-        modifyShareNative(moduleName, modulePath);
-      }
+    }
+    if (moduleType === 'ShareC++') {
+      modifyShareNative(moduleName, modulePath);
     }
     modifyBuildProfile(moduleName, modulePath);
     return true;
@@ -232,7 +232,7 @@ function replaceStageProjectInfo(moduleName, moduleType) {
     const strs = [];
     const mainPath = path.join(projectDir, moduleName, 'src', 'main');
 
-    files.push(path.join(projectDir, moduleName, '/oh-package.json5'));
+    files.push(path.join(projectDir, moduleName, 'oh-package.json5'));
     replaceInfos.push('module_name');
     strs.push(moduleName);
     files.push(path.join(mainPath, 'module.json5'));
@@ -254,7 +254,7 @@ function replaceStageProjectInfo(moduleName, moduleType) {
       replaceInfos.push('entryability');
       strs.push(moduleName + 'ability');
 
-      files.push(path.join(projectDir, moduleName, '/src/ohosTest/module.json5'));
+      files.push(path.join(projectDir, moduleName, 'src/ohosTest/module.json5'));
       replaceInfos.push('module_test_name');
       strs.push(moduleName + '_test');
       files.push(path.join(mainPath, 'resources/base/element/string.json'));
@@ -413,7 +413,7 @@ function createStageModule(moduleList, templateDir) {
           }]).then(answers => {
             if (createStageModuleInSource(moduleName, templateDir, moduleType)) {
               if (answers.cross === 'y') {
-                addCrosssPlatform(projectDir, moduleName);
+                addCrossPlatform(projectDir, moduleName);
               }
               return replaceStageProjectInfo(moduleName, moduleType);
             }
@@ -441,7 +441,7 @@ function createStageModule(moduleList, templateDir) {
             if (createStageModuleInSource(moduleName, templateDir, moduleType)
               && createStageInAndroid(moduleName, templateDir, moduleType)
               && createStageInIOS(moduleName, templateDir, moduleType)) {
-              addCrosssPlatform(projectDir, moduleName);
+              addCrossPlatform(projectDir, moduleName);
               return replaceStageProjectInfo(moduleName, moduleType);
             }
           } else {
@@ -668,7 +668,7 @@ function updateCrossPlatformModules(currentSystem) {
       modifyBuildProfile(module, modulePath);
       updateRuntimeOS(modulePath, currentSystem);
       if (moduleType === 'NativeC++' || moduleType === 'EmptyAbility') {
-        addCrosssPlatform(projectDir, module);
+        addCrossPlatform(projectDir, module);
         const moduleJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, modulePath, 'src/main/module.json5')));
         const currentDir = path.join(projectDir, modulePath);
         moduleJsonInfo.module.abilities.forEach(component => {

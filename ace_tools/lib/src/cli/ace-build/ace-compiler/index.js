@@ -266,7 +266,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     cmds.push(`chmod 755 hvigorw`);
   }
   let gradleMessage;
-  if (fileType === 'hap' || fileType === 'haphsp') {
+  if (fileType === 'hap') {
     let moduleStr = '';
     if (moduleList) {
       moduleStr = '-p module=' + moduleList.join(',');
@@ -275,12 +275,28 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (cmd.debug) {
       debugStr = '-p buildMode=debug';
     }
-    let assembleType = 'assembleHap';
-    if (fileType === 'haphsp') {
-      assembleType += ' assembleHsp';
-    }
-    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} ${assembleType} --no-daemon`);
+    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap --no-daemon`);
     gradleMessage = 'Building a HAP file...';
+  } else if (fileType === 'haphsp') {
+    const hspModuleList = getHspModuleList(projectDir);
+    let hapModule = [];
+    let hspModule = [];
+    moduleList.forEach(module => {
+      if (!hspModuleList.includes(module)) {
+        hapModule.push(module);
+      } else {
+        hspModule.push(module);
+      }
+    });
+    let debugStr = '';
+    if (cmd.debug) {
+      debugStr = '-p buildMode=debug';
+    }
+    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module -p module=${hapModule.join(',')} assembleHap --no-daemon`);
+    if (hspModule.length !== 0) {
+      cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module -p module=${hspModule.join(',')} assembleHsp --no-daemon`);
+    }
+    gradleMessage = 'Building HAP/HSP files...';
   } else if (fileType === 'hsp') {
     let moduleStr = '';
     if (moduleList) {
