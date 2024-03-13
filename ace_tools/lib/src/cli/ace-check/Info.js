@@ -20,7 +20,8 @@ const {
   androidSdkVersion,
   harmonyOsSdkVersion,
   devEcoStudioVersion,
-  androidStudioVersion
+  androidStudioVersion,
+  sourceArkuiXSdkVersion
 } = require('./configs');
 class Info {
   constructor() {
@@ -47,6 +48,8 @@ class Info {
     this.noIdeviceVersion = 'libimobiledevice not installed. To install, run: brew install libimobiledevice';
     this.noDeployVersion = 'ios-deploy not installed. To install, run: brew install ios-deploy';
     this.noXcodedir = 'Xcode is not installed, you can install in app store';
+    this.sourceTitle = `ArkUI-X source (ArkUI-X SDK source version ${sourceArkuiXSdkVersion})`;
+    this.noSource = `ArkUI-X source is not installed`;
 
     this.warnOpenHarmonySdk =
       `OpenHarmony SDK is required, please refer to the HarmonyOS Developer to download and install it.
@@ -175,6 +178,14 @@ class Info {
 
   iosDeployVersionInfo(deployVersion) {
     return deployVersion || this.noDeployVersion;
+  }
+
+  hasSource(sourceDir) {
+    return `ArkUI-X source at ${sourceDir}`;
+  }
+
+  sourceInfo(sourceDir) {
+    return sourceDir ? this.hasSource(sourceDir) : this.noSource;
   }
 }
 

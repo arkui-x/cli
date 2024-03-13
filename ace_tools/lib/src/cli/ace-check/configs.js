@@ -20,7 +20,11 @@ const { devEcoStudio, androidStudio} = require('./Ide');
 const { checkNodejs, getNodejsVersion} = require('./checkNodejs');
 const checkOhpm = require('./checkOhpm');
 const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion, getxCodeDir } = require('./checkAppVersion');
-const { getJavaVersion, getJavaSdkDirInEnv, getJavaSdkDirInIde} = require('./checkJavaSdk');
+const { getJavaVersion, getJavaSdkDirInEnv, getJavaSdkDirInIde } = require('./checkJavaSdk');
+const { getSourceDir, getSourceArkuixVersion } = require('./checkSource');
+
+const sourceDir = getSourceDir();
+const sourceArkuiXSdkVersion = getSourceArkuixVersion();
 
 const openHarmonySdkDir = openHarmonySdk.locateSdk();
 const openHarmonySdkVersion = openHarmonySdk.getVersion(openHarmonySdkDir);
@@ -81,5 +85,7 @@ module.exports = {
   javaSdkVersionUser,
   javaSdkVersionAndroid,
   javaSdkVersionDevEco,
-  ohpmDir
+  ohpmDir,
+  sourceDir,
+  sourceArkuiXSdkVersion
 };

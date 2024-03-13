@@ -21,7 +21,7 @@ const { getSdkVersion } = require('../../util/index');
 const { getConfig } = require('../../ace-config');
 const { copy, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
   modifyOpenHarmonyOSConfig, modifyNativeCppConfig, signIOS, copyTemp,
-  getFileList, getTempPath, createAndroidAndIosBuildArktsShell,
+  getFileList, getTempPath, createAndroidAndIosBuildArkTSShell,
   createAndroidTaskInBuildGradle, createIosScriptInPbxproj } = require('../util');
 const aceHarmonyOS = '2';
 const acePluginNapiProType = 'plugin_napi';
@@ -50,7 +50,7 @@ function createAndroidAndIosShell(projectAbsolutePath) {
   if (configContent['arkui-x-sdk']) {
     arkuixPath = path.join(configContent['arkui-x-sdk'], String(version), 'arkui-x');
   }
-  createAndroidAndIosBuildArktsShell(projectAbsolutePath, ohpmPath, arkuixPath);
+  createAndroidAndIosBuildArkTSShell(projectAbsolutePath, ohpmPath, arkuixPath);
 }
 
 function repairProject(projectAbsolutePath, outputDir) {

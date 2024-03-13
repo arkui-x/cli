@@ -340,6 +340,7 @@ function parseConfig() {
     .option('--nodejs-dir [Nodejs Dir]', 'Node.js path.')
     .option('--ohpm-dir [Ohpm Dir]', 'Ohpm path.')
     .option('--openharmony-sdk [OpenHarmony SDK]', 'OpenHarmony SDK path.')
+    .option('--source-dir [Source Dir]', 'Source path.')
     .description(`Configure ArkUI cross-platform settings.`)
     .action((cmd) => {
       if (Object.keys(cmd).length !== 0) {
@@ -353,7 +354,8 @@ function parseConfig() {
           'java-sdk': cmd.javaSdk,
           'nodejs-dir': cmd.nodejsDir,
           'ohpm-dir': cmd.ohpmDir,
-          'openharmony-sdk': cmd.openharmonySdk
+          'openharmony-sdk': cmd.openharmonySdk,
+          'source-dir': cmd.sourceDir
         });
       } else {
         console.log('Please use ace config with options :' + `
@@ -366,7 +368,8 @@ function parseConfig() {
         --java-sdk            [Java SDK]
         --nodejs-dir          [Nodejs Dir]
         --ohpm-dir            [Ohpm Dir]
-        --openharmony-sdk     [OpenHarmony SDK]`);
+        --openharmony-sdk     [OpenHarmony SDK]
+        --source-dir          [Source Dir]`);
       }
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'config') {
@@ -586,7 +589,7 @@ function parseLog() {
 Available subcommands:
   apk                    Show log output for running the APK.
   hap                    Show log output for running the HAP.
-  ios                     Show log output for running the APP.`);
+  ios                    Show log output for running the APP.`);
       }
     })
     .action((fileType, options, cmd) => {

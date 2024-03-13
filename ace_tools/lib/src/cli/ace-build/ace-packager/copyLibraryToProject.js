@@ -22,6 +22,8 @@ const { arkuiXSdkDir } = require('../../ace-check/configs');
 const { appCpu2SdkLibMap, appCpu2DestLibDir, clearLibBeforeCopy } = require('./globalConfig');
 const { updateIosProjectPbxproj } = require('./adjustPbxproj4Framework');
 const { getSdkVersion } = require('../../util/index');
+const { getSourceArkuixPath } = require('../../ace-check/checkSource');
+
 const arkUIXSdkName = 'arkui-x';
 let arkuiXSdkPath = '';
 let arkUIXSdkRootLen = 0;
@@ -308,8 +310,8 @@ function processLib(libpath, depLibSet, allLibSet, removeUnused) {
  * main function to copy library files into project lib directory
  **/
 function copyLibraryToProject(fileType, cmd, projectDir, system) {
-  const version = getSdkVersion(process.cwd());
-  arkuiXSdkPath = arkuiXSdkDir + `/${version}/arkui-x`;
+  const version = getSdkVersion(projectDir);
+  arkuiXSdkPath = getSourceArkuixPath() || (arkuiXSdkDir + `/${version}/arkui-x`);
   const apiConfigMap = loadApiConfigJson(arkuiXSdkPath);
   const collectionSet = loadCollectionJson(projectDir);
   arkUIXSdkRootLen = arkuiXSdkPath.length;

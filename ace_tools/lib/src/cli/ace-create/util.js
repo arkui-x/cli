@@ -363,12 +363,12 @@ function createAndroidTaskInBuildGradle(projectPath) {
           def os = System.getProperty("os.name").toLowerCase()
           if (os.contains("win")) {
             exec {
-              commandLine 'cmd', '/c', '.\\\\buildArkTs'
+              commandLine 'cmd', '/c', '.\\\\buildArkTS'
               workingDir file( project.projectDir.getAbsolutePath() + '\\\\..' )
             }
           } else {
             exec {
-              commandLine 'sh', '-c', 'chmod +x ./buildArkTs && ./buildArkTs'
+              commandLine 'sh', '-c', 'chmod +x ./buildArkTS && ./buildArkTS'
               workingDir file( project.projectDir.getAbsolutePath() + '/..' )
             }
           }
@@ -381,14 +381,14 @@ function createAndroidTaskInBuildGradle(projectPath) {
 
 }
 
-function createAndroidAndIosBuildArktsShell(projectPath, ohpmPath, arkuiXSdkPath) {
+function createAndroidAndIosBuildArkTSShell(projectPath, ohpmPath, arkuiXSdkPath) {
   const moduleList = getCrossPlatformModules(projectPath).join(',');
-  const taskIncommandLine = getAndroidAndIosBuildArktsShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
-  const batIncommandLine = getWindowsBuildArktsShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
+  const taskIncommandLine = getAndroidAndIosBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
+  const batIncommandLine = getWindowsBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
   try {
-    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTs.bat'), batIncommandLine, 'utf8');
-    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTs'), taskIncommandLine, 'utf8');
-    fs.writeFileSync(path.join(projectPath, '.arkui-x/ios/buildArkTs.sh'), taskIncommandLine, 'utf8');
+    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS.bat'), batIncommandLine, 'utf8');
+    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS'), taskIncommandLine, 'utf8');
+    fs.writeFileSync(path.join(projectPath, '.arkui-x/ios/buildArkTS.sh'), taskIncommandLine, 'utf8');
   } catch (err) {
     console.log(err);
   }
@@ -416,7 +416,7 @@ function createIosScriptInPbxproj(projectPath) {
           shellPath = "/bin/sh";
           shellScript = '# Select whether you want to execute the compile arkts script.`+ `\n` + "configBuildFlag=false" +
     `\n` + `if [ "$configBuildFlag" = "false" ]; then` + `\n\t` + "exit 0" + `\n` + "fi" + `\n` +
-    "sh ${SRCROOT}/buildArkTs.sh" + `';
+    "sh ${SRCROOT}/buildArkTS.sh" + `';
       };
 /* End PBXShellScriptBuildPhase section */`;
   if (!fs.existsSync(pbxProjInfoPath)) {
@@ -435,7 +435,7 @@ function createIosScriptInPbxproj(projectPath) {
 
 }
 
-function getWindowsBuildArktsShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
+function getWindowsBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
   return `@echo off
 setlocal enabledelayedexpansion
 
@@ -525,7 +525,7 @@ for %%i in (%folders%) do (
 exit /b`;
 }
 
-function getAndroidAndIosBuildArktsShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
+function getAndroidAndIosBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
   return `#!/bin/bash
 # It is an ACE compilation flag that cannot be manually modified.
 isAceBuildFlag="$ACEBUILDFLAG"
@@ -653,6 +653,6 @@ module.exports = {
   getTempPath,
   getProjectInfo,
   createAndroidTaskInBuildGradle,
-  createAndroidAndIosBuildArktsShell,
+  createAndroidAndIosBuildArkTSShell,
   createIosScriptInPbxproj
 };

@@ -29,7 +29,8 @@ const {
   javaSdkDirDevEco,
   javaSdkVersionAndroid,
   javaSdkVersionDevEco,
-  ohpmDir
+  ohpmDir,
+  sourceDir
 } = require('./configs');
 const { devices, devicesList } = require('../ace-devices');
 const info = require('./Info');
@@ -60,6 +61,15 @@ function checkRequired(errorTimes, showdetail = false) {
       requirementInfo(info.iosDeployVersionInfo(deployVersion), deployVersion, showdetail);
     }
   }
+
+  if (sourceDir) {
+    success = sourceDir;
+    requirementTitle(info.sourceTitle, success);
+    if (!success || showdetail) {
+      requirementInfo(info.sourceInfo(sourceDir), sourceDir, showdetail);
+    }
+  }
+
   success = openHarmonySdkDir && ohpmDir;
   requirementTitle(info.openHarmonyTitle, success);
   if (!success || showdetail) {

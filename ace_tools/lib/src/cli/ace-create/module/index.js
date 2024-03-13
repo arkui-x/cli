@@ -385,7 +385,7 @@ function createStageModule(moduleList, templateDir) {
         inquirer.prompt([{
           name: 'enable',
           type: 'input',
-          message: 'if enable native module (y / n):',
+          message: 'Choose to enable native mode (y / n):',
           validate(val) {
             if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
               return 'Please enter y / n!';

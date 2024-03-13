@@ -36,6 +36,9 @@ function checkPath(configType, configPath) {
   if (configType === 'ohpm-dir') {
     isValid = ohpmDirPathCheck(configPath, info);
   }
+  if (configType === 'source-dir') {
+    isValid = sourceDirPathCheck(configPath, info);
+  }
   const logType = '\x1b[31m%s\x1b[0m';
   const logStr = 'Error: ';
   info.forEach((key) => {
@@ -47,9 +50,15 @@ function checkPath(configType, configPath) {
 function sdkPathCheck(typeSdkDir, sdkType, info) {
   const isWindowsDisk = /^[A-Z]:\\$/i.test(typeSdkDir);
   const isLinuxOrMacDisk = typeSdkDir === '/';
-  if (!fs.existsSync(typeSdkDir) || !fs.statSync(typeSdkDir).isDirectory()) {
+  if (!fs.existsSync(typeSdkDir)) {
     if (info) {
       info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" does not exist`);
+    }
+    return false;
+  }
+  if (!fs.statSync(typeSdkDir).isDirectory()) {
+    if (info) {
+      info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
     }
     return false;
   }
@@ -165,7 +174,7 @@ function validSdkDir(typeSdkDir, sdkType, info) {
   if (!dirExist) {
     if (info) {
       if (sdkType === 'ArkUI-X') {
-        info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect,please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
+        info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect, please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
       } else {
         info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
       }
@@ -187,9 +196,15 @@ function validSdkDir(typeSdkDir, sdkType, info) {
 
 function typeStudioPathCheck(typestudioDir, typestudio, info) {
   let devecostudioPlatformDir;
-  if (!fs.existsSync(typestudioDir) || !fs.statSync(typestudioDir).isDirectory()) {
+  if (!fs.existsSync(typestudioDir)) {
     if (info) {
       info.push(`The ${typestudio} path you configured "${typestudioDir}" does not exist`);
+    }
+    return false;
+  }
+  if (!fs.statSync(typestudioDir).isDirectory()) {
+    if (info) {
+      info.push(`The ${typestudio} path you configured "${typestudioDir}" is wrong`);
     }
     return false;
   }
@@ -307,7 +322,7 @@ function javaSdkPathCheck(javaDir, info) {
     return false;
   }
   try {
-    const javaVersionContent = Process.execSync(`"${execPath}" --version`, {encoding: 'utf-8', stdio: 'pipe' }).toString();
+    const javaVersionContent = Process.execSync(`"${execPath}" --version`, { encoding: 'utf-8', stdio: 'pipe' }).toString();
     const javaVersionContentArray = javaVersionContent.split('\n');
     javaVersion = javaVersionContentArray[1];
   } catch (err) {
@@ -328,26 +343,42 @@ function javaSdkPathCheck(javaDir, info) {
 function ohpmDirPathCheck(ohpmDir, info) {
   if (!fs.existsSync(ohpmDir)) {
     if (info) {
-      info.push(`The ohpm Dir path you configured "${ohpmDir}" does not exist`);
+      info.push(`The ohpm dir path you configured "${ohpmDir}" does not exist`);
     }
     return false;
   }
   const execPath = path.join(ohpmDir, 'bin', 'ohpm');
   if (!fs.existsSync(execPath) || !fs.statSync(execPath).isFile()) {
     if (info) {
-      info.push(`The ohpm Dir path you configured "${ohpmDir}" is wrong`);
+      info.push(`The ohpm dir path you configured "${ohpmDir}" is wrong`);
     }
     return false;
   }
   try {
-    Process.execSync(`"${execPath}" -v`, {encoding: 'utf-8', stdio: 'pipe'});
+    Process.execSync(`"${execPath}" -v`, { encoding: 'utf-8', stdio: 'pipe' });
     return true;
   } catch (err) {
     if (info) {
-      info.push(`The ohpm Dir path you configured "${ohpmDir}" is wrong`);
+      info.push(`The ohpm dir path you configured "${ohpmDir}" is wrong`);
     }
     return false;
   }
+}
+
+function sourceDirPathCheck(sourceDir, info) {
+  if (!fs.existsSync(sourceDir)) {
+    if (info) {
+      info.push(`The source dir path you configured "${sourceDir}" does not exist`);
+    }
+    return false;
+  }
+  if (!fs.existsSync(path.join(sourceDir, '/build/prebuilts_download.sh'))) {
+    if (info) {
+      info.push(`The source dir path you configured "${sourceDir}" is wrong`);
+    }
+    return false;
+  }
+  return true;
 }
 
 module.exports = {
@@ -357,5 +388,6 @@ module.exports = {
   nodejsDirPathCheck,
   javaSdkPathCheck,
   ohpmDirPathCheck,
-  sdkPathCheck
+  sdkPathCheck,
+  sourceDirPathCheck
 };
