@@ -187,7 +187,7 @@ function modifyNativeCppConfig(projectPath, projectName, destDir) {
   }
 }
 
-function addCrosssPlatform(projectPath, module) {
+function addCrossPlatform(projectPath, module) {
   try {
     if (!fs.existsSync(path.join(projectPath, '.arkui-x'))) {
       fs.mkdirSync(path.join(projectPath, '.arkui-x'), { recursive: true });
@@ -645,7 +645,7 @@ module.exports = {
   replaceInfo,
   modifyHarmonyOSConfig,
   modifyNativeCppConfig,
-  addCrosssPlatform,
+  addCrossPlatform,
   signIOS,
   modifyOpenHarmonyOSConfig,
   copyTemp,
