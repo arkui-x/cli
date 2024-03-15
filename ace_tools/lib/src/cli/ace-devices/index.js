@@ -67,7 +67,7 @@ function devices() {
     }
     if (unavailableDevices.length > 0) {
       const len = unavailableDevices.length;
-      console.log(`[!] Connected device (${len} unavailable)'\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
+      console.log(`[!] Connected device (${len} unavailable)\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
     }
   }
 }

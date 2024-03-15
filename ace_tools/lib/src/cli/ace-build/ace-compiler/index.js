@@ -35,7 +35,8 @@ const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, ja
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
-const { createAndroidAndIosBuildArktsShell } = require('../../ace-create/util');
+const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
+const { getSourceArkuixPath } = require('../../ace-check/checkSource');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -52,7 +53,7 @@ function readConfig() {
       if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
         let errorLog = `Please check ${lackDir}in your environment.`;
         errorLog = errorLog.replace(', in', ' in');
-        console.error(errorLog);
+        console.error('\x1B[31m%s\x1B[0m', errorLog);
         return false;
       }
     } else {
@@ -60,12 +61,23 @@ function readConfig() {
       if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
         let errorLog = `Please check ${lackDir}in your environment.`;
         errorLog = errorLog.replace(', in', ' in');
-        console.error(errorLog);
+        console.error('\x1B[31m%s\x1B[0m', errorLog);
         return false;
       }
     }
     const version = getSdkVersion(projectDir);
-    arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
+    let arkuiXSdkVersion;
+    let useArkuixMsg;
+    if (getSourceArkuixPath()) {
+      arkuiXSdkPath = getSourceArkuixPath();
+      arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
+      useArkuixMsg = `Use ArkUI-X source, Version ${arkuiXSdkVersion}`;
+    } else {
+      arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
+      arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
+      useArkuixMsg = `Use ArkUI-X SDK, Version ${arkuiXSdkVersion}`;
+    }
+    console.log(useArkuixMsg);
     return true;
   } catch (error) {
     console.error('\x1B[31m%s\x1B[0m', `Please 'ace check' first.`);
@@ -347,7 +359,7 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
       console.log(`Build bundle successfully.`);
       return copyBundletoBuild(moduleListSpecified, cmd);
     } else if (fileType === 'apk' || fileType === 'aab' || fileType === 'ios') {
-      createAndroidAndIosBuildArktsShell(projectDir, getOhpmTools(), arkuiXSdkPath);
+      createAndroidAndIosBuildArkTSShell(projectDir, getOhpmTools(), arkuiXSdkPath);
       return true;
     } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aar') {
       return true;
