@@ -31,16 +31,22 @@ function create(args) {
   const { projectAbsolutePath, outputDir, project, bundleName, runtimeOS, template, currentProjectPath, sdkVersion } = args;
   const projectTempPath = getTempPath(outputDir);
   createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
-  copyTemp(projectTempPath, projectAbsolutePath);
   if (template !== aceLibraryProType) {
-    createAndroidAndIosShell(projectAbsolutePath);
+    createAndroidAndIosShell(projectTempPath);
   }
+  copyTemp(projectTempPath, projectAbsolutePath);
+  fs.writeFileSync(path.join(projectAbsolutePath, '.projectInfo'),
+    `{
+    "projectTemplate":"${template}",
+    "moduleInfo":[],
+    "abilityInfo":[]
+}`, 'utf8');
 }
 
-function createAndroidAndIosShell(projectAbsolutePath) {
-  createAndroidTaskInBuildGradle(projectAbsolutePath);
-  createIosScriptInPbxproj(projectAbsolutePath);
-  const version = getSdkVersion(projectAbsolutePath);
+function createAndroidAndIosShell(projectTempPath) {
+  createAndroidTaskInBuildGradle(projectTempPath);
+  createIosScriptInPbxproj(projectTempPath);
+  const version = getSdkVersion(projectTempPath);
   const configContent = getConfig();
   let ohpmPath = '';
   let arkuixPath = '';
@@ -50,7 +56,7 @@ function createAndroidAndIosShell(projectAbsolutePath) {
   if (configContent['arkui-x-sdk']) {
     arkuixPath = path.join(configContent['arkui-x-sdk'], String(version), 'arkui-x');
   }
-  createAndroidAndIosBuildArkTSShell(projectAbsolutePath, ohpmPath, arkuixPath);
+  createAndroidAndIosBuildArkTSShell(projectTempPath, ohpmPath, arkuixPath);
 }
 
 function repairProject(projectAbsolutePath, outputDir) {
@@ -63,7 +69,7 @@ function repairProject(projectAbsolutePath, outputDir) {
   diffFile.forEach(val => copyTemp(path.join(projectTempPath, val), path.join(projectAbsolutePath, val)));
 }
 
-function createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion) {
+function createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion, isRepairProject) {
   fs.rmSync(projectTempPath, { recursive: true, force: true });
   try {
     fs.mkdirSync(projectTempPath, { recursive: true });
@@ -73,9 +79,16 @@ function createProject(projectAbsolutePath, projectTempPath, bundleName, project
         return false;
       }
     }
+    let createFlag = 'created'
+    if (isRepairProject) {
+      if (template !== aceLibraryProType) {
+        createAndroidAndIosShell(projectTempPath);
+      }
+      createFlag = 'repaired'
+    }
     if (template !== aceLibraryProType) {
       console.log(`
-Project created. Target directory:  ${projectAbsolutePath}.
+Project ${createFlag}. Target directory:  ${projectAbsolutePath}.
 In order to run your app, type:
     
     $ cd ${currentProjectPath}
@@ -84,8 +97,8 @@ In order to run your app, type:
 Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
     } else {
       console.log(`
-Project created. Target directory:  ${projectAbsolutePath}.
-Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
+Project ${createFlag}. Target directory:  ${projectAbsolutePath}.
+Your library code is in ${path.join(currentProjectPath, 'entry')}.`);
     }
   } catch (error) {
     console.error('\x1B[31m%s\x1B[0m', 'Project created failed! Target directory: ' + projectAbsolutePath + '.' + error);

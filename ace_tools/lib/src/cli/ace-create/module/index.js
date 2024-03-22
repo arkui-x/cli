@@ -23,7 +23,7 @@ const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../abi
 const { getModuleList, getCurrentProjectSystem, getModuleType, addFileToPbxproj,
   isAppProject, getIosProjectName } = require('../../util');
 
-const projectDir = process.cwd();
+let projectDir = process.cwd();
 let currentSystem;
 
 function capitalize(str) {
@@ -352,7 +352,7 @@ function createStageInIOS(moduleName, templateDir, moduleType) {
   }
 }
 
-function createStageModule(moduleList, templateDir) {
+function createStageModule(moduleList, templateDir, absolutePath) {
   const question = [{
     name: 'moduleName',
     type: 'input',
@@ -411,6 +411,7 @@ function createStageModule(moduleList, templateDir) {
               }
             }
           }]).then(answers => {
+            setModuleCreateInfo(absolutePath, moduleName, answers.cross, moduleType);
             if (createStageModuleInSource(moduleName, templateDir, moduleType)) {
               if (answers.cross === 'y') {
                 addCrossPlatform(projectDir, moduleName);
@@ -437,6 +438,7 @@ function createStageModule(moduleList, templateDir) {
             }
           }
         }]).then(answers => {
+          setModuleCreateInfo(absolutePath, moduleName, answers.cross, moduleType);
           if (answers.cross === 'y') {
             if (createStageModuleInSource(moduleName, templateDir, moduleType)
               && createStageInAndroid(moduleName, templateDir, moduleType)
@@ -453,6 +455,17 @@ function createStageModule(moduleList, templateDir) {
       }
     });
   });
+}
+
+function setModuleCreateInfo(absolutePath, moduleName, cross, moduleType) {
+  let moduleCreateInfo = {};
+  const readModuleInfo = JSON.parse(fs.readFileSync(path.join(absolutePath, '.projectInfo'), 'utf8'));
+  moduleCreateInfo.moduleName = moduleName;
+  moduleCreateInfo.moduleCrossPlatform = cross;
+  moduleCreateInfo.moduleType = moduleType;
+  readModuleInfo.moduleInfo.push(moduleCreateInfo);
+  const infoString = JSON.stringify(readModuleInfo, '', '  ');
+  fs.writeFileSync(path.join(absolutePath, '.projectInfo'), infoString, 'utf8');
 }
 
 function modifyModuleBuildProfile(projectDir, moduleName, modulePath) {
@@ -636,7 +649,7 @@ function createModule() {
   if (!fs.existsSync(templateDir)) {
     templateDir = globalThis.templatePath;
   }
-  return createStageModule(moduleList, templateDir);
+  return createStageModule(moduleList, templateDir, projectDir);
 }
 
 function updateCrossPlatformModules(currentSystem) {
@@ -720,7 +733,39 @@ function isExternalModuleDir(dir, moduleListAll) {
   return isContinue;
 }
 
+function repairModule(templateDir, absolutePath, projectTempPath) {
+  projectDir = projectTempPath;
+  const readModuleInfo = JSON.parse(fs.readFileSync(path.join(absolutePath, '.projectInfo'), 'utf8'));
+  for (let i = 0; i < readModuleInfo.moduleInfo.length; i++) {
+    const module = readModuleInfo.moduleInfo[i];
+    if (module.moduleType === 'ShareC++' || module.moduleType === 'ShareAbility') {
+      if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType)) {
+        if (module.moduleCrossPlatform === 'y') {
+          addCrossPlatform(projectDir, module.moduleName);
+        }
+        replaceStageProjectInfo(module.moduleName, module.moduleType);
+      }
+    } else {
+      if (module.moduleCrossPlatform === 'y') {
+        if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType)
+          && createStageInAndroid(module.moduleName, templateDir, module.moduleType)
+          && createStageInIOS(module.moduleName, templateDir, module.moduleType)) {
+          addCrossPlatform(projectTempPath, module.moduleName);
+          replaceStageProjectInfo(module.moduleName, module.moduleType);
+        }
+      } else {
+        if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType)) {
+          replaceStageProjectInfo(module.moduleName, module.moduleType);
+        }
+      }
+    }
+  }
+  return;
+}
+
+
 module.exports = {
   createModule,
-  updateCrossPlatformModules
+  updateCrossPlatformModules,
+  repairModule
 };

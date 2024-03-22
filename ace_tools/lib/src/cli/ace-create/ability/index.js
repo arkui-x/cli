@@ -248,6 +248,7 @@ function getCurrentModuleName(currentDir) {
 
 function createAbility() {
   currentDir = process.cwd(); // it should be module directory
+  const abilityCreateInfo = {};
   const buildFilePath = path.join(currentDir, 'obfuscation-rules.txt');
   if (!fs.existsSync(buildFilePath)) {
     console.error('\x1B[31m%s\x1B[0m', `Operation failed. Go to your module directory and try again.`);
@@ -277,17 +278,37 @@ function createAbility() {
     }
   }];
   inquirer.prompt(question).then(answers => {
+    abilityCreateInfo.abilityModuleName = moduleName;
+    abilityCreateInfo.abilityName = answers.abilityName;
+    const infoJson = JSON.parse(fs.readFileSync(path.join(path.dirname(currentDir), '.projectInfo'), 'utf8'));
     if (createInSource(answers.abilityName + 'Ability', templateDir) &&
       updateManifest(answers.abilityName + 'Ability')) {
+      abilityCreateInfo.abilityModuleCrossPlatform = 'n';
       if (crossPlatformModules.includes(moduleName)) {
-        if (createStageAbilityInAndroid(moduleName, answers.abilityName + 'Ability', templateDir, currentDir) &&
-          createStageAbilityInIOS(moduleName, answers.abilityName + 'Ability', templateDir, currentDir)) {
-          return true;
-        }
+        abilityCreateInfo.abilityModuleCrossPlatform = 'y';
+        createStageAbilityInAndroid(moduleName, answers.abilityName + 'Ability', templateDir, currentDir) &&
+          createStageAbilityInIOS(moduleName, answers.abilityName + 'Ability', templateDir, currentDir);
       }
+      infoJson.abilityInfo.push(abilityCreateInfo);
+      fs.writeFileSync(path.join(path.dirname(currentDir), '.projectInfo'), JSON.stringify(infoJson, '', '  '), 'utf8');
       return true;
     }
   });
 }
 
-module.exports = { createAbility, createStageAbilityInAndroid, createStageAbilityInIOS };
+function repairAbility(templateDir, absolutePath, projectTempPath) {
+  const readAbilityInfo = JSON.parse(fs.readFileSync(path.join(absolutePath, '.projectInfo'), 'utf8'));
+  readAbilityInfo.abilityInfo.forEach((ability) => {
+    currentDir = path.join(projectTempPath, ability.abilityModuleName);
+    if (createInSource(ability.abilityName + 'Ability', templateDir) &&
+      updateManifest(ability.abilityName + 'Ability')) {
+      if (ability.abilityModuleCrossPlatform === 'y') {
+        createStageAbilityInAndroid(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir) &&
+          createStageAbilityInIOS(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir);
+      }
+    }
+  });
+  return;
+}
+
+module.exports = { createAbility, createStageAbilityInAndroid, createStageAbilityInIOS, repairAbility };

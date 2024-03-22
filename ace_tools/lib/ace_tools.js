@@ -20,8 +20,8 @@ const program = require('commander');
 const inquirer = require('inquirer');
 const { Platform, platform } = require('./src/cli/ace-check/platform');
 const { create, repairProject, createProject } = require('./src/cli/ace-create/project');
-const { createModule } = require('./src/cli/ace-create/module');
-const { createAbility } = require('./src/cli/ace-create/ability');
+const { createModule, repairModule } = require('./src/cli/ace-create/module');
+const { createAbility, repairAbility } = require('./src/cli/ace-create/ability');
 const { setConfig } = require('./src/cli/ace-config');
 const check = require('./src/cli/ace-check');
 const { devices, getDeviceID, showValidDevice, getDeviceType } = require('./src/cli/ace-devices');
@@ -137,7 +137,7 @@ function parseCreate() {
     .action((outputDir, cmd) => {
       if (outputDir === undefined) {
         console.error('\x1B[31m%s\x1B[0m', 'No option specified for the output directory.');
-        return;
+        return false;
       }
       const initInfo = {};
       initInfo.currentProjectPath = outputDir;
@@ -149,45 +149,55 @@ function parseCreate() {
       } else if (cmd.template === 'app' || cmd.template === 'library' || cmd.template === 'plugin_napi') {
         initInfo.template = cmd.template;
       } else {
-        console.error('\x1B[31m%s\x1B[0m', `Failed to create the project. \nInvalid template type ${cmd.template}, choose from the app, library or plugin_napi options.`);
-        return;
+        console.error('\x1B[31m%s\x1B[0m', "Failed to create the project." +
+          "\nInvalid template type " + cmd.template + ", choose from the app, library or plugin_napi options.");
+        return false;
       }
 
-      if (fs.existsSync(path.join(absolutePath, 'oh-package.json5'))) {
-        const currentProjectTemplate = checkProjectType(absolutePath);
-        if (initInfo.template !== currentProjectTemplate) {
-          console.error('\x1B[31m%s\x1B[0m', `"${outputDir}" project already exists, the requested template type doesn't match the existing template type.`);
+      if (fs.existsSync(absolutePath)) {
+        if (!fs.existsSync(path.join(absolutePath, '.projectInfo'))) {
+          console.error('\x1B[31m%s\x1B[0m', "This project already exist, " +
+            "but the project information file doesn't exist and can't be repaired.");
           return false;
-        }
-        inquirer.prompt([{
-          name: 'repair',
-          type: 'input',
-          message: `The project already exists. Do you want to repair the project (y / n):`,
-          validate(val) {
-            if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
-              return 'Please enter y / n!';
-            } else {
-              return true;
+        } else {
+          const currentProjectTemplate = checkProjectType(absolutePath);
+          if (initInfo.template !== currentProjectTemplate) {
+            console.log('\x1B[31m%s\x1B[0m', "The requested template type " + initInfo.template +
+              " doesn't match the existing template type of " + currentProjectTemplate + ".");
+            return false;
+          }
+          inquirer.prompt([{
+            name: 'repair',
+            type: 'input',
+            message: `The project already exists. Do you want to repair the project (y / n):`,
+            validate(val) {
+              if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
+                return 'Please enter y / n!';
+              } else {
+                return true;
+              }
             }
-          }
-        }]).then(answers => {
-          if (answers.repair.toLowerCase() === 'y') {
-            const projectInfo = getProjectInfo(absolutePath);
-            const projectTempPath = getTempPath(outputDir);
-            createProject(absolutePath, projectTempPath, projectInfo.bundleName, projectName, projectInfo.runtimeOS,
-              initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion);
-            repairProject(absolutePath, outputDir);
-          } else {
-            console.error('Failed to repair project, preserve existing project.');
-          }
-        });
-        return true;
+          }]).then(answers => {
+            if (answers.repair.toLowerCase() === 'y') {
+              const projectInfo = getProjectInfo(absolutePath);
+              const projectTempPath = getTempPath(outputDir);
+              const isRepair = true;
+              createProject(absolutePath, projectTempPath, projectInfo.bundleName, projectName, projectInfo.runtimeOS,
+                initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion, isRepair);
+              repairModule(globalThis.templatePath, absolutePath, projectTempPath);
+              repairAbility(globalThis.templatePath, absolutePath, projectTempPath);
+              repairProject(absolutePath, outputDir);
+            } else {
+              console.error('Failed to repair project, preserve existing project.');
+            }
+          });
+          return true;
+        }
       }
-
       if (!isProjectNameValid(projectName)) {
         console.log('The project dir must contain 1 to 200 characters, start with a ' +
           'letter, and include only letters, digits and underscores (_)');
-        return;
+        return false;
       }
       inquirer.prompt([{
         name: 'project',
