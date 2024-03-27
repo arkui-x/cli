@@ -439,13 +439,13 @@ function getSdkVersion(projectDir) {
 }
 
 function checkProjectType(projectDir) {
-  if (fs.existsSync(path.join(projectDir, 'entry/src/main/cpp'))
-    || fs.existsSync(path.join(projectDir, '.arkui-x/android/app/src/main/cpp'))) {
-    return 'plugin_napi';
-  } else if (getAarName(projectDir).length !== 0 || getFrameworkName(projectDir).length !== 0) {
-    return 'library';
+  if (fs.existsSync(projectDir, '.projectInfo')) {
+    const filePath = path.join(projectDir, '.projectInfo');
+    const content = fs.readFileSync(filePath, 'utf8').toString();
+    const template = JSON5.parse(content).projectTemplate;
+    return template;
   } else {
-    return 'app';
+    return false;
   }
 }
 
