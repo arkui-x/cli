@@ -425,14 +425,25 @@ function cleanLibs(projectDir, abiFilters, fileType) {
 
 function getSdkVersion(projectDir) {
   const buildProfilePath = path.join(projectDir, 'build-profile.json5');
+  const integrateFilePath = path.join(projectDir, '.hvigor/cache/meta.json');
+  const mapSdkVersion = new Map([
+    ['4.0.0(10)', '10'],
+    ['4.1.0(11)', '11'],
+    ['5.0.0(12)', '12']
+  ]);
   if (fs.existsSync(buildProfilePath)) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfilePath).toString());
-    if (buildProfileInfo.app.products[0].compileSdkVersion === '4.0.0(10)') {
-      return '10';
-    } else if (buildProfileInfo.app.products[0].compileSdkVersion === '4.1.0(11)') {
-      return '11';
+    if (buildProfileInfo.app.products[0].runtimeOS === 'OpenHarmony') {
+      return buildProfileInfo.app.products[0].compileSdkVersion;
     }
-    return buildProfileInfo.app.products[0].compileSdkVersion;
+    if ("compileSdkVersion" in buildProfileInfo.app.products[0]) {
+      return mapSdkVersion.get(buildProfileInfo.app.products[0].compileSdkVersion);
+    } else {
+      if (fs.existsSync(integrateFilePath)) {
+        const intergrateInfo = JSON5.parse(fs.readFileSync(integrateFilePath).toString());
+        return mapSdkVersion.get(intergrateInfo.compileSdkVersion);
+      } 
+    }
   } else {
     return null;
   }

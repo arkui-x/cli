@@ -251,16 +251,22 @@ function parseCreate() {
             inquirer.prompt([{
               name: 'Complie SDk',
               type: 'input',
-              message: 'Please select the Complie SDk (1: 10, 2: 11):',
+              message: 'Please select the Complie SDk (1: 10, 2: 11, 3: 12):',
               validate(val) {
-                if (val === '1' || val === '2') {
+                if (val === '1' || val === '2' || val === '3') {
                   return true;
                 } else {
-                  return 'input must be an integer: 1 or 2.';
+                  return 'input must be an integer: 1 or 2 or 3.';
                 }
               }
             }]).then(answers => {
-              initInfo.sdkVersion = answers['Complie SDk'] === '1' ? '10' : '11';
+              if (answers['Complie SDk'] === '1') {
+                initInfo.sdkVersion = '10'
+              } else if (answers['Complie SDk'] === '2') {
+                initInfo.sdkVersion = '11'
+              } else {
+                initInfo.sdkVersion = '12'
+              }
               create(initInfo);
             });
           });

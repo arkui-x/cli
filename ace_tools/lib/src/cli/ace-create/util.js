@@ -89,9 +89,36 @@ function createPackageFile(packagePaths, packageArray) {
   });
 }
 
+function modifyOhPackageJson(projectPath) {
+  ohPackageFile = path.join(projectPath, 'oh-package.json5');
+  if (fs.existsSync(ohPackageFile)) {
+    ohPackageFileInfo = fs.readFileSync(ohPackageFile);
+    ohPackage = ohPackageFileInfo.slice(0, 1) + `\n  "modelversion": "5.0.0",` + ohPackageFileInfo.slice(1);
+    fs.writeFileSync(ohPackageFile, ohPackage);
+  }
+}
+
+function modifyHvigorJson(projectPath) {
+  hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
+  if (fs.existsSync(hvigorfile)) {
+    hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
+    hvigorversionInfo.hvigorVersion = "5.0.0-rc.2";
+    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'] = "5.0.0-rc.2";
+    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = "3.4.0-rc.1";
+    fs.writeFileSync(hvigorfile, JSON.stringify(hvigorversionInfo, '', '  '));
+    hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
+    hvigorInfo = hvigorFileInfo.slice(0, 1) + `\n  "modelversion": "5.0.0",` + hvigorFileInfo.slice(1);
+    fs.writeFileSync(hvigorfile, hvigorInfo);
+  }
+}
+
 function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
   if (openharmonyosVersion === '10') {
     return;
+  }
+  if (Number(openharmonyosVersion) >= 12) {
+    modifyOhPackageJson(projectPath);
+    modifyHvigorJson(projectPath);
   }
   const buildProfile = path.join(projectPath, 'build-profile.json5');
   if (fs.existsSync(buildProfile)) {
@@ -111,6 +138,11 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
     path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
   const deviceTypeName = 'deviceTypes';
 
+  if (Number(sdkVersion) >= 12) {
+    modifyOhPackageJson(projectPath);
+    modifyHvigorJson(projectPath);
+  }
+
   if (fs.existsSync(buildProfile)) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
     const productsInfo = buildProfileInfo.app.products;
@@ -126,6 +158,12 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
           case '11': {
             productsInfo[index].compileSdkVersion = '4.1.0(11)';
             productsInfo[index].compatibleSdkVersion = '4.1.0(11)';
+            productsInfo[index].runtimeOS = 'HarmonyOS';
+            break;
+          }
+          case '12': {
+            productsInfo[index].compileSdkVersion = '5.0.0(12)';
+            productsInfo[index].compatibleSdkVersion = '5.0.0(12)';
             productsInfo[index].runtimeOS = 'HarmonyOS';
             break;
           }

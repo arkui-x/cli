@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-const { isProjectRootDir, getAarName } = require('../util');
+const { isProjectRootDir, getAarName, getSdkVersion } = require('../util');
 const { Platform, platform } = require('../ace-check/platform');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
-const { getOhpmTools } = require('../ace-check/getTool');
+const { getOhpmTools, getIntergrateHvigorw } = require('../ace-check/getTool');
 const config = getConfig();
 const fs = require('fs');
 const path = require('path');
@@ -135,7 +135,17 @@ function cleanOHOS() {
   if (platform !== Platform.Windows) {
     cmds.push(`chmod 755 hvigorw`);
   }
-  cmds.push(`./hvigorw  clean`);
+  let buildCmd = `./hvigorw`;
+  if (Number(getSdkVersion(projectDir)) >= 12) {
+    if (getIntergrateHvigorw()) {
+      buildCmd = getIntergrateHvigorw();
+    } else {
+      console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
+      'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
+      return false;
+    }
+  }
+  cmds.push(`${buildCmd} clean`);
   let message = 'OpenHarmony/HarmonyOS project cleaned up.';
   let isBuildSuccess = true;
   console.log('Cleaning up the OpenHarmony/HarmonyOS project...');
