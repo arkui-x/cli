@@ -25,12 +25,11 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
-const { getSdkVersion } = require('../../util/index');
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, isAppProject, getCrossPlatformModules,
-  modifyAndroidAbi, getModulePathList, getHspModuleList, validInputModule } = require('../../util');
-const { getOhpmTools } = require('../../ace-check/getTool');
+  modifyAndroidAbi, getModulePathList, getHspModuleList, validInputModule, getSdkVersion } = require('../../util');
+const { getOhpmTools, getIntergrateHvigorw } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
@@ -80,7 +79,7 @@ function readConfig() {
     console.log(useArkuixMsg);
     return true;
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', `Please 'ace check' first.`);
+    console.error('\x1B[31m%s\x1B[0m', `Please 'ace check' first.`, error);
     return false;
   }
 }
@@ -267,7 +266,16 @@ function copyLibsToBuild(moduleListSpecified, buildPath, cmd) {
 
 function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let cmds = [`cd ${projectDir}`];
-  const buildCmd = `./hvigorw`;
+  let buildCmd = `./hvigorw`;
+  if (Number(getSdkVersion(projectDir)) >= 12) {
+    if (getIntergrateHvigorw()) {
+      buildCmd = getIntergrateHvigorw();
+    } else {
+      console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
+        'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
+      return false;
+    }
+  }
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
     console.log('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
@@ -276,6 +284,9 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   cmds.push(`${ohpmPath} install`);
   if (platform !== Platform.Windows) {
     cmds.push(`chmod 755 hvigorw`);
+  }
+  if (Number(getSdkVersion(projectDir)) >= 12) {
+    cmds.push(`${buildCmd} --sync`);
   }
   let gradleMessage;
   if (fileType === 'hap') {
@@ -287,7 +298,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (cmd.debug) {
       debugStr = '-p buildMode=debug';
     }
-    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap --no-daemon`);
+    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module ${moduleStr} assembleHap --no-daemon --no-parallel`);
     gradleMessage = 'Building a HAP file...';
   } else if (fileType === 'haphsp') {
     const hspModuleList = getHspModuleList(projectDir);
@@ -304,9 +315,9 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (cmd.debug) {
       debugStr = '-p buildMode=debug';
     }
-    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module -p module=${hapModule.join(',')} assembleHap --no-daemon`);
+    cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module -p module=${hapModule.join(',')} assembleHap --no-daemon --no-parallel`);
     if (hspModule.length !== 0) {
-      cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module -p module=${hspModule.join(',')} assembleHsp --no-daemon`);
+      cmds.push(`${buildCmd} ${debugStr} -p product=default --mode module -p module=${hspModule.join(',')} assembleHsp --no-daemon --no-parallel`);
     }
     gradleMessage = 'Building HAP/HSP files...';
   } else if (fileType === 'hsp') {
@@ -314,7 +325,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (moduleList) {
       moduleStr = '-p module=' + moduleList.join(',');
     }
-    cmds.push(`${buildCmd} -p product=default --mode module ${moduleStr} assembleHsp --no-daemon`);
+    cmds.push(`${buildCmd} -p product=default --mode module ${moduleStr} assembleHsp --no-daemon --no-parallel`);
     gradleMessage = 'Building a HSP file...';
   } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework'
     || fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
@@ -322,7 +333,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (commonModule) {
       moduleStr = ' -p module=' + commonModule.join(',');
     }
-    const buildtarget = 'default@CompileArkTS' + moduleStr;
+    const buildtarget = 'default@CompileArkTS --no-parallel' + moduleStr;
     let testbBuildtarget = '';
     if (cmd.debug && testModule) {
       const moduleTestStr = '-p module=' + testModule.join('@ohosTest,') + '@ohosTest';
@@ -387,7 +398,13 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
 
 function syncHvigor(projectDir) {
   let pathTemplate = path.join(__dirname, 'template');
-  const proHvigorVersion = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5'))).hvigorVersion;
+  let hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
+  let proHvigorVersion;
+  if (!("hvigorVersion" in hvigorJsonInfo)) {
+    proHvigorVersion = JSON5.parse(fs.readFileSync(path.join(projectDir, '.hvigor/cache/meta.json'))).hvigorVersion;
+  } else {
+    proHvigorVersion = hvigorJsonInfo.hvigorVersion;
+  }
   if (fs.existsSync(pathTemplate)) {
     const tempHvigorVersion = JSON5.parse(fs.readFileSync(
       path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;

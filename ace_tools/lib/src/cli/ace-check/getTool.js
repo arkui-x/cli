@@ -18,7 +18,7 @@ const path = require('path');
 const JSON5 = require('json5');
 const { cmpVersion } = require('./util');
 const { Platform, platform } = require('./platform');
-const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion } = require('./configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion, devEcoStudioDir } = require('./configs');
 function getTools() {
   const toolPaths = [];
   let hdcPath = {};
@@ -136,10 +136,14 @@ function getHmsToolPath(newPath) {
       sdkPlatformVersion.set(platformVersion, dir);
     }
   });
+  let toolchainsPath = 'openharmony/toolchains';
   if (sdkPlatformVersion.size === 0) {
     toolPath = '';
   } else if (sdkPlatformVersion.size === 1) {
-    toolPath = getValidToolPath(path.join(newPath, [...sdkPlatformVersion.values()][0], 'base/toolchains'));
+    if ([...sdkPlatformVersion.keys()][0] === "4.0.0(10)" || [...sdkPlatformVersion.keys()][0] === "4.1.0(11)") {
+        toolchainsPath = 'base/toolchains';
+    }
+    toolPath = getValidToolPath(path.join(newPath, [...sdkPlatformVersion.values()][0], toolchainsPath));
   } else {
     const compareVer = [...sdkPlatformVersion.keys()];
     for (let i = 0; i < compareVer.length - 1; i++) {
@@ -150,7 +154,10 @@ function getHmsToolPath(newPath) {
       }
     }
     const maxVersion = compareVer[compareVer.length - 1];
-    toolPath = getValidToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), 'base/toolchains'));
+    if (maxVersion === "4.0.0(10)" || maxVersion === "4.1.0(11)") {
+      toolchainsPath = 'base/toolchains';
+    }
+    toolPath = getValidToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), toolchainsPath));
   }
   return toolPath;
 }
@@ -232,9 +239,30 @@ function getAapt() {
   }
 }
 
+function getIntergrateHvigorw() {
+  if (!devEcoStudioDir) {
+    return null;
+  } else {
+    if (platform === Platform.Windows) {
+      if (fs.existsSync(path.join(devEcoStudioDir, 'tools/hvigor/bin/hvigorw'))) {
+        return path.join(devEcoStudioDir, 'tools/hvigor/bin/hvigorw');
+      } else {
+        return null;
+      }
+    } else if (platform === Platform.MacOS) {
+      if (fs.existsSync(path.join(devEcoStudioDir, 'Contents/tools/hvigor/bin/hvigorw'))) {
+        return path.join(devEcoStudioDir, 'Contents/tools/hvigor/bin/hvigorw');
+      } else {
+        return null;
+      }
+    }
+  }
+}
+
 module.exports = {
   getTools,
   getToolByType,
   getOhpmTools,
-  getAapt
+  getAapt,
+  getIntergrateHvigorw
 };
