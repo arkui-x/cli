@@ -115,6 +115,13 @@ function newValidHarmonyOsSdk(harmonyosSdkDir, harmonyOsDirs, sdkType, info) {
   if (!dirExist) {
     dirExist = oldValidHarmonyOsSdk(harmonyosSdkDir, sdkType, info);
   } else {
+    if (harmonyOsDirs.length === 1) {
+      const harmonyOsPath = path.join(harmonyosSdkDir, harmonyOsDirs[0], 'sdk-pkg.json');
+      let sdkVersion = JSON.parse(fs.readFileSync(harmonyOsPath))["data"]["platformVersion"];
+      if (sdkVersion >= "5.0.0") {
+        return true;
+      }
+    }
     if (!fs.existsSync(path.join(harmonyosSdkDir, 'licenses'))
       || !fs.statSync(path.join(harmonyosSdkDir, 'licenses')).isDirectory()) {
       if (info) {

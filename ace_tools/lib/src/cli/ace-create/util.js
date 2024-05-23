@@ -93,7 +93,7 @@ function modifyOhPackageJson(projectPath) {
   ohPackageFile = path.join(projectPath, 'oh-package.json5');
   if (fs.existsSync(ohPackageFile)) {
     ohPackageFileInfo = fs.readFileSync(ohPackageFile);
-    ohPackage = ohPackageFileInfo.slice(0, 1) + `\n  "modelversion": "5.0.0",` + ohPackageFileInfo.slice(1);
+    ohPackage = ohPackageFileInfo.slice(0, 1) + `\n  "modelVersion": "5.0.0",` + ohPackageFileInfo.slice(1);
     fs.writeFileSync(ohPackageFile, ohPackage);
   }
 }
@@ -102,12 +102,12 @@ function modifyHvigorJson(projectPath) {
   hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
   if (fs.existsSync(hvigorfile)) {
     hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
-    hvigorversionInfo.hvigorVersion = "5.0.0-rc.2";
-    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'] = "5.0.0-rc.2";
-    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = "3.4.0-rc.1";
+    delete hvigorversionInfo.hvigorVersion;
+    delete hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'];
+    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = "4.0.0";
     fs.writeFileSync(hvigorfile, JSON.stringify(hvigorversionInfo, '', '  '));
     hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
-    hvigorInfo = hvigorFileInfo.slice(0, 1) + `\n  "modelversion": "5.0.0",` + hvigorFileInfo.slice(1);
+    hvigorInfo = hvigorFileInfo.slice(0, 1) + `\n  "modelVersion": "5.0.0",` + hvigorFileInfo.slice(1);
     fs.writeFileSync(hvigorfile, hvigorInfo);
   }
 }

@@ -268,8 +268,8 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let cmds = [`cd ${projectDir}`];
   let buildCmd = `./hvigorw`;
   if (Number(getSdkVersion(projectDir)) >= 12) {
-    if (getIntergrateHvigorw()) {
-      buildCmd = getIntergrateHvigorw();
+    if (`"${getIntergrateHvigorw()}"`) {
+      buildCmd = `"${getIntergrateHvigorw()}"`;
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
         'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
@@ -282,11 +282,8 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     return false;
   }
   cmds.push(`${ohpmPath} install`);
-  if (platform !== Platform.Windows) {
+  if (platform !== Platform.Windows && Number(getSdkVersion(projectDir)) < 12) {
     cmds.push(`chmod 755 hvigorw`);
-  }
-  if (Number(getSdkVersion(projectDir)) >= 12) {
-    cmds.push(`${buildCmd} --sync`);
   }
   let gradleMessage;
   if (fileType === 'hap') {
@@ -337,7 +334,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     let testbBuildtarget = '';
     if (cmd.debug && testModule) {
       const moduleTestStr = '-p module=' + testModule.join('@ohosTest,') + '@ohosTest';
-      testbBuildtarget = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS`;
+      testbBuildtarget = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS --no-parallel`;
     }
     cmds.push(`${buildCmd} ${buildtarget}`);
     if (cmd.debug) {
@@ -481,6 +478,29 @@ function compiler(fileType, cmd) {
   if (fileType === 'hsp' && hspModuleList.length === 0) {
     console.error('\x1B[31m%s\x1B[0m', `Build falied, no hsp module.`);
     return false;
+  }
+  let hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
+  if ("modelVersion" in hvigorJsonInfo) {
+    if (!fs.existsSync(path.join(projectDir, 'local.properties'))) {
+      writeLocalProperties();
+    }
+    if (!fs.existsSync(path.join(projectDir, '.hvigor/cache/meta.json'))) {
+      let cmds = [`cd ${projectDir}`];
+      cmds.push(`"${getIntergrateHvigorw()}" --sync`);
+      cmds = cmds.join(' && ');
+      if (platform === Platform.Windows) {
+        cmds = cmds.replace(/\//g, '\\');
+      }
+      try {
+        exec(cmds, {
+          encoding: 'utf-8',
+          stdio: 'inherit',
+          env: process.env
+        });
+      } catch (error) {
+        console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);
+      }
+    }
   }
   if (!syncHvigor(projectDir)) {
     return false;

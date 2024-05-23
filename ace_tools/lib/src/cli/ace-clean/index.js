@@ -132,13 +132,13 @@ function cleanOHOS() {
     return false;
   }
   cmds.push(`${ohpmPath} install`);
-  if (platform !== Platform.Windows) {
+  if (platform !== Platform.Windows && Number(getSdkVersion(projectDir)) < 12) {
     cmds.push(`chmod 755 hvigorw`);
   }
   let buildCmd = `./hvigorw`;
   if (Number(getSdkVersion(projectDir)) >= 12) {
-    if (getIntergrateHvigorw()) {
-      buildCmd = getIntergrateHvigorw();
+    if (`"${getIntergrateHvigorw()}"`) {
+      buildCmd = `"${getIntergrateHvigorw()}"`;
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
       'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
