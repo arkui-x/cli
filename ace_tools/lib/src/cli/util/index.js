@@ -436,13 +436,13 @@ function getSdkVersion(projectDir) {
     if (buildProfileInfo.app.products[0].runtimeOS === 'OpenHarmony') {
       return buildProfileInfo.app.products[0].compileSdkVersion;
     }
-    if ("compileSdkVersion" in buildProfileInfo.app.products[0]) {
+    if ('compileSdkVersion' in buildProfileInfo.app.products[0]) {
       return mapSdkVersion.get(buildProfileInfo.app.products[0].compileSdkVersion);
     } else {
       if (fs.existsSync(integrateFilePath)) {
         const intergrateInfo = JSON5.parse(fs.readFileSync(integrateFilePath).toString());
         return mapSdkVersion.get(intergrateInfo.compileSdkVersion);
-      } 
+      }
     }
   } else {
     return null;

@@ -268,7 +268,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let cmds = [`cd ${projectDir}`];
   let buildCmd = `./hvigorw`;
   if (Number(getSdkVersion(projectDir)) >= 12) {
-    if (`"${getIntergrateHvigorw()}"`) {
+    if (getIntergrateHvigorw()) {
       buildCmd = `"${getIntergrateHvigorw()}"`;
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
@@ -395,9 +395,9 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
 
 function syncHvigor(projectDir) {
   let pathTemplate = path.join(__dirname, 'template');
-  let hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
+  const hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
   let proHvigorVersion;
-  if (!("hvigorVersion" in hvigorJsonInfo)) {
+  if (!('hvigorVersion' in hvigorJsonInfo)) {
     proHvigorVersion = JSON5.parse(fs.readFileSync(path.join(projectDir, '.hvigor/cache/meta.json'))).hvigorVersion;
   } else {
     proHvigorVersion = hvigorJsonInfo.hvigorVersion;
@@ -479,8 +479,8 @@ function compiler(fileType, cmd) {
     console.error('\x1B[31m%s\x1B[0m', `Build falied, no hsp module.`);
     return false;
   }
-  let hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
-  if ("modelVersion" in hvigorJsonInfo) {
+  const hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
+  if ('modelVersion' in hvigorJsonInfo) {
     if (!fs.existsSync(path.join(projectDir, 'local.properties'))) {
       writeLocalProperties();
     }

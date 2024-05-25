@@ -90,24 +90,24 @@ function createPackageFile(packagePaths, packageArray) {
 }
 
 function modifyOhPackageJson(projectPath) {
-  ohPackageFile = path.join(projectPath, 'oh-package.json5');
+  const ohPackageFile = path.join(projectPath, 'oh-package.json5');
   if (fs.existsSync(ohPackageFile)) {
-    ohPackageFileInfo = fs.readFileSync(ohPackageFile);
-    ohPackage = ohPackageFileInfo.slice(0, 1) + `\n  "modelVersion": "5.0.0",` + ohPackageFileInfo.slice(1);
+    const ohPackageFileInfo = fs.readFileSync(ohPackageFile).toString();
+    const ohPackage = ohPackageFileInfo.slice(0, 1) + `\n  "modelVersion": "5.0.0",` + ohPackageFileInfo.slice(1);
     fs.writeFileSync(ohPackageFile, ohPackage);
   }
 }
 
 function modifyHvigorJson(projectPath) {
-  hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
+  const hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
   if (fs.existsSync(hvigorfile)) {
-    hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
+    const hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
     delete hvigorversionInfo.hvigorVersion;
     delete hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'];
-    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = "4.0.0";
+    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = '4.0.0';
     fs.writeFileSync(hvigorfile, JSON.stringify(hvigorversionInfo, '', '  '));
-    hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
-    hvigorInfo = hvigorFileInfo.slice(0, 1) + `\n  "modelVersion": "5.0.0",` + hvigorFileInfo.slice(1);
+    const hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
+    const hvigorInfo = hvigorFileInfo.slice(0, 1) + `\n  "modelVersion": "5.0.0",` + hvigorFileInfo.slice(1);
     fs.writeFileSync(hvigorfile, hvigorInfo);
   }
 }
@@ -416,7 +416,6 @@ function createAndroidTaskInBuildGradle(projectPath) {
   const updateBuildGradleInfo = buildGradleInfo.slice(0, delFeaturesIndex + searchFeatures.length) + addPackage +
     buildGradleInfo.slice(delFeaturesIndex + searchFeatures.length);
   fs.writeFileSync(buildGradle, updateBuildGradleInfo);
-
 }
 
 function createAndroidAndIosBuildArkTSShell(projectPath, ohpmPath, arkuiXSdkPath) {
@@ -470,7 +469,6 @@ function createIosScriptInPbxproj(projectPath) {
     pbxProjInfo.slice(PBXNativeTargetIndex + PBXNativeTarget.length, endPbxNativeTargetIndex + endPbxNativeTarget.length) + `\n\n` +
     scriptPbxproj + pbxProjInfo.slice(endPbxNativeTargetIndex + endPbxNativeTarget.length);
   fs.writeFileSync(pbxProjInfoPath, updatePbxProjInfo);
-
 }
 
 function getWindowsBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
