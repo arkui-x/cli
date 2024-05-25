@@ -149,21 +149,21 @@ function parseCreate() {
       } else if (cmd.template === 'app' || cmd.template === 'library' || cmd.template === 'plugin_napi') {
         initInfo.template = cmd.template;
       } else {
-        console.error('\x1B[31m%s\x1B[0m', "Failed to create the project." +
-          "\nInvalid template type " + cmd.template + ", choose from the app, library or plugin_napi options.");
+        console.error('\x1B[31m%s\x1B[0m', 'Failed to create the project.' +
+          '\nInvalid template type ' + cmd.template + ', choose from the app, library or plugin_napi options.');
         return false;
       }
 
       if (fs.existsSync(absolutePath)) {
         if (!fs.existsSync(path.join(absolutePath, '.projectInfo'))) {
-          console.error('\x1B[31m%s\x1B[0m', "This project already exist, " +
+          console.error('\x1B[31m%s\x1B[0m', 'This project already exist, ' +
             "but the project information file doesn't exist and can't be repaired.");
           return false;
         } else {
           const currentProjectTemplate = checkProjectType(absolutePath);
           if (initInfo.template !== currentProjectTemplate) {
-            console.log('\x1B[31m%s\x1B[0m', "The requested template type " + initInfo.template +
-              " doesn't match the existing template type of " + currentProjectTemplate + ".");
+            console.log('\x1B[31m%s\x1B[0m', 'The requested template type ' + initInfo.template +
+              " doesn't match the existing template type of " + currentProjectTemplate + '.');
             return false;
           }
           inquirer.prompt([{
@@ -261,11 +261,11 @@ function parseCreate() {
               }
             }]).then(answers => {
               if (answers['Complie SDk'] === '1') {
-                initInfo.sdkVersion = '10'
+                initInfo.sdkVersion = '10';
               } else if (answers['Complie SDk'] === '2') {
-                initInfo.sdkVersion = '11'
+                initInfo.sdkVersion = '11';
               } else {
-                initInfo.sdkVersion = '12'
+                initInfo.sdkVersion = '12';
               }
               create(initInfo);
             });

@@ -95,6 +95,7 @@ class Sdk {
     } else if (platform === Platform.MacOS) {
       sdkHomeDir = path.join(devEcoStudioDir, 'Contents', 'sdk');
     }
+    return sdkHomeDir;
   }
 
   getDefaultSdk() {
