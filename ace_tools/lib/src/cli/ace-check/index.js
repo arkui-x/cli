@@ -31,7 +31,6 @@ const {
   javaSdkVersionDevEco,
   ohpmDir
 } = require('./configs');
-const { arkUIXSdkPathCheck } = require('../ace-config');
 const { devices, devicesList } = require('../ace-devices');
 const info = require('./Info');
 const process = require('child_process');
@@ -164,13 +163,6 @@ function showWarning() {
       msgs.push(warningInfo[index]);
     }
   });
-  if (arkuiXSdkDir) {
-    const checkInfo = [];
-    arkUIXSdkPathCheck(arkuiXSdkDir, checkInfo);
-    checkInfo.forEach((key) => {
-      msgs.push(key);
-    });
-  }
   if (msgs.length !== 0) {
     showWarningInfo(msgs);
   }

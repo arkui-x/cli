@@ -49,26 +49,35 @@ class Info {
     this.noXcodedir = 'Xcode is not installed, you can install in app store';
 
     this.warnOpenHarmonySdk =
-      'OpenHarmony sdk is required, please refer to the HarmonyOS Developer to download and install it.';
+      `OpenHarmony SDK is required, please refer to the HarmonyOS Developer to download and install it.
+    If you have already installed it, please use 'ace config --openharmony-sdk' to configure the environment.`;
     this.warnHarmonyOsSdk =
-      'HarmonyOS SDK is required, please refer to the HarmonyOS Developer to download and install it.';
+      `HarmonyOS SDK is required, please refer to the HarmonyOS Developer to download and install it.
+    If you have already installed it, please use 'ace config --harmonyos-sdk' to configure the environment.`;
     this.warnNodejs =
-      'Node is required, please download versions 16.20.1 or above';
+      `Node is required, please download versions 16.20.1 or above'
+    If you have already installed it, please use 'ace config --nodejs-dir' to configure the environment.`;
     this.warnOhpm =
-      'Ohpm is required, please download it with DevEco Studio or Command Line Tools.';
+      `Ohpm is required, please download it with DevEco Studio or Command Line Tools.
+    If you have already installed it, please use 'ace config --ohpm-dir' to configure the environment.`;
     this.warnJavaSdk =
-      'Java SDK is required, JAVA_HOME is not set and no \'java\' command could be found in your PATH. JDK 17 or later is recommended.';
+      `Java SDK is required, JAVA_HOME is not set and no 'java' command could be found in your PATH. JDK 17 or later is recommended.
+    If you have already installed it, please use 'ace config java-sdk' to configure the environment.`;
     this.warnArkuiXSdk =
-      'ArkUI-X Sdk is required, please download the latest version.';
+      `ArkUI-X SDK is required, please download the latest version.
+    If you have already installed it, please use 'ace config --arkui-x-sdk' to configure the environment.`;
     this.warnAndroidSdk =
-      'Android SDK is required, please download it with Android Studio.';
+      `Android SDK is required, please download it with Android Studio.
+    If you have already installed it, please use 'ace config --android-sdk' to configure the environment.`;
     this.warnAndroidStudio =
-      'Android Studio is required, visit https://developer.android.google.cn/studio to download it.';
+      `Android Studio is required, visit https://developer.android.google.cn/studio to download it.
+    If you have already installed it, please use 'ace config --android-studio-path' to configure the environment.`;
     this.warnDevEcoStudio =
-      'DevEco Studio is required, visit https://developer.harmonyos.com/cn/develop/deveco-studio to download latest.';
+      `DevEco Studio is required, visit https://developer.harmonyos.com/cn/develop/deveco-studio to download latest.
+    If you have already installed it, please use 'ace config --deveco-studio-path' to configure the environment.`;
     this.warnMacTools =
       'Xcode, libimobiledevice, ios-deploy tools is required, please download and install them by yourself.';
-    this.warnXcodeVersion = 
+    this.warnXcodeVersion =
       'Xcode version should be greater than or equal to 15.0.1, unless IOS17 is not supported.';
   }
 

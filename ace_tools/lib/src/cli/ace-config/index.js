@@ -16,13 +16,14 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { checkPath } = require('../ace-check/checkPathLawful');
 const configPath = process.env.APPDATA ? path.join(process.env.APPDATA, '.aceconfig')
   : path.join(os.homedir(), '.aceconfig');
 
 function setConfig(configs, isPrint) {
-  const configContent = getConfig();
   const deleteInfo = [];
   const setInfo = {};
+  const configContent = getConfig();
   for (const key in configs) {
     if (configs[key] === true) {
       delete configContent[key];
@@ -30,28 +31,15 @@ function setConfig(configs, isPrint) {
     } else {
       if (configs[key]) {
         const configPath = path.resolve(configs[key]);
-        if (!fs.existsSync(configPath)) {
-          console.error(`Config "${key}" path: "${configs[key]}" not exist.`);
-          return;
-        }
-        if (key === 'arkui-x-sdk') {
-          const checkInfo = [];
-          const isValid = arkUIXSdkPathCheck(configPath, checkInfo);
-          let logType = '\x1B[33m%s\x1B[0m';
-          let logStr = 'Warning: ';
-          if (!isValid) {
-            logType = '\x1B[31m%s\x1B[0m';
-            logStr = 'Error: ';
-          }
-          checkInfo.forEach((key) => {
-            console.log(logType, logStr + key);
-          });
-          if (!isValid) {
-            return;
-          }
+        if (!checkPath(key, configs[key])) {
+          continue;
         }
         configContent[key] = configPath;
         setInfo[key] = configs[key];
+        console.info(`Set "${key}" value to "${setInfo[key]}" succeeded.`);
+      } else if (typeof configs[key] !== 'undefined') {
+        delete configContent[key];
+	deleteInfo.push(key);
       }
     }
   }
@@ -60,7 +48,7 @@ function setConfig(configs, isPrint) {
       console.log(`Setting "${info}" value to "".`);
     });
     Object.keys(setInfo).forEach(key => {
-      console.log(`Setting "${key}" value to "${setInfo[key]}".`);
+      console.info(`Set "${key}" value to "${setInfo[key]}" succeeded.`);
     });
   }
   fs.writeFileSync(configPath, JSON.stringify(configContent));
@@ -69,9 +57,13 @@ function setConfig(configs, isPrint) {
 function getConfig() {
   if (fs.existsSync(configPath)) {
     try {
-      return JSON.parse(fs.readFileSync(configPath));
+      const readConfigPath = fs.readFileSync(configPath, 'utf-8');
+      if (readConfigPath) {
+        return JSON.parse(readConfigPath);
+      } else {
+        return {};
+      }
     } catch (err) {
-      console.log(err);
       return {};
     }
   } else {
@@ -79,34 +71,42 @@ function getConfig() {
   }
 }
 
-function arkUIXSdkPathCheck(sdkPath, info) {
-  const dirs = ['10'];
-  if (fs.existsSync(sdkPath)) {
-    dirs.push(...(fs.readdirSync(sdkPath).filter((file) => {
-      return fs.statSync(path.join(sdkPath, file)).isDirectory() && file !== 'licenses' && !isNaN(file);
-    })));
+function convertKey(key) {
+  let typekey = key;
+  if (key === 'Android') {
+    typekey = 'android-sdk';
   }
-  const maxDir = dirs.reduce((prev, next) => {
-    return Math.max(prev, next);
-  }, 0);
-  let candidatePath = path.join(sdkPath, String(maxDir), 'arkui-x');
-  if (!fs.existsSync(candidatePath)) {
-    if (info) {
-      info.push(`The ArkUI-X Sdk path you configured "${sdkPath}" is incorrect,please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
-    }
-    return false;
+  if (key === 'Android Studio') {
+    typekey = 'android-studio-path';
   }
-  candidatePath = path.join(sdkPath, 'licenses');
-  if (!fs.existsSync(candidatePath)) {
-    if (info) {
-      info.push('Licenses of ArkUI-X SDK is missing.');
-    }
+  if (key === 'ArkUI-X') {
+    typekey = 'arkui-x-sdk';
   }
-  return true;
+  if (key === 'DevEco Studio') {
+    typekey = 'deveco-studio-path';
+  }
+  if (key === 'HarmonyOS') {
+    typekey = 'harmonyos-sdk';
+  }
+  if (key === 'OpenHarmony') {
+    typekey = 'openharmony-sdk';
+  }
+  return typekey;
+}
+
+function modifyConfigPath(key, path) {
+  const configContent = getConfig();
+  const typekey = convertKey(key);
+  if (path) {
+    configContent[typekey] = path;
+  } else if (typekey in configContent) {
+    delete configContent[typekey];
+  }
+  fs.writeFileSync(configPath, JSON.stringify(configContent));
 }
 
 module.exports = {
-  setConfig: setConfig,
-  getConfig: getConfig,
-  arkUIXSdkPathCheck: arkUIXSdkPathCheck
+  setConfig,
+  getConfig,
+  modifyConfigPath
 };

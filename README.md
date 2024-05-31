@@ -3,7 +3,7 @@
 ## 简介
 ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，支持在Windows/Ubuntu/macOS平台运行，用于构建OpenHarmony/HarmonyOS、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
-如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
+如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
 
 **注释：** ACE - ArkUI跨平台运行环境 (ArkUI Cross-platform Environment)。
 
@@ -72,6 +72,20 @@ ace config [arguments]
 | --ohpm-dir  | Ohpm路径。 |
 | --openharmony-sdk | OpenHarmony SDK路径。 |
 
+例如使用ace config配置OpenHarmony SDK路径：
+```shell
+ohos@user ~ % ace config --openharmony-sdk /Users/ohos/Library/OpenHarmony/Sdk
+Set "openharmony-sdk" value to "/Users/ohos/Library/OpenHarmony/Sdk" succeeded.
+```
+
+注意：如果配置路径中有空格，路径需要添加双引号，比如：
+```shell
+ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk"
+Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
+```
+
+配置ACE工具链相关环境时，参见[路径合法性判断说明](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-ace-config.md)。
+
 ### ace check
 
 查验跨平台应用开发环境。
@@ -114,11 +128,11 @@ ace check [arguments]
 ```shell
 ohos@user ~ % ace check
 Check summary (to see all details, run ace check -v)
-[√] ArkUI-X (ArkUI-X SDK version 1.0.0.0)
-[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.10.13)
+[√] ArkUI-X (ArkUI-X SDK version 1.1.1.5)
+[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.9.6)
 [√] HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version 3.1.0)
 [√] Android toolchains - develop for Android devices (Android SDK version 34.0.0)
-[√] DevEco Studio (version 4.0.0.600)
+[√] DevEco Studio (version 4.0.3)
 [√] Android Studio (version 2022.3)
 [√] Xcode - develop for iOS (Xcode 14.3.1)
 Tools info :[√] OpenHarmony hdc installed
@@ -131,12 +145,12 @@ Tools info :[√] OpenHarmony hdc installed
   √ ACE Tools found no issues.
 
 ohos@user ~ % ace check -v
-[√] ArkUI-X (ArkUI-X SDK version 1.0.0.0)
+[√] ArkUI-X (ArkUI-X SDK version 1.1.1.5)
   • ArkUI-X SDK at /Users/ohos/Library/ArkUI-X/Sdk
   • Node.js (v18.17.1) Runtime Environment at /usr/local/n/versions/node/18.17.1/
   • libimobiledevice 1.3.0
   • ios-deploy 1.12.2
-[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.10.13)
+[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.9.6)
   • OpenHarmony SDK at /Users/ohos/Library/OpenHarmony/Sdk
   • Ohpm at /Users/ohos/Library/Huawei/ohpm
   • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
@@ -238,6 +252,7 @@ ohos@user:~/cli-project$ ace create test
 ? Enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
 ? Enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
 ? Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
+? Please select the Complie SDk (1: 10, 2: 11): 2 # 输入编译SDK版本
 
 Project created. Target directory:  /home/ohos/cli-project/test.
 
@@ -314,6 +329,7 @@ ace build <subCommand> [arguments]
 | --target [moduleName]          | hap                                                          | 指定目标模块名进行构建。                     |
 | --target-platform \<platform\> | apk、aab、aar、bundle                                        | 编译apk的目标平台[arm, arm64, x86_64]        |
 | -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
+| --analyze                 	     | hap、apk、ios                          						| 通过rom size工具对打出的包进行包体积解析；[rom size工具使用方法](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-rom-size.md)。             |
 | -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
 
 构建完成，提示包生成路径:

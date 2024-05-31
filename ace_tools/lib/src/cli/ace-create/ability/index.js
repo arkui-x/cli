@@ -19,7 +19,7 @@ const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { copy } = require('../util');
 const { getModuleList, getModuleAbilityList, addFileToPbxproj, isAppProject,
-  getCrossPlatformModules } = require('../../util');
+  getCrossPlatformModules, getIosProjectName } = require('../../util');
 
 let currentDir;
 
@@ -79,17 +79,19 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir, curre
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
         manifestJsonObj.app.bundleName + ':' + moduleName + ':' + abilityName + ':'));
-    const createActivityXmlInfo =
-      '    <activity \n' +
-      '            android:name=".' + destClassName + '"\n' +
-      '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
-    const curManifestXmlInfo =
-      fs.readFileSync(path.join(currentDir, '../.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
-    const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
-    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
-      createActivityXmlInfo +
-      curManifestXmlInfo.slice(insertIndex);
-    fs.writeFileSync(path.join(currentDir, '../.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    if (fs.existsSync(path.join(dest, 'EntryEntryAbilityActivity.java'))) {
+      const createActivityXmlInfo =
+        '    <activity \n' +
+        '            android:name=".' + destClassName + '"\n' +
+        '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
+      const curManifestXmlInfo =
+        fs.readFileSync(path.join(currentDir, '../.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
+      const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
+      const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
+        createActivityXmlInfo +
+        curManifestXmlInfo.slice(insertIndex);
+      fs.writeFileSync(path.join(currentDir, '../.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    }
     return true;
   } catch (error) {
     console.error('Get package name error.');
@@ -181,37 +183,39 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
     return true;
   }
   try {
+    const iosPath = getIosProjectName(path.join(currentDir, '../'));
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + abilityName + 'ViewController';
     const srcFilePath = path.join(templateDir, 'ios/app/EntryEntryAbilityViewController');
-    fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/' + destClassName + '.h'),
+    fs.writeFileSync(path.join(currentDir, `../.arkui-x/ios/${iosPath}/` + destClassName + '.h'),
       fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
-    fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/' + destClassName + '.m'),
+    fs.writeFileSync(path.join(currentDir, `../.arkui-x/ios/${iosPath}/` + destClassName + '.m'),
       fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
-    const createViewControlInfo =
-      '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
-      'isEqualToString:@"' + abilityName + '"]) {\n' +
-      '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",bundleName, ' +
-      'moduleName, abilityName];\n' +
-      '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
-      'initWithInstanceName:instanceName];\n' +
-      '        entryOtherVC.params = params;\n' +
-      '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
-      '    } // other ViewController\n';
-    const curManifestXmlInfo =
-      fs.readFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m')).toString();
-    const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
-    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
-    '#import "' + destClassName + '.h"\n' +
-    curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
-    createViewControlInfo +
-      curManifestXmlInfo.slice(insertIndex + 26);
-    fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
-    const pbxprojFilePath = path.join(currentDir, '../.arkui-x/ios/app.xcodeproj/project.pbxproj');
+    if (iosPath === 'app') {
+      const createViewControlInfo =
+        '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
+        'isEqualToString:@"' + abilityName + '"]) {\n' +
+        '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",bundleName, ' +
+        'moduleName, abilityName];\n' +
+        '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
+        'initWithInstanceName:instanceName];\n' +
+        '        entryOtherVC.params = params;\n' +
+        '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
+        '    } // other ViewController\n';
+      const curManifestXmlInfo =
+        fs.readFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m')).toString();
+      const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
+      const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
+      const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
+        '#import "' + destClassName + '.h"\n' +
+        curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
+        createViewControlInfo + curManifestXmlInfo.slice(insertIndex + 26);
+      fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    }
+    const pbxprojFilePath = path.join(currentDir, `../.arkui-x/ios/${iosPath}.xcodeproj/project.pbxproj`);
     if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
       !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
       return false;
@@ -252,10 +256,7 @@ function createAbility() {
   }
   const templateDir = globalThis.templatePath;
   const moduleAbilityList = getModuleAbilityList(path.join(currentDir, '../'), moduleListForAbility);
-  let crossPlatformModules = getCrossPlatformModules(path.join(currentDir, '../'));
-  if (!crossPlatformModules || crossPlatformModules.length === 0) {
-    crossPlatformModules = moduleListForAbility;
-  }
+  const crossPlatformModules = getCrossPlatformModules(path.join(currentDir, '../'));
   const moduleName = getCurrentModuleName(currentDir);
   const question = [{
     name: 'abilityName',

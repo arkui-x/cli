@@ -15,13 +15,15 @@
 
 const fs = require('fs');
 const path = require('path');
+const JSON5 = require('json5');
+const { cmpVersion } = require('./util');
 const { Platform, platform } = require('./platform');
 const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion } = require('./configs');
 function getTools() {
   const toolPaths = [];
   let hdcPath = {};
   if (androidSdkDir) {
-    toolPaths.push({ 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') });
+    toolPaths.push({ 'adb': `"${path.join(androidSdkDir, 'platform-tools', 'adb')}"` });
   }
   if (openHarmonySdkDir) {
     hdcPath = getToolchains('OpenHarmony');
@@ -57,9 +59,16 @@ function getToolByType(fileType, currentSystem, isLogTool) {
     } else if (openHarmonySdkDir && currentSystem === 'OpenHarmony') {
       toolPath = getToolchains('OpenHarmony');
     }
+    if (isLogTool) {
+      toolPath['hdc'] = toolPath['hdc'].replace(/^"|"$/g, '');
+    }
   }
   if (fileType === 'apk' && androidSdkDir) {
-    toolPath = { 'adb': path.join(androidSdkDir, 'platform-tools', 'adb') };
+    if (isLogTool) {
+      toolPath = { 'adb': `${path.join(androidSdkDir, 'platform-tools', 'adb')}` };
+    } else {
+      toolPath = { 'adb': `"${path.join(androidSdkDir, 'platform-tools', 'adb')}"` };
+    }
   }
   if (fileType === 'ios' && platform === Platform.MacOS) {
     if (!isLogTool) {
@@ -86,30 +95,64 @@ function getToolchains(systemType, key) {
     if (!fs.existsSync(toolchainsPath)) {
       const ideHdcPath = getIdeToolPath(openHarmonySdkDir);
       if (ideHdcPath) {
-        hdcPath[`${key}`] = ideHdcPath;
+        hdcPath[`${key}`] = `"${ideHdcPath}"`;
       }
     } else {
       const cliHdcPath = getCliToolPath(toolchainsPath);
       if (cliHdcPath) {
-        hdcPath[`${key}`] = cliHdcPath;
+        hdcPath[`${key}`] = `"${cliHdcPath}"`;
       }
     }
   } else if (systemType === 'HarmonyOS') {
-    toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
-    if (!fs.existsSync(toolchainsPath)) {
-      const ideToolPath = path.join(harmonyOsSdkDir, '/openharmony');
-      const ideHdcPath = getIdeToolPath(ideToolPath);
-      if (ideHdcPath) {
-        hdcPath[`${key}`] = ideHdcPath;
-      }
+    const hmsToolPath = getHmsToolPath(harmonyOsSdkDir);
+    if (hmsToolPath) {
+      hdcPath[`${key}`] = `"${hmsToolPath}"`;
     } else {
-      const cliHdcPath = getCliToolPath(toolchainsPath);
-      if (cliHdcPath) {
-        hdcPath[`${key}`] = cliHdcPath;
+      toolchainsPath = path.join(harmonyOsSdkDir, 'toolchains');
+      if (!fs.existsSync(toolchainsPath)) {
+        const ideToolPath = path.join(harmonyOsSdkDir, '/openharmony');
+        const ideHdcPath = getIdeToolPath(ideToolPath);
+        if (ideHdcPath) {
+          hdcPath[`${key}`] = `"${ideHdcPath}"`;
+        }
+      } else {
+        const cliHdcPath = getCliToolPath(toolchainsPath);
+        if (cliHdcPath) {
+          hdcPath[`${key}`] = `"${cliHdcPath}"`;
+        }
       }
     }
   }
   return hdcPath;
+}
+
+function getHmsToolPath(newPath) {
+  let toolPath;
+  const sdkPlatformVersion = new Map();
+  fs.readdirSync(newPath).forEach(dir => {
+    if (dir.includes('HarmonyOS')) {
+      const platformVersion = JSON5.parse(fs.readFileSync(
+        path.join(newPath, dir, 'sdk-pkg.json'))).data.platformVersion;
+      sdkPlatformVersion.set(platformVersion, dir);
+    }
+  });
+  if (sdkPlatformVersion.size === 0) {
+    toolPath = '';
+  } else if (sdkPlatformVersion.size === 1) {
+    toolPath = getValidToolPath(path.join(newPath, [...sdkPlatformVersion.values()][0], 'base/toolchains'));
+  } else {
+    const compareVer = [...sdkPlatformVersion.keys()];
+    for (let i = 0; i < compareVer.length - 1; i++) {
+      if (cmpVersion(compareVer[i], compareVer[i + 1])) {
+        let tmp = compareVer[i];
+        compareVer[i] = compareVer[i + 1];
+        compareVer[i + 1] = tmp;
+      }
+    }
+    const maxVersion = compareVer[compareVer.length - 1];
+    toolPath = getValidToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), 'base/toolchains'));
+  }
+  return toolPath;
 }
 
 function getIdeToolPath(ideToolPath) {
@@ -127,7 +170,7 @@ function getIdeToolPath(ideToolPath) {
         return a - b;
       });
       sortList.forEach(item => {
-        const tempPath = getVaildToolPath(path.join(ideToolPath, item, '/toolchains'));
+        const tempPath = getValidToolPath(path.join(ideToolPath, item, '/toolchains'));
         if (tempPath) {
           toolPath = tempPath;
         }
@@ -144,7 +187,7 @@ function getCliToolPath(cliToolPath) {
     if (fileArr && fileArr.length > 0) {
       fileArr.forEach(item => {
         if (!isNaN(item.substring(0, 1))) {
-          toolPath = getVaildToolPath(path.join(cliToolPath, item));
+          toolPath = getValidToolPath(path.join(cliToolPath, item));
         }
       });
     }
@@ -152,12 +195,12 @@ function getCliToolPath(cliToolPath) {
   return toolPath;
 }
 
-function getVaildToolPath(vaildToolPath) {
-  if (fs.existsSync(vaildToolPath)) {
-    const fileArr = fs.readdirSync(vaildToolPath);
+function getValidToolPath(validToolPath) {
+  if (fs.existsSync(validToolPath)) {
+    const fileArr = fs.readdirSync(validToolPath);
     for (let i = 0; i < fileArr.length; i++) {
       if (fileArr[i].substring(0, 3) === 'hdc') {
-        return path.join(vaildToolPath, fileArr[i]);
+        return path.join(validToolPath, fileArr[i]);
       }
     }
   }

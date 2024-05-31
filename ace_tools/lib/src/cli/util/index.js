@@ -18,7 +18,7 @@ const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
 const { copy } = require('../ace-create/util');
-const { devices, getDeviceID, devicesList } = require('../ace-devices');
+const { getDeviceID, devicesList } = require('../ace-devices');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -209,7 +209,7 @@ function getFrameworkName(projectDir) {
   const frameworkName = [];
   const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
   iosDir.forEach(dir => {
-    if (dir.includes('.xcodeproj')) {
+    if (dir.includes('.xcodeproj') && dir != 'app.xcodeproj') {
       frameworkName.push(dir.split('.')[0]);
     }
   });
@@ -228,12 +228,14 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
       fileName + '; sourceTree = "<group>"; };';
     const addPBXGroupInfo = '\n				' + headFileUUID + ' /* ' + fileName + ' */,';
     const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
-    const pBXBuildIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.h; sourceTree = "<group>"; };');
-    const pBXGroupIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.h */,');
-    const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, pBXBuildIndex + 41) + addPBXBuildInfo +
-      pbxprojFileInfo.slice(pBXBuildIndex + 41, pBXGroupIndex + 20) +
-      addPBXGroupInfo + pbxprojFileInfo.slice(pBXGroupIndex + 20);
-    fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    if (!pbxprojFileInfo.includes(' /* ' + fileName + ' */,')) {
+      const pBXBuildIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.h; sourceTree = "<group>"; };');
+      const pBXGroupIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.h */,');
+      const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, pBXBuildIndex + 41) + addPBXBuildInfo +
+        pbxprojFileInfo.slice(pBXBuildIndex + 41, pBXGroupIndex + 20) +
+        addPBXGroupInfo + pbxprojFileInfo.slice(pBXGroupIndex + 20);
+      fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    }
   } else if (fileType === 'sourcefile') {
     const sourceFileFirstUUID = getUUID(pbxprojFilePath);
     const sourceFileSecondUUID = getUUID(pbxprojFilePath);
@@ -249,16 +251,18 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const addchildren = '\n				' + sourceFileSecondUUID + ' /* ' + fileName + ' */,';
     const addPBXSourcesBuildPhase = '\n				' + sourceFileFirstUUID + ' /* ' + fileName + ' in Sources */,';
     const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
-    const addPBXBuildInfoIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */; };');
-    const addPBXFileReferenceIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m; sourceTree = "<group>"; };');
-    const addchildrenIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */,');
-    const addPBXSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m in Sources */,');
-    const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addPBXBuildInfoIndex + 23) + addPBXBuildInfo +
-      pbxprojFileInfo.slice(addPBXBuildInfoIndex + 23, addPBXFileReferenceIndex + 41) + addPBXFileReference +
-      pbxprojFileInfo.slice(addPBXFileReferenceIndex + 41, addchildrenIndex + 20) + addchildren +
-      pbxprojFileInfo.slice(addchildrenIndex + 20, addPBXSourcesBuildPhaseIndex + 28) + addPBXSourcesBuildPhase +
-      pbxprojFileInfo.slice(addPBXSourcesBuildPhaseIndex + 28);
-    fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    if (!pbxprojFileInfo.includes(' /* ' + fileName + ' in Sources */,')) {
+      const addPBXBuildInfoIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */; };');
+      const addPBXFileReferenceIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m; sourceTree = "<group>"; };');
+      const addchildrenIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */,');
+      const addPBXSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m in Sources */,');
+      const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addPBXBuildInfoIndex + 23) + addPBXBuildInfo +
+        pbxprojFileInfo.slice(addPBXBuildInfoIndex + 23, addPBXFileReferenceIndex + 41) + addPBXFileReference +
+        pbxprojFileInfo.slice(addPBXFileReferenceIndex + 41, addchildrenIndex + 20) + addchildren +
+        pbxprojFileInfo.slice(addchildrenIndex + 20, addPBXSourcesBuildPhaseIndex + 28) + addPBXSourcesBuildPhase +
+        pbxprojFileInfo.slice(addPBXSourcesBuildPhaseIndex + 28);
+      fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    }
   } else if (fileType === 'cfile') {
     const cBuildFileUUID = getUUID(pbxprojFilePath);
     const cFileReferenceUUID = getUUID(pbxprojFilePath);
@@ -291,6 +295,39 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
         addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length) +
       addSourcesBuildPhase + pbxprojFileInfo.slice(addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length);
     fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+  } else if (fileType === 'resource') {
+    const resourceBuildFileUUID = getUUID(pbxprojFilePath);
+    const resourceFileReferenceUUID = getUUID(pbxprojFilePath);
+    if (resourceBuildFileUUID === undefined || resourceFileReferenceUUID === undefined) {
+      console.log('get UUID Failed');
+      return false;
+    }
+    const addBuildFile = '\n		' + resourceBuildFileUUID + ' /* ' + fileName +
+      ' in Resources */ = {isa = PBXBuildFile; fileRef = ' + resourceFileReferenceUUID + ' /* ' + fileName + ' */; };';
+    const addFileReference = '\n		' + resourceFileReferenceUUID + ' /* ' + fileName +
+      ' */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ' + fileName + '; sourceTree = "<group>"; };';
+    const addGroupChildren = '\n				' + resourceFileReferenceUUID + ' /* ' + fileName + ' */,';
+    const addResourcesBuildPhase = '\n				' + resourceBuildFileUUID + ' /* ' + fileName + ' in Resources */,';
+    const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
+    if (!pbxprojFileInfo.includes(' /* ' + fileName + ' in Resources */,')) {
+      const searchBuildFile = '/* main.m */; };';
+      const searchFileReference = 'main.m; sourceTree = "<group>"; };';
+      const searchGroupChildren = '/* Products */,';
+      const searchResourcesBuildPhase = '/* LaunchScreen.storyboard in Resources */,';
+      const addBuildFileIndex = pbxprojFileInfo.lastIndexOf(searchBuildFile);
+      const addFileReferenceIndex = pbxprojFileInfo.lastIndexOf(searchFileReference);
+      const addGroupChildrenIndex = pbxprojFileInfo.lastIndexOf(searchGroupChildren);
+      const addResourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf(searchResourcesBuildPhase);
+      const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addBuildFileIndex + searchBuildFile.length) +
+        addBuildFile + pbxprojFileInfo.slice(addBuildFileIndex + searchBuildFile.length,
+          addFileReferenceIndex + searchFileReference.length) +
+        addFileReference + pbxprojFileInfo.slice(addFileReferenceIndex + searchFileReference.length,
+          addGroupChildrenIndex + searchGroupChildren.length) +
+        addGroupChildren + pbxprojFileInfo.slice(addGroupChildrenIndex + searchGroupChildren.length,
+          addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length) +
+        addResourcesBuildPhase + pbxprojFileInfo.slice(addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length);
+      fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
+    }
   } else {
     console.log('filetype error');
     return false;
@@ -433,6 +470,59 @@ function isCopyHvigor(currentVersion, tempVersion) {
   }
 }
 
+function getSdkVersion(projectDir) {
+  const buildProfilePath = path.join(projectDir, 'build-profile.json5');
+  if (fs.existsSync(buildProfilePath)) {
+    const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfilePath).toString());
+    if (buildProfileInfo.app.products[0].compileSdkVersion === '4.0.0(10)') {
+      return '10';
+    } else if (buildProfileInfo.app.products[0].compileSdkVersion === '4.1.0(11)') {
+      return '11';
+    }
+    return buildProfileInfo.app.products[0].compileSdkVersion;
+  } else {
+    return null;
+  }
+}
+
+function checkProjectType(projectDir) {
+  if (fs.existsSync(path.join(projectDir, 'entry/src/main/cpp'))
+    || fs.existsSync(path.join(projectDir, '.arkui-x/android/app/src/main/cpp'))) {
+    return 'plugin_napi';
+  } else if (getAarName(projectDir).length !== 0 || getFrameworkName(projectDir).length !== 0) {
+    return 'library';
+  } else {
+    return 'app';
+  }
+}
+
+function getAndroidModule(projectDir) {
+  const moduleName = [];
+  const settingsGradle = path.join(projectDir, '.arkui-x/android/settings.gradle');
+  if (!fs.existsSync(settingsGradle)) {
+    return moduleName;
+  }
+  fs.readFileSync(settingsGradle).toString().split(/\r\n|\n|\r/gm).forEach(line => {
+    if (line.indexOf(`include ':`) !== -1) {
+      moduleName.push(line.split("'")[1].substring(1));
+    }
+  });
+  return moduleName;
+}
+
+function getIosProjectName(projectDir) {
+  let iosName = '';
+  const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
+  for (let i = 0; i < iosDir.length; i++) {
+    if (iosDir[i].includes('.xcodeproj')) {
+      iosName = iosDir[i].split('.')[0];
+      break;
+    }
+  }
+  iosName = iosName || 'app';
+  return iosName;
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -451,5 +541,9 @@ module.exports = {
   modifyAndroidAbi,
   validOptions,
   syncHvigor,
-  getModulePathList
+  getSdkVersion,
+  getModulePathList,
+  checkProjectType,
+  getAndroidModule,
+  getIosProjectName
 };

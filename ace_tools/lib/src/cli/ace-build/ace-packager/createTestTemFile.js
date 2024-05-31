@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const { getModuleList } = require('../../util');
+const { getModuleList, getIosProjectName } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../../ace-create/ability');
 let projectDir;
 
@@ -58,9 +58,10 @@ function recoverStageAbilityInAndroid(moduleName, abilityName) {
 
 function recoverStageAbilityInIOS(moduleName, abilityName) {
   try {
+    const iosPath = getIosProjectName(projectDir);
     const destClassName = getDestName(moduleName, abilityName, 'ios');
-    const viewControllerh = path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.h');
-    const viewControllerm = path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.m');
+    const viewControllerh = path.join(projectDir, `.arkui-x/ios/${iosPath}/` + destClassName + '.h');
+    const viewControllerm = path.join(projectDir, `.arkui-x/ios/${iosPath}/` + destClassName + '.m');
     if (fs.existsSync(viewControllerh)) {
       fs.unlinkSync(viewControllerh);
     }
@@ -68,7 +69,7 @@ function recoverStageAbilityInIOS(moduleName, abilityName) {
       fs.unlinkSync(viewControllerm);
     }
     const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m')).toString();
+      fs.readFileSync(path.join(projectDir, `.arkui-x/ios/${iosPath}/AppDelegate.m`)).toString();
     const createViewControlInfo =
       '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
       'isEqualToString:@"' + abilityName + '"]) {\n' +
@@ -90,8 +91,8 @@ function recoverStageAbilityInIOS(moduleName, abilityName) {
     const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
       curManifestXmlInfo.slice(insertImportIndex + insertImportLength, createViewControlInfoLengthIndex) +
       curManifestXmlInfo.slice(createViewControlInfoLengthIndex + createViewControlInfoLength);
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
-    const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
+    fs.writeFileSync(path.join(projectDir, `.arkui-x/ios/${iosPath}/AppDelegate.m`), updateManifestXmlInfo);
+    const pbxprojFilePath = path.join(projectDir, `.arkui-x/ios/${iosPath}.xcodeproj/project.pbxproj`);
     if (!recoverFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
       !recoverFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
       return false;
@@ -170,7 +171,7 @@ function createTestTem(fileType) {
   const curManifestXmlInfo =
     fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
   const curAppDelegateInfo =
-    fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m')).toString();
+    fs.readFileSync(path.join(projectDir, `.arkui-x/ios/${getIosProjectName(projectDir)}/AppDelegate.m`)).toString();
   moduleList.forEach(module => {
     const testModule = module + '_test';
     const abilityName = 'TestAbility';

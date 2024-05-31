@@ -24,6 +24,7 @@ const {
   createLocalProperties,
   copyToBuildDir
 } = require('../ace-build');
+const { getSdkVersion } = require('../../util/index');
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, getAarName, isAppProject,
@@ -32,6 +33,7 @@ const { getOhpmTools } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
+const analyze = require('../ace-analyze/index');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -40,18 +42,28 @@ let modulePathList;
 
 function readConfig() {
   try {
+    let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
+    lackDir += nodejsDir ? '' : 'nodejs, ';
+    lackDir += ohpmDir ? '' : 'ohpm, ';
     if (currentSystem === 'HarmonyOS') {
+      lackDir = (harmonyOsSdkDir ? '' : 'HarmonyOS SDK, ') + lackDir;
       if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        console.error(`Please check HarmonyOS SDK, ArkUI-X SDK, nodejs and ohpm in your environment.`);
+        let errorLog = `Please check ${lackDir}in your environment.`;
+        errorLog = errorLog.replace(', in', ' in');
+        console.error(errorLog);
         return false;
       }
     } else {
+      lackDir = (openHarmonySdkDir ? '' : 'OpenHarmony SDK, ') + lackDir;
       if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        console.error(`Please check OpenHarmony SDK, ArkUI-X SDK, nodejs and ohpm in your environment.`);
+        let errorLog = `Please check ${lackDir}in your environment.`;
+        errorLog = errorLog.replace(', in', ' in');
+        console.error(errorLog);
         return false;
       }
     }
-    arkuiXSdkPath = path.join(arkuiXSdkDir, '10', 'arkui-x');
+    const version = getSdkVersion(projectDir);
+    arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
     return true;
   } catch (error) {
     console.error(`Please 'ace check' first.`);
@@ -349,6 +361,9 @@ function compilerPackage(crossPlatformModules, fileType, cmd, moduleListSpecifie
     if (fileType === 'hap') {
       console.log(`HAP file built successfully.`);
       copyHaptoOutput(moduleListSpecified);
+      if (cmd.analyze) {
+        analyze(fileType);
+      }
       return true;
     } else if (fileType === 'bundle') {
       console.log(`Build bundle successfully.`);

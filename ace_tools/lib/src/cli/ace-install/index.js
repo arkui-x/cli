@@ -35,7 +35,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
     }
     // ohos will install all module hap
     if (fileType === 'hap') {
-      const modulePathList = getModulePathList(projectDir);
+      const modulePathList = getModulePathList(projectDir)
       moduleList.forEach(module => {
         buildDir = path.join(projectDir, modulePathList[module], 'build/default/outputs/default');
         const fileList = fs.readdirSync(buildDir).filter(function(file) {
@@ -61,7 +61,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
     }
     // android and ios only have one apk or app
     if (fileType === 'ios') {
-      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/app');
+      buildDir = path.join(projectDir, '.arkui-x', 'ios', 'build/outputs/app/');
       const fileList = fs.readdirSync(buildDir).filter(file => {
         return path.extname(file).toLowerCase() === `.app`;
       });
@@ -160,7 +160,7 @@ function install(fileType, device, moduleListInput, installFilePath, cmd) {
       for (let index = 0; index < filePathList.length; index++) {
         const filePath = filePathList[index];
         const result = exec(`${installCmd} ${filePath}`).toString().trim();
-        if (result.toLowerCase().includes('fail')) {
+        if (result.toLowerCase().includes('failed') || result.toLowerCase().includes('failure')) {
           console.error(result);
           isInstalled = false;
         }

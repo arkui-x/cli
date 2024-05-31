@@ -17,10 +17,11 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
-const { copy, modifyHarmonyOSConfig, getModulePathList } = require('../util');
+const { copy, modifyHarmonyOSConfig, addCrosssPlatform, modifyOpenHarmonyOSConfig } = require('../util');
+const { getSdkVersion } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability')
 const { getModuleList, getCurrentProjectSystem, isNativeCppTemplate, addFileToPbxproj,
-  isAppProject } = require('../../util');
+  isAppProject, getIosProjectName } = require('../../util');
 
 const projectDir = process.cwd();
 let currentSystem;
@@ -104,17 +105,19 @@ function createStageInAndroid(moduleName, templateDir) {
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
       + moduleName + ':' + capitalize(moduleName) + 'Ability:'));
-    const createActivityXmlInfo =
-      '    <activity \n' +
-      '            android:name=".' + destClassName + '"\n' +
-      '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
-    const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
-    const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
-    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
-      createActivityXmlInfo +
-      curManifestXmlInfo.slice(insertIndex);
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    if (fs.existsSync(path.join(dest, 'EntryEntryAbilityActivity.java'))) {
+      const createActivityXmlInfo =
+        '    <activity \n' +
+        '            android:name=".' + destClassName + '"\n' +
+        '        android:exported="true" android:configChanges="uiMode|orientation|screenSize|density" />\n    ';
+      const curManifestXmlInfo =
+        fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
+      const insertIndex = curManifestXmlInfo.lastIndexOf('</application>');
+      const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertIndex) +
+        createActivityXmlInfo +
+        curManifestXmlInfo.slice(insertIndex);
+      fs.writeFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
+    }
     if (isNativeCppTemplate(projectDir)) {
       replaceAndroidNativeCpp(moduleName);
     }
@@ -262,8 +265,12 @@ function replaceStageProjectInfo(moduleName) {
       console.error('Please check stage project.');
       return false;
     }
+    const sdkVersion = getSdkVersion(projectDir);
+    if (currentSystem === 'OpenHarmony' && String(sdkVersion) !== '10') {
+      modifyOpenHarmonyOSConfig(projectDir, sdkVersion);
+    }
     if (currentSystem === 'HarmonyOS') {
-      modifyHarmonyOSConfig(projectDir, moduleName);
+      modifyHarmonyOSConfig(projectDir, moduleName, sdkVersion);
     }
     return true;
   } catch (error) {
@@ -277,37 +284,39 @@ function createStageInIOS(moduleName, templateDir) {
     return true;
   }
   try {
+    const iosPath = getIosProjectName(projectDir);
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
       return l.toUpperCase();
     }) + capitalize(moduleName) + 'AbilityViewController';
-    const srcFilePath = path.join(templateDir, 'ios/app/EntryEntryAbilityViewController');
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.h'),
+    const srcFilePath = path.join(templateDir, `ios/app/EntryEntryAbilityViewController`);
+    fs.writeFileSync(path.join(projectDir, `.arkui-x/ios/${iosPath}/` + destClassName + '.h'),
       fs.readFileSync(srcFilePath + '.h').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/' + destClassName + '.m'),
+    fs.writeFileSync(path.join(projectDir, `.arkui-x/ios/${iosPath}/` + destClassName + '.m'),
       fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
-    const createViewControlInfo =
-      '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
-      '  isEqualToString:@"' + capitalize(moduleName) + 'Ability"]) {\n' +
-      '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",' +
-      'bundleName, moduleName, abilityName];\n' +
-      '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
-      'initWithInstanceName:instanceName];\n' +
-      '        entryOtherVC.params = params;\n' +
-      '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
-      '    } // other ViewController\n';
-    const curManifestXmlInfo =
-      fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m')).toString();
-    const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-    const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
-    const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
-    '#import "' + destClassName + '.h"\n' +
-    curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
-    createViewControlInfo +
-      curManifestXmlInfo.slice(insertIndex + 26);
-    fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
-    const pbxprojFilePath = path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
+    if (iosPath === 'app') {
+      const createViewControlInfo =
+        '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
+        '  isEqualToString:@"' + capitalize(moduleName) + 'Ability"]) {\n' +
+        '        NSString *instanceName = [NSString stringWithFormat:@"%@:%@:%@",' +
+        'bundleName, moduleName, abilityName];\n' +
+        '        ' + destClassName + ' *entryOtherVC = [[' + destClassName + ' alloc] ' +
+        'initWithInstanceName:instanceName];\n' +
+        '        entryOtherVC.params = params;\n' +
+        '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
+        '    } // other ViewController\n';
+      const curManifestXmlInfo =
+        fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m')).toString();
+      const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
+      const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
+      const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
+        '#import "' + destClassName + '.h"\n' +
+        curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
+        createViewControlInfo + curManifestXmlInfo.slice(insertIndex + 26);
+      fs.writeFileSync(path.join(projectDir, '.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
+    }
+    const pbxprojFilePath = path.join(projectDir, `.arkui-x/ios/${iosPath}.xcodeproj/project.pbxproj`);
     if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
       !addFileToPbxproj(pbxprojFilePath, destClassName + '.m', 'sourcefile')) {
       return false;
@@ -344,11 +353,31 @@ function createStageModule(moduleList, templateDir) {
     }];
     inquirer.prompt(question).then(answers => {
       const moduleName = answers.moduleName;
-      if (createStageModuleInSource(moduleName, templateDir)
-        && createStageInAndroid(moduleName, templateDir)
-        && createStageInIOS(moduleName, templateDir)) {
-        return replaceStageProjectInfo(moduleName);
-      }
+      inquirer.prompt([{
+        name: 'cross',
+        type: 'input',
+        message: 'Specify whether the module is a cross-platform module (y / n):',
+        validate(val) {
+          if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
+            return 'Please enter y / n!';
+          } else {
+            return true;
+          }
+        }
+      }]).then(answers => {
+        if (answers.cross === 'y') {
+          if (createStageModuleInSource(moduleName, templateDir)
+            && createStageInAndroid(moduleName, templateDir)
+            && createStageInIOS(moduleName, templateDir)) {
+            addCrosssPlatform(projectDir, moduleName);
+            return replaceStageProjectInfo(moduleName);
+          }
+        } else {
+          if (createStageModuleInSource(moduleName, templateDir)) {
+            return replaceStageProjectInfo(moduleName);
+          }
+        }
+      });
     });
   }
 }
@@ -466,8 +495,8 @@ function updateCrossPlatformModules(currentSystem) {
     if (!fs.existsSync(templateDir)) {
       templateDir = globalThis.templatePath;
     }
-
     updateModuleDir.forEach((modulePath, module) => {
+      addCrosssPlatform(projectDir, module);
       replaceStageProfile(module, modulePath);
       updateRuntimeOS(modulePath, currentSystem);
       const moduleJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, modulePath, 'src/main/module.json5')));
@@ -478,7 +507,7 @@ function updateCrossPlatformModules(currentSystem) {
       });
     })
   } catch (err) {
-    console.log('update cross platform modules failed.');
+    console.log('update cross platform modules failed.')
   }
 }
 

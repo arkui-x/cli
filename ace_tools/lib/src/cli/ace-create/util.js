@@ -14,6 +14,7 @@
  */
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const JSON5 = require('json5');
 const exec = require('child_process').execSync;
@@ -87,7 +88,23 @@ function createPackageFile(packagePaths, packageArray) {
   });
 }
 
-function modifyHarmonyOSConfig(projectPath, moduleName) {
+function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
+  if (openharmonyosVersion === '10') {
+    return;
+  }
+  const buildProfile = path.join(projectPath, 'build-profile.json5');
+  if (fs.existsSync(buildProfile)) {
+    const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
+    const productsInfo = buildProfileInfo.app.products;
+    for (let index = 0; index < productsInfo.length; index++) {
+      productsInfo[index].compileSdkVersion = Number(openharmonyosVersion);
+      productsInfo[index].compatibleSdkVersion = Number(openharmonyosVersion);
+    }
+    fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
+  }
+}
+
+function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
   const buildProfile = path.join(projectPath, 'build-profile.json5');
   const configFile = [path.join(projectPath, moduleName, 'src/main/module.json5'),
     path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
@@ -98,10 +115,26 @@ function modifyHarmonyOSConfig(projectPath, moduleName) {
     const productsInfo = buildProfileInfo.app.products;
     for (let index = 0; index < productsInfo.length; index++) {
       if (productsInfo[index].name === 'default' && productsInfo[index].runtimeOS !== 'HarmonyOS') {
-        productsInfo[index].compileSdkVersion = '4.0.0(10)';
-        productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
-        productsInfo[index].runtimeOS = 'HarmonyOS';
-        break;
+        switch (sdkVersion) {
+          case '10':{
+            productsInfo[index].compileSdkVersion = '4.0.0(10)';
+            productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
+            productsInfo[index].runtimeOS = 'HarmonyOS';
+            break;
+          }
+          case '11':{
+            productsInfo[index].compileSdkVersion = '4.1.0(11)';
+            productsInfo[index].compatibleSdkVersion = '4.1.0(11)';
+            productsInfo[index].runtimeOS = 'HarmonyOS';
+            break;
+          }
+          default:{
+            productsInfo[index].compileSdkVersion = '4.0.0(10)';
+            productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
+            productsInfo[index].runtimeOS = 'HarmonyOS';
+            break;
+          }
+        }
       }
     }
     fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
@@ -224,6 +257,87 @@ function signIOS(configFile) {
   }
 }
 
+function copyTemp(src, dst, excludefile) {
+  if (fs.statSync(src).isFile()) {
+    const parentDir = path.parse(dst).dir;
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
+    fs.writeFileSync(dst, fs.readFileSync(src));
+    return;
+  }
+  const stats = fs.statSync(src);
+  if (stats.isDirectory()) {
+    fs.mkdirSync(dst, { recursive: true });
+  }
+  const paths = fs.readdirSync(src).filter(item => {
+    return (item !== excludefile);
+  });
+  paths.forEach(newpath => {
+    const srcEle = path.join(src, newpath);
+    const dstEle = path.join(dst, newpath);
+    if (fs.statSync(srcEle).isFile()) {
+      const parentDir = path.parse(dstEle).dir;
+      if (!fs.existsSync(parentDir)) {
+        fs.mkdirSync(parentDir, { recursive: true });
+      }
+      fs.writeFileSync(dstEle, fs.readFileSync(srcEle));
+    } else {
+      if (!fs.existsSync(dstEle)) {
+        fs.mkdirSync(dstEle, { recursive: true });
+      }
+      copy(srcEle, dstEle, excludefile);
+    }
+  });
+  return true;
+}
+
+function getFileList(projectDir) {
+  let fileList = [];
+  fs.readdirSync(projectDir).forEach(file => {
+    let projectFilePath = path.join(projectDir, file);
+    if (fs.lstatSync(projectFilePath).isDirectory()) {
+      if (fs.readdirSync(projectFilePath).length > 0) {
+        fileList = fileList.concat(getFileList(projectFilePath));
+      } else {
+        fileList.push(projectFilePath);
+      }
+    } else {
+      fileList.push(projectFilePath);
+    }
+  });
+  return fileList;
+}
+
+function getTempPath(outputDir) {
+  const tempDir = os.tmpdir();
+  const projectTempPath = path.join(tempDir, 'aceProject', outputDir).replaceAll("\\", "/")
+  return projectTempPath;
+}
+
+function getProjectInfo(currentProjectPath) {
+  const projectInfo = {};
+  if (fs.existsSync(path.join(currentProjectPath, 'oh-package.json5'))) {
+    const nameInfo = fs.readFileSync(path.join(currentProjectPath, 'oh-package.json5'), 'utf8').toString();
+    projectInfo.projectName = JSON5.parse(nameInfo)['name'];
+  }
+  if (fs.existsSync(path.join(currentProjectPath, '/AppScope/app.json5'))) {
+    const bundleNameInfo = fs.readFileSync(path.join(currentProjectPath, '/AppScope/app.json5'), 'utf8').toString();
+    projectInfo.bundleName = JSON5.parse(bundleNameInfo)['app']['bundleName'];
+  } else {
+    projectInfo.bundleName = 'com.example.' + projectInfo.projectName
+  }
+  if (fs.existsSync(path.join(currentProjectPath, 'build-profile.json5'))) {
+    const versionInfo = fs.readFileSync(path.join(currentProjectPath, 'build-profile.json5'), 'utf8').toString();
+    projectInfo.compileSdkVersion = JSON5.parse(versionInfo)['app']['products'][0]['compileSdkVersion'];
+    projectInfo.runtimeOS = JSON5.parse(versionInfo)['app']['products'][0]['runtimeOS'];
+  } else {
+    projectInfo.compileSdkVersion = '10';
+    projectInfo.runtimeOS = 'OpenHarmony';
+  }
+  return projectInfo;
+}
+
 module.exports = {
   copy,
   rmdir,
@@ -232,5 +346,10 @@ module.exports = {
   modifyHarmonyOSConfig,
   modifyNativeCppConfig,
   addCrosssPlatform,
-  signIOS
+  signIOS,
+  modifyOpenHarmonyOSConfig,
+  copyTemp,
+  getFileList,
+  getTempPath,
+  getProjectInfo
 };

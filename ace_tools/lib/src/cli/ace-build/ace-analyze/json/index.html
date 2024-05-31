@@ -1,0 +1,971 @@
+<!-- /*
+ * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */ -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link href="bootstrap.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        .nav-tabs {
+            position: relative;
+            height: 2.6rem;
+        }
+
+        .nav-link {
+            color: black;
+        }
+
+        .btn-outline-primary {
+            padding: 0.3rem 0.8rem;
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .nav-tabs select {
+            padding: 0.3rem 0.8rem;
+            position: absolute;
+            right: 7rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 7rem;
+        }
+
+        .nav-tabs .nav-item.show .nav-link,
+        .nav-tabs .nav-link.active {
+            color: #0e6dfd
+        }
+
+        #analysis {
+            display: block;
+            width: 100%;
+            height: calc(100% - 2.6rem);
+        }
+
+        #uploadPage,
+        #analysisPage,
+        #diff-analysisPage {
+            padding: 1rem 2rem 2rem 2rem;
+            width: 100%;
+            height: 100%;
+        }
+
+        #dropArea {
+            width: 100%;
+            height: 100%;
+            border: 2px dashed #aaa;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #dropArea.dragover {
+            border-color: #42b983;
+        }
+
+        .drop-text {
+            margin-bottom: 10px;
+        }
+
+        form {
+            padding: 0 5rem;
+            display: flex;
+            width: 100%;
+        }
+
+        .btn-secondary {
+            margin: 2rem 0rem 0rem 0rem;
+        }
+
+        #load {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #load div {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        #analysisPage,
+        #container,
+        #diff-container {
+            width: 100%;
+        }
+
+        #name,
+        #diff-name {
+            margin-top: 1rem;
+            height: calc(35% - 1rem);
+            overflow: scroll;
+            scroll-snap-type: none;
+        }
+
+        #name::-webkit-scrollbar {
+            width: 0;
+        }
+
+        #diff-name::-webkit-scrollbar {
+            width: 0;
+        }
+
+        details {
+            position: relative;
+            width: 300;
+            padding-left: 20px;
+        }
+
+        summary {
+            list-style: none;
+            padding: 10px;
+        }
+
+        summary:hover {
+            background: rgb(248, 249, 250);
+            cursor: pointer;
+        }
+
+        .openfileIcon:before {
+            content: '';
+            position: absolute;
+            height: 0;
+            width: 0;
+            top: 15px;
+            left: 20px;
+            border: 6px solid #ccc;
+            border-top-color: transparent;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        details[open]>.openfileIcon:before {
+            content: '';
+            position: absolute;
+            height: 0;
+            width: 0;
+            top: 15px;
+            left: 20px;
+            border: 6px solid #ccc;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        #diff {
+            height: calc(100% - 2.6rem);
+        }
+
+        #diff-uploadPage {
+            padding: 0rem 2rem 2rem 2rem;
+        }
+
+        #diff #diff-uploadPage {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            height: calc(100% - 2rem);
+
+        }
+
+        #diff form {
+            padding: 0 3rem;
+        }
+
+        #diff .btn-secondary {
+            margin: 0 1rem;
+            width: 7rem;
+            height: 2.5rem;
+        }
+
+        #diff .diff-dropArea {
+            width: 50%;
+            height: 100%;
+            border: 2px dashed #aaa;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #diff .diff-dropArea.dragover {
+            border-color: #0e6dfd;
+        }
+
+        .diff-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 2rem;
+            font-weight: bold;
+        }
+
+        .diff-title div {
+            width: calc(50% - 4.5rem);
+            text-align: center;
+        }
+
+        #diff .drop-text {
+            margin-bottom: 10px;
+        }
+
+        .filesize {
+            font-weight: bold;
+        }
+
+        #analyzeFilename,
+        #diffanalyzeFilename {
+            margin: 0;
+            height: 2rem;
+            line-height: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <ul class="nav nav-tabs" id="nav" style="width: 100%;">
+        <li class="nav-item">
+            <span class="nav-link active">解析</span>
+        </li>
+        <li class="nav-item">
+            <span class="nav-link">对比</span>
+        </li>
+        <li>
+            <select class="form-select" id="form-select" aria-label="筛选查看">
+                <option selected value="1">全部</option>
+                <option value="2">只看增加</option>
+                <option value="3">只看减少</option>
+            </select>
+            <span onclick="clearPrintScreen()" class="btn btn-outline-primary">clear</span>
+        </li>
+    </ul>
+    <div id="analysis">
+        <div id="uploadPage">
+            <div id="dropArea">
+                <p class="drop-text">拖拽文件到此区域进行上传</p>
+                <form name="form" method="post" action="javascript:;">
+                    <input type="file" name="picpath" id="file" id="file" style="display: none;"
+                        onchange="document.form.path.value=this.value" multiple="multiple" accept="json/*" />
+                    <input name="path" readonly id="selectFile" class="form-control" placeholder="未选择任何文件"
+                        aria-describedby="basic-addon2">
+                    <input type="button" id="basic-addon2" class="input-group-text" value="上传文件"
+                        onclick="document.form.picpath.click()">
+                </form>
+                <button class="btn btn-secondary" id="button" onclick="uploadFile()">解析文件</button>
+            </div>
+        </div>
+        <div id="analysisPage">
+            <p id="analyzeFilename"></p>
+            <div id="container" style="height: calc(65% - 2rem)"></div>
+            <div id="name"></div>
+        </div>
+    </div>
+    <div id="diff">
+        <div class="diff-title" id="diff-title">
+            <div>oldFile</div>
+            <div>newFile</div>
+        </div>
+        <div id="diff-uploadPage">
+            <div class="diff-dropArea">
+                <p class="drop-text">拖拽文件到此区域进行上传</p>
+                <form name="form1" method="post" action="javascript:;">
+                    <input type="file" name="picpath" id="diff-file1" class="diff-file" style="display: none;"
+                        onchange="document.form1.path1.value=this.value" multiple="multiple" accept="json/*" />
+                    <input name="path1" readonly id="selectFile1" class="form-control" placeholder="未选择任何文件"
+                        aria-describedby="basic-addon2">
+                    <input type="button" value="上传文件" onclick="document.form1.picpath.click()">
+                </form>
+            </div>
+            <button id="button" onclick="diffUploadFile()" class="btn btn-secondary">解析文件</button>
+            <div class="diff-dropArea">
+                <p class="drop-text">拖拽文件到此区域进行上传</p>
+                <form name="form2" method="post" action="javascript:;">
+                    <input type="file" name="picpath" id="diff-file2" class="diff-file" style="display: none;"
+                        onchange="document.form2.path2.value=this.value" multiple="multiple" accept="json/*" />
+                    <input name="path2" readonly id="selectFile2" class="form-control" placeholder="未选择任何文件"
+                        aria-describedby="basic-addon2">
+                    <input type="button" value="上传文件" onclick="document.form2.picpath.click()">
+                </form>
+            </div>
+        </div>
+        <div id="diff-analysisPage">
+            <p id="diffanalyzeFilename"></p>
+            <div id="diff-container" style="height: calc(65% - 2rem)"></div>
+            <div id="diff-name"></div>
+        </div>
+    </div>
+    <div id="renderData" style="display: none;">
+        <%= jsonPath %>
+    </div>
+    <div id="totalSizeAnalyze" style="display: none;">
+        <%= totalSizeAnalyze %>
+    </div>
+</body>
+<script type="text/javascript" src="echarts.min.js"></script>
+<script src="jszip.min.js"></script>
+<script>
+    window.addEventListener('load', function (e) {
+        document.getElementById('analysisPage').style.display = "none";
+        document.getElementById('uploadPage').style.display = "block";
+        document.getElementById('diff-analysisPage').style.display = "none";
+        document.getElementById('diff-uploadPage').style.display = "flex";
+        document.getElementById('form-select').style.display = "none";
+        switchPage(0);
+        if (document.getElementById('renderData').innerHTML.length != 14) {
+            root = JSON.parse(document.getElementById('renderData').innerHTML);
+            fileDateResult = nToName([JSON.parse(root)]);
+            document.form.path.value = "上传了apk包";
+            uploadFile();
+            document.getElementById("analyzeFilename").innerHTML = "总大小分析：" + document.getElementById('totalSizeAnalyze').innerHTML;
+        }
+    });
+</script>
+
+<script>
+    let li = document.getElementsByClassName("nav-link");
+    for (let i = 0; i < li.length; i++) {
+        li[i].onclick = function () {
+            for (let j = 0; j < li.length; j++) {
+                li[j].classList.remove('active');
+            }
+            this.classList.add('active');
+            switchPage(i)
+        }
+    }
+   
+    let pageIndex = 0
+    function switchPage(index) {
+        pageIndex = index
+        if (index == 0) {
+            document.getElementById('analysis').style.display = "block";
+            document.getElementById('diff').style.display = "none";
+            document.getElementById('form-select').style.display = "none";
+        } else if (index == 1) {
+            document.getElementById('analysis').style.display = "none";
+            document.getElementById('diff').style.display = "block";
+            document.getElementById('form-select').style.display = "block";
+        }
+    }
+   
+    document.getElementById('form-select').addEventListener('change', function () {
+        if (document.getElementById('diff-analysisPage').style.display != "block") {
+            return;
+        }
+        document.getElementById('diff-name').innerHTML = "";
+        diffUploadFile();
+    })
+    
+    function clearPrintScreen() {
+        if (pageIndex == 0) {
+            fileDateResult = null;
+            document.getElementById('uploadPage').style.display = "block";
+            document.getElementById('analysisPage').style.display = "none";
+            document.getElementById('name').innerHTML = "";
+            document.getElementById('file').value = "";
+            document.form.path.value = "";
+            myChart.clear();
+        } else {
+            rightDiffDataFlag = false;
+            diffFileDateResult.length = 0;
+            document.getElementById('diff-uploadPage').style.display = "flex";
+            document.getElementById('diff-analysisPage').style.display = "none";
+            document.getElementById('diff-title').style.display = "flex";
+            document.getElementById('diff-name').innerHTML = "";
+            document.getElementById('diff-file1').value = "";
+            document.getElementById('diff-file2').value = "";
+            document.form1.path1.value = "";
+            document.form2.path2.value = "";
+            myChart.clear();
+        }
+    }
+</script>
+
+<script>
+    const dropArea = document.getElementById('dropArea');
+    let fileDateResult = null
+    dropArea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        dropArea.classList.add('dragover');
+    });
+    dropArea.addEventListener('dragleave', function (e) {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+    });
+    dropArea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        dropArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        document.form.path.value = files[0].name
+        var reader = new FileReader();
+        reader.readAsText(files[0], "UTF-8");
+        reader.onload = function (evt) {
+            let fileData = JSON.parse(evt.target.result);
+            fileDateResult = nToName([fileData]);
+            document.getElementById('name').style.border = "1px solid #dee2e6";
+        }
+    });
+
+    let diffFileData;
+    const diffDropArea = document.getElementsByClassName('diff-dropArea');
+    var diffFileDateResult = [];
+    for (let i = 0; i < diffDropArea.length; i++) {
+        diffDropArea[i].addEventListener('dragover', function (e) {
+            e.preventDefault();
+            diffDropArea[i].classList.add('dragover');
+        });
+        diffDropArea[i].addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            diffDropArea[i].classList.remove('dragover');
+        });
+        diffDropArea[i].addEventListener('drop', function (e) {
+            e.preventDefault();
+            diffDropArea[i].classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            var reader = new FileReader();
+            reader.readAsText(files[0], "UTF-8");
+            reader.onload = function (evt) {
+                diffFileDateResult[i] = JSON.parse(evt.target.result);
+                if (diffFileDateResult[0] != undefined && diffFileDateResult[1] != undefined) {
+                    diffFileData = diffData([JSON.parse(JSON.stringify(diffFileDateResult[0]))], [JSON.parse(JSON.stringify(diffFileDateResult[1]))]);
+                }
+                document.getElementById('diff-name').style.border = "1px solid #dee2e6";
+            }
+            if (i == 0) {
+                document.form1.path1.value = files[0].name;
+            } else if (i == 1) {
+                document.form2.path2.value = files[0].name;
+            }
+        });
+    }
+</script>
+
+<script>
+    function uploadFile() {
+        if (!document.form.path.value) { alert("请先上传文件"); return }
+        if (!fileDateResult) {
+            let file_ele = document.getElementById('file');
+            var reader = new FileReader();
+            reader.readAsText(file_ele.files[0], "UTF-8");
+            reader.onload = function (evt) { 
+                let fileData = JSON.parse(evt.target.result); 
+                fileDateResult = nToName([fileData]);
+                readerOnload();
+            }
+        } else {
+            readerOnload();
+        }
+        document.getElementById("analyzeFilename").innerHTML = "总大小分析：" + document.form.path.value
+    }
+    
+    function readerOnload() {
+        const root = document.getElementById('name');
+        document.getElementById('uploadPage').style.display = "none";
+        document.getElementById('analysisPage').style.display = "block";
+        createMenu(fileDateResult, root, 1);
+        document.getElementById('name').style.border = "1px solid #dee2e6";
+    }
+    
+    function diffUploadFile() {
+        if (!document.form1.path1.value || !document.form2.path2.value) { alert("请先上传文件"); return }
+        if (diffFileDateResult.length == 0) {
+            let file_ele = document.getElementsByClassName('diff-file');
+            for (let i = 0; i < file_ele.length; i++) {
+                var reader = new FileReader();
+                reader.readAsText(file_ele[i].files[0], "UTF-8");
+                reader.onload = function (evt) { 
+                    diffFileDateResult[i] = JSON.parse(evt.target.result); 
+                    if (diffFileDateResult[0] != undefined && diffFileDateResult[1] != undefined) {
+                        diffReaderOnload();
+                    }
+                }
+            }
+        } else {
+            diffReaderOnload();
+        }
+        document.getElementById("diffanalyzeFilename").innerHTML = "对比总大小分析：" + document.form1.path1.value + "[OLD] vs [NEW]" + document.form2.path2.value;
+    }
+    
+    function diffReaderOnload() {
+        console.log('diffFileDateResult',diffFileDateResult);
+        if(diffFileDateResult[0].type!=diffFileDateResult[1].type){alert("包类型不一致，无法比较");clearPrintScreen();return}
+        const root = document.getElementById('diff-name');
+        diffFileData = diffData([JSON.parse(JSON.stringify(diffFileDateResult[0]))], [JSON.parse(JSON.stringify(diffFileDateResult[1]))]);
+        let onlyDate = {};
+        onlyDate.name = diffFileData.name;
+        onlyDate.negative = diffFileData.negative;
+        onlyDate.value = diffFileData.value;
+        onlyDate.idTitle = diffFileData.idTitle;
+        onlyDate.itemStyle = diffFileData.itemStyle;
+        onlyDate.children = [];
+        selectData(onlyDate);
+        document.getElementById('diff-uploadPage').style.display = "none";
+        document.getElementById('diff-analysisPage').style.display = "block";
+        document.getElementById('diff-title').style.display = "none";
+        createMenu((diffFileData instanceof Array) ? diffFileData : [diffFileData], root, 1, 1);
+        document.getElementById('diff-name').style.border = "1px solid #dee2e6";
+        notAnalyze();
+    }
+
+    function selectData(onlyDate) {
+        let selectIndex = document.getElementById('form-select').value;
+        if (selectIndex == 2) {
+            diffFileData = insreaseOnly(diffFileData.children, onlyDate);
+            diffFileData.value = computedRoot(diffFileData.children, 'diffonly');
+        } else if (selectIndex == 3) {
+            diffFileData = decreaseOnly(diffFileData.children, onlyDate);
+            diffFileData.value = computedRoot(diffFileData.children, 'diffonly');
+        }
+    }
+
+    function notAnalyze() {
+        if (document.querySelector('#diff-name details summary').style.display == "none") {
+            document.getElementById('diff-uploadPage').style.display = "flex";
+            document.getElementById('diff-analysisPage').style.display = "none";
+            document.getElementById('diff-title').style.display = "flex";
+            clearPrintScreen();
+        }
+    }
+    
+    function createMenu(data, root, load = 0, diff = 0) {
+        data.sort(function (a, b) { return b.value - a.value });
+        if(data[0].negative){
+            data.sort(function (a,b){return b.negative-a.negative});
+        }else{
+            data.sort(function (a,b){return a.negative-b.negative});
+        }
+        if (data.length) {
+            data.forEach(d => {
+                const detailsEle = document.createElement('details');
+                const sumaryEle = document.createElement('summary'); sumaryEle.id = d.idTitle;
+                const name = document.createElement('span');
+                const size = document.createElement('span'); size.className = "filesize";
+                name.innerText = d.name;
+                if (diff == 1) {
+                    size.innerText = d.negative ? ('  [+' + formatFileSize(d.value || 0) + ']') : ('  [-' + formatFileSize(d.value || 0) + ']');
+                    size.style.color = d.negative ? "#91CC75" : "#EB5555";
+                } else {
+                    size.innerText = "  [" + formatFileSize(d.value || 0) + "]";
+                }
+                sumaryEle.appendChild(name);
+                sumaryEle.appendChild(size);
+                detailsEle.appendChild(sumaryEle);
+                root.appendChild(detailsEle);
+                if (diff == 1 && d.value == 0) {
+                    sumaryEle.style.display = "none";
+                }
+                if (d.children?.length) {
+                    sumaryEle.className = "openfileIcon";
+                }
+                if (load == 1) {
+                    sumaryEle.style.backgroundColor = 'rgb(108, 117, 125)';
+                    sumaryEle.style.color = "rgb(255,255,255)";
+                    detailsEle.open = true;
+                    if (diff == 1) {
+                        if (d.children) {
+                            createMenu(d.children, detailsEle, 0, 1);
+                        }
+                    } else {
+                        if (d.children) {
+                            createMenu(d.children, detailsEle, 0);
+                        }
+                    }
+                    createChart(d, diff);
+                }
+                sumaryEle.onclick = function () {
+                    selectFileStyle(sumaryEle);
+                    if (d.children?.length) {
+                        if (!detailsEle.open) {
+                            let tagArr = getChildren(detailsEle);
+                            for (let i = 1; i < tagArr.length; i++) {
+                                detailsEle.removeChild(tagArr[i]);
+                            }
+                            if (diff == 1) {
+                                createMenu(d.children, detailsEle, 0, 1);
+                            } else {
+                                createMenu(d.children, detailsEle, 0);
+                            }
+                        } else {
+                            detailsEle.removeAttribute("open");
+                            createChart(d, diff);
+                            return false;
+                        }
+                        createChart(d, diff);
+                    } else {
+                        let tempArr = JSON.parse(JSON.stringify(d));
+                        let obj = {};
+                        obj['children'] = [tempArr];
+                        createChart(obj, diff);
+                    }
+                }
+            })
+        }
+    }
+    
+    function getChildren(parentNode) {
+        var children, length, nodeArray = [], i = 0;
+        if (parentNode.nodeType === 1) {
+            children = parentNode.children || parentNode.childNodes;
+            length = children.length;
+            for (; i < length; i++) {
+                if (children[i].nodeType !== 1) {
+                    continue;
+                }
+                nodeArray.push(children[i]);
+            }
+            return nodeArray;
+        }
+        else {
+            return null;
+        }
+    }
+    
+    function selectFileStyle(sumaryEle) {
+        let sumaryEleArr = document.getElementsByTagName('summary');
+        for (let i = 0; i < sumaryEleArr.length; i++) {
+            if (sumaryEleArr[i].style.backgroundColor == 'rgb(108, 117, 125)') {
+                sumaryEleArr[i].style.backgroundColor = 'rgb(255,255,255)';
+                sumaryEleArr[i].style.color = "rgb(0,0,0)";
+            }
+        }
+        sumaryEle.style.backgroundColor = 'rgb(108, 117, 125)';
+        sumaryEle.style.color = "rgb(255,255,255)";
+    }
+    
+    var myChart;
+    function createChart(rawData, diff) {
+        let chartWidth;
+        let chartHeight;
+        let container;
+        if (pageIndex == 0) {
+            container = document.getElementById('container');
+            chartWidth = document.getElementById('analysisPage').width;
+            chartHeight = document.getElementById('container').height;
+        } else if (pageIndex == 1) {
+            container = document.getElementById('diff-container');
+            chartWidth = document.getElementById('diff-analysisPage').width;
+            chartHeight = document.getElementById('diff-container').height;
+        }
+        myChart = echarts.init(container, null, {
+            renderer: 'canvas',
+            useDirtyRect: false,
+            width: chartWidth,
+            height: chartHeight,
+        });
+        let option = {
+            tooltip: {
+                formatter: function (params) {
+                    if (diff == 1) {
+                        return params.data.name + '[' + (params.data.negative ? '+' + formatFileSize(params.data.value) : '-' + formatFileSize(params.data.value)) + ']';
+                    } else {
+                        return params.data.name + '[' + (params.data.negative ? formatFileSize(params.data.value) : formatFileSize(params.data.value)) + ']';
+                    }
+                }
+            },
+            series: [
+                {
+                    name: 'Root',
+                    type: 'treemap',
+                    visibleMin: 0,
+                    data: rawData.children,
+                    leafDepth: 1,
+                    width: chartWidth,
+                    height: chartHeight * 2,
+                    bottom: 0,
+                    label: {
+                        show: true,
+                        formatter: function (params) {
+                            if (diff == 1) {
+                                return params.data.name + '[' + (params.data.negative ? '+' + formatFileSize(params.data.value) : '-' + formatFileSize(params.data.value)) + ']';
+                            } else {
+                                return params.data.name + '[' + (params.data.negative ? formatFileSize(params.data.value) : formatFileSize(params.data.value)) + ']';
+                            }
+                        }
+                    },
+                    breadcrumb: {
+                        show: false,
+                    },
+                    levels: [
+                        {
+                            itemStyle: {
+                                borderColor: '#555',
+                                borderWidth: 4,
+                                gapWidth: 4,
+                            }
+                        },
+                        {
+                            colorSaturation: [0.3, 0.6],
+                            itemStyle: {
+                                borderColorSaturation: 0.7,
+                                gapWidth: 2,
+                                borderWidth: 2,
+                            }
+                        },
+                        {
+                            colorSaturation: [0.3, 0.5],
+                            itemStyle: {
+                                borderColorSaturation: 0.6,
+                                gapWidth: 1,
+                            }
+                        },
+                        {
+                            colorSaturation: [0.3, 0.5],
+                        },
+                    ],
+                },
+            ],
+        };
+        if (option && typeof option === 'object') {
+            myChart.setOption(option);
+        }
+        window.onresize = function () {
+            myCharts.resize();
+        }
+        myChart.off('click');
+        myChart.on('click', params => {
+            const sumaryEle = document.getElementById(deleteSymbol(params.name) + params.value);
+            const detailsEle = document.getElementById(deleteSymbol(params.name) + params.value).parentNode;
+            checkOpen(sumaryEle);
+            if (params.data.children) {
+                detailsEle.open = true;
+                if (diff == 1) {
+                    createMenu(params.data.children, detailsEle, 0, 1);
+                } else {
+                    createMenu(params.data.children, detailsEle, 0);
+                }
+            }
+            selectFileStyle(sumaryEle);
+        });
+    }
+    
+    function checkOpen(obj) {
+        if (obj.parentNode) {
+            if (obj.parentNode.open == false) {
+                obj.parentNode.open = true;
+            }
+            checkOpen(obj.parentNode);
+        }
+    }
+    
+    var rightDiffDataFlag = false;
+    function diffData(file1, file2) {
+        leftdiffData(file1, file2);
+        if (rightDiffDataFlag) {
+            rightDiffData(file2, file1);
+        }
+        return file1[0];
+    }
+
+    function leftdiffData(file1, file2) {
+        for (let i = 0; i < file1.length; i++) {
+            var leftChildren = file1[i].children;
+            var leftName = file1[i].n;
+            var leftValue = file1[i].value ? file1[i].value : computedRoot(leftChildren);
+            for (var j = 0; j < file2.length; j++) {
+                var rightChildren = file2[j].children;
+                var rightName = file2[j].n;
+                var rightValue = file2[j].value ? file2[j].value : computedRoot(rightChildren);
+                if (leftName == rightName) {
+                    file1[i].negative = rightValue >= leftValue ? true : false;
+                    file1[i].value = Math.abs(rightValue - leftValue);
+                    file1[i].valueFlag = true;
+                    file1[i].name = leftName;
+                    delete file1[i].n;
+                    file1[i].idTitle = deleteSymbol(leftName) + (file1[i].value);
+                    file1[i].itemStyle = file1[i].negative ? { color: '#91CC75' } : { color: '#EB5555' };
+                    if (leftChildren && rightChildren) {
+                        leftdiffData(leftChildren, rightChildren);
+                    }
+                    break;
+                }
+            }
+            if (j >= file2.length) {
+                rightDiffDataFlag = true;
+                file1[i].negative = false;
+                file1[i].value = leftValue;
+                file1[i].name = leftName;
+                delete file1[i].n;
+                file1[i].idTitle = deleteSymbol(leftName) + (file1[i].value);
+                file1[i].itemStyle = { color: '#EB5555' };
+                if (file1[i].children) {
+                    diffDataChildren(file1[i].children, "-");
+                }
+            }
+        }
+    }
+
+    function diffDataChildren(children, symbol) {
+        for (let i = 0; i < children.length; i++) {
+            children[i].negative = symbol == "-" ? false : true;
+            children[i].value = children[i].value ? children[i].value : computedRoot(children[i].children);
+            children[i].name = children[i].n;
+            delete children[i].n;
+            children[i].idTitle = deleteSymbol(children[i].name) + (children[i].value);
+            children[i].itemStyle = symbol == "-" ? { color: '#EB5555' } : { color: '#91CC75' };
+            if (children[i].children) {
+                diffDataChildren(children[i].children, symbol);
+            }
+        }
+    }
+
+    function rightDiffData(file2, file1) {
+        for (let i = 0; i < file2.length; i++) {
+            var rightChildren = file2[i].children;
+            var rightName = file2[i].n;
+            var rightValue = file2[i].value ? file2[i].value : computedRoot(rightChildren);
+            for (var j = 0; j < file1.length; j++) {
+                var leftChildren = file1[j].children;
+                var leftName = file1[j].name;
+                var leftValue = (file1[j].valueFlag || file1[j].value) ? file1[j].value : computedRoot(leftChildren);
+                if (leftName == rightName) {
+                    if (rightChildren && leftChildren) {
+                        rightDiffData(rightChildren, leftChildren);
+                    }
+                    break;
+                }
+            }
+            if (j >= file1.length) {
+                let obj = {};
+                obj.negative = true;
+                obj.value = rightValue;
+                obj.name = rightName;
+                obj.idTitle = deleteSymbol(rightName) + (obj.value);
+                obj.itemStyle = { color: '#91CC75' };
+                if (file2[i].children) {
+                    obj.children = file2[i].children;
+                    file1.push(obj);
+                    diffDataChildren(file1[file1.length - 1].children, "+");
+                } else {
+                    file1.push(obj);
+                }
+            }
+        }
+    }
+    
+    function insreaseOnly(arr, data) {
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i].negative) {
+                data.children[data.children.length] = {};
+                data.children[data.children.length - 1].name = arr[i].name;
+                data.children[data.children.length - 1].negative = arr[i].negative;
+                data.children[data.children.length - 1].value = arr[i].value;
+                data.children[data.children.length - 1].idTitle = arr[i].idTitle;
+                data.children[data.children.length - 1].itemStyle = arr[i].itemStyle;
+            }
+            if (arr[i].children) {
+                if (arr[i].negative) {
+                    data.children[data.children.length - 1].children = [];
+                    insreaseOnly(arr[i].children, data.children[data.children.length - 1]);
+                } else {
+                    insreaseOnly(arr[i].children, data);
+                }
+            }
+        }
+        data.negative = true;
+        return data;
+    }
+    
+    function decreaseOnly(arr, data) {
+        for (let i = 0; i < arr.length; i++) {
+            if (!arr[i].negative) {
+                data.children[data.children.length] = {};
+                data.children[data.children.length - 1].name = arr[i].name;
+                data.children[data.children.length - 1].negative = arr[i].negative;
+                data.children[data.children.length - 1].value = arr[i].value;
+                data.children[data.children.length - 1].idTitle = arr[i].idTitle;
+                data.children[data.children.length - 1].itemStyle = arr[i].itemStyle;
+            }
+            if (arr[i].children) {
+                if (!arr[i].negative) {
+                    data.children[data.children.length - 1].children = [];
+                    decreaseOnly(arr[i].children, data.children[data.children.length - 1]);
+                } else {
+                    decreaseOnly(arr[i].children, data);
+                }
+            }
+        }
+        data.negative = false;
+        return data;
+    }
+    
+    function nToName(list) {
+        list.forEach(item => {
+            if (item.n) {
+                item.name = item.n;
+                item.value = item.value ? item.value : computedRoot(item.children);
+                item.idTitle = deleteSymbol(item.name) + item.value;
+                item.itemStyle = { color: '#5470c6' };
+                delete item.n;
+            }
+            if (item.children) {
+                nToName(item.children);
+            }
+        });
+        return list;
+    }
+    
+    function computedRoot(arr, flag) {
+        let sum = 0;
+        if (flag == "diffonly") {
+            for (let i = 0; i < arr.length; i++) {
+                sum = sum + arr[i].value;
+            }
+        } else {
+            for (let i = 0; i < arr.length; i++) {
+                sum = sum + (arr[i].value ? arr[i].value : computedRoot(arr[i].children));
+            }
+        }
+        return sum;
+    }
+
+    function deleteSymbol(str) {
+        let pattern = new RegExp("[`:~%!@#^=''?~《》！@#￥……&——‘”“'？*()（），,。.、<>]");
+        let rs = "";
+        for (let i = 0; i < str.length; i++) {
+            rs += str.substr(i, 1).replace(pattern, '');
+        }
+        return rs;
+    }
+    
+    function formatFileSize(bytes) {
+        const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+        let unitIndex = 0;
+        while (bytes >= 1024 && unitIndex < units.length - 1) {
+            bytes /= 1024; unitIndex++;
+        }
+        bytes = Math.round(bytes * 100) / 100;
+        return `${bytes}${units[unitIndex]}`;
+    }
+</script>
+
+</html>

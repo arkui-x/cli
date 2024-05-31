@@ -19,7 +19,8 @@ const exec = require('child_process').execSync;
 const JSON5 = require('json5');
 const { log, getBundleName } = require('../ace-log');
 const { getToolByType, getAapt } = require('../ace-check/getTool');
-const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getModulePathList } = require('../util');
+const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getIosProjectName,
+  getModulePathList } = require('../util');
 const { isSimulator, getIosVersion } = require('../ace-devices/index');
 const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 let bundleName;
@@ -49,14 +50,14 @@ function getNames(projectDir, fileType, moduleName, installFilePath, bundleName)
 }
 
 function getNamesApp(projectDir) {
-  const appName = 'app.app';
-  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/app/', appName);
+  const appName = getIosProjectName(projectDir);
+  appPackagePath = path.join(projectDir, '.arkui-x/ios/build/outputs/app/', `${appName}.app`);
   return true;
 }
 
 function getNameStageHaps(projectDir, moduleName) {
   try {
-    const modulePathList = getModulePathList(projectDir);
+    const modulePathList = getModulePathList(projectDir)
     const ohosJsonPath = path.join(projectDir, modulePathList[moduleName], 'src/main/module.json5');
     const appJsonPath = path.join(projectDir, '/AppScope/app.json5');
     if (fs.existsSync(ohosJsonPath) && fs.existsSync(appJsonPath)) {
@@ -87,18 +88,24 @@ function getNamesApk(projectDir, moduleName) {
     if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
       let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
       xmldata = xmldata.trim().split('\n');
-      xmldata.forEach(element => {
-        if (element.indexOf(`package="`) !== -1) {
-          packageName = element.split('"')[1];
+      for (let i = 0; i < xmldata.length; i++) {
+        if (xmldata[i].indexOf(`package="`) !== -1) {
+          packageName = xmldata[i].split('"')[1];
         }
-        if (element.indexOf('<activity android:name') !== -1) {
-          androidclassName = element.split('"')[1];
+        if (xmldata[i].search(/<activity .*android:name=/) !== -1 ||
+          (xmldata[i].search(/android:name=/) !== -1 && xmldata[i - 1].trim() === '<activity')) {
+          androidclassName = xmldata[i].split('android:name="')[1].split('"')[0];
+          break;
         }
-      });
+      }
+
       bundleName = JSON5.parse(fs.readFileSync(manifestPath)).app.bundleName;
-      androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
-        return l.toUpperCase();
-      }) + 'EntryAbilityActivity';
+      packageName = packageName || bundleName;
+      if (!androidclassName) {
+        androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
+          return l.toUpperCase();
+        }) + 'EntryAbilityActivity';
+      }
       if (!bundleName || !packageName || !androidclassName) {
         console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
         return false;
