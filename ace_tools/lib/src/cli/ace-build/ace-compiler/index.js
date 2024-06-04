@@ -116,7 +116,7 @@ function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
   if (!cmd.debug || fileType === 'hap' || fileType === 'hsp' || fileType === 'haphsp') {
     return isContinue;
   }
-  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', '_test');
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', '_test', cmd);
   return isContinue;
 }
 
@@ -151,7 +151,7 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
     isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
     fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
     fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
-    if (cmd.aot) {
+    if (cmd && cmd.aot) {
       const aotPath = path.join(projectDir, modulePathList[module], `build/default/intermediates/loader_out/an`);
       const distAndroidAotPath = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/', destClassName + '/an');
       const distIOSAotPath = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/an');
@@ -362,7 +362,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
       env: process.env
     });
     if (cmd.aot) {
-      if(currentSystem === 'HarmonyOS'){
+      if (currentSystem === 'HarmonyOS') {
         console.log('HarmonyOS not supported build AOT');
         return false;
       }
