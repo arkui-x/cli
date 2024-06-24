@@ -18,7 +18,7 @@ const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { copy } = require('../util');
-const { getModuleList, getModuleAbilityList, addFileToPbxproj, isAppProject,
+const { getModuleAbilityList, addFileToPbxproj, isAppProject,
   getCrossPlatformModules, getIosProjectName } = require('../../util');
 
 let currentDir;
@@ -51,9 +51,9 @@ function isAbilityNameQualified(name) {
 }
 
 function createStageAbilityInAndroid(moduleName, abilityName, templateDir, currentDir) {
+  let destDir = 'app';
   if (!isAppProject(path.join(currentDir, '../'))) {
-    console.warn('aar and framework not support multiple abilities.');
-    return true;
+    destDir = 'library';
   }
   try {
     const manifestPath = path.join(currentDir, '../AppScope/app.json5');
@@ -61,7 +61,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir, curre
     const packageArray = manifestJsonObj.app.bundleName.split('.');
     const src = path.join(templateDir, 'android/app/src/main/java');
     const templateFileName = 'MainActivity.java';
-    let dest = path.join(currentDir, '../.arkui-x/android/app/src/main/java');
+    let dest = path.join(currentDir, `../.arkui-x/android/${destDir}/src/main/java`);
     packageArray.forEach(pkg => {
       dest = path.join(dest, pkg);
     });
@@ -79,7 +79,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir, curre
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'),
         manifestJsonObj.app.bundleName + ':' + moduleName + ':' + abilityName + ':'));
-    if (fs.existsSync(path.join(dest, 'EntryEntryAbilityActivity.java'))) {
+    if (isAppProject(path.join(currentDir, '../')) && fs.existsSync(path.join(dest, 'EntryEntryAbilityActivity.java'))) {
       const createActivityXmlInfo =
         '    <activity \n' +
         '            android:name=".' + destClassName + '"\n' +
@@ -94,7 +94,7 @@ function createStageAbilityInAndroid(moduleName, abilityName, templateDir, curre
     }
     return true;
   } catch (error) {
-    console.error('Get package name error.');
+    console.error('\x1B[31m%s\x1B[0m', 'Get package name error.');
     return false;
   }
 }
@@ -141,7 +141,7 @@ function replaceResourceJson(abilityName) {
     fs.writeFileSync(resourceZhStringPath, JSON.stringify(resourceZhStringJson, '', '  '));
     return true;
   } catch (error) {
-    console.error('Replace ability info error.');
+    console.error('\x1B[31m%s\x1B[0m', 'Replace ability info error.');
     return false;
   }
 }
@@ -154,7 +154,7 @@ function updateManifest(abilityName) {
     content = content.replace(/EntryAbility/g, abilityName);
     fs.writeFileSync(newTsFilePath, content);
     if (!replaceResourceJson(abilityName)) {
-      console.error('Replace resource info error.');
+      console.error('\x1B[31m%s\x1B[0m', 'Replace resource info error.');
       return false;
     }
     const moduleJsonPath = path.join(currentDir, 'src/main/module.json5');
@@ -173,15 +173,12 @@ function updateManifest(abilityName) {
     fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJson, '', '  '));
     return true;
   } catch (error) {
-    console.error('Replace ability info error.');
+    console.error('\x1B[31m%s\x1B[0m', 'Replace ability info error.');
     return false;
   }
 }
 
 function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDir) {
-  if (!isAppProject(path.join(currentDir, '../'))) {
-    return true;
-  }
   try {
     const iosPath = getIosProjectName(path.join(currentDir, '../'));
     const destClassName = moduleName.replace(/\b\w/g, function(l) {
@@ -194,7 +191,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
     fs.writeFileSync(path.join(currentDir, `../.arkui-x/ios/${iosPath}/` + destClassName + '.m'),
       fs.readFileSync(srcFilePath + '.m').toString().replace(new RegExp('EntryEntryAbilityViewController', 'g'),
         destClassName));
-    if (iosPath === 'app') {
+    if (iosPath === 'app' || iosPath === 'myframework') {
       const createViewControlInfo =
         '} else if ([moduleName isEqualToString:@"' + moduleName + '"] && [abilityName ' +
         'isEqualToString:@"' + abilityName + '"]) {\n' +
@@ -205,15 +202,21 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
         '        entryOtherVC.params = params;\n' +
         '        subStageVC = (' + destClassName + ' *)entryOtherVC;\n' +
         '    } // other ViewController\n';
-      const curManifestXmlInfo =
-        fs.readFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m')).toString();
+
+      let delegateFile;
+      if (iosPath === 'myframework') {
+        delegateFile = path.join(currentDir, `../.arkui-x/ios/${iosPath}/ArkUIAppDelegate.m`);
+      } else {
+        delegateFile = path.join(currentDir, `../.arkui-x/ios/${iosPath}/AppDelegate.m`);
+      }
+      const curManifestXmlInfo = fs.readFileSync(delegateFile).toString();
       const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
       const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
       const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
         '#import "' + destClassName + '.h"\n' +
         curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
         createViewControlInfo + curManifestXmlInfo.slice(insertIndex + 26);
-      fs.writeFileSync(path.join(currentDir, '../.arkui-x/ios/app/AppDelegate.m'), updateManifestXmlInfo);
+      fs.writeFileSync(delegateFile, updateManifestXmlInfo);
     }
     const pbxprojFilePath = path.join(currentDir, `../.arkui-x/ios/${iosPath}.xcodeproj/project.pbxproj`);
     if (!addFileToPbxproj(pbxprojFilePath, destClassName + '.h', 'headfile') ||
@@ -222,7 +225,7 @@ function createStageAbilityInIOS(moduleName, abilityName, templateDir, currentDi
     }
     return true;
   } catch (error) {
-    console.error('Error occurs when create in ios', error);
+    console.error('\x1B[31m%s\x1B[0m', 'Error occurs when create in ios', error);
     return false;
   }
 }
@@ -233,7 +236,7 @@ function createInSource(abilityName, templateDir) {
     fs.mkdirSync(dist, { recursive: true });
     return copy(path.join(templateDir, 'ets_stage/source/entry/src/main/ets/entryability'), dist);
   } catch (error) {
-    console.error('Error occurs when creating in source.');
+    console.error('\x1B[31m%s\x1B[0m', 'Error occurs when creating in source.');
     return false;
   }
 }
@@ -245,19 +248,22 @@ function getCurrentModuleName(currentDir) {
 
 function createAbility() {
   currentDir = process.cwd(); // it should be module directory
-  const buildFilePath = path.join(currentDir, '../build-profile.json5');
+  const abilityCreateInfo = {};
+  const buildFilePath = path.join(currentDir, 'obfuscation-rules.txt');
   if (!fs.existsSync(buildFilePath)) {
-    console.error(`Operation failed. Go to your module directory and try again.`);
+    console.error('\x1B[31m%s\x1B[0m', `Operation failed. Go to your module directory and try again.`);
     return false;
   }
-  const moduleListForAbility = getModuleList(buildFilePath);
-  if (moduleListForAbility === null) {
+
+  if (fs.readFileSync(path.join(currentDir, 'hvigorfile.ts')).toString().includes('hspTasks')) {
+    console.error('\x1B[31m%s\x1B[0m', `Share Library not support to create ability.`);
     return false;
   }
+
   const templateDir = globalThis.templatePath;
-  const moduleAbilityList = getModuleAbilityList(path.join(currentDir, '../'), moduleListForAbility);
-  const crossPlatformModules = getCrossPlatformModules(path.join(currentDir, '../'));
   const moduleName = getCurrentModuleName(currentDir);
+  const moduleAbilityList = getModuleAbilityList(path.join(currentDir, '../'), moduleName);
+  const crossPlatformModules = getCrossPlatformModules(path.join(currentDir, '../'));
   const question = [{
     name: 'abilityName',
     type: 'input',
@@ -272,17 +278,37 @@ function createAbility() {
     }
   }];
   inquirer.prompt(question).then(answers => {
+    abilityCreateInfo.abilityModuleName = moduleName;
+    abilityCreateInfo.abilityName = answers.abilityName;
+    const infoJson = JSON.parse(fs.readFileSync(path.join(path.dirname(currentDir), '.projectInfo'), 'utf8'));
     if (createInSource(answers.abilityName + 'Ability', templateDir) &&
       updateManifest(answers.abilityName + 'Ability')) {
+      abilityCreateInfo.abilityModuleCrossPlatform = 'n';
       if (crossPlatformModules.includes(moduleName)) {
-        if (createStageAbilityInAndroid(moduleName, answers.abilityName + 'Ability', templateDir, currentDir) &&
-          createStageAbilityInIOS(moduleName, answers.abilityName + 'Ability', templateDir, currentDir)) {
-          return true;
-        }
+        abilityCreateInfo.abilityModuleCrossPlatform = 'y';
+        createStageAbilityInAndroid(moduleName, answers.abilityName + 'Ability', templateDir, currentDir) &&
+          createStageAbilityInIOS(moduleName, answers.abilityName + 'Ability', templateDir, currentDir);
       }
+      infoJson.abilityInfo.push(abilityCreateInfo);
+      fs.writeFileSync(path.join(path.dirname(currentDir), '.projectInfo'), JSON.stringify(infoJson, '', '  '), 'utf8');
       return true;
     }
   });
 }
 
-module.exports = { createAbility, createStageAbilityInAndroid, createStageAbilityInIOS };
+function repairAbility(templateDir, absolutePath, projectTempPath) {
+  const readAbilityInfo = JSON.parse(fs.readFileSync(path.join(absolutePath, '.projectInfo'), 'utf8'));
+  readAbilityInfo.abilityInfo.forEach((ability) => {
+    currentDir = path.join(projectTempPath, ability.abilityModuleName);
+    if (createInSource(ability.abilityName + 'Ability', templateDir) &&
+      updateManifest(ability.abilityName + 'Ability')) {
+      if (ability.abilityModuleCrossPlatform === 'y') {
+        createStageAbilityInAndroid(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir) &&
+          createStageAbilityInIOS(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir);
+      }
+    }
+  });
+  return;
+}
+
+module.exports = { createAbility, createStageAbilityInAndroid, createStageAbilityInIOS, repairAbility };

@@ -22,6 +22,7 @@ const {
   Platform,
   platform
 } = require('../ace-check/platform');
+const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion} = require('../util');
 
 function replaceInfo(files, replaceInfos, strs) {
   files.forEach((filePath, index) => {
@@ -48,7 +49,7 @@ function rmdir(filePath) {
 
 function copy(src, dst, excludefile) {
   const paths = fs.readdirSync(src).filter(item => {
-    return (item.substring(0, 1) !== '.' && item !== excludefile);
+    return item.substring(0, 1) !== '.' && item !== excludefile;
   });
   paths.forEach(newpath => {
     const srcEle = path.join(src, newpath);
@@ -88,9 +89,40 @@ function createPackageFile(packagePaths, packageArray) {
   });
 }
 
+function modifyOhPackageJson(projectPath,sdkVersion) {
+  const ohPackageFile = path.join(projectPath, 'oh-package.json5');
+  if (fs.existsSync(ohPackageFile)) {
+    const ohPackageFileInfo = fs.readFileSync(ohPackageFile).toString();
+    let nowModelVersion = getModelVersionWithSdkVersion(sdkVersion);
+    let modelVersionStr = `\n  "modelVersion": "${nowModelVersion}",`;
+    const ohPackage = ohPackageFileInfo.slice(0, 1) + modelVersionStr + ohPackageFileInfo.slice(1);
+    fs.writeFileSync(ohPackageFile, ohPackage);
+  }
+}
+
+function modifyHvigorJson(projectPath,sdkVersion) {
+  const hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
+  if (fs.existsSync(hvigorfile)) {
+    const hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
+    delete hvigorversionInfo.hvigorVersion;
+    delete hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'];
+    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = '4.2.3';
+    fs.writeFileSync(hvigorfile, JSON.stringify(hvigorversionInfo, '', '  '));
+    const hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
+    let nowModelVersion = getModelVersionWithSdkVersion(sdkVersion);
+    let modelVersionStr = `\n  "modelVersion": "${nowModelVersion}",`;
+    const hvigorInfo = hvigorFileInfo.slice(0, 1) + modelVersionStr + hvigorFileInfo.slice(1);
+    fs.writeFileSync(hvigorfile, hvigorInfo);
+  }
+}
+
 function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
   if (openharmonyosVersion === '10') {
     return;
+  }
+  if (Number(openharmonyosVersion) >= 12) {
+    modifyOhPackageJson(projectPath,openharmonyosVersion);
+    modifyHvigorJson(projectPath,openharmonyosVersion);
   }
   const buildProfile = path.join(projectPath, 'build-profile.json5');
   if (fs.existsSync(buildProfile)) {
@@ -110,31 +142,24 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
     path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
   const deviceTypeName = 'deviceTypes';
 
+  if (Number(sdkVersion) >= 12) {
+    modifyOhPackageJson(projectPath,sdkVersion);
+    modifyHvigorJson(projectPath,sdkVersion);
+  }
+
   if (fs.existsSync(buildProfile)) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
     const productsInfo = buildProfileInfo.app.products;
     for (let index = 0; index < productsInfo.length; index++) {
       if (productsInfo[index].name === 'default' && productsInfo[index].runtimeOS !== 'HarmonyOS') {
-        switch (sdkVersion) {
-          case '10':{
-            productsInfo[index].compileSdkVersion = '4.0.0(10)';
-            productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
-            productsInfo[index].runtimeOS = 'HarmonyOS';
-            break;
-          }
-          case '11':{
-            productsInfo[index].compileSdkVersion = '4.1.0(11)';
-            productsInfo[index].compatibleSdkVersion = '4.1.0(11)';
-            productsInfo[index].runtimeOS = 'HarmonyOS';
-            break;
-          }
-          default:{
-            productsInfo[index].compileSdkVersion = '4.0.0(10)';
-            productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
-            productsInfo[index].runtimeOS = 'HarmonyOS';
-            break;
-          }
+        if (isHaveSdkVersion(sdkVersion)) {
+          productsInfo[index].compileSdkVersion = getCompileSdkVersionWithSdkVersion(sdkVersion);
+          productsInfo[index].compatibleSdkVersion = getCompatibleSdkVersionWithSdkVersion(sdkVersion);
+        } else {
+          productsInfo[index].compileSdkVersion = '4.0.0(10)';
+          productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
         }
+        productsInfo[index].runtimeOS = 'HarmonyOS';
       }
     }
     fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
@@ -149,43 +174,44 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
   });
 }
 
-function modifyNativeCppConfig(projectPath, files, replaceInfos, strs, project) {
-  files.push(path.join(projectPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'));
-  replaceInfos.push('appNameValue');
-  strs.push(project);
+function modifyNativeCppConfig(projectPath, projectName, destDir) {
+  const cMakeFile = path.join(projectPath, `.arkui-x/android/${destDir}/src/main/cpp/CMakeLists.txt`);
+  try {
+    fs.writeFileSync(cMakeFile, fs.readFileSync(cMakeFile).toString().replace(/appNameValue/g, projectName));
 
-  const buildGradle = path.join(projectPath, '.arkui-x/android/app/build.gradle');
-  if (fs.existsSync(buildGradle)) {
-    const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').toString();
-    const searchAbi = `testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"`;
-    const searchFeatures = 'dynamicFeatures = []';
-    const addAbiIndex = buildGradleInfo.lastIndexOf(searchAbi);
-    const delFeaturesIndex = buildGradleInfo.lastIndexOf(searchFeatures);
-    const addAbi = `\n
+    const buildGradle = path.join(projectPath, `.arkui-x/android/${destDir}/build.gradle`);
+    if (fs.existsSync(buildGradle)) {
+      const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').toString();
+      const searchAbi = `testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"`;
+      const searchNative = 'sourceSets {';
+      const addAbiIndex = buildGradleInfo.lastIndexOf(searchAbi);
+      const searchNativeIndex = buildGradleInfo.lastIndexOf(searchNative);
+      const addAbi = `\n
         ndk {
             abiFilters "arm64-v8a"
         }
     `;
-    const addPackage = `
+      const addPackage = `
     externalNativeBuild {
         cmake {
             path file('src/main/cpp/CMakeLists.txt')
             version '3.22.1'
         }
     }
-
-    packagingOptions {
-        pickFirst 'lib/arm64-v8a/libarkui_android.so'
-    }`;
-
-    const updateBuildGradleInfo = buildGradleInfo.slice(0, addAbiIndex + searchAbi.length) + addAbi +
-      buildGradleInfo.slice(addAbiIndex + searchAbi.length, delFeaturesIndex) + addPackage +
-      buildGradleInfo.slice(delFeaturesIndex + searchFeatures.length);
-    fs.writeFileSync(buildGradle, updateBuildGradleInfo);
+    `;
+      const updateBuildGradleInfo = buildGradleInfo.slice(0, addAbiIndex + searchAbi.length) + addAbi +
+        buildGradleInfo.slice(addAbiIndex + searchAbi.length, searchNativeIndex) + addPackage +
+        buildGradleInfo.slice(searchNativeIndex);
+      fs.writeFileSync(buildGradle, updateBuildGradleInfo);
+    }
+    return true;
+  } catch (e) {
+    console.error('\x1B[31m%s\x1B[0m', `modify ${cMakeFile} failed.`);
+    return false;
   }
 }
 
-function addCrosssPlatform(projectPath, module) {
+function addCrossPlatform(projectPath, module) {
   try {
     if (!fs.existsSync(path.join(projectPath, '.arkui-x'))) {
       fs.mkdirSync(path.join(projectPath, '.arkui-x'), { recursive: true });
@@ -207,7 +233,7 @@ function addCrosssPlatform(projectPath, module) {
       fs.writeFileSync(crossFile, data);
     }
   } catch (err) {
-    console.log('add cross platform failed\n', err)
+    console.log('add cross platform failed\n', err);
   }
 }
 
@@ -252,7 +278,7 @@ function signIOS(configFile) {
     console.log(`Signing iOS app for device deployment using developer identity: "${identityResult[0]}"`);
     return true;
   } catch (err) {
-    console.log(err)
+    console.log(err);
     return false;
   }
 }
@@ -271,7 +297,7 @@ function copyTemp(src, dst, excludefile) {
     fs.mkdirSync(dst, { recursive: true });
   }
   const paths = fs.readdirSync(src).filter(item => {
-    return (item !== excludefile);
+    return item !== excludefile;
   });
   paths.forEach(newpath => {
     const srcEle = path.join(src, newpath);
@@ -295,7 +321,7 @@ function copyTemp(src, dst, excludefile) {
 function getFileList(projectDir) {
   let fileList = [];
   fs.readdirSync(projectDir).forEach(file => {
-    let projectFilePath = path.join(projectDir, file);
+    const projectFilePath = path.join(projectDir, file);
     if (fs.lstatSync(projectFilePath).isDirectory()) {
       if (fs.readdirSync(projectFilePath).length > 0) {
         fileList = fileList.concat(getFileList(projectFilePath));
@@ -311,7 +337,7 @@ function getFileList(projectDir) {
 
 function getTempPath(outputDir) {
   const tempDir = os.tmpdir();
-  const projectTempPath = path.join(tempDir, 'aceProject', outputDir).replaceAll("\\", "/")
+  const projectTempPath = path.join(tempDir, 'aceProject', outputDir).replaceAll('\\', '/');
   return projectTempPath;
 }
 
@@ -325,7 +351,7 @@ function getProjectInfo(currentProjectPath) {
     const bundleNameInfo = fs.readFileSync(path.join(currentProjectPath, '/AppScope/app.json5'), 'utf8').toString();
     projectInfo.bundleName = JSON5.parse(bundleNameInfo)['app']['bundleName'];
   } else {
-    projectInfo.bundleName = 'com.example.' + projectInfo.projectName
+    projectInfo.bundleName = 'com.example.' + projectInfo.projectName;
   }
   if (fs.existsSync(path.join(currentProjectPath, 'build-profile.json5'))) {
     const versionInfo = fs.readFileSync(path.join(currentProjectPath, 'build-profile.json5'), 'utf8').toString();
@@ -338,6 +364,302 @@ function getProjectInfo(currentProjectPath) {
   return projectInfo;
 }
 
+function createAndroidTaskInBuildGradle(projectPath) {
+  const buildGradle = path.join(projectPath, `.arkui-x/android/app/build.gradle`);
+  if (!fs.existsSync(buildGradle)) {
+    return;
+  }
+  const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').toString();
+  const searchFeatures = 'buildToolsVersion "30.0.3"';
+  const delFeaturesIndex = buildGradleInfo.lastIndexOf(searchFeatures);
+  if (delFeaturesIndex === -1) {
+    return;
+  }
+  const addPackage = `\n
+
+    //Select whether you want to execute the compile arkts script.
+    def configBuildFlag = false
+
+    task ArkTSBuildTask {
+      preBuild.dependsOn ArkTSBuildTask
+      doLast {
+        if (configBuildFlag) {
+          def os = System.getProperty("os.name").toLowerCase()
+          if (os.contains("win")) {
+            exec {
+              commandLine 'cmd', '/c', '.\\\\buildArkTS'
+              workingDir file( project.projectDir.getAbsolutePath() + '\\\\..' )
+            }
+          } else {
+            exec {
+              commandLine 'sh', '-c', 'chmod +x ./buildArkTS && ./buildArkTS'
+              workingDir file( project.projectDir.getAbsolutePath() + '/..' )
+            }
+          }
+        }
+      }
+    }`;
+  const updateBuildGradleInfo = buildGradleInfo.slice(0, delFeaturesIndex + searchFeatures.length) + addPackage +
+    buildGradleInfo.slice(delFeaturesIndex + searchFeatures.length);
+  fs.writeFileSync(buildGradle, updateBuildGradleInfo);
+}
+
+function createAndroidAndIosBuildArkTSShell(projectPath, ohpmPath, arkuiXSdkPath) {
+  const moduleList = getCrossPlatformModules(projectPath).join(',');
+  const taskIncommandLine = getAndroidAndIosBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
+  const batIncommandLine = getWindowsBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
+  try {
+    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS.bat'), batIncommandLine, 'utf8');
+    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS'), taskIncommandLine, 'utf8');
+    fs.writeFileSync(path.join(projectPath, '.arkui-x/ios/buildArkTS.sh'), taskIncommandLine, 'utf8');
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+function createIosScriptInPbxproj(projectPath) {
+  const pbxProjInfoPath = path.join(projectPath, `.arkui-x/ios/${getIosProjectName(projectPath)}.xcodeproj/project.pbxproj`);
+  const scriptInfoUuid = getUUID(pbxProjInfoPath);
+  const scriptInfo = `${scriptInfoUuid} /* Run Script */,`;
+  const PBXNativeTarget = 'buildPhases = (';
+  const endPbxNativeTarget = '/* End PBXNativeTarget section */';
+  const scriptPbxproj =
+    `/* Begin PBXShellScriptBuildPhase section */
+      ${scriptInfoUuid} /* Run Script */ = {
+          isa = PBXShellScriptBuildPhase;
+          buildActionMask = 2147483647;
+          files = (
+          );
+          inputPaths = (
+          );
+          name = "Run My Script";
+          outputPaths = (
+          );
+          runOnlyForDeploymentPostprocessing = 0;
+          shellPath = "/bin/sh";
+          shellScript = '# Select whether you want to execute the compile arkts script.`+ `\n` + "configBuildFlag=false" +
+    `\n` + `if [ "$configBuildFlag" = "false" ]; then` + `\n\t` + "exit 0" + `\n` + "fi" + `\n` +
+    "sh ${SRCROOT}/buildArkTS.sh" + `';
+      };
+/* End PBXShellScriptBuildPhase section */`;
+  if (!fs.existsSync(pbxProjInfoPath)) {
+    return;
+  }
+  const pbxProjInfo = fs.readFileSync(pbxProjInfoPath, 'utf8').toString();
+  const PBXNativeTargetIndex = pbxProjInfo.lastIndexOf(PBXNativeTarget);
+  const endPbxNativeTargetIndex = pbxProjInfo.lastIndexOf(endPbxNativeTarget);
+  if (PBXNativeTargetIndex === -1 || endPbxNativeTargetIndex === -1) {
+    return;
+  }
+  const updatePbxProjInfo = pbxProjInfo.slice(0, PBXNativeTargetIndex + PBXNativeTarget.length) + `\n\t\t\t\t` + scriptInfo +
+    pbxProjInfo.slice(PBXNativeTargetIndex + PBXNativeTarget.length, endPbxNativeTargetIndex + endPbxNativeTarget.length) + `\n\n` +
+    scriptPbxproj + pbxProjInfo.slice(endPbxNativeTargetIndex + endPbxNativeTarget.length);
+  fs.writeFileSync(pbxProjInfoPath, updatePbxProjInfo);
+}
+
+function getWindowsBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
+  return `@echo off
+setlocal enabledelayedexpansion
+
+if "%~1" neq "" goto :copyStageBundleToAndroidAndIOS
+
+@REM It is an ACE compilation flag that cannot be manually modified.
+set isAceBuildFlag=%ACEBUILDFLAG%
+if "%isAceBuildFlag%" == "true" goto :eof
+
+@REM Select whether you want to execute the compile arkts script.
+set scriptBuildFlag=true
+if "%scriptBuildFlag%" == "false" goto :eof
+
+set project_path=${projectDir}
+set ohpm_path=${ohpmPath}
+set arkuiXSdkPath=${arkuiXSdkPath}
+
+@REM You can change the module name you want to compile.
+set moduleLists=${moduleList}
+
+@REM You can change the android arkuix path to the specified path.
+set android_arkuix_path=%project_path%\\.arkui-x\\android\\app\\src\\main\\assets\\arkui-x
+
+@REM You can change the android systemRes path to the specified path.
+set android_systemRes_path=%project_path%\\.arkui-x\\android\\app\\src\\main\\assets\\arkui-x\\systemres
+
+@REM You can change the ios arkuix path to the specified path.
+set ios_arkuix_path=%project_path%\\.arkui-x\\ios\\arkui-x
+
+@REM You can change the ios systemRes path to the specified path.
+set ios_systemRes_path=%project_path%\\.arkui-x\\ios\\arkui-x\\systemres
+
+cd /d %project_path%
+call %ohpm_path% update
+
+call ./hvigorw default@CompileArkTS -p module=%moduleLists%
+
+:copyStageBundleToAndroidAndIOS
+    call :deleteFile %ios_arkuix_path%
+    call :deleteFile %android_arkuix_path%
+    call :copyStageBundleToAndroidAndIOSByTarget default
+    set "systemResPath=%arkuiXSdkPath%\\engine\\systemres"
+    xcopy "!systemResPath!" "%ios_systemRes_path%" /s /e /i /y >nul
+    xcopy "!systemResPath!" "%android_systemRes_path%" /s /e /i /y >nul
+exit /b
+
+:deleteFile
+    setlocal enabledelayedexpansion
+    set "folders=%moduleLists%"
+    for %%i in (%folders%) do (
+        set "path=%~1/%%i"
+        if exist "!path!" (
+             rmdir /s /q "!path!"
+        )
+    )
+    endlocal
+exit /b
+
+:copyStageBundleToAndroidAndIOSByTarget
+setlocal
+set "folders=%moduleLists%"
+for %%i in (%folders%) do (
+    set "src=%project_path%\\%%i\\build\\default\\intermediates\\loader_out\\%~1\\ets"
+    set "resindex=%project_path%\\%%i\\build\\default\\intermediates\\res\\%~1\\resources.index"
+    set "resPath=%project_path%\\%%i\\build\\default\\intermediates\\res\\%~1\\resources"
+    set "moduleJsonPath=%project_path%\\%%i\\build\\default\\intermediates\\res\\%~1\\module.json"
+    set "destClassName=%%i%~2"
+    set "distAndroid=%android_arkuix_path%\\!destClassName!\\ets"
+    set "distIOS=%ios_arkuix_path%\\!destClassName!\\ets"
+    set "resindexAndroid=%android_arkuix_path%\\!destClassName!\\resources.index"
+    set "resPathAndroid=%android_arkuix_path%\\!destClassName!\\resources"
+    set "moduleJsonPathAndroid=%android_arkuix_path%\\!destClassName!\\module.json"
+    set "resindexIOS=%ios_arkuix_path%\\!destClassName!\\resources.index"
+    set "resPathIOS=%ios_arkuix_path%\\!destClassName!\\resources"
+    set "moduleJsonPathIOS=%ios_arkuix_path%\\!destClassName!\\module.json"
+    md "!distAndroid!" 2>nul
+    xcopy "!src!" "!distAndroid!" /s /e /i /y >nul
+    xcopy "!resPath!" "!resPathAndroid!" /s /e /i /y >nul
+    copy "!resindex!" "!resindexAndroid!" >nul
+    copy "!moduleJsonPath!" "!moduleJsonPathAndroid!" >nul
+    md "!distIOS!" 2>nul
+    xcopy "!src!" "!distIOS!" /s /e /i /y >nul
+    xcopy "!resPath!" "!resPathIOS!" /s /e /i /y >nul
+    copy "!resindex!" "!resindexIOS!" >nul
+    copy "!moduleJsonPath!" "!moduleJsonPathIOS!" >nul
+)
+exit /b`;
+}
+
+function getAndroidAndIosBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
+  return `#!/bin/bash
+# It is an ACE compilation flag that cannot be manually modified.
+isAceBuildFlag="$ACEBUILDFLAG"
+if [ "$isAceBuildFlag" = "true" ]; then
+  exit 0
+fi
+
+# Select whether you want to execute the compile arkts script.
+scriptBuildFlag=true
+if [ "$scriptBuildFlag" = "false" ]; then
+  exit 0
+fi
+
+project_path="${projectDir}"
+ohpm_path="${ohpmPath}"
+arkuiXSdkPath="${arkuiXSdkPath}"
+
+# You can change the module name you want to compile.
+moduleLists=${moduleList}
+
+# You can change the android arkuix path to the specified path.
+android_arkuix_path="$project_path/.arkui-x/android/app/src/main/assets/arkui-x"
+
+# You can change the android systemRes path to the specified path.
+android_systemRes_path="$project_path/.arkui-x/android/app/src/main/assets/arkui-x/systemres"
+
+# You can change the ios arkuix path to the specified path.
+ios_arkuix_path="$project_path/.arkui-x/ios/arkui-x"
+
+# You can change the ios systemRes path to the specified path.
+ios_systemRes_path="$project_path/.arkui-x/ios/arkui-x/systemres"
+
+cd $project_path
+$ohpm_path update
+${platform !== Platform.Windows ? `chmod 755 hvigorw` : ''}
+./hvigorw default@CompileArkTS -p module=$moduleLists
+IFS=',' read -ra folders <<< "$moduleLists"
+
+copyStageBundleToAndroidAndIOS() {
+    deleteFile "$ios_arkuix_path"
+    deleteFile "$android_arkuix_path"
+    copyStageBundleToAndroidAndIOSByTarget "default" ""
+    systemResPath="$arkuiXSdkPath/engine/systemres"
+    copy "$systemResPath" "$ios_systemRes_path" 
+    copy "$systemResPath" "$android_systemRes_path"
+}
+
+deleteFile() {
+    for folder in "` + '${folders[@]}' + `"
+    do
+        local path="$1/$folder"
+        if [ -d "$path" ]; then
+            rm -rf "$path"
+        fi
+    done
+}
+
+copyStageBundleToAndroidAndIOSByTarget() {
+    for folder in "` + '${folders[@]}' + `"
+    do
+        local src="$project_path/$folder/build/default/intermediates/loader_out/$1/ets"
+        local resindex="$project_path/$folder/build/default/intermediates/res/$1/resources.index"
+        local resPath="$project_path/$folder/build/default/intermediates/res/$1/resources"
+        local moduleJsonPath="$project_path/$folder/build/default/intermediates/res/$1/module.json"
+        local destClassName="$folder$2"
+        local distAndroid="$android_arkuix_path/$destClassName/ets"
+        local distIOS="$ios_arkuix_path/$destClassName/ets"
+        local resindexAndroid="$android_arkuix_path/$destClassName/resources.index"
+        local resPathAndroid="$android_arkuix_path/$destClassName/resources"
+        local moduleJsonPathAndroid="$android_arkuix_path/$destClassName/module.json"
+        local resindexIOS="$ios_arkuix_path/$destClassName/resources.index"
+        local resPathIOS="$ios_arkuix_path/$destClassName/resources"
+        local moduleJsonPathIOS="$ios_arkuix_path/$destClassName/module.json"
+        mkdir -p "$distAndroid"
+        copy "$src" "$distAndroid"
+        copy "$resPath" "$resPathAndroid"
+        cp "$resindex" "$resindexAndroid"
+        cp "$moduleJsonPath" "$moduleJsonPathAndroid"
+        mkdir -p "$distIOS"
+        copy "$src" "$distIOS"
+        copy "$resPath" "$resPathIOS"
+        cp "$resindex" "$resindexIOS"
+        cp "$moduleJsonPath" "$moduleJsonPathIOS"
+    done
+}
+
+copy() {
+  local src="$1"
+  local dst="$2"
+  for item in "$src"/*; do
+    if [[ "` + '${item##*/}' + `" != "." ]]; then
+      src_file="$src/` + '${item##*/}' + `"
+      dst_file="$dst/` + '${item##*/}' + `"
+      if [[ -f "$src_file" ]]; then
+        parent_dir="$(dirname "$dst_file")"
+        if [ ! -d "$parent_dir" ]; then
+            mkdir -p "$parent_dir"
+        fi
+        cp "$src_file" "$dst_file"
+      elif [[ -d "$src_file" ]]; then
+        if [ ! -d "$dst_file" ]; then
+            mkdir -p "$dst_file"
+        fi
+        copy "$src_file" "$dst_file"
+      fi
+    fi
+  done
+}
+
+copyStageBundleToAndroidAndIOS`;
+}
+
 module.exports = {
   copy,
   rmdir,
@@ -345,11 +667,14 @@ module.exports = {
   replaceInfo,
   modifyHarmonyOSConfig,
   modifyNativeCppConfig,
-  addCrosssPlatform,
+  addCrossPlatform,
   signIOS,
   modifyOpenHarmonyOSConfig,
   copyTemp,
   getFileList,
   getTempPath,
-  getProjectInfo
+  getProjectInfo,
+  createAndroidTaskInBuildGradle,
+  createAndroidAndIosBuildArkTSShell,
+  createIosScriptInPbxproj
 };

@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 const fs = require('fs');
 const path = require('path');
 const Process = require('child_process');
@@ -36,6 +50,9 @@ function checkPath(configType, configPath) {
   if (configType === 'ohpm-dir') {
     isValid = ohpmDirPathCheck(configPath, info);
   }
+  if (configType === 'source-dir') {
+    isValid = sourceDirPathCheck(configPath, info);
+  }
   const logType = '\x1b[31m%s\x1b[0m';
   const logStr = 'Error: ';
   info.forEach((key) => {
@@ -53,15 +70,15 @@ function sdkPathCheck(typeSdkDir, sdkType, info) {
     }
     return false;
   }
-  if (isWindowsDisk || isLinuxOrMacDisk) {
+  if (!fs.statSync(typeSdkDir).isDirectory()) {
     if (info) {
-      info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is a disk`);
+      info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
     }
     return false;
   }
-  if (!fs.statSync(typeSdkDir).isDirectory()) {	
+  if (isWindowsDisk || isLinuxOrMacDisk) {
     if (info) {
-      info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
+      info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is a disk`);
     }
     return false;
   }
@@ -91,7 +108,8 @@ function androidSdkPathCheck(androidSdkDir, info) {
 function harmonyosSdkPathCheck(harmonyosSdkDir, info, sdkType) {
   const harmonyOsDirs = [];
   harmonyOsDirs.push(...fs.readdirSync(harmonyosSdkDir).filter((file) => {
-    return fs.statSync(path.join(harmonyosSdkDir, file)).isDirectory() && file.includes('HarmonyOS');
+    return fs.statSync(path.join(harmonyosSdkDir, file)).isDirectory() && (file.includes('HarmonyOS') ||
+      file.includes('default'));
   }));
   if (harmonyOsDirs.length !== 0) {
     return newValidHarmonyOsSdk(harmonyosSdkDir, harmonyOsDirs, sdkType, info);
@@ -112,6 +130,13 @@ function newValidHarmonyOsSdk(harmonyosSdkDir, harmonyOsDirs, sdkType, info) {
   if (!dirExist) {
     dirExist = oldValidHarmonyOsSdk(harmonyosSdkDir, sdkType, info);
   } else {
+    if (harmonyOsDirs.length === 1) {
+      const harmonyOsPath = path.join(harmonyosSdkDir, harmonyOsDirs[0], 'sdk-pkg.json');
+      let sdkVersion = JSON.parse(fs.readFileSync(harmonyOsPath))["data"]["platformVersion"];
+      if (sdkVersion >= "5.0.0") {
+        return true;
+      }
+    }
     if (!fs.existsSync(path.join(harmonyosSdkDir, 'licenses'))
       || !fs.statSync(path.join(harmonyosSdkDir, 'licenses')).isDirectory()) {
       if (info) {
@@ -171,7 +196,7 @@ function validSdkDir(typeSdkDir, sdkType, info) {
   if (!dirExist) {
     if (info) {
       if (sdkType === 'ArkUI-X') {
-        info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect,please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
+        info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect, please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
       } else {
         info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
       }
@@ -319,7 +344,7 @@ function javaSdkPathCheck(javaDir, info) {
     return false;
   }
   try {
-    const javaVersionContent = Process.execSync(`"${execPath}" --version`, {encoding: 'utf-8', stdio: 'pipe' }).toString();
+    const javaVersionContent = Process.execSync(`"${execPath}" --version`, { encoding: 'utf-8', stdio: 'pipe' }).toString();
     const javaVersionContentArray = javaVersionContent.split('\n');
     javaVersion = javaVersionContentArray[1];
   } catch (err) {
@@ -352,7 +377,7 @@ function ohpmDirPathCheck(ohpmDir, info) {
     return false;
   }
   try {
-    Process.execSync(`"${execPath}" -v`, {encoding: 'utf-8', stdio: 'pipe'});
+    Process.execSync(`"${execPath}" -v`, { encoding: 'utf-8', stdio: 'pipe' });
     return true;
   } catch (err) {
     if (info) {
@@ -362,6 +387,22 @@ function ohpmDirPathCheck(ohpmDir, info) {
   }
 }
 
+function sourceDirPathCheck(sourceDir, info) {
+  if (!fs.existsSync(sourceDir)) {
+    if (info) {
+      info.push(`The source dir path you configured "${sourceDir}" does not exist`);
+    }
+    return false;
+  }
+  if (!fs.existsSync(path.join(sourceDir, '/build/prebuilts_download.sh'))) {
+    if (info) {
+      info.push(`The source dir path you configured "${sourceDir}" is wrong`);
+    }
+    return false;
+  }
+  return true;
+}
+
 module.exports = {
   checkPath,
   typeStudioPathCheck,
@@ -369,5 +410,6 @@ module.exports = {
   nodejsDirPathCheck,
   javaSdkPathCheck,
   ohpmDirPathCheck,
-  sdkPathCheck
+  sdkPathCheck,
+  sourceDirPathCheck
 };

@@ -3,7 +3,7 @@
 ## 简介
 ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，支持在Windows/Ubuntu/macOS平台运行，用于构建OpenHarmony/HarmonyOS、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
-如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
+如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
 
 **注释：** ACE - ArkUI跨平台运行环境 (ArkUI Cross-platform Environment)。
 
@@ -42,7 +42,8 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
     ├── ets_stage               # Stage开发模板
     ├── framework               # framework工程模板
     ├── ios                     # iOS工程模板
-    └── ohos_stage              # ohos Stage工程模板
+    ├── ohos_stage              # ohos Stage工程模板
+    └── share_library           # Shared Library开发模板
 
 ```
 
@@ -71,6 +72,7 @@ ace config [arguments]
 | --nodejs-dir  | Node.js 路径。        |
 | --ohpm-dir  | Ohpm路径。 |
 | --openharmony-sdk | OpenHarmony SDK路径。 |
+| --source-dir | ArkUI-X源码路径。 |
 
 例如使用ace config配置OpenHarmony SDK路径：
 ```shell
@@ -98,6 +100,7 @@ Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
 | Android SDK      | Android SDK路径              | 是      | 是    | 是   |
 | Android Studio   | Android Studio安装路径       | 是      | 是    | 是   |
 | ArkUI-X SDK      | ArkUI-X SDK路径             | 是      | 是     | 是 |
+| ArkUI-X source   | ArkUI-X源码路径              | 是      | 是    | 是 |
 | DevEco Studio    | DevEco Studio安装路径        | 是      | 否    | 是   |
 | HarmonyOS hdc | HarmonyOS设备调试工具 | 是 | 是 | 是 |
 | HarmonyOS SDK    | HarmonyOS SDK路径          | 是      | 是    | 是   |
@@ -128,13 +131,14 @@ ace check [arguments]
 ```shell
 ohos@user ~ % ace check
 Check summary (to see all details, run ace check -v)
-[√] ArkUI-X (ArkUI-X SDK version 1.1.1.5)
-[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.9.6)
+[√] ArkUI-X (ArkUI-X SDK version 1.1.6.8)
+[√] ArkUI-X source (ArkUI-X SDK source version 1.1.5.2)
+[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.1.5.3)
 [√] HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version 3.1.0)
-[√] Android toolchains - develop for Android devices (Android SDK version 34.0.0)
-[√] DevEco Studio (version 4.0.3)
-[√] Android Studio (version 2022.3)
-[√] Xcode - develop for iOS (Xcode 14.3.1)
+[√] Android toolchains - develop for Android devices (Android SDK version 30.0.3)
+[√] DevEco Studio (version 4.1.3)
+[√] Android Studio (version 2022.2)
+[√] Xcode - develop for iOS (Xcode 15.2)
 Tools info :[√] OpenHarmony hdc installed
             [√] HarmonyOS hdc installed
             [√] adb installed
@@ -145,12 +149,14 @@ Tools info :[√] OpenHarmony hdc installed
   √ ACE Tools found no issues.
 
 ohos@user ~ % ace check -v
-[√] ArkUI-X (ArkUI-X SDK version 1.1.1.5)
+[√] ArkUI-X (ArkUI-X SDK version 1.1.6.8)
   • ArkUI-X SDK at /Users/ohos/Library/ArkUI-X/Sdk
   • Node.js (v18.17.1) Runtime Environment at /usr/local/n/versions/node/18.17.1/
   • libimobiledevice 1.3.0
   • ios-deploy 1.12.2
-[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.0.9.6)
+[√] ArkUI-X source (ArkUI-X SDK source version 1.1.5.2)
+  • ArkUI-X source at /Users/ohos/Library/sourceDir
+[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 4.1.5.3)
   • OpenHarmony SDK at /Users/ohos/Library/OpenHarmony/Sdk
   • Ohpm at /Users/ohos/Library/Huawei/ohpm
   • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
@@ -160,21 +166,21 @@ ohos@user ~ % ace check -v
   • Ohpm at /Users/ohos/Library/Huawei/ohpm
   • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
-[√] Android toolchains - develop for Android devices (Android SDK version 34.0.0)
+[√] Android toolchains - develop for Android devices (Android SDK version 30.0.3)
   • Android SDK at /Users/ohos/Library/Android/sdk
   • Java SDK at /Applications/Android Studio.app/Contents/jbr/Contents/Home
-  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
-[√] DevEco Studio (version 4.0.3)
+  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b802.4-9586694)
+[√] DevEco Studio (version 4.1.3)
   • DevEco Studio at /Applications/deveco-studio.app
   • Java SDK at /Applications/deveco-studio.app/Contents/jbr/Contents/Home
   • OpenJDK Runtime Environment JBR-17.0.6+10-829.5-jcef (build 17.0.6+10-b829.5)
-[√] Android Studio (version 2022.3)
+[√] Android Studio (version 2022.2)
   • Android Studio at /Applications/Android Studio.app
   • Java SDK at /Applications/Android Studio.app/Contents/jbr/Contents/Home
-  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
-[√] Xcode - develop for iOS (Xcode 14.3.1)
+  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b802.4-9586694)
+[√] Xcode - develop for iOS (Xcode 15.2)
   • Xcode at /Applications/Xcode.app
-  • Build version 14E300c
+  • Build version 15C500b
 Tools info :[√] OpenHarmony hdc installed
             [√] HarmonyOS hdc installed
             [√] adb installed
@@ -252,10 +258,25 @@ ohos@user:~/cli-project$ ace create test
 ? Enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
 ? Enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
 ? Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
-? Please select the Complie SDk (1: 10, 2: 11): 2 # 输入编译SDK版本
+? Please select the Complie SDk (1: 10, 2: 11, 3: 12): 2 # 输入编译SDK版本
 
 Project created. Target directory:  /home/ohos/cli-project/test.
 
+In order to run your app, type:
+
+    $ cd test
+    $ ace run
+
+Your app code is in test/entry.
+```
+
+如果项目目录已存在，提示并询问开发者是否修复该工程。
+
+```shell
+ohos@user:~/cli-project$ ace create test
+? The project already exists. Do you want to repair the project (y / n): y
+
+Project repaired. Target directory:  /home/ohos/cli-project/test.
 In order to run your app, type:
 
     $ cd test
@@ -274,6 +295,18 @@ Your app code is in test/entry.
 
 ```shell
 Enter the module name:
+```
+
+提示选择module类型：
+
+```shell
+Enter the module type: (1: Empty Ability, 2: Native C++, 3: Share Library):
+```
+
+提示选择module是否跨平台:
+
+```shell
+Specify whether the module is a cross-platform module (y / n):
 ```
 
 如果此module name已存在，会提示开发者${module name} already exists.，开发者修改名称后，回车确认，可以成功新建出跨平台应用模块(Module)。
@@ -314,6 +347,7 @@ ace build <subCommand> [arguments]
 | apk  | 构建Android应用 apk 包。                                |
 | bundle | 构建ArkUI cross-platform资源目录。 |
 | hap  | 构建OpenHarmony/HarmonyOS应用 hap 包。 |
+| hsp | 构建OpenHarmony/HarmonyOS应用 hsp 包。 |
 | ios  | 构建iOS应用 app 包。                                 |
 | ios-framework  | 构建iOS应用 framework 包。                                 |
 | ios-xcframework  | 构建iOS应用 xcframework 包。                                 |
@@ -326,10 +360,11 @@ ace build <subCommand> [arguments]
 | -r --release                   | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为release(默认为release)。 |
 | --profile                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为profile。                |
 | --nosign                       | ios、ios-framework、ios-xcframework                          | 构建出未签名的应用程序。                     |
-| --target [moduleName]          | hap                                                          | 指定目标模块名进行构建。                     |
+| --target [moduleName]          | hap、hsp                                                    | 指定目标模块名进行构建。                     |
 | --target-platform \<platform\> | apk、aab、aar、bundle                                        | 编译apk的目标平台[arm, arm64, x86_64]        |
 | -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
 | --analyze                 	     | hap、apk、ios                          						| 通过rom size工具对打出的包进行包体积解析；[rom size工具使用方法](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-rom-size.md)。             |
+| --aot                          | apk、aab                                                     | AOT编译打包构建。                            |
 | -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
 
 构建完成，提示包生成路径:
@@ -356,16 +391,18 @@ ace install [arguments]
 
 - arguments
 
-| 参数 | 说明                                                         |
-| ---- | ------------------------------------------------------------ |
-| apk  | 安装Android应用 apk 包，可选。                                 |
-| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包，可选。                   |
-| ios  | 安装iOS应用 app 包，可选。                                     |
+| 参数 | 说明                                         |
+| ---- | -------------------------------------------- |
+| apk  | 安装Android应用 apk 包，可选。               |
+| hap  | 安装OpenHarmony/HarmonyOS应用 hap 包，可选。 |
+| hsp  | 安装OpenHarmony/HarmonyOS应用 hsp 包，可选。 |
+| ios  | 安装iOS应用 app 包，可选。                   |
 
 | 参数           | 说明                     |
 | --------------------- | ------------------------ |
 | --target [moduleName] | 指定目标模块名进行安装。 |
 | -d --device \<deviceId\> | 指定运行应用的设备Id。|
+| --path <path\> | 指定要安装的包的路径。 |
 | -h --help             | 显示帮助信息。           |
 
 

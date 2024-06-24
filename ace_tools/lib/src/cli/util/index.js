@@ -17,8 +17,8 @@ const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
-const { copy } = require('../ace-create/util');
 const { getDeviceID, devicesList } = require('../ace-devices');
+const { Platform, platform } = require('../ace-check/platform');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -80,9 +80,10 @@ function generateUUID(textWithUUIDs, generatedIdSet) {
   }
 }
 
-function getModuleList(settingPath) {
+function getModuleList(projectDir) {
+  const moduleList = [];
+  const settingPath = path.join(projectDir, 'build-profile.json5');
   try {
-    const moduleList = [];
     if (fs.existsSync(settingPath)) {
       const buildProfileInfo = JSON5.parse(fs.readFileSync(settingPath).toString());
       for (let index = 0; index < buildProfileInfo.modules.length; index++) {
@@ -100,9 +101,9 @@ function getModuleList(settingPath) {
 }
 
 function getModulePathList(projDir) {
+  const modulePathList = {};
+  const settingPath = path.join(projDir, 'build-profile.json5');
   try {
-    const modulePathList = {};
-    const settingPath = path.join(projDir, 'build-profile.json5');
     if (fs.existsSync(settingPath)) {
       const buildProfileInfo = JSON5.parse(fs.readFileSync(settingPath).toString());
       for (let index = 0; index < buildProfileInfo.modules.length; index++) {
@@ -119,18 +120,16 @@ function getModulePathList(projDir) {
   }
 }
 
-function getModuleAbilityList(projDir, moduleList) {
+function getModuleAbilityList(projDir, moduleName) {
   try {
     const moduleAbilityList = [];
     const modulePathList = getModulePathList(projDir);
-    for (let index = 0; index < moduleList.length; index++) {
-      const moduleJsonPath = path.join(projDir, modulePathList[moduleList[index]],
-        'src/main/module.json5');
-      const moduleJsonFile = JSON5.parse(fs.readFileSync(moduleJsonPath));
-      moduleJsonFile.module.abilities.forEach(component => {
-        moduleAbilityList.push(moduleList[index] + '_' + component['name']);
-      });
-    }
+    const moduleJsonPath = path.join(projDir, modulePathList[moduleName],
+      'src/main/module.json5');
+    const moduleJsonFile = JSON5.parse(fs.readFileSync(moduleJsonPath));
+    moduleJsonFile.module.abilities.forEach(component => {
+      moduleAbilityList.push(moduleName + '_' + component['name']);
+    });
     return moduleAbilityList;
   } catch (error) {
     console.error(`Please check ${projDir}.`);
@@ -209,7 +208,7 @@ function getFrameworkName(projectDir) {
   const frameworkName = [];
   const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
   iosDir.forEach(dir => {
-    if (dir.includes('.xcodeproj') && dir != 'app.xcodeproj') {
+    if (dir.includes('.xcodeproj') && dir !== 'app.xcodeproj') {
       frameworkName.push(dir.split('.')[0]);
     }
   });
@@ -230,7 +229,7 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
     if (!pbxprojFileInfo.includes(' /* ' + fileName + ' */,')) {
       const pBXBuildIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.h; sourceTree = "<group>"; };');
-      const pBXGroupIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.h */,');
+      const pBXGroupIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.h */,');
       const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, pBXBuildIndex + 41) + addPBXBuildInfo +
         pbxprojFileInfo.slice(pBXBuildIndex + 41, pBXGroupIndex + 20) +
         addPBXGroupInfo + pbxprojFileInfo.slice(pBXGroupIndex + 20);
@@ -252,9 +251,9 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const addPBXSourcesBuildPhase = '\n				' + sourceFileFirstUUID + ' /* ' + fileName + ' in Sources */,';
     const pbxprojFileInfo = fs.readFileSync(pbxprojFilePath).toString();
     if (!pbxprojFileInfo.includes(' /* ' + fileName + ' in Sources */,')) {
-      const addPBXBuildInfoIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */; };');
+      const addPBXBuildInfoIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m */; };');
       const addPBXFileReferenceIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m; sourceTree = "<group>"; };');
-      const addchildrenIndex = pbxprojFileInfo.lastIndexOf('/* AppDelegate.m */,');
+      const addchildrenIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m */,');
       const addPBXSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m in Sources */,');
       const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addPBXBuildInfoIndex + 23) + addPBXBuildInfo +
         pbxprojFileInfo.slice(addPBXBuildInfoIndex + 23, addPBXFileReferenceIndex + 41) + addPBXFileReference +
@@ -281,18 +280,18 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const searchBuildFile = '/* arkui-x */; };';
     const searchFileReference = 'arkui-x; sourceTree = "<group>"; };';
     const searchGroupChildren = '/* arkui-x */,';
-    const searchSourcesBuildPhase = '/* main.m in Sources */,';
+    const searchSourcesBuildPhase = 'AppDelegate.m in Sources */,';
     const addBuildFileIndex = pbxprojFileInfo.lastIndexOf('/* arkui-x */; };');
     const addFileReferenceIndex = pbxprojFileInfo.lastIndexOf('arkui-x; sourceTree = "<group>"; };');
     const addGroupChildrenIndex = pbxprojFileInfo.lastIndexOf('/* arkui-x */,');
-    const addSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('/* main.m in Sources */,');
+    const addSourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf('AppDelegate.m in Sources */,');
     const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addBuildFileIndex + searchBuildFile.length) +
       addBuildFile + pbxprojFileInfo.slice(addBuildFileIndex + searchBuildFile.length,
-        addFileReferenceIndex + searchFileReference.length) +
+      addFileReferenceIndex + searchFileReference.length) +
       addFileReference + pbxprojFileInfo.slice(addFileReferenceIndex + searchFileReference.length,
-        addGroupChildrenIndex + searchGroupChildren.length) +
+      addGroupChildrenIndex + searchGroupChildren.length) +
       addGroupChildren + pbxprojFileInfo.slice(addGroupChildrenIndex + searchGroupChildren.length,
-        addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length) +
+      addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length) +
       addSourcesBuildPhase + pbxprojFileInfo.slice(addSourcesBuildPhaseIndex + searchSourcesBuildPhase.length);
     fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
   } else if (fileType === 'resource') {
@@ -320,11 +319,11 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
       const addResourcesBuildPhaseIndex = pbxprojFileInfo.lastIndexOf(searchResourcesBuildPhase);
       const updatepbxprojFileInfo = pbxprojFileInfo.slice(0, addBuildFileIndex + searchBuildFile.length) +
         addBuildFile + pbxprojFileInfo.slice(addBuildFileIndex + searchBuildFile.length,
-          addFileReferenceIndex + searchFileReference.length) +
+        addFileReferenceIndex + searchFileReference.length) +
         addFileReference + pbxprojFileInfo.slice(addFileReferenceIndex + searchFileReference.length,
-          addGroupChildrenIndex + searchGroupChildren.length) +
+        addGroupChildrenIndex + searchGroupChildren.length) +
         addGroupChildren + pbxprojFileInfo.slice(addGroupChildrenIndex + searchGroupChildren.length,
-          addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length) +
+        addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length) +
         addResourcesBuildPhase + pbxprojFileInfo.slice(addResourcesBuildPhaseIndex + searchResourcesBuildPhase.length);
       fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
     }
@@ -342,7 +341,7 @@ function isAppProject(projectDir) {
 
 function getAbsolutePath(str) {
   if (path.isAbsolute(str)) {
-    return str
+    return str;
   } else {
     return path.join(process.cwd(), str);
   }
@@ -425,74 +424,109 @@ function cleanLibs(projectDir, abiFilters, fileType) {
   }
 }
 
-function syncHvigor(projectDir) {
-  let pathTemplate = path.join(__dirname, 'template');
-  const proHvigorVersion = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5'))).hvigorVersion;
-  if (fs.existsSync(pathTemplate)) {
-    const tempHvigorVersion = JSON5.parse(fs.readFileSync(
-      path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
-    if (isCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
-      copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
-    }
-    return true;
-  } else {
-    pathTemplate = globalThis.templatePath;
-    if (fs.existsSync(pathTemplate)) {
-      const tempHvigorVersion = JSON5.parse(fs.readFileSync(
-        path.join(pathTemplate, 'ohos_stage/hvigor/hvigor-config.json5'))).hvigorVersion;
-      if (isCopyHvigor(proHvigorVersion, tempHvigorVersion)) {
-        copy(path.join(pathTemplate, '/ohos_stage/hvigor'), path.join(projectDir, 'hvigor'));
-      }
-      return true;
-    } else {
-      console.error('Error: Template is not exist!');
-      return false;
-    }
-  }
+function getSdkVersionMap() {
+  const sdkVersionMap = new Map([
+    ['10',new Map([['compileSdkVersion','4.0.0(10)'],['compatibleSdkVersion','4.0.0(10)'],['modelVersion','4.0.0'],['runtimeOS','HarmonyOS']])],
+    ['11',new Map([['compileSdkVersion','4.1.0(11)'],['compatibleSdkVersion','4.1.0(11)'],['modelVersion','4.1.0'],['runtimeOS','HarmonyOS']])],
+    ['12',new Map([['compileSdkVersion','5.0.0(12)'],['compatibleSdkVersion','5.0.0(12)'],['modelVersion','5.0.0'],['runtimeOS','HarmonyOS']])],
+    ['13',new Map([['compileSdkVersion','5.0.1(13)'],['compatibleSdkVersion','5.0.1(13)'],['modelVersion','5.0.1'],['runtimeOS','HarmonyOS']])],
+  ])
+  return sdkVersionMap;
 }
 
-function isCopyHvigor(currentVersion, tempVersion) {
-  try {
-    const currentVers = currentVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
-    const tempVers = tempVersion.match(/(\d+)\.(\d+)\.(\d+).*/).slice(1, 4);
-    for (let i = 0; i < currentVers.length; i++) {
-      if (parseInt(currentVers[i]) === parseInt(tempVers[i])) {
-        continue;
-      } else if (parseInt(currentVers[i]) < parseInt(tempVers[i])) {
-        return true;
-      } else {
-        return false;
-      }
+function getShowSdkVersion() {
+  let sdkVersionMap = getSdkVersionMap();
+  let showMap = new Map();
+  let index = 1;
+  sdkVersionMap.forEach((value,key) => {
+    showMap.set(index.toString(),key);
+    index = index + 1;
+  });
+  return showMap;
+}
+
+function isHaveSdkVersion(sdkVersion) {
+  let sdkVersionMap = getSdkVersionMap();
+  return sdkVersionMap.has(sdkVersion);
+}
+
+function getSdkVersionWithCompileSdkVersion(compileSdkVersion) {
+  let sdkVersionMap = getSdkVersionMap();
+  let sdkVersion = "";
+  sdkVersionMap.forEach((value,key) => {
+    let lcompileSdkVersion = value.get('compileSdkVersion');
+    if (lcompileSdkVersion === compileSdkVersion) {
+      sdkVersion = key;
     }
-    return false;
-  } catch (err) {
-    return true;
+  });
+  return sdkVersion;
+}
+
+function getCompileSdkVersionWithSdkVersion(sdkVersion) {
+  let sdkVersionMap = getSdkVersionMap();
+  if (!(sdkVersionMap.has(sdkVersion))) {
+    return "";
   }
+  let sdkVersionData = sdkVersionMap.get(sdkVersion);
+  return sdkVersionData.get('compileSdkVersion');
+}
+
+function getCompatibleSdkVersionWithSdkVersion(sdkVersion) {
+  let sdkVersionMap = getSdkVersionMap();
+  if (!(sdkVersionMap.has(sdkVersion))) {
+    return "";
+  }
+  let sdkVersionData = sdkVersionMap.get(sdkVersion);
+  return sdkVersionData.get('compatibleSdkVersion');
+}
+
+function getRuntimeOSWithSdkVersion(sdkVersion) {
+  let sdkVersionMap = getSdkVersionMap();
+  if (!(sdkVersionMap.has(sdkVersion))) {
+    return "";
+  }
+  let sdkVersionData = sdkVersionMap.get(sdkVersion);
+  return sdkVersionData.get('runtimeOS');
+}
+
+function getModelVersionWithSdkVersion(sdkVersion) {
+  let sdkVersionMap = getSdkVersionMap();
+  if (!(sdkVersionMap.has(sdkVersion))) {
+    return "";
+  }
+  let sdkVersionData = sdkVersionMap.get(sdkVersion);
+  return sdkVersionData.get('modelVersion');
 }
 
 function getSdkVersion(projectDir) {
   const buildProfilePath = path.join(projectDir, 'build-profile.json5');
+  const integrateFilePath = path.join(projectDir, '.hvigor/cache/meta.json');
   if (fs.existsSync(buildProfilePath)) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfilePath).toString());
-    if (buildProfileInfo.app.products[0].compileSdkVersion === '4.0.0(10)') {
-      return '10';
-    } else if (buildProfileInfo.app.products[0].compileSdkVersion === '4.1.0(11)') {
-      return '11';
+    if (buildProfileInfo.app.products[0].runtimeOS === 'OpenHarmony') {
+      return buildProfileInfo.app.products[0].compileSdkVersion;
     }
-    return buildProfileInfo.app.products[0].compileSdkVersion;
+    if ('compileSdkVersion' in buildProfileInfo.app.products[0]) {
+      return getSdkVersionWithCompileSdkVersion(buildProfileInfo.app.products[0].compileSdkVersion);
+    } else {
+      if (fs.existsSync(integrateFilePath)) {
+        const intergrateInfo = JSON5.parse(fs.readFileSync(integrateFilePath).toString());
+        return getSdkVersionWithCompileSdkVersion(intergrateInfo.compileSdkVersion);;
+      }
+    }
   } else {
     return null;
   }
 }
 
 function checkProjectType(projectDir) {
-  if (fs.existsSync(path.join(projectDir, 'entry/src/main/cpp'))
-    || fs.existsSync(path.join(projectDir, '.arkui-x/android/app/src/main/cpp'))) {
-    return 'plugin_napi';
-  } else if (getAarName(projectDir).length !== 0 || getFrameworkName(projectDir).length !== 0) {
-    return 'library';
+  if (fs.existsSync(projectDir, '.projectInfo')) {
+    const filePath = path.join(projectDir, '.projectInfo');
+    const content = fs.readFileSync(filePath, 'utf8').toString();
+    const template = JSON5.parse(content).projectTemplate;
+    return template;
   } else {
-    return 'app';
+    return false;
   }
 }
 
@@ -523,6 +557,124 @@ function getIosProjectName(projectDir) {
   return iosName;
 }
 
+function getModuleType(projectDir, modulePath) {
+  let moduleType = '';
+  const hvigorFile = path.join(projectDir, modulePath, 'hvigorfile.ts');
+  const checkFile = path.join(projectDir, modulePath, 'build-profile.json5');
+  if (fs.existsSync(hvigorFile) && fs.existsSync(checkFile)) {
+    const hvigorInfo = fs.readFileSync(hvigorFile).toString();
+    const checkInfo = fs.readFileSync(checkFile).toString();
+    if (hvigorInfo.includes('HapTasks')) {
+      if (checkInfo.includes('CMakeLists.txt')) {
+        moduleType = 'NativeC++';
+      } else {
+        moduleType = 'EmptyAbility';
+      }
+    } else if (hvigorInfo.includes('hspTasks')) {
+      if (checkInfo.includes('CMakeLists.txt')) {
+        moduleType = 'ShareC++';
+      } else {
+        moduleType = 'ShareAbility';
+      }
+    }
+  }
+  return moduleType;
+}
+
+function getHspModuleList(projectDir) {
+  const hspModuleList = [];
+  const modulePathList = getModulePathList(projectDir);
+  if (modulePathList === null || Object.keys(modulePathList).length === 0) {
+    return hspModuleList;
+  }
+  Object.keys(modulePathList).forEach(module => {
+    const moduleType = getModuleType(projectDir, modulePathList[module]);
+    if (moduleType.includes('Share')) {
+      hspModuleList.push(module);
+    }
+  });
+  return hspModuleList;
+}
+
+function validInputModule(projectDir, inputModules, fileType) {
+  const moduleListAll = getModuleList(projectDir);
+  const hspModuleList = getHspModuleList(projectDir);
+  const crossPlatformModules = getCrossPlatformModules(projectDir);
+  let moduleListSpecified;
+  if (fileType === 'hap') {
+    moduleListSpecified = moduleListAll.filter(element => !hspModuleList.includes(element));
+  } else if (fileType === 'haphsp') {
+    moduleListSpecified = moduleListAll;
+  } else if (fileType === 'hsp') {
+    moduleListSpecified = hspModuleList;
+  } else {
+    moduleListSpecified = crossPlatformModules;
+  }
+  for (let i = 0; i < inputModules.length; i++) {
+    if (!moduleListAll.includes(inputModules[i])) {
+      console.error('\x1B[31m%s\x1B[0m', `Module "${inputModules[i]}" is not exist, please input correct module.`);
+      return false;
+    }
+
+    if (!moduleListSpecified.includes(inputModules[i])) {
+      console.error('\x1B[31m%s\x1B[0m', `Module "${inputModules[i]}" does not support current type.`);
+      return false;
+    }
+  }
+  return true;
+}
+
+function getLaunchModule(projectDir, inputModules) {
+  const moduleList = inputModules.split(',');
+  const entryModule = getEntryModule(projectDir);
+  if (entryModule && moduleList.includes(entryModule)) {
+    return entryModule;
+  }
+  const hspModule = getHspModuleList(projectDir);
+  const targetName = moduleList.filter(element => !hspModule.includes(element));
+
+  if (targetName.length === 0) {
+    console.error('\x1B[31m%s\x1B[0m', 'no module to launch.');
+    return null;
+  } else {
+    return targetName[0];
+  }
+}
+
+function getEntryModule(projectDir) {
+  let entryModule;
+  const moduleList = getModulePathList(projectDir);
+  for (let i = 0; i < Object.values(moduleList).length; i++) {
+    const moduleJson = path.join(projectDir, Object.values(moduleList)[i], 'src/main/module.json5');
+    const jsonInfo = JSON5.parse(fs.readFileSync(moduleJson).toString());
+    if (jsonInfo.module.type === 'entry') {
+      entryModule = jsonInfo.module.name;
+      break;
+    }
+  }
+  if (!entryModule) {
+    console.error('\x1B[31m%s\x1B[0m', 'no entry module found!');
+  }
+  return entryModule;
+}
+
+function setDevEcoSdkInEnv(DevEcoDir) {
+  if (DevEcoDir) {
+    const environment = process.env;
+    if (platform === Platform.Windows && fs.existsSync(DevEcoDir + '\\sdk')) {
+      environment['DEVECO_SDK_HOME'] = DevEcoDir + '\\sdk';
+      environment['Path'] = DevEcoDir + '\\sdk;' + environment['Path'];
+    } else if (platform === Platform.MacOS && fs.existsSync(DevEcoDir + '/Contents/sdk')) {
+      environment['DEVECO_SDK_HOME'] = DevEcoDir + '/Contents/sdk';
+      environment['PATH'] = DevEcoDir + '/Contents/sdk:' + environment['PATH'];
+    } else {
+      console.log('DevEcoDir is not IntergrateIDE, setDevEcoSdkInEnv failed.');
+    }
+  } else {
+    console.log('DevEcoDir is required, DevEcoDir is null.');
+  }
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -540,10 +692,21 @@ module.exports = {
   getCrossPlatformModules,
   modifyAndroidAbi,
   validOptions,
-  syncHvigor,
   getSdkVersion,
   getModulePathList,
   checkProjectType,
   getAndroidModule,
-  getIosProjectName
+  getIosProjectName,
+  getModuleType,
+  getHspModuleList,
+  validInputModule,
+  getLaunchModule,
+  getEntryModule,
+  setDevEcoSdkInEnv,
+  getShowSdkVersion,
+  isHaveSdkVersion,
+  getCompileSdkVersionWithSdkVersion,
+  getCompatibleSdkVersionWithSdkVersion,
+  getRuntimeOSWithSdkVersion,
+  getModelVersionWithSdkVersion
 };

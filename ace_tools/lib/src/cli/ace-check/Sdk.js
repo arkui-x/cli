@@ -71,8 +71,10 @@ class Sdk {
     if (!sdkHomeDir) {
       if (this.getDefaultSdk()) {
         sdkHomeDir = this.getDefaultSdk();
-      } else {
+      } else if (this.getIdePath) {
         sdkHomeDir = this.getIdePath();
+      } else {
+        sdkHomeDir = this.getIntegrateIdePath();
       }
     }
     modifyConfigPath(this.type, sdkHomeDir);
@@ -84,6 +86,16 @@ class Sdk {
       modifyConfigPath(this.type, packageArkUIXSdkDir);
       return packageArkUIXSdkDir;
     }
+  }
+
+  getIntegrateIdePath() {
+    let sdkHomeDir;
+    if (platform === Platform.Windows) {
+      sdkHomeDir = path.join(devEcoStudioDir, 'sdk');
+    } else if (platform === Platform.MacOS) {
+      sdkHomeDir = path.join(devEcoStudioDir, 'Contents', 'sdk');
+    }
+    return sdkHomeDir;
   }
 
   getDefaultSdk() {
@@ -308,7 +320,7 @@ function getHarmonyOsSdkVersion(sdkDir) {
   }
   const versionList = [];
   fs.readdirSync(sdkDir).forEach(dir => {
-    if (dir.includes('HarmonyOS')) {
+    if (dir.includes('HarmonyOS') || dir.includes('default')) {
       const platformVersion = JSON5.parse(fs.readFileSync(
         path.join(sdkDir, dir, 'sdk-pkg.json'))).data.platformVersion;
       versionList.push(platformVersion);

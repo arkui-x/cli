@@ -3,7 +3,7 @@
 ## Introduction
 ACE Tools is a command line (CLI) tool that allows ArkUI-X project developers to build applications on the OpenHarmony, Android, and iOS platforms. Its functions include development environment check, project creation, building and packaging, and installation and debugging.
 
-For details about setting up an environment for using ACE Tools，see [ACE Tools Quick Guide](https://gitee.com/arkui-x2/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md).
+For details about setting up an environment for using ACE Tools，see [ACE Tools Quick Guide](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md).
 
 ACE stands for Ability Cross-platform Environment. It is a cross-platform programming framework dedicated to OpenHarmony.
 
@@ -62,6 +62,18 @@ ace config [options] <path>
 | --deveco-studio-path | DevEco Studio installation directory (optional).|
 | --android-studio-path | Android Studio installation directory (optional).|
 | --java-sdk | JDK directory.|
+
+For example, using ace config to configure the OpenHarmony SDK path:
+```shell
+ohos@user ~ % ace config --openharmony-sdk /Users/ohos/Library/OpenHarmony/Sdk
+Set "openharmony-sdk" value to "/Users/ohos/Library/OpenHarmony/Sdk" succeeded.
+```
+
+Note: If there are spaces in the configuration path, double quotation marks need to be added to the path, for example:
+```shell
+ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk"
+Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
+```
 
 ### ace check
 
