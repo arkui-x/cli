@@ -32,11 +32,11 @@ function uninstall(fileType, device, bundle) {
     toolObj = getToolByType(fileType);
   }
   if (!toolObj) {
-    console.error('There are not install tool, please check');
+    console.error('\x1B[31m%s\x1B[0m', 'There are not install tool, please check');
     return false;
   }
   let successFlag;
-  if (fileType === 'hap') {
+  if (fileType === 'hap' || fileType === 'haphsp') {
     successFlag = uninstallHap(toolObj, device, bundle);
     if (!successFlag && openHarmonySdkDir && harmonyOsSdkDir) {
       toolObj = getToolByType(fileType, 'HarmonyOS');
@@ -50,12 +50,13 @@ function uninstall(fileType, device, bundle) {
   const fileTypeDict = {
     'ios': 'iOS APP',
     'apk': 'APK',
-    'hap': 'HAP'
-  }
+    'hap': 'HAP',
+    'haphsp': 'HAP'
+  };
   if (successFlag) {
     console.log(`${fileTypeDict[fileType]} uninstalled.`);
   } else {
-    console.log(`${fileTypeDict[fileType]} uninstalled failed.`);
+    console.error('\x1B[31m%s\x1B[0m', `${fileTypeDict[fileType]} uninstalled failed.`);
   }
   return successFlag;
 }
@@ -74,9 +75,8 @@ function uninstallApp(toolObj, device, bundle) {
     cmdPath = toolObj['ios-deploy'];
     cmdUninstallOption = '--uninstall_only --bundle_id';
     deviceOption = device ? `--id ${device}` : '';
-  }
-  else {
-    console.error(`ios-deploy is not installed or Xcode's version is below 15.0`);
+  } else {
+    console.error('\x1B[31m%s\x1B[0m', `ios-deploy is not installed or Xcode's version is below 15.0`);
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
@@ -100,7 +100,7 @@ function uninstallApk(toolObj, device, bundle) {
     cmdUninstallOption = 'uninstall';
     deviceOption = device ? `-s ${device}` : '';
   } else {
-    console.error('Internal error with adb checking');
+    console.error('\x1B[31m%s\x1B[0m', 'Internal error with adb checking');
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
@@ -126,7 +126,7 @@ function uninstallHap(toolObj, device, bundle) {
     cmdUninstallOption = 'app uninstall';
     deviceOption = device ? `-t ${device}` : '';
   } else {
-    console.error('Internal error with hdc checking');
+    console.error('\x1B[31m%s\x1B[0m', 'Internal error with hdc checking');
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;

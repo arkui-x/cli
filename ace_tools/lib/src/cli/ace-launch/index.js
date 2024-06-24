@@ -17,10 +17,10 @@ const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').execSync;
 const JSON5 = require('json5');
-const { log, getBundleName } = require('../ace-log');
+const { log } = require('../ace-log');
 const { getToolByType, getAapt } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getIosProjectName,
-  getModulePathList } = require('../util');
+  getModulePathList, getEntryModule } = require('../util');
 const { isSimulator, getIosVersion } = require('../ace-devices/index');
 const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 let bundleName;
@@ -31,8 +31,9 @@ let className;
 let cmdOption;
 let appPackagePath;
 function getNames(projectDir, fileType, moduleName, installFilePath, bundleName) {
-  moduleName = moduleName || 'entry';
-  if (fileType === 'hap') {
+  const entryModule = getEntryModule(projectDir);
+  moduleName = moduleName || entryModule;
+  if (fileType === 'hap' || fileType === 'haphsp') {
     return getNameStageHaps(projectDir, moduleName);
   } else if (fileType === 'apk') {
     if (installFilePath) {
@@ -57,7 +58,7 @@ function getNamesApp(projectDir) {
 
 function getNameStageHaps(projectDir, moduleName) {
   try {
-    const modulePathList = getModulePathList(projectDir)
+    const modulePathList = getModulePathList(projectDir);
     const ohosJsonPath = path.join(projectDir, modulePathList[moduleName], 'src/main/module.json5');
     const appJsonPath = path.join(projectDir, '/AppScope/app.json5');
     if (fs.existsSync(ohosJsonPath) && fs.existsSync(appJsonPath)) {
@@ -86,6 +87,7 @@ function getNamesApk(projectDir, moduleName) {
       path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml');
     const manifestPath = path.join(projectDir, 'AppScope/app.json5');
     if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
+      const activityList = [];
       let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
       xmldata = xmldata.trim().split('\n');
       for (let i = 0; i < xmldata.length; i++) {
@@ -93,19 +95,19 @@ function getNamesApk(projectDir, moduleName) {
           packageName = xmldata[i].split('"')[1];
         }
         if (xmldata[i].search(/<activity .*android:name=/) !== -1 ||
-          (xmldata[i].search(/android:name=/) !== -1 && xmldata[i - 1].trim() === '<activity')) {
-          androidclassName = xmldata[i].split('android:name="')[1].split('"')[0];
-          break;
+          xmldata[i].search(/android:name=/) !== -1 && xmldata[i - 1].trim() === '<activity') {
+          activityList.push(xmldata[i].split('android:name="')[1].split('"')[0]);
         }
       }
 
+      const moduleUpper = moduleName.replace(/\b\w/g, function(l) {
+        return l.toUpperCase();
+      });
+      if (activityList.includes(`.${moduleUpper}${moduleUpper}AbilityActivity`)) {
+        androidclassName = `.${moduleUpper}${moduleUpper}AbilityActivity`;
+      }
       bundleName = JSON5.parse(fs.readFileSync(manifestPath)).app.bundleName;
       packageName = packageName || bundleName;
-      if (!androidclassName) {
-        androidclassName = '.' + moduleName.replace(/\b\w/g, function(l) {
-          return l.toUpperCase();
-        }) + 'EntryAbilityActivity';
-      }
       if (!bundleName || !packageName || !androidclassName) {
         console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
         return false;
@@ -159,7 +161,7 @@ function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
 }
 
 function getIosSignName(projectDir) {
-  let projfile = fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj')).toString().trim();
+  const projfile = fs.readFileSync(path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj')).toString().trim();
   const signName = projfile.match(/PRODUCT_BUNDLE_IDENTIFIER = ([^"]*)/g);
   return signName[0].split('=')[1].split(';')[0].trim();
 }
@@ -189,12 +191,16 @@ function isPackageInAndroid(toolObj, device) {
 
 function launch(fileType, device, options) {
   const projectDir = process.cwd();
+  if (options.target && options.target.split(',').length > 1) {
+    console.error('\x1B[31m%s\x1B[0m', `Cannot launch multiple modules`);
+  }
   const moduleName = options.target;
   const fileTypeDict = {
     'ios': 'iOS APP',
     'apk': 'APK',
-    'hap': 'HAP'
-  }
+    'hap': 'HAP',
+    'haphsp': 'HAP'
+  };
   if (!options.path && !isProjectRootDir(projectDir)) {
     return false;
   }
@@ -249,8 +255,7 @@ function getCmdLaunch(toolObj, device, options) {
     const deviceOption = device ? `${device}` : 'booted';
     const bundleName = getIosSignName(process.cwd());
     cmdLaunch = `${cmdPath} ${deviceOption} ${bundleName}`;
-  }
-  else if ('hdc' in toolObj) {
+  } else if ('hdc' in toolObj) {
     const cmdPath = toolObj['hdc'];
     const deviceOption = device ? `-t ${device}` : '';
     cmdLaunch = `${cmdPath} ${deviceOption} shell aa start -a ${className} -m ${packageName} -b ${bundleName}`;
@@ -279,9 +284,8 @@ function getCmdLaunch(toolObj, device, options) {
       testOption = getTestOption(options, '', iosDeployTool);
     }
     cmdLaunch = `${cmdPath} ${deviceOption} --bundle ${appPackagePath} ${testOption} --no-wifi --justlaunch -m`;
-  }
-  else {
-    console.error(`Internal error with hdc, adb, ios-deploy and Xcode's version checking.`);
+  } else {
+    console.error('\x1B[31m%s\x1B[0m', `Internal error with hdc, adb, ios-deploy and Xcode's version checking.`);
   }
   return cmdLaunch;
 }

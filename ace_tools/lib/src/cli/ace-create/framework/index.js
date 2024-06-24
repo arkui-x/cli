@@ -27,7 +27,7 @@ function createFramework(projectPath, frameworkName) {
     findFrameworkTemplate(libraryPath, frameworkName);
     return true;
   } catch (error) {
-    console.log('framework created failed! Target directory: ' + projectPath + '.' + error);
+    console.error('\x1B[31m%s\x1B[0m', 'framework created failed! Target directory: ' + projectPath + '.' + error);
     return false;
   }
 }
@@ -43,7 +43,7 @@ function findFrameworkTemplate(libraryPath, frameworkName) {
       copyTemplate(templatePath, libraryPath);
       replaceFrameworkInfo(libraryPath, frameworkName);
     } else {
-      console.log('Error: Template is not exist!');
+      console.error('\x1B[31m%s\x1B[0m', 'Error: Template is not exist!');
     }
   }
 }
@@ -58,7 +58,7 @@ function copyTemplate(templatePath, libraryPath) {
         path.join(libraryPath, 'MyFramework', fileName));
     });
   } catch (err) {
-    console.error('Error: Copy template failed!\n', err);
+    console.error('\x1B[31m%s\x1B[0m', 'Error: Copy template failed!\n', err);
   }
 }
 
@@ -66,13 +66,14 @@ function replaceFrameworkInfo(frameworkPath, frameworkName) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
+  const frameworkDir = 'myframework';
   try {
     files.push(path.join(frameworkPath, 'MyFramework.xcodeproj/project.pbxproj'));
     replaceInfos.push('MyFramework');
-    strs.push(frameworkName);
+    strs.push(frameworkDir);
     files.push(path.join(frameworkPath, 'MyFramework/MyFramework.h'));
     replaceInfos.push('MyFramework');
-    strs.push(frameworkName);
+    strs.push(frameworkDir);
     fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate_stage.h'),
       path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.h'));
     fs.renameSync(path.join(frameworkPath, 'MyFramework/AppDelegate_stage.m'),
@@ -80,7 +81,7 @@ function replaceFrameworkInfo(frameworkPath, frameworkName) {
     fs.writeFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'),
       fs.readFileSync(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m')).toString()
         .replace('BUNDLE_DIRECTORY];',
-          ` [NSString stringWithFormat:@"%@%@",@"/Frameworks/${frameworkName}.framework/",BUNDLE_DIRECTORY]];`));
+          ` [NSString stringWithFormat:@"%@%@",@"/Frameworks/${frameworkDir}.framework/",BUNDLE_DIRECTORY]];`));
     files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
     replaceInfos.push('packageName');
     strs.push(`com.example.${frameworkName}`);
@@ -95,12 +96,12 @@ function replaceFrameworkInfo(frameworkPath, frameworkName) {
 
     modifyXcodeProj(frameworkPath);
     fs.renameSync(path.join(frameworkPath, 'MyFramework/MyFramework.h'),
-      path.join(frameworkPath, `MyFramework/${frameworkName}.h`));
+      path.join(frameworkPath, `MyFramework/${frameworkDir}.h`));
     fs.renameSync(path.join(frameworkPath, 'MyFramework.xcodeproj'),
-      path.join(frameworkPath, `${frameworkName}.xcodeproj`));
-    fs.renameSync(path.join(frameworkPath, 'MyFramework'), path.join(frameworkPath, frameworkName));
+      path.join(frameworkPath, `${frameworkDir}.xcodeproj`));
+    fs.renameSync(path.join(frameworkPath, 'MyFramework'), path.join(frameworkPath, frameworkDir));
   } catch (err) {
-    console.error(err);
+    console.error('\x1B[31m%s\x1B[0m', err);
   }
 }
 

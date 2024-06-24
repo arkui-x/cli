@@ -71,8 +71,10 @@ class Sdk {
     if (!sdkHomeDir) {
       if (this.getDefaultSdk()) {
         sdkHomeDir = this.getDefaultSdk();
-      } else {
+      } else if (this.getIdePath) {
         sdkHomeDir = this.getIdePath();
+      } else {
+        sdkHomeDir = this.getIntegrateIdePath();
       }
     }
     modifyConfigPath(this.type, sdkHomeDir);
@@ -84,6 +86,16 @@ class Sdk {
       modifyConfigPath(this.type, packageArkUIXSdkDir);
       return packageArkUIXSdkDir;
     }
+  }
+
+  getIntegrateIdePath() {
+    let sdkHomeDir;
+    if (platform === Platform.Windows) {
+      sdkHomeDir = path.join(devEcoStudioDir, 'sdk');
+    } else if (platform === Platform.MacOS) {
+      sdkHomeDir = path.join(devEcoStudioDir, 'Contents', 'sdk');
+    }
+    return sdkHomeDir;
   }
 
   getDefaultSdk() {

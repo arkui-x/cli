@@ -39,7 +39,7 @@ function setConfig(configs, isPrint) {
         console.info(`Set "${key}" value to "${setInfo[key]}" succeeded.`);
       } else if (typeof configs[key] !== 'undefined') {
         delete configContent[key];
-	deleteInfo.push(key);
+        deleteInfo.push(key);
       }
     }
   }

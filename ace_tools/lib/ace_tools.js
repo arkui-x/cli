@@ -20,8 +20,8 @@ const program = require('commander');
 const inquirer = require('inquirer');
 const { Platform, platform } = require('./src/cli/ace-check/platform');
 const { create, repairProject, createProject } = require('./src/cli/ace-create/project');
-const { createModule } = require('./src/cli/ace-create/module');
-const { createAbility } = require('./src/cli/ace-create/ability');
+const { createModule, repairModule } = require('./src/cli/ace-create/module');
+const { createAbility, repairAbility } = require('./src/cli/ace-create/ability');
 const { setConfig } = require('./src/cli/ace-config');
 const check = require('./src/cli/ace-check');
 const { devices, getDeviceID, showValidDevice, getDeviceType } = require('./src/cli/ace-devices');
@@ -47,6 +47,7 @@ const commandsSort = {
   'Project': []
 };
 const subCommands = ['apk', 'hap', 'ios'];
+const installCommands = ['apk', 'hap', 'hsp', 'ios'];
 const aceCommands = ['build', 'check', 'clean', 'config', 'create', 'devices', 'help',
   'install', 'launch', 'log', 'new', 'run', 'test', 'uninstall'];
 parseCommander();
@@ -135,8 +136,8 @@ function parseCreate() {
     .description(`Create a new ArkUI cross-platform project.`)
     .action((outputDir, cmd) => {
       if (outputDir === undefined) {
-        console.log('No option specified for the output directory.');
-        return;
+        console.error('\x1B[31m%s\x1B[0m', 'No option specified for the output directory.');
+        return false;
       }
       const initInfo = {};
       initInfo.currentProjectPath = outputDir;
@@ -148,45 +149,55 @@ function parseCreate() {
       } else if (cmd.template === 'app' || cmd.template === 'library' || cmd.template === 'plugin_napi') {
         initInfo.template = cmd.template;
       } else {
-        console.log(`Failed to create the project.Invalid template type ${cmd.template}.\nChoose from the app,library and plugin_napi options`);
-        return;
+        console.error('\x1B[31m%s\x1B[0m', 'Failed to create the project.' +
+          '\nInvalid template type ' + cmd.template + ', choose from the app, library or plugin_napi options.');
+        return false;
       }
 
-      if (fs.existsSync(path.join(absolutePath, 'oh-package.json5'))) {
-        const currentProjectTemplate = checkProjectType(absolutePath);
-        if (initInfo.template !== currentProjectTemplate) {
-          console.log('\x1B[31m%s\x1B[0m', `"${outputDir}" project already exists, the requested template type doesn't match the existing template type.`);
+      if (fs.existsSync(absolutePath)) {
+        if (!fs.existsSync(path.join(absolutePath, '.projectInfo'))) {
+          console.error('\x1B[31m%s\x1B[0m', 'This project already exist, ' +
+            "but the project information file doesn't exist and can't be repaired.");
           return false;
-        }
-        inquirer.prompt([{
-          name: 'repair',
-          type: 'input',
-          message: `The project already exists. Do you want to repair the project (y / n):`,
-          validate(val) {
-            if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
-              return 'Please enter y / n!';
-            } else {
-              return true;
+        } else {
+          const currentProjectTemplate = checkProjectType(absolutePath);
+          if (initInfo.template !== currentProjectTemplate) {
+            console.log('\x1B[31m%s\x1B[0m', 'The requested template type ' + initInfo.template +
+              " doesn't match the existing template type of " + currentProjectTemplate + '.');
+            return false;
+          }
+          inquirer.prompt([{
+            name: 'repair',
+            type: 'input',
+            message: `The project already exists. Do you want to repair the project (y / n):`,
+            validate(val) {
+              if (val.toLowerCase() !== 'y' && val.toLowerCase() !== 'n') {
+                return 'Please enter y / n!';
+              } else {
+                return true;
+              }
             }
-          }
-        }]).then(answers => {
-          if (answers.repair.toLowerCase() === 'y') {
-            const projectInfo = getProjectInfo(absolutePath);
-            const projectTempPath = getTempPath(outputDir);
-            createProject(absolutePath, projectTempPath, projectInfo.bundleName, projectName, projectInfo.runtimeOS,
-              initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion);
-            repairProject(absolutePath, outputDir);
-          } else {
-            console.error('Failed to repair project, preserve existing project.');
-          }
-        });
-        return true;
+          }]).then(answers => {
+            if (answers.repair.toLowerCase() === 'y') {
+              const projectInfo = getProjectInfo(absolutePath);
+              const projectTempPath = getTempPath(outputDir);
+              const isRepair = true;
+              createProject(absolutePath, projectTempPath, projectInfo.bundleName, projectName, projectInfo.runtimeOS,
+                initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion, isRepair);
+              repairModule(globalThis.templatePath, absolutePath, projectTempPath);
+              repairAbility(globalThis.templatePath, absolutePath, projectTempPath);
+              repairProject(absolutePath, outputDir);
+            } else {
+              console.error('Failed to repair project, preserve existing project.');
+            }
+          });
+          return true;
+        }
       }
-
       if (!isProjectNameValid(projectName)) {
         console.log('The project dir must contain 1 to 200 characters, start with a ' +
           'letter, and include only letters, digits and underscores (_)');
-        return;
+        return false;
       }
       inquirer.prompt([{
         name: 'project',
@@ -240,16 +251,22 @@ function parseCreate() {
             inquirer.prompt([{
               name: 'Complie SDk',
               type: 'input',
-              message: 'Please select the Complie SDk (1: 10, 2: 11):',
+              message: 'Please select the Complie SDk (1: 10, 2: 11, 3: 12):',
               validate(val) {
-                if (val === '1' || val === '2') {
+                if (val === '1' || val === '2' || val === '3') {
                   return true;
                 } else {
-                  return 'input must be an integer: 1 or 2.';
+                  return 'input must be an integer: 1 or 2 or 3.';
                 }
               }
             }]).then(answers => {
-              initInfo.sdkVersion = answers['Complie SDk'] === '1' ? '10' : '11';
+              if (answers['Complie SDk'] === '1') {
+                initInfo.sdkVersion = '10';
+              } else if (answers['Complie SDk'] === '2') {
+                initInfo.sdkVersion = '11';
+              } else {
+                initInfo.sdkVersion = '12';
+              }
               create(initInfo);
             });
           });
@@ -339,6 +356,7 @@ function parseConfig() {
     .option('--nodejs-dir [Nodejs Dir]', 'Node.js path.')
     .option('--ohpm-dir [Ohpm Dir]', 'Ohpm path.')
     .option('--openharmony-sdk [OpenHarmony SDK]', 'OpenHarmony SDK path.')
+    .option('--source-dir [Source Dir]', 'Source path.')
     .description(`Configure ArkUI cross-platform settings.`)
     .action((cmd) => {
       if (Object.keys(cmd).length !== 0) {
@@ -352,7 +370,8 @@ function parseConfig() {
           'java-sdk': cmd.javaSdk,
           'nodejs-dir': cmd.nodejsDir,
           'ohpm-dir': cmd.ohpmDir,
-          'openharmony-sdk': cmd.openharmonySdk
+          'openharmony-sdk': cmd.openharmonySdk,
+          'source-dir': cmd.sourceDir
         });
       } else {
         console.log('Please use ace config with options :' + `
@@ -365,7 +384,8 @@ function parseConfig() {
         --java-sdk            [Java SDK]
         --nodejs-dir          [Nodejs Dir]
         --ohpm-dir            [Ohpm Dir]
-        --openharmony-sdk     [OpenHarmony SDK]`);
+        --openharmony-sdk     [OpenHarmony SDK]
+        --source-dir          [Source Dir]`);
       }
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'config') {
@@ -389,18 +409,23 @@ Available subcommands:
   apk                    Build an Android APK file from your app.
   bundle                 Build an ArkUI cross-platform assets directory from your app.
   hap                    Build a HarmonyOS/Openharmony HAP file from your app.
+  hsp                    Build a HarmonyOS/Openharmony HSP file from your app.
   ios                    Build an iOS APP file from your app.
   ios-framework          Build an iOS framework.
   ios-xcframework        Build an iOS XCFramework.`);
       }
     });
-  const buildArgs = ['aab', 'aar', 'apk', 'bundle', 'hap', 'ios', 'ios-framework', 'ios-xcframework'];
+  const buildArgs = ['aab', 'aar', 'apk', 'bundle', 'hap', 'hsp', 'ios', 'ios-framework', 'ios-xcframework'];
   buildArgs.forEach(subcommand => {
     const buildSubcommand = buildCmd.command(subcommand, { hidden: true }).usage('[arguments]');
-    buildSubcommand
-      .option('-r, --release', 'Build a release version of your app.')
-      .option('--debug', 'Build a debug version of your app.')
-      .option('--profile', 'Build a version of your app specialized for performance profiling.');
+    if (subcommand !== 'hsp') {
+      buildSubcommand
+        .option('-r, --release', 'Build a release version of your app.')
+        .option('--debug', 'Build a debug version of your app.')
+        .option('--profile', 'Build a version of your app specialized for performance profiling.');
+    } else {
+      buildSubcommand.option('--target [moduleName]', 'name of module to be built');
+    }
     if (subcommand === 'ios') {
       buildSubcommand
         .option('--nosign', 'Build without sign.')
@@ -420,6 +445,10 @@ Available subcommands:
       buildSubcommand
         .option('--analyze', 'analyze/diff package size');
     }
+    if (subcommand === 'apk' || subcommand === 'aab') {
+      buildSubcommand
+        .option('--aot', 'Application integrated aot compilation products');
+    }
     if (subcommand === 'hap') {
       buildSubcommand
         .option('--analyze', 'analyze/diff package size')
@@ -432,19 +461,18 @@ Available subcommands:
       .action((cmd) => {
         cmd.simulator = cmd.simulator && platform === Platform.MacOS;
         if (cmd.release && cmd.debug || cmd.release && cmd.profile || cmd.profile && cmd.debug) {
-          console.log('\x1B[31m%s\x1B[0m', 'Warning: Multiple build models are not allowed to exist at the same time.');
+          console.error('\x1B[31m%s\x1B[0m', 'Multiple build models are not allowed to exist at the same time.');
           return false;
         }
         if (cmd.targetPlatform && (subcommand === 'apk' || subcommand === 'aab' ||
-        subcommand === 'aar' || subcommand === 'bundle')) {
+          subcommand === 'aar' || subcommand === 'bundle')) {
           const errValue = validOptions(cmd.targetPlatform, ['arm', 'arm64', 'x86_64']);
           if (errValue) {
-            console.log('\x1B[31m%s\x1B[0m', `Error: ` +
-            `"${errValue}" is an invalid value, please input arm, arm64, x86_64.`);
+            console.error('\x1B[31m%s\x1B[0m', `"${errValue}" is an invalid value, please input arm, arm64, x86_64.`);
             return false;
           }
         }
-        if (subcommand === 'hap' || subcommand === 'bundle') {
+        if (subcommand === 'hap' || subcommand === 'hsp' || subcommand === 'bundle') {
           compiler(subcommand, cmd);
         } else if (subcommand === 'apk' || subcommand === 'ios' || subcommand === 'aar' ||
           subcommand === 'ios-framework' || subcommand === 'ios-xcframework' || subcommand === 'aab') {
@@ -462,19 +490,24 @@ function parseInstall() {
   const installCmd = program.command('install [fileType]', { hidden: true })
     .usage('[arguments]')
     .option('--target [moduleName]', 'Specifies the name of the module to install.')
+    .option('--path <path>', 'Specifies the path of the package to install.')
     .description(`Install an ArkUI cross-platform app on an attached device.`)
     .on('--help', () => {
-      if (!subCommands.some(sub => process.argv.includes(sub))) {
+      if (!installCommands.some(sub => process.argv.includes(sub))) {
         console.log(`
 Available subcommands:
   apk                    Install an Android APK on an attached device.
   hap                    Install a HarmonyOS/OpenHarmony HAP on an attached device.
+  hsp                    Install a HarmonyOS/OpenHarmony HSP on an attached device.
   ios                    Install an iOS APP on an attached device.`);
       }
     })
     .action((fileType, options, cmd) => {
-      options.target = options.target || 'entry';
-      execCmd(fileType, options.target, cmd, install);
+      if (options.path && options.target) {
+        console.error('\x1B[31m%s\x1B[0m', 'The option "path" and "target" do not support to exist at the same time.');
+        return false;
+      }
+      execCmd(fileType, options, cmd, install);
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'install') {
     commandHelp(installCmd);
@@ -529,6 +562,10 @@ Available subcommands:
       }
     })
     .action((fileType, options, cmd) => {
+      if (options.release && options.debug || options.release && options.profile || options.profile && options.debug) {
+        console.error('\x1B[31m%s\x1B[0m', 'Multiple run models are not allowed to exist at the same time.');
+        return false;
+      }
       execCmd(fileType, options, cmd, run);
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'run') {
@@ -553,7 +590,6 @@ Available subcommands:
       }
     })
     .action((fileType, options, cmd) => {
-      options.target = options.target || 'entry';
       execCmd(fileType, options, cmd, launch);
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'launch') {
@@ -573,7 +609,7 @@ function parseLog() {
 Available subcommands:
   apk                    Show log output for running the APK.
   hap                    Show log output for running the HAP.
-  ios                     Show log output for running the APP.`);
+  ios                    Show log output for running the APP.`);
       }
     })
     .action((fileType, options, cmd) => {
@@ -657,19 +693,20 @@ Available subcommands:
 }
 
 function execCmd(fileType, options, cmd, func) {
-  if (fileType && fileType !== 'hap' && fileType !== 'apk' && fileType !== 'ios') {
-    console.log('\x1B[31m%s\x1B[0m', `Could not find a command named "${process.argv.slice(3)}".\n\n`);
-    console.log('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ACE Tools commands and options.`);
+  const fileTypeList = func.name === 'install' ? installCommands : subCommands;
+  if (fileType && !fileTypeList.includes(fileType)) {
+    console.error('\x1B[31m%s\x1B[0m', `Could not find a command named "${process.argv.slice(3)}".\n\n`);
+    console.error('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ACE Tools commands and options.`);
     return false;
+  }
+
+  if (!cmd.parent._optionValues.device) {
+    chooseDevice(fileType, options, func);
   } else {
-    if (!cmd.parent._optionValues.device) {
-      chooseDevice(fileType, options, func);
-    } else {
-      if (!fileType) {
-        fileType = getDeviceType(cmd.parent._optionValues.device);
-      }
-      func(fileType, cmd.parent._optionValues.device, options);
+    if (!fileType) {
+      fileType = getDeviceType(cmd.parent._optionValues.device);
     }
+    func(fileType, cmd.parent._optionValues.device, options);
   }
 }
 

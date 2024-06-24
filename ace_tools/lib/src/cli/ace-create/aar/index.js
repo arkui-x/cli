@@ -28,7 +28,7 @@ function createAar(projectPath, aarName) {
     findAarTemplate(libraryPath, aarName);
     return true;
   } catch (error) {
-    console.log('AAR created failed! Target directory: ' + libraryPath + '.' + error);
+    console.error('\x1B[31m%s\x1B[0m', 'AAR created failed! Target directory: ' + libraryPath + '.' + error);
     return false;
   }
 }
@@ -46,7 +46,7 @@ function findAarTemplate(libraryPath, aarName) {
       modifyAarConfig(libraryPath);
       replaceAarInfo(libraryPath, aarName);
     } else {
-      console.log('Error: Template is not exist!');
+      console.error('\x1B[31m%s\x1B[0m', 'Error: Template is not exist!');
     }
   }
 }
@@ -68,7 +68,7 @@ function modifyAarConfig(libraryPath) {
   const buildGradleInfo = fs.readFileSync(buildGradle, 'utf8').split(/\r\n|\n|\r/gm);
   for (let i = 0; i < buildGradleInfo.length; i++) {
     if (buildGradleInfo[i] === `        applicationId "packageName"` ||
-            buildGradleInfo[i] === '    dynamicFeatures = []') {
+      buildGradleInfo[i] === '    dynamicFeatures = []') {
       delete buildGradleInfo[i];
     }
   }
@@ -87,12 +87,12 @@ function replaceAarInfo(libraryPath, aarName) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
-  const aarPath = path.join(libraryPath, aarName);
+  const aarPath = path.join(libraryPath, 'library');
   fs.renameSync(path.join(libraryPath, 'app'), aarPath);
 
   files.push(path.join(libraryPath, 'settings.gradle'));
   replaceInfos.push(':app');
-  strs.push(':' + aarName);
+  strs.push(':library');
   files.push(path.join(libraryPath, 'settings.gradle'));
   replaceInfos.push('appName');
   strs.push(aarName);

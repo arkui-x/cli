@@ -67,7 +67,7 @@ function devices() {
     }
     if (unavailableDevices.length > 0) {
       const len = unavailableDevices.length;
-      console.log(`[!] Connected device (${len} unavailable)'\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
+      console.log(`[!] Connected device (${len} unavailable)\r\n  ! ${unavailableDevices.join('\r\n  ! ')}`);
     }
   }
 }
@@ -104,8 +104,7 @@ function getDeviceTitle(device) {
   let title;
   if (device.startsWith('{') && device.endsWith('}')) {
     return JSON.parse(device)['name'];
-  }
-  else if (device.split(/[\t\s]+/)[0] === 'iOS') {
+  } else if (device.split(/[\t\s]+/)[0] === 'iOS') {
     const id = getDeviceID(device);
     try {
       title = exec(`idevicename -u ${id}`, { stdio: 'pipe' }).toString().trimEnd();
@@ -154,7 +153,7 @@ function getDeviceType(id) {
   } else if (deviceType === 'Android') {
     fileType = 'apk';
   } else if (deviceType === 'OpenHarmony/HarmonyOS') {
-    fileType = 'hap';
+    fileType = 'haphsp';
   }
   return fileType;
 }
@@ -198,8 +197,7 @@ function getTypeDevice(validDevices, flag) {
       if (flag === 'iOS') {
         typeDevice.push(device);
       }
-    }
-    else if (device.split(/[\t\s]+/)[0] === flag) {
+    } else if (device.split(/[\t\s]+/)[0] === flag) {
       typeDevice.push(device);
     }
   });
@@ -209,16 +207,15 @@ function getTypeDevice(validDevices, flag) {
 function isSimulator(device) {
   if (device === undefined) {
     if (devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')) {
-      let devicedata = JSON.parse(devicesList.available[0]);
+      const devicedata = JSON.parse(devicesList.available[0]);
       return devicedata['Simulator'];
-    }
-    else {
+    } else {
       return false;
     }
   }
   for (let i = 0; i < devicesList.available.length; i++) {
     if (devicesList.available[i].startsWith('{') && devicesList.available[i].endsWith('}')) {
-      let devicedata = JSON.parse(devicesList.available[i]);
+      const devicedata = JSON.parse(devicesList.available[i]);
       if (device === devicedata['udid']) {
         return devicedata['Simulator'];
       }
@@ -230,16 +227,15 @@ function isSimulator(device) {
 function getIosVersion(device) {
   if (device === undefined) {
     if (devicesList.available.length === 1 && devicesList.available[0].startsWith('{') && devicesList.available[0].endsWith('}')) {
-      let devicedata = JSON.parse(devicesList.available[0]);
+      const devicedata = JSON.parse(devicesList.available[0]);
       return devicedata['iosVersion'];
-    }
-    else {
+    } else {
       return undefined;
     }
   }
   for (let i = 0; i < devicesList.available.length; i++) {
     if (devicesList.available[i].startsWith('{') && devicesList.available[i].endsWith('}')) {
-      let devicedata = JSON.parse(devicesList.available[i]);
+      const devicedata = JSON.parse(devicesList.available[i]);
       if (device === devicedata['udid']) {
         return devicedata['iosVersion'];
       }
