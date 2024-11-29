@@ -430,6 +430,7 @@ function getSdkVersionMap() {
     ['11',new Map([['compileSdkVersion','4.1.0(11)'],['compatibleSdkVersion','4.1.0(11)'],['modelVersion','4.1.0'],['runtimeOS','HarmonyOS']])],
     ['12',new Map([['compileSdkVersion','5.0.0(12)'],['compatibleSdkVersion','5.0.0(12)'],['modelVersion','5.0.0'],['runtimeOS','HarmonyOS']])],
     ['13',new Map([['compileSdkVersion','5.0.1(13)'],['compatibleSdkVersion','5.0.1(13)'],['modelVersion','5.0.1'],['runtimeOS','HarmonyOS']])],
+    ['14',new Map([['compileSdkVersion','5.0.2(14)'],['compatibleSdkVersion','5.0.2(14)'],['modelVersion','5.0.2'],['runtimeOS','HarmonyOS']])],
   ])
   return sdkVersionMap;
 }

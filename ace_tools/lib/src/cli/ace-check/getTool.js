@@ -130,7 +130,7 @@ function getHmsToolPath(newPath) {
   let toolPath;
   const sdkPlatformVersion = new Map();
   fs.readdirSync(newPath).forEach(dir => {
-    if (dir.includes('HarmonyOS') || dir.includes('default')) {
+    if (dir.includes('HarmonyOS') || (dir.includes('default'))) {
       const platformVersion = JSON5.parse(fs.readFileSync(
         path.join(newPath, dir, 'sdk-pkg.json'))).data.platformVersion;
       sdkPlatformVersion.set(platformVersion, dir);
