@@ -208,11 +208,11 @@ function modifyCrossModule(moduleName, appName) {
   const abilityName = getModuleAbility(moduleName);
   files.push('./.arkui-x/android/app/src/main/java/MainActivity.java');
   replaceInfos.push('ArkUIInstanceName');
-  strs.push(appName + ':' + moduleName + ':' + abilityName + ':');
+  strs.push(`${appName}:${moduleName}:${abilityName}:`);
   files.push('./.arkui-x/android/app/src/main/java/MainActivity.java');
   replaceInfos.push('MainActivity');
   const newModuleName = moduleName[0].toUpperCase() + moduleName.slice(1);
-  const activityName = newModuleName + abilityName + 'Activity';
+  const activityName = `${newModuleName}${abilityName}Activity`;
   strs.push(activityName);
   files.push('./.arkui-x/android/app/src/main/AndroidManifest.xml');
   replaceInfos.push('MainActivity');
@@ -220,16 +220,16 @@ function modifyCrossModule(moduleName, appName) {
   const nowName = newModuleName + abilityName;
   files.push('./.arkui-x/ios/app/EntryEntryAbilityViewController.m');
   replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(nowName + 'ViewController');
+  strs.push(`${nowName}ViewController`);
   files.push('./.arkui-x/ios/app/EntryEntryAbilityViewController.h');
   replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(nowName + 'ViewController');
+  strs.push(`${nowName}ViewController`);
   files.push('./.arkui-x/ios/app/AppDelegate.m');
   replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(nowName + 'ViewController');
+  strs.push(`${nowName}ViewController`);
   files.push('./.arkui-x/ios/app.xcodeproj/project.pbxproj');
   replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(nowName + 'ViewController');
+  strs.push(`${nowName}ViewController`);
   files.push('./.arkui-x/ios/app/AppDelegate.m');
   replaceInfos.push('"entry"');
   strs.push(`"${moduleName}"`);
@@ -249,13 +249,13 @@ function modifyCrossModule(moduleName, appName) {
 function modifyHvigorInfo(moduleName) {
   fs.access('./hvigorfile.ts', fs.constants.F_OK, (err) => {
     if (!err) {
-      modifyCopyFileSync(globalThis.templatePath + '/ets_stage/source/entry/hvigorfile.ts', './hvigorfile.ts');
+      modifyCopyFileSync(`${globalThis.templatePath}/ets_stage/source/entry/hvigorfile.ts`, './hvigorfile.ts');
     }
   });
 
   fs.access('./hvigor/hvigor-config.json5', fs.constants.F_OK, (err) => {
     if (!err) {
-      modifyCopyFileSync(globalThis.templatePath + '/ohos_stage/hvigor/hvigor-config.json5', './hvigor/hvigor-config.json5');
+      modifyCopyFileSync(`${globalThis.templatePath}/ohos_stage/hvigor/hvigor-config.json5`, './hvigor/hvigor-config.json5');
     }
   });
 
@@ -273,7 +273,7 @@ function createPackageFile(packagePaths, packageArray) {
     const oldPath = packagePaths[i];
     let newPath = packagePaths[i];
     for (const packageInfo of packageArray) {
-      newPath = newPath + '/' + packageInfo;
+      newPath = `${newPath}/${packageInfo}`;
       fs.mkdirSync(newPath, { recursive: true });
     }
     for (const entry of entries) {
@@ -306,8 +306,8 @@ function copyAndroidiOSTemplate(moduleName) {
   const type = getModuleType(moduleName);
   if (type === 'entry' || type === 'feature') {
     fs.mkdirSync('.arkui-x');
-    modifyCopyFileSync(globalThis.templatePath + '/arkui-x-config.json5', './.arkui-x/arkui-x-config.json5');
-    modifyCopyFolderSync(globalThis.templatePath + '/android', './.arkui-x/android');
+    modifyCopyFileSync(`${globalThis.templatePath}/arkui-x-config.json5`, './.arkui-x/arkui-x-config.json5');
+    modifyCopyFolderSync(`${globalThis.templatePath}/android`, './.arkui-x/android');
     modifyCopyFolderSync(`${globalThis.templatePath}/ios`, './.arkui-x/ios');
     const appName = getAppName();
     const packageName = getPackageName();
