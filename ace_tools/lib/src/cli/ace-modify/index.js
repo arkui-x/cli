@@ -92,7 +92,6 @@ function replaceInfo(files, replaceInfos, strs) {
   for (let i = 0; i < files.length; i++) {
     const data = fs.readFileSync(files[i], 'utf8');
     if (data === undefined) {
-      console.error('read file error');
       return;
     }
     const lines = data.split('\n');
@@ -126,13 +125,13 @@ function replaceAndroidProjectInfo(appName, packageName) {
   strs.push(appName);
   files.push('./.arkui-x/android/app/src/main/java/MainActivity.java');
   replaceInfos.push('package packageName');
-  strs.push('package ' + appName);
+  strs.push(`package ${appName}`);
   files.push('./.arkui-x/android/app/src/main/java/MyApplication.java');
   replaceInfos.push('package packageName');
-  strs.push('package ' + appName);
+  strs.push(`package ${appName}`);
   files.push('./.arkui-x/android/app/src/androidTest/java/ExampleInstrumentedTest.java');
   replaceInfos.push('package packageName');
-  strs.push('package ' + appName);
+  strs.push(`package ${appName}`);
   files.push('./.arkui-x/android/app/src/test/java/ExampleUnitTest.java');
   replaceInfos.push('package packageName');
   strs.push(`package ${appName}`);
@@ -181,7 +180,7 @@ function getModuleAbility(moduleName) {
   const modulePath = getModulePath(moduleName);
   let abilityName = '';
   try {
-    fs.accessSync(modulePath + '/src/main/module.json5', fs.constants.F_OK);
+    fs.accessSync(`${modulePath}/src/main/module.json5`, fs.constants.F_OK);
   } catch (err) {
     return abilityName;
   }
@@ -233,10 +232,10 @@ function modifyCrossModule(moduleName, appName) {
   strs.push(nowName + 'ViewController');
   files.push('./.arkui-x/ios/app/AppDelegate.m');
   replaceInfos.push('"entry"');
-  strs.push('"' + moduleName + '"');
+  strs.push(`"${moduleName}"`);
   files.push('./.arkui-x/ios/app/AppDelegate.m');
   replaceInfos.push('"EntryAbility"');
-  strs.push('"' + abilityName + '"');
+  strs.push(`"${abilityName}"`);
   files.push('./.arkui-x/arkui-x-config.json5');
   replaceInfos.push('entry');
   strs.push(moduleName);
@@ -255,18 +254,14 @@ function modifyHvigorInfo(moduleName) {
   });
 
   fs.access('./hvigor/hvigor-config.json5', fs.constants.F_OK, (err) => {
-    if (err) {
-      console.error(`hvigor-config.json5 does not exist`);
-    } else {
+    if (!err) {
       modifyCopyFileSync(globalThis.templatePath + '/ohos_stage/hvigor/hvigor-config.json5', './hvigor/hvigor-config.json5');
     }
   });
 
   const modulePath = getModulePath(moduleName);
-  fs.access(modulePath + '/hvigorfile.ts', fs.constants.F_OK, (err) => {
-    if (err) {
-      console.error(`hvigorfile.ts does not exist`);
-    } else {
+  fs.access(`${modulePath}/hvigorfile.ts`, fs.constants.F_OK, (err) => {
+    if (!err) {
       modifyCopyFileSync(`${globalThis.templatePath}/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
     }
   });
@@ -282,7 +277,7 @@ function createPackageFile(packagePaths, packageArray) {
       fs.mkdirSync(newPath, { recursive: true });
     }
     for (const entry of entries) {
-      modifyCopyFileSync(oldPath + '/' + entry.name, newPath + '/' + entry.name);
+      modifyCopyFileSync(`${oldPath}/${entry.name}`, `${newPath}/${entry.name}`);
       fs.unlinkSync(`${oldPath}/${entry.name}`);
     }
   }
@@ -313,7 +308,7 @@ function copyAndroidiOSTemplate(moduleName) {
     fs.mkdirSync('.arkui-x');
     modifyCopyFileSync(globalThis.templatePath + '/arkui-x-config.json5', './.arkui-x/arkui-x-config.json5');
     modifyCopyFolderSync(globalThis.templatePath + '/android', './.arkui-x/android');
-    modifyCopyFolderSync(globalThis.templatePath + '/ios', './.arkui-x/ios');
+    modifyCopyFolderSync(`${globalThis.templatePath}/ios`, './.arkui-x/ios');
     const appName = getAppName();
     const packageName = getPackageName();
     replaceAndroidProjectInfo(appName, packageName);
@@ -324,8 +319,6 @@ function copyAndroidiOSTemplate(moduleName) {
   } else if (type === 'shared' || type === 'har') {
     const modulePath = getModulePath(moduleName);
     modifyCopyFileSync(`${globalThis.templatePath}/share_library/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
-  } else {
-    console.log(`modify ${moduleName} type invalid`);
   }
 }
 
