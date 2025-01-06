@@ -1,14 +1,24 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 
 // copy file
 function modifyCopyFileSync(source, destination) {
-  try {
-    fs.copyFileSync(source, destination);
-  } catch (error) {
-    console.error(`Error copying file: ${error.message}`);
-  }
+  fs.copyFileSync(source, destination);
 }
 
 // copy folder
@@ -93,11 +103,7 @@ function replaceInfo(files, replaceInfos, strs) {
       }
     }
     const newData = lines.join('\n');
-    try {
-      fs.writeFileSync(files[i], newData, 'utf8');
-    } catch (err) {
-      console.error('write file error');
-    }
+    fs.writeFileSync(files[i], newData, 'utf8');
   }
 }
 
@@ -129,7 +135,7 @@ function replaceAndroidProjectInfo(appName, packageName) {
   strs.push('package ' + appName);
   files.push('./.arkui-x/android/app/src/test/java/ExampleUnitTest.java');
   replaceInfos.push('package packageName');
-  strs.push('package ' + appName);
+  strs.push(`package ${appName}`);
   replaceInfo(files, replaceInfos, strs);
 }
 
@@ -149,11 +155,10 @@ function replaceiOSProjectInfo(appName) {
 
 function getModulePath(moduleName) {
   let modulePath = '';
-  const temp1 = '"name": "' + moduleName;
+  const temp1 = `"name": "${moduleName}`;
   try {
     fs.accessSync('./build-profile.json5', fs.constants.F_OK);
   } catch (err) {
-    console.log('build-profile.json5 not exist');
     return modulePath;
   }
   const data = fs.readFileSync('./build-profile.json5', 'utf8');
@@ -178,10 +183,9 @@ function getModuleAbility(moduleName) {
   try {
     fs.accessSync(modulePath + '/src/main/module.json5', fs.constants.F_OK);
   } catch (err) {
-    console.log('module.json5 not exist');
     return abilityName;
   }
-  const data = fs.readFileSync(modulePath + '/src/main/module.json5', 'utf8');
+  const data = fs.readFileSync(`${modulePath}/src/main/module.json5`, 'utf8');
   const lines = data.split('\n');
   for (let j = 0; j < lines.length; j++) {
     if (lines[j].includes(temp2)) {
@@ -238,25 +242,14 @@ function modifyCrossModule(moduleName, appName) {
   strs.push(moduleName);
   replaceInfo(files, replaceInfos, strs);
 
-  try {
-    fs.renameSync('./.arkui-x/android/app/src/main/java/MainActivity.java', './.arkui-x/android/app/src/main/java/' + activityName + '.java');
-  } catch (error) {
-    console.log('MainActivity.java not exist');
-  }
-
-  try {
-    fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.m', './.arkui-x/ios/app/' + nowName + 'ViewController.m');
-    fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.h', './.arkui-x/ios/app/' + nowName + 'ViewController.h');
-  } catch (error) {
-    console.log('EntryEntryAbilityViewController not exist');
-  }
+  fs.renameSync('./.arkui-x/android/app/src/main/java/MainActivity.java', `./.arkui-x/android/app/src/main/java/${activityName}.java`);
+  fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.m', `./.arkui-x/ios/app/${nowName}ViewController.m`);
+  fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.h', `./.arkui-x/ios/app/${nowName}ViewController.h`);
 }
 
 function modifyHvigorInfo(moduleName) {
   fs.access('./hvigorfile.ts', fs.constants.F_OK, (err) => {
-    if (err) {
-      console.error(`hvigorfile.ts does not exist`);
-    } else {
+    if (!err) {
       modifyCopyFileSync(globalThis.templatePath + '/ets_stage/source/entry/hvigorfile.ts', './hvigorfile.ts');
     }
   });
@@ -270,12 +263,11 @@ function modifyHvigorInfo(moduleName) {
   });
 
   const modulePath = getModulePath(moduleName);
-  console.log('modulePath ' + modulePath);
   fs.access(modulePath + '/hvigorfile.ts', fs.constants.F_OK, (err) => {
     if (err) {
       console.error(`hvigorfile.ts does not exist`);
     } else {
-      modifyCopyFileSync(globalThis.templatePath + '/hvigorfile.ts', modulePath + '/hvigorfile.ts');
+      modifyCopyFileSync(`${globalThis.templatePath}/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
     }
   });
 }
@@ -291,7 +283,7 @@ function createPackageFile(packagePaths, packageArray) {
     }
     for (const entry of entries) {
       modifyCopyFileSync(oldPath + '/' + entry.name, newPath + '/' + entry.name);
-      fs.unlinkSync(oldPath + '/' + entry.name);
+      fs.unlinkSync(`${oldPath}/${entry.name}`);
     }
   }
 }
@@ -308,7 +300,7 @@ function modifyDirStructure(appName) {
 function getModuleType(moduleName) {
   const modulePath = getModulePath(moduleName);
   let moduleType = '';
-  const moduleJsonPath = modulePath + '/src/main/module.json5';
+  const moduleJsonPath = `${modulePath}/src/main/module.json5`;
   const data = fs.readFileSync(moduleJsonPath, 'utf8');
   const jsonObj = JSON5.parse(data);
   moduleType = jsonObj.module.type;
@@ -331,18 +323,16 @@ function copyAndroidiOSTemplate(moduleName) {
     modifyDirStructure(appName);
   } else if (type === 'shared' || type === 'har') {
     const modulePath = getModulePath(moduleName);
-    modifyCopyFileSync(globalThis.templatePath + '/share_library/hvigorfile.ts', modulePath + '/hvigorfile.ts');
+    modifyCopyFileSync(`${globalThis.templatePath}/share_library/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
   } else {
     console.log(`modify ${moduleName} type invalid`);
   }
-  console.log(`modify ${moduleName} module success`);
 }
 
 function modify(moduleName) {
   const filePath = './build-profile.json5';
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
-      console.error(`Operation failed. Go to your project directory and try again.`);
       return;
     }
   });

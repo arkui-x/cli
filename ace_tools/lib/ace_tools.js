@@ -655,9 +655,8 @@ function parseModify() {
           } else {
             return true;
           }
-        }
+        },
       }]).then(answers => {
-        console.log('modify in whit module:', answers.repair);
         modify(answers.repair);
       });
     });
