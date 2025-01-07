@@ -658,7 +658,7 @@ function parseModify() {
         },
       }]).then(answers => {
         const modules = answers.repair.split(',');
-        for (let i = 0;i<modules.length;i++) {
+        for (let i = 0; i < modules.length; i++) {
           modify(modules[i]);
         }
       });
