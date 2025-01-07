@@ -643,21 +643,24 @@ Available subcommands:
 function parseModify() {
   const ModifyCmd = program.command('modify', { hidden: true })
     .usage('[arguments]')
-    .description(`modify the project to Arkui_X/ directories.`)
+    .description(`modify the project to ArkUI-X/ directories.`)
     .action(() => {
       inquirer.prompt([{
         name: 'repair',
         type: 'input',
-        message: `Enter the modify module name:`,
+        message: `Enter the modify module name(Multiple modules can be entered and separated by ","):`,
         validate(val) {
           if (val === '') {
-            return 'Please entey modify module name!';
+            return 'Input is empty,Please enter modify module name!';
           } else {
             return true;
           }
         },
       }]).then(answers => {
-        modify(answers.repair);
+        const modules = answers.repair.split(',');
+        for (let i = 0;i<modules.length;i++) {
+          modify(modules[i]);
+        }
       });
     });
 }

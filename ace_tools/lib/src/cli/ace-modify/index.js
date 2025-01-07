@@ -16,12 +16,10 @@ const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 
-// copy file
 function modifyCopyFileSync(source, destination) {
   fs.copyFileSync(source, destination);
 }
 
-// copy folder
 function modifyCopyFolderSync(source, destination) {
   fs.mkdirSync(destination, { recursive: true });
   const entries = fs.readdirSync(source, { withFileTypes: true });
@@ -44,11 +42,7 @@ function getAppName() {
   for (let j = 0; j < lines.length; j++) {
     if (lines[j].includes('bundleName')) {
       const nameArray = lines[j].split(':');
-      appName = nameArray[nameArray.length - 1];
-      appName = cleanStr(appName, ' ');
-      appName = appName.slice(0, -1);
-      appName = cleanStr(appName, ',');
-      appName = cleanStr(appName, '"');
+      appName = cleanStr(cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), ','), '"');
       break;
     }
   }
@@ -77,10 +71,7 @@ function getPackageName() {
       isFind = true;
     } else if (isFind) {
       const nameArray = lines[j].split(':');
-      packageName = nameArray[nameArray.length - 1];
-      packageName = cleanStr(packageName, ' ');
-      packageName = cleanStr(packageName, ' ');
-      packageName = cleanStr(packageName, '"');
+      packageName = cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), '"');
       isFind = false;
       break;
     }
@@ -165,10 +156,7 @@ function getModulePath(moduleName) {
   for (let j = 0; j < lines.length; j++) {
     if (lines[j].includes(temp1) && j + 1 < lines.length) {
       const nameArray = lines[j + 1].split(':');
-      modulePath = nameArray[nameArray.length - 1];
-      modulePath = cleanStr(modulePath, ' ');
-      modulePath = cleanStr(modulePath, ',');
-      modulePath = cleanStr(modulePath, '"');
+      modulePath = cleanStr(cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), ','), '"');
       break;
     }
   }
@@ -189,11 +177,7 @@ function getModuleAbility(moduleName) {
   for (let j = 0; j < lines.length; j++) {
     if (lines[j].includes(temp2)) {
       const nameArray = lines[j].split(':');
-      abilityName = nameArray[nameArray.length - 1];
-      abilityName = abilityName.slice(0, -1);
-      abilityName = cleanStr(abilityName, ' ');
-      abilityName = cleanStr(abilityName, ',');
-      abilityName = cleanStr(abilityName, '"');
+      abilityName = cleanStr(cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), ','), '"');
       break;
     }
   }
@@ -316,7 +300,7 @@ function copyAndroidiOSTemplate(moduleName) {
     modifyCrossModule(moduleName, appName);
     modifyHvigorInfo(moduleName);
     modifyDirStructure(appName);
-  } else if (type === 'shared' || type === 'har') {
+  } else if (type === 'shared') {
     const modulePath = getModulePath(moduleName);
     modifyCopyFileSync(`${globalThis.templatePath}/share_library/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
   }
