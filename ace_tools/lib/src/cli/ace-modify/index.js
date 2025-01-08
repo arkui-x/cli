@@ -286,6 +286,33 @@ function getModuleType(moduleName) {
   return moduleType;
 }
 
+function checkProblem() {
+  const filePath = './build-profile.json5';
+  const data = fs.readFileSync(filePath, 'utf8');
+  const lines = data.split('\n');
+  let isHaveProblem = false;
+  for (let j = 0; j < lines.length; j++) {
+    if (lines[j].includes('useNormalizedOHMUrl')) {
+      isHaveProblem = true;
+      break;
+    }
+  }
+  if (isHaveProblem) {
+    console.log("warn:arkui-x project must delete the 'useNormalizedOHMUrl' Setting Items in build-profile.json5");
+  }
+}
+
+function modifyProject() {
+  const filePath = './build-profile.json5';
+  const data = fs.readFileSync(filePath, 'utf8');
+  const jsonObj = JSON5.parse(data);
+  for (let i = 0; i < jsonObj.modules.length; i++) {
+    copyAndroidiOSTemplate(jsonObj.modules[i].name);
+  }
+  checkProblem();
+  console.log('Modify project success!');
+}
+
 function copyAndroidiOSTemplate(moduleName) {
   const type = getModuleType(moduleName);
   if (type === 'entry' || type === 'feature') {
@@ -310,10 +337,13 @@ function modify(moduleName) {
   const filePath = './build-profile.json5';
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
+      console.log('Operation failed. Go to your project directory and try again.');
       return;
     }
   });
   copyAndroidiOSTemplate(moduleName);
+  checkProblem();
+  console.log('Modify modules success!');
 }
 
-module.exports = modify;
+module.exports = {modify, modifyProject};

@@ -28,6 +28,7 @@ For details about the source code structure of the ArkUI-X project, see [ArkUI-X
 │   ├── ace-install             # ArkUI-X application installation
 │   ├── ace-launch              # ArkUI-X application launch
 │   ├── ace-log                 #  ArkUI-X application run log
+│   ├── ace-modify              # modify the project to ArkUI-X/ directories.
 │   ├── ace-run                 # ArkUI-X application build and run
 |   ├── ace-test                # ArkUI-X application build and excute test case like unitTest or uiTest
 │   ├── ace-uninstall           # ArkUI-X application uninstall
@@ -494,4 +495,31 @@ Commands:
         --unittest            [TestRunner]
         --timeout             [Test timeout]
   help [command]                  display help for command
+```
+
+### ace modify
+
+modify the project to ArkUI-X/ directories.
+
+ace modify you need to first cd to the root directory of the HarmonyOS project. When running the command, will first check whether the build-profile.json5 file exists in the current directory. If this file exists, it means that the directory is correct, and then continue the modification. The transformation process mainly involves generating the .arkui-x directory and the iOS and Android cross-platform projects in it. Set the corresponding configurations in the iOS and Android projects according to the relevant configurations of the HarmonyOS project. Set the ArkUI-X compilation options for the HarmonyOS module.
+
+Syntax:
+
+```shell
+ace modify [arguments]
+```
+- Option
+
+| Option | Description                                                         |
+| :--- | ------------------------------------------------------------ |
+| --project  | Modify the whole HarmonyOS project.                            |
+| --modules  | Modify the specified modules in HarmonyOS project.                |
+
+
+```
+ohos@user % ace modify --project
+ohos@user % ace modify --modules
+? Enter the number of modules to be modified: 3
+? Enter the modify module name(Multiple modules can be entered and separated by 
+","): entry,libraryHar,libraryHsp
 ```

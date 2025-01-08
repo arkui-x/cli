@@ -29,6 +29,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 │   ├── ace-install             # 将跨平台应用安装到连接的设备上
 │   ├── ace-launch              # 在设备上运行ArkUI跨平台应用
 │   ├── ace-log                 # 展示正在运行的跨平台应用的日志
+│   ├── ace-modify              # 将鸿蒙工程改造为ArkUI-X工程
 │   ├── ace-run                 # 编译并在设备上运行ArkUI跨平台应用
 |   ├── ace-test                # 执行跨平台应用包单元测试
 │   ├── ace-uninstall           # 将跨平台应用从连接的设备上卸载
@@ -680,4 +681,31 @@ Project:
   new                    Create a new ability or module for your project.
 
 Run "ace help <command>" for more information about a command.
+```
+
+### ace modify
+
+将鸿蒙工程改造为ArkUI-X工程
+
+ace modify 要求cd到鸿蒙工程根目录下，执行命令时会先判断当前目录下是否有build-profile.json5文件，有此文件代表目录正确，继续进行改造。改造过程主要是生成.arkui-x目录，以及其中的iOS和安卓跨平台工程。根据鸿蒙工程的相关配置，设置iOS和安卓工程中的对应配置。设置鸿蒙模块的ArkUI-X编译选项。
+
+语法：
+
+```shell
+ace modify [arguments]
+```
+- arguments
+
+| 参数 | 说明                                                         |
+| :--- | ------------------------------------------------------------ |
+| --project  | 改造当前目录下的整个鸿蒙工程                              |
+| --modules  | 改造当前目录下鸿蒙工程中指定的模块                 |
+
+
+```
+ohos@user % ace modify --project
+ohos@user % ace modify --modules
+? Enter the number of modules to be modified: 3
+? Enter the modify module name(Multiple modules can be entered and separated by 
+","): entry,libraryHar,libraryHsp
 ```
