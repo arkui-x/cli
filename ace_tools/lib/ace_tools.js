@@ -38,6 +38,7 @@ const { getAbsolutePath, validOptions, checkProjectType } = require('./src/cli/u
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
+const modify = require('./src/cli/ace-modify');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
@@ -89,6 +90,7 @@ Common commands:
   parseRun();
   parseTest();
   parseUninstall();
+  parseModify();
 
   const userInputCommand = process.argv.slice(2);
   if (userInputCommand.length === 0 || ['help', '--help', '-h'].includes(userInputCommand[0]) && userInputCommand.length === 1) {
@@ -636,6 +638,31 @@ Available subcommands:
   }
   logCmd.unknownOption = () => unknownOptions();
   commandsSort['Application'].push(program.commands[program.commands.length - 1]);
+}
+
+function parseModify() {
+  const ModifyCmd = program.command('modify', { hidden: true })
+    .usage('[arguments]')
+    .description(`modify the project to ArkUI-X/ directories.`)
+    .action(() => {
+      inquirer.prompt([{
+        name: 'repair',
+        type: 'input',
+        message: `Enter the modify module name(Multiple modules can be entered and separated by ","):`,
+        validate(val) {
+          if (val === '') {
+            return 'Input is empty,Please enter modify module name!';
+          } else {
+            return true;
+          }
+        },
+      }]).then(answers => {
+        const modules = answers.repair.split(',');
+        for (let i = 0; i < modules.length; i++) {
+          modify(modules[i]);
+        }
+      });
+    });
 }
 
 function parseClean() {
