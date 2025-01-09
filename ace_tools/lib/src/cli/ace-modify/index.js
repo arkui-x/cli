@@ -283,8 +283,8 @@ function getModuleType(moduleName) {
   try {
     fs.accessSync(moduleJsonPath, fs.constants.F_OK);
   } catch (err) {
-    console.log(`error: module ${moduleName} is not HarmonyOS module!`)
-    return "";
+    console.log(`error: module ${moduleName} is not HarmonyOS module!`);
+    return '';
   }
   const data = fs.readFileSync(moduleJsonPath, 'utf8');
   const jsonObj = JSON5.parse(data);
@@ -340,8 +340,9 @@ function copyAndroidiOSTemplate(moduleName) {
     return true;
   } else if (type === 'har') {
     return true;
+  } else {
+    return false;
   }
-  return false;
 }
 
 function modifyModules(modules) {
@@ -359,21 +360,20 @@ function modifyModules(modules) {
   let isHaveFailed = false;
   for (let i = 0; i < modules.length; i++) {
     if (copyAndroidiOSTemplate(modules[i])) {
-      successModuleStr = successModuleStr + "," + modules[i];
-      isHaveSuccess =true;
+      successModuleStr = `${successModuleStr},${modules[i]}`;
+      isHaveSuccess = true;
     } else {
-      failedModuleStr = failedModuleStr + "," + modules[i];
+      failedModuleStr = `${failedModuleStr},${modules[i]}`;
       isHaveFailed = true;
     }
   }
   checkProblem();
   if (isHaveFailed) {
-    console.log(`error: modify HarmonyOS modules ${cleanStr(failedModuleStr,",")} to ArkUI-X modules failed!`);
+    console.log(`error: modify HarmonyOS modules ${cleanStr(failedModuleStr, ',')} to ArkUI-X modules failed!`);
   }
   if (isHaveSuccess) {
-    console.log(`modify HarmonyOS modules ${cleanStr(successModuleStr,",")} to ArkUI-X modules success!`);
+    console.log(`modify HarmonyOS modules ${cleanStr(successModuleStr, ',')} to ArkUI-X modules success!`);
   }
-  
 }
 
 module.exports = {modifyModules, modifyProject};
