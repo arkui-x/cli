@@ -453,6 +453,7 @@ ace help <subcommand>
 | build     | Builds an ArkUI-X application installation package.                                      |
 | install   | Installs an ArkUI-X application on a connected device.                            |
 | uninstall | Uninstalls an ArkUI-X application on a connected device.                                  |
+| modify    | Modify HarmonyOS project to ArkUI-X project structre.                                 |
 | launch    | Launches an ArkUI-X application on a connected device.                                    |
 | log       | Displays the logs of an ArkUI-X application in scrolling mode.                        |
 | run       | Runs an ArkUI-X application.                                          |
@@ -485,6 +486,7 @@ Commands:
   build [options] [fileType]      build hap/apk/app of moduleName
   install [options] [fileType]    install hap/apk/app on device
   uninstall [options] [fileType]  uninstall hap/apk/app on device
+  modify [options]  		          modify HarmonyOS project to ArkUI-X project structre
   run [options] [fileType]        run hap/apk on device
   launch [options] [fileType]     launch hap/apk on device
   log [fileType]                  show debug log
@@ -499,9 +501,9 @@ Commands:
 
 ### ace modify
 
-modify the project to ArkUI-X/ directories.
+modify HarmonyOS project to ArkUI-X project structre
 
-ace modify you need to first cd to the root directory of the HarmonyOS project. When running the command, will first check whether the build-profile.json5 file exists in the current directory. If this file exists, it means that the directory is correct, and then continue the modification. The transformation process mainly involves generating the .arkui-x directory and the iOS and Android cross-platform projects in it. Set the corresponding configurations in the iOS and Android projects according to the relevant configurations of the HarmonyOS project. Set the ArkUI-X compilation options for the HarmonyOS module.
+ace modify This command need in the root directory of the application project. When running the command, will first check whether the build-profile.json5 file exists in the current directory. If this file exists, it means that the directory is correct, and then continue the modification. The transformation process mainly involves generating the .arkui-x directory and the iOS and Android cross-platform projects in it. Set the corresponding configurations in the iOS and Android projects according to the relevant configurations of the HarmonyOS project. Set the ArkUI-X compilation options for the HarmonyOS module.
 
 Syntax:
 

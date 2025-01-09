@@ -38,7 +38,7 @@ const { getAbsolutePath, validOptions, checkProjectType } = require('./src/cli/u
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
-const { modify, modifyProject } = require('./src/cli/ace-modify');
+const { modifyModules, modifyProject } = require('./src/cli/ace-modify');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
@@ -643,7 +643,7 @@ Available subcommands:
 function parseModify() {
   const ModifyCmd = program.command('modify', { hidden: true })
     .usage('[arguments]')
-    .description(`modify the project to ArkUI-X/ directories.`)
+    .description(`modify HarmonyOS project to ArkUI-X project structre`)
     .option('--project', 'modify current project all modules.')
     .option('--modules', 'modify specified modules')
     .action((modifyType) => {
@@ -681,9 +681,7 @@ function parseModify() {
             },
           }]).then(answersModules => {
             const modules = answersModules.repair.split(',');
-            for (let i = 0; i < modules.length; i++) {
-              modify(modules[i]);
-            }
+            modifyModules(modules);
           });
         });
       } else {

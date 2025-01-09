@@ -280,6 +280,12 @@ function getModuleType(moduleName) {
   const modulePath = getModulePath(moduleName);
   let moduleType = '';
   const moduleJsonPath = `${modulePath}/src/main/module.json5`;
+  try {
+    fs.accessSync(moduleJsonPath, fs.constants.F_OK);
+  } catch (err) {
+    console.log(`error: module ${moduleName} is not HarmonyOS module!`)
+    return "";
+  }
   const data = fs.readFileSync(moduleJsonPath, 'utf8');
   const jsonObj = JSON5.parse(data);
   moduleType = jsonObj.module.type;
@@ -310,7 +316,7 @@ function modifyProject() {
     copyAndroidiOSTemplate(jsonObj.modules[i].name);
   }
   checkProblem();
-  console.log('Modify project success!');
+  console.log('modify HarmonyOS project to ArkUI-X project success!');
 }
 
 function copyAndroidiOSTemplate(moduleName) {
@@ -327,13 +333,18 @@ function copyAndroidiOSTemplate(moduleName) {
     modifyCrossModule(moduleName, appName);
     modifyHvigorInfo(moduleName);
     modifyDirStructure(appName);
+    return true;
   } else if (type === 'shared') {
     const modulePath = getModulePath(moduleName);
     modifyCopyFileSync(`${globalThis.templatePath}/share_library/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
+    return true;
+  } else if (type === 'har') {
+    return true;
   }
+  return false;
 }
 
-function modify(moduleName) {
+function modifyModules(modules) {
   const filePath = './build-profile.json5';
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
@@ -341,9 +352,28 @@ function modify(moduleName) {
       return;
     }
   });
-  copyAndroidiOSTemplate(moduleName);
+  
+  let successModuleStr = "";
+  let failedModuleStr = "";
+  let isHaveSuccess = false;
+  let isHaveFailed = false;
+  for (let i = 0; i < modules.length; i++) {
+    if (copyAndroidiOSTemplate(modules[i])) {
+      successModuleStr = successModuleStr + "," + modules[i];
+      isHaveSuccess =true;
+    } else {
+      failedModuleStr = failedModuleStr + "," + modules[i];
+      isHaveFailed = true;
+    }
+  }
   checkProblem();
-  console.log('Modify modules success!');
+  if (isHaveFailed) {
+    console.log(`error: modify HarmonyOS modules ${cleanStr(failedModuleStr,",")} to ArkUI-X modules failed!`);
+  }
+  if (isHaveSuccess) {
+    console.log(`modify HarmonyOS modules ${cleanStr(successModuleStr,",")} to ArkUI-X modules success!`);
+  }
+  
 }
 
-module.exports = {modify, modifyProject};
+module.exports = {modifyModules, modifyProject};

@@ -635,6 +635,7 @@ ace help <command>
 | run | 运行跨平台应用包。 |
 | test | 执行跨平台应用包单元测试。 |
 | uninstall | 将跨平台应用从设备上卸载。 |
+| modify | 将鸿蒙工程改造为ArkUI-X工程 |
 
 提示内容：
 
@@ -666,6 +667,7 @@ Application:
   run                    Run your ArkUI cross-platform app on an attached device.
   test                   Run ArkUI cross-platform unit tests for the current project.
   uninstall              Uninstall an ArkUI cross-platform app on an attached device.
+  modify   		         modify HarmonyOS project to ArkUI-X project structre
 
 Device:
   devices                List the connected devices.
@@ -687,7 +689,7 @@ Run "ace help <command>" for more information about a command.
 
 将鸿蒙工程改造为ArkUI-X工程
 
-ace modify 要求cd到鸿蒙工程根目录下，执行命令时会先判断当前目录下是否有build-profile.json5文件，有此文件代表目录正确，继续进行改造。改造过程主要是生成.arkui-x目录，以及其中的iOS和安卓跨平台工程。根据鸿蒙工程的相关配置，设置iOS和安卓工程中的对应配置。设置鸿蒙模块的ArkUI-X编译选项。
+ace modify 该命令需要在应用工程根目录下执行，执行命令时会先判断当前目录下是否有build-profile.json5文件，有此文件代表目录正确，继续进行改造。改造过程主要是生成.arkui-x目录，包含其中的iOS和安卓跨平台工程。将鸿蒙工程中的相关配置，设置为跨平台工程中的对应配置。设置鸿蒙模块的ArkUI-X编译选项。
 
 语法：
 
@@ -703,6 +705,7 @@ ace modify [arguments]
 
 
 ```
+ohos@user % cd test
 ohos@user % ace modify --project
 ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
