@@ -673,14 +673,14 @@ function parseModify() {
                 return 'Input is empty,Please enter modify module name!';
               }
               const modules = val.split(',');
-              if (modifyNumber != modules.length) {
+              if (modifyNumber !== modules.length) {
                 return 'Incorrect number of mudules to be modified';
               } else {
                 return true;
               }
             },
-          }]).then(answers => {
-            const modules = answers.repair.split(',');
+          }]).then(answersModules => {
+            const modules = answersModules.repair.split(',');
             for (let i = 0; i < modules.length; i++) {
               modify(modules[i]);
             }
