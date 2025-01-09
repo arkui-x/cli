@@ -354,8 +354,8 @@ function modifyModules(modules) {
     }
   });
   
-  let successModuleStr = "";
-  let failedModuleStr = "";
+  let successModuleStr = '';
+  let failedModuleStr = '';
   let isHaveSuccess = false;
   let isHaveFailed = false;
   for (let i = 0; i < modules.length; i++) {
