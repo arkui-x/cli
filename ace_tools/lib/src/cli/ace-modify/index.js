@@ -280,10 +280,43 @@ function getModuleType(moduleName) {
   const modulePath = getModulePath(moduleName);
   let moduleType = '';
   const moduleJsonPath = `${modulePath}/src/main/module.json5`;
+  try {
+    fs.accessSync(moduleJsonPath, fs.constants.F_OK);
+  } catch (err) {
+    console.log(`error: module ${moduleName} is not HarmonyOS module!`);
+    return '';
+  }
   const data = fs.readFileSync(moduleJsonPath, 'utf8');
   const jsonObj = JSON5.parse(data);
   moduleType = jsonObj.module.type;
   return moduleType;
+}
+
+function checkProblem() {
+  const filePath = './build-profile.json5';
+  const data = fs.readFileSync(filePath, 'utf8');
+  const lines = data.split('\n');
+  let isHaveProblem = false;
+  for (let j = 0; j < lines.length; j++) {
+    if (lines[j].includes('useNormalizedOHMUrl')) {
+      isHaveProblem = true;
+      break;
+    }
+  }
+  if (isHaveProblem) {
+    console.log("warn:arkui-x project must delete the 'useNormalizedOHMUrl' Setting Items in build-profile.json5");
+  }
+}
+
+function modifyProject() {
+  const filePath = './build-profile.json5';
+  const data = fs.readFileSync(filePath, 'utf8');
+  const jsonObj = JSON5.parse(data);
+  for (let i = 0; i < jsonObj.modules.length; i++) {
+    copyAndroidiOSTemplate(jsonObj.modules[i].name);
+  }
+  checkProblem();
+  console.log('modify HarmonyOS project to ArkUI-X project success!');
 }
 
 function copyAndroidiOSTemplate(moduleName) {
@@ -300,20 +333,47 @@ function copyAndroidiOSTemplate(moduleName) {
     modifyCrossModule(moduleName, appName);
     modifyHvigorInfo(moduleName);
     modifyDirStructure(appName);
+    return true;
   } else if (type === 'shared') {
     const modulePath = getModulePath(moduleName);
     modifyCopyFileSync(`${globalThis.templatePath}/share_library/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
+    return true;
+  } else if (type === 'har') {
+    return true;
+  } else {
+    return false;
   }
 }
 
-function modify(moduleName) {
+function modifyModules(modules) {
   const filePath = './build-profile.json5';
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
+      console.log('Operation failed. Go to your project directory and try again.');
       return;
     }
   });
-  copyAndroidiOSTemplate(moduleName);
+  
+  let successModuleStr = '';
+  let failedModuleStr = '';
+  let isHaveSuccess = false;
+  let isHaveFailed = false;
+  for (let i = 0; i < modules.length; i++) {
+    if (copyAndroidiOSTemplate(modules[i])) {
+      successModuleStr = `${successModuleStr},${modules[i]}`;
+      isHaveSuccess = true;
+    } else {
+      failedModuleStr = `${failedModuleStr},${modules[i]}`;
+      isHaveFailed = true;
+    }
+  }
+  checkProblem();
+  if (isHaveFailed) {
+    console.log(`error: modify HarmonyOS modules ${cleanStr(failedModuleStr, ',')} to ArkUI-X modules failed!`);
+  }
+  if (isHaveSuccess) {
+    console.log(`modify HarmonyOS modules ${cleanStr(successModuleStr, ',')} to ArkUI-X modules success!`);
+  }
 }
 
-module.exports = modify;
+module.exports = {modifyModules, modifyProject};
