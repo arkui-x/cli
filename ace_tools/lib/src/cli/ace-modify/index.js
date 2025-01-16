@@ -25,7 +25,13 @@ function modifyCopyFolderSync(source, destination) {
   const entries = fs.readdirSync(source, { withFileTypes: true });
   for (const entry of entries) {
     const srcPath = path.join(source, entry.name);
-    const destPath = path.join(destination, entry.name);
+    let destinationName = entry.name;
+    if (entry.name === 'AppDelegate_stage.h') {
+      destinationName = 'AppDelegate.h';
+    } else if (entry.name === 'AppDelegate_stage.m') {
+      destinationName = 'AppDelegate.m';
+    }
+    const destPath = path.join(destination, destinationName);
     if (entry.isDirectory()) {
       modifyCopyFolderSync(srcPath, destPath);
     } else {
@@ -38,14 +44,8 @@ function getAppName() {
   let appName = '';
   const appJsonPath = './APPScope/app.json5';
   const data = fs.readFileSync(appJsonPath, 'utf8');
-  const lines = data.split('\n');
-  for (let j = 0; j < lines.length; j++) {
-    if (lines[j].includes('bundleName')) {
-      const nameArray = lines[j].split(':');
-      appName = cleanStr(cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), ','), '"');
-      break;
-    }
-  }
+  const jsonObj = JSON5.parse(data);
+  appName = jsonObj.app.bundleName;
   return appName;
 }
 
@@ -64,15 +64,10 @@ function getPackageName() {
   let packageName = '';
   const packageJsonPath = './APPScope/resources/base/element/string.json';
   const data = fs.readFileSync(packageJsonPath, 'utf8');
-  const lines = data.split('\n');
-  let isFind = false;
-  for (let j = 0; j < lines.length; j++) {
-    if (lines[j].includes('app_name')) {
-      isFind = true;
-    } else if (isFind) {
-      const nameArray = lines[j].split(':');
-      packageName = cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), '"');
-      isFind = false;
+  const jsonObj = JSON5.parse(data);
+  for (let i = 0; i < jsonObj.string.length; i++) {
+    if (jsonObj.string[i].name && jsonObj.string[i].name === 'app_name') {
+      packageName = jsonObj.string[i].value;
       break;
     }
   }
@@ -145,18 +140,16 @@ function replaceiOSProjectInfo(appName) {
 
 function getModulePath(moduleName) {
   let modulePath = '';
-  const temp1 = `"name": "${moduleName}`;
   try {
     fs.accessSync('./build-profile.json5', fs.constants.F_OK);
   } catch (err) {
     return modulePath;
   }
   const data = fs.readFileSync('./build-profile.json5', 'utf8');
-  const lines = data.split('\n');
-  for (let j = 0; j < lines.length; j++) {
-    if (lines[j].includes(temp1) && j + 1 < lines.length) {
-      const nameArray = lines[j + 1].split(':');
-      modulePath = cleanStr(cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), ','), '"');
+  const jsonObj = JSON5.parse(data);
+  for (let i = 0; i < jsonObj.modules.length; i++) {
+    if (jsonObj.modules[i].name && jsonObj.modules[i].name === moduleName) {
+      modulePath = jsonObj.modules[i].srcPath;
       break;
     }
   }
@@ -164,7 +157,6 @@ function getModulePath(moduleName) {
 }
 
 function getModuleAbility(moduleName) {
-  const temp2 = '"mainElement":';
   const modulePath = getModulePath(moduleName);
   let abilityName = '';
   try {
@@ -173,14 +165,8 @@ function getModuleAbility(moduleName) {
     return abilityName;
   }
   const data = fs.readFileSync(`${modulePath}/src/main/module.json5`, 'utf8');
-  const lines = data.split('\n');
-  for (let j = 0; j < lines.length; j++) {
-    if (lines[j].includes(temp2)) {
-      const nameArray = lines[j].split(':');
-      abilityName = cleanStr(cleanStr(cleanStr(nameArray[nameArray.length - 1], ' '), ','), '"');
-      break;
-    }
-  }
+  const jsonObj = JSON5.parse(data);
+  abilityName = jsonObj.module.mainElement;
   return abilityName;
 }
 
@@ -233,7 +219,7 @@ function modifyCrossModule(moduleName, appName) {
 function modifyHvigorInfo(moduleName) {
   fs.access('./hvigorfile.ts', fs.constants.F_OK, (err) => {
     if (!err) {
-      modifyCopyFileSync(`${globalThis.templatePath}/ets_stage/source/entry/hvigorfile.ts`, './hvigorfile.ts');
+      modifyCopyFileSync(`${globalThis.templatePath}/ohos_stage/hvigorfile.ts`, './hvigorfile.ts');
     }
   });
 
@@ -246,7 +232,7 @@ function modifyHvigorInfo(moduleName) {
   const modulePath = getModulePath(moduleName);
   fs.access(`${modulePath}/hvigorfile.ts`, fs.constants.F_OK, (err) => {
     if (!err) {
-      modifyCopyFileSync(`${globalThis.templatePath}/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
+      modifyCopyFileSync(`${globalThis.templatePath}/ets_stage/source/entry/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
     }
   });
 }
@@ -353,7 +339,6 @@ function modifyModules(modules) {
       return;
     }
   });
-  
   let successModuleStr = '';
   let failedModuleStr = '';
   let isHaveSuccess = false;
