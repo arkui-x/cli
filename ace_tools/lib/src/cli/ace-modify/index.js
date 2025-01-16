@@ -339,7 +339,6 @@ function modifyModules(modules) {
       return;
     }
   });
-
   let successModuleStr = '';
   let failedModuleStr = '';
   let isHaveSuccess = false;
