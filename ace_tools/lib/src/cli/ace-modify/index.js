@@ -232,7 +232,6 @@ function modifyHvigorInfo(moduleName) {
   const modulePath = getModulePath(moduleName);
   fs.access(`${modulePath}/hvigorfile.ts`, fs.constants.F_OK, (err) => {
     if (!err) {
-      // modifyCopyFileSync(`${globalThis.templatePath}/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
       modifyCopyFileSync(`${globalThis.templatePath}/ets_stage/source/entry/hvigorfile.ts`, `${modulePath}/hvigorfile.ts`);
     }
   });
