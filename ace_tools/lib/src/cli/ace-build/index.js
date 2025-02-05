@@ -21,34 +21,57 @@ const path = require('path');
 const JSON5 = require('json5');
 
 function build(target, cmd) {
-  const apiVersion = getProjectApiVersion();
-  const devVersion = getDevVersion();
-  if (apiVersion != 11 && apiVersion > devVersion) {
-    console.log('error: current devEco is not support apiVersion:'+apiVersion+',please upgrade devEco');
-    return;
-  } else if (apiVersion != 11 && apiVersion < devVersion) {
-    console.log('error: not find project configuration sdk,The project structure and configuration need to be upgraded before use.');
-    return;
-  }
-  if (compiler(target, cmd)) {
+  if (checkVersion() && compiler(target, cmd)) {
     packager(target, cmd);
   }
 }
 
+function checkVersion() {
+  const apiVersion = getProjectApiVersion();
+  const devVersion = getDevVersion();
+  const runtimeOSStr = getRuntimeOS();
+  if (runtimeOSStr !== "HarmonyOS" || apiVersion <= 11) {
+    return true;
+  }
+  if (apiVersion > devVersion) {
+    console.log(`error: current devEco is not support apiVersion:${apiVersion},please upgrade devEco`);
+    return false;
+  } else if (apiVersion < devVersion) {
+    console.log('error: not find project configuration sdk,The project structure and configuration need to be upgraded before use.');
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function getRuntimeOS() {
+  const projectDir = process.cwd();
+  const buildProfileFilePath = `${projectDir}/build-profile.json5`;
+  const data = fs.readFileSync(buildProfileFilePath, 'utf8');
+  const jsonObj = JSON5.parse(data);
+  let runtimeOSStr = "";
+  if (jsonObj.app.products.length > 0) {
+    runtimeOSStr = jsonObj.app.products[0].runtimeOS
+  }
+  return runtimeOSStr;
+}
+
 function getProjectApiVersion() {
   const projectDir = process.cwd();
-  const hvigorConfigFilePath = projectDir + '/hvigor/hvigor-config.json5';
+  const hvigorConfigFilePath = `${projectDir}/hvigor/hvigor-config.json5`;
   const data = fs.readFileSync(hvigorConfigFilePath, 'utf8');
   const jsonObj = JSON5.parse(data);
   const modelVersion = jsonObj.modelVersion;
   let ApiVersion = 11;
-  if (modelVersion && modelVersion != undefined) {
-    if (modelVersion === "5.0.0") {
+  if (modelVersion && modelVersion !== undefined) {
+    if (modelVersion === '5.0.0') {
       ApiVersion = 12;
-    } else if (modelVersion === "5.0.1") {
+    } else if (modelVersion === '5.0.1') {
       ApiVersion = 13;
-    } else if (modelVersion === "5.0.2") {
+    } else if (modelVersion === '5.0.2') {
       ApiVersion = 14;
+    } else {
+      ApiVersion = 11;
     }
   }
   return ApiVersion;
@@ -56,8 +79,8 @@ function getProjectApiVersion() {
 
 function getDevVersion() {
   const config = getConfig();
-  devDir = config['deveco-studio-path'];
-  const devSdkPath = devDir + '/Contents/sdk/default/sdk-pkg.json';
+  const devDir = config['deveco-studio-path'];
+  const devSdkPath = `${devDir}/Contents/sdk/default/sdk-pkg.json`;
   const data = fs.readFileSync(devSdkPath, 'utf8');
   const jsonObj = JSON5.parse(data);
   const devVersion = jsonObj.data.apiVersion;
