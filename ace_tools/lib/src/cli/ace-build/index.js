@@ -30,7 +30,7 @@ function checkVersion() {
   const apiVersion = getProjectApiVersion();
   const devVersion = getDevVersion();
   const runtimeOSStr = getRuntimeOS();
-  if (runtimeOSStr !== "HarmonyOS" || apiVersion <= 11) {
+  if (runtimeOSStr !== 'HarmonyOS' || apiVersion <= 11) {
     return true;
   }
   if (apiVersion > devVersion) {
@@ -49,9 +49,9 @@ function getRuntimeOS() {
   const buildProfileFilePath = `${projectDir}/build-profile.json5`;
   const data = fs.readFileSync(buildProfileFilePath, 'utf8');
   const jsonObj = JSON5.parse(data);
-  let runtimeOSStr = "";
+  let runtimeOSStr = '';
   if (jsonObj.app.products.length > 0) {
-    runtimeOSStr = jsonObj.app.products[0].runtimeOS
+    runtimeOSStr = jsonObj.app.products[0].runtimeOS;
   }
   return runtimeOSStr;
 }
@@ -61,14 +61,14 @@ function getProjectApiVersion() {
   const hvigorConfigFilePath = `${projectDir}/hvigor/hvigor-config.json5`;
   const data = fs.readFileSync(hvigorConfigFilePath, 'utf8');
   const jsonObj = JSON5.parse(data);
-  const modelVersion = jsonObj.modelVersion;
+  const projectModelVersion = jsonObj.modelVersion;
   let ApiVersion = 11;
-  if (modelVersion && modelVersion !== undefined) {
-    if (modelVersion === '5.0.0') {
+  if (projectModelVersion) {
+    if (projectModelVersion === '5.0.0') {
       ApiVersion = 12;
-    } else if (modelVersion === '5.0.1') {
+    } else if (projectModelVersion === '5.0.1') {
       ApiVersion = 13;
-    } else if (modelVersion === '5.0.2') {
+    } else if (projectModelVersion === '5.0.2') {
       ApiVersion = 14;
     } else {
       ApiVersion = 11;
