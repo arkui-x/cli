@@ -16,17 +16,19 @@
 const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
+const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfo } = require('../util/index');
+const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 
 function build(target, cmd) {
-  if (checkVersion() && compiler(target, cmd)) {
+  if (checkVersion(target, cmd) && compiler(target, cmd)) {
     packager(target, cmd);
   }
 }
 
-function checkVersion() {
+function checkVersion(target, cmd) {
   const apiVersion = getProjectApiVersion();
   const devVersion = getDevVersion();
   const runtimeOSStr = getRuntimeOS();
@@ -37,11 +39,57 @@ function checkVersion() {
     console.log(`error: current devEco is not support apiVersion:${apiVersion},please upgrade devEco`);
     return false;
   } else if (apiVersion < devVersion) {
-    console.log('error: not find project configuration sdk,The project structure and configuration need to be upgraded before use.');
-    return false;
+    inquirer.prompt([{
+      name: 'repair',
+      type: 'input',
+      message: `not find project configuration sdk,The project structure and configuration need to be upgraded before use. Whether to upgrade？Y/N):`,
+      validate(val) {
+        return true;
+      }
+    }]).then(answersModules => {
+      if (answersModules.repair !== 'Y') {
+        console.log('The project structure and configuration need to be upgraded before use.');
+      } else {
+        upgradProjectConfig(apiVersion, devVersion);
+        if (compiler(target, cmd)) {
+          packager(target, cmd);
+        }
+      }
+    });
   } else {
     return true;
   }
+}
+
+function upgradProjectConfig(apiVersion, devVersion) {
+  if (apiVersion >= devVersion || apiVersion <= 11) {
+    return;
+  }
+  const files = [];
+  const replaceInfos = [];
+  const strs = [];
+
+  const projectDir = process.cwd();
+  const hvigorfile = path.join(projectDir, '/hvigor/hvigor-config.json5');
+  files.push(hvigorfile);
+  const projectModelVersion = getProjectModelVersion();
+  replaceInfos.push(projectModelVersion);
+  const devSupportModelVersion = getModelVersionWithSdkVersion(`${devVersion}`);
+  strs.push(devSupportModelVersion);
+  
+  const ohPackagePath = path.join(projectDir, '/oh-package.json5');
+  const data = fs.readFileSync(ohPackagePath, 'utf8');
+  const jsonObj = JSON5.parse(data);
+  const ohPackageModelVersion = jsonObj.modelVersion;
+  if (ohPackageModelVersion) {
+    if (ohPackageModelVersion !== devSupportModelVersion) {
+      files.push(ohPackagePath);
+      replaceInfos.push(ohPackageModelVersion);
+      strs.push(devSupportModelVersion);
+    }
+  }
+
+  replaceInfo(files, replaceInfos, strs);
 }
 
 function getRuntimeOS() {
@@ -57,24 +105,22 @@ function getRuntimeOS() {
 }
 
 function getProjectApiVersion() {
+  const projectModelVersion = getProjectModelVersion();
+  const apiVersionStr = getSdkVersionWithModelVersion(projectModelVersion);
+  let apiVersion = 11;
+  if (apiVersionStr !== '') {
+    apiVersion = Number(apiVersionStr);
+  }
+  return apiVersion;
+}
+
+function getProjectModelVersion() {
   const projectDir = process.cwd();
   const hvigorConfigFilePath = `${projectDir}/hvigor/hvigor-config.json5`;
   const data = fs.readFileSync(hvigorConfigFilePath, 'utf8');
   const jsonObj = JSON5.parse(data);
   const projectModelVersion = jsonObj.modelVersion;
-  let ApiVersion = 11;
-  if (projectModelVersion) {
-    if (projectModelVersion === '5.0.0') {
-      ApiVersion = 12;
-    } else if (projectModelVersion === '5.0.1') {
-      ApiVersion = 13;
-    } else if (projectModelVersion === '5.0.2') {
-      ApiVersion = 14;
-    } else {
-      ApiVersion = 11;
-    }
-  }
-  return ApiVersion;
+  return projectModelVersion;
 }
 
 function getDevVersion() {
