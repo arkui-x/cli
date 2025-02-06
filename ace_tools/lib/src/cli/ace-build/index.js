@@ -45,7 +45,7 @@ function checkVersion(target, cmd) {
       message: `not find project configuration sdk,The project structure and configuration need to be upgraded before use. Whether to upgrade？Y/N):`,
       validate(val) {
         return true;
-      }
+      },
     }]).then(answersModules => {
       if (answersModules.repair !== 'Y') {
         console.log('The project structure and configuration need to be upgraded before use.');
@@ -56,6 +56,7 @@ function checkVersion(target, cmd) {
         }
       }
     });
+    return false;
   } else {
     return true;
   }
