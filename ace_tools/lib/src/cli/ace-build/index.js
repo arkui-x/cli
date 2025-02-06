@@ -17,6 +17,7 @@ const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
 const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfo } = require('../util/index');
+const { Platform, platform } = require('../ace-check/platform');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
@@ -127,7 +128,10 @@ function getProjectModelVersion() {
 function getDevVersion() {
   const config = getConfig();
   const devDir = config['deveco-studio-path'];
-  const devSdkPath = `${devDir}/Contents/sdk/default/sdk-pkg.json`;
+  let devSdkPath = `${devDir}/Contents/sdk/default/sdk-pkg.json`;
+  if (platform != Platform.MacOS) {
+    devSdkPath = `${devDir}\\sdk\\default\\sdk-pkg.json`;
+  }
   const data = fs.readFileSync(devSdkPath, 'utf8');
   const jsonObj = JSON5.parse(data);
   const devVersion = jsonObj.data.apiVersion;
