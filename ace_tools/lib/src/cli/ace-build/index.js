@@ -129,7 +129,7 @@ function getDevVersion() {
   const config = getConfig();
   const devDir = config['deveco-studio-path'];
   let devSdkPath = `${devDir}/Contents/sdk/default/sdk-pkg.json`;
-  if (platform != Platform.MacOS) {
+  if (platform !== Platform.MacOS) {
     devSdkPath = `${devDir}\\sdk\\default\\sdk-pkg.json`;
   }
   const data = fs.readFileSync(devSdkPath, 'utf8');
