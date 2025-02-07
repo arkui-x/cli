@@ -15,6 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
+const { replaceInfo } = require('../util/index');
 
 function modifyCopyFileSync(source, destination) {
   fs.copyFileSync(source, destination);
@@ -72,24 +73,6 @@ function getPackageName() {
     }
   }
   return packageName;
-}
-
-function replaceInfo(files, replaceInfos, strs) {
-  for (let i = 0; i < files.length; i++) {
-    const data = fs.readFileSync(files[i], 'utf8');
-    if (data === undefined) {
-      return;
-    }
-    const lines = data.split('\n');
-    for (let j = 0; j < lines.length; j++) {
-      if (lines[j].includes(replaceInfos[i])) {
-        const newLine = lines[j].replace(replaceInfos[i], strs[i]);
-        lines[j] = newLine;
-      }
-    }
-    const newData = lines.join('\n');
-    fs.writeFileSync(files[i], newData, 'utf8');
-  }
 }
 
 function replaceAndroidProjectInfo(appName, packageName) {
