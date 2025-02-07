@@ -43,7 +43,7 @@ function checkVersion(target, cmd) {
     inquirer.prompt([{
       name: 'repair',
       type: 'input',
-      message: `not find project configuration sdk,The project structure and configuration need to be upgraded before use. Whether to upgrade？Y/N):`,
+      message: `not find project configuration sdk,The project structure and configuration need to be upgraded before use. Whether to upgrade？(Y/N):`,
       validate(val) {
         return true;
       },
