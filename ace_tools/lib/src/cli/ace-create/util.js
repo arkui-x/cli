@@ -143,8 +143,14 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
   const deviceTypeName = 'deviceTypes';
 
   if (Number(sdkVersion) >= 12) {
-    modifyOhPackageJson(projectPath,sdkVersion);
-    modifyHvigorJson(projectPath,sdkVersion);
+    modifyOhPackageJson(projectPath, sdkVersion);
+    modifyHvigorJson(projectPath, sdkVersion);
+    const hvigorWrapperFile = path.join(projectPath, 'hvigor/hvigor-wrapper.js');
+    const hvigorwFile = path.join(projectPath, 'hvigorw');
+    const hvigorwBatFile = path.join(projectPath, 'hvigorw.bat');
+    fs.rmSync(hvigorWrapperFile);
+    fs.rmSync(hvigorwFile);
+    fs.rmSync(hvigorwBatFile);
   }
 
   if (fs.existsSync(buildProfile)) {
@@ -152,14 +158,13 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
     const productsInfo = buildProfileInfo.app.products;
     for (let index = 0; index < productsInfo.length; index++) {
       if (productsInfo[index].name === 'default' && productsInfo[index].runtimeOS !== 'HarmonyOS') {
-        if (isHaveSdkVersion(sdkVersion)) {
-          productsInfo[index].compileSdkVersion = getCompileSdkVersionWithSdkVersion(sdkVersion);
-          productsInfo[index].compatibleSdkVersion = getCompatibleSdkVersionWithSdkVersion(sdkVersion);
-        } else {
-          productsInfo[index].compileSdkVersion = '4.0.0(10)';
-          productsInfo[index].compatibleSdkVersion = '4.0.0(10)';
-        }
         productsInfo[index].runtimeOS = 'HarmonyOS';
+        productsInfo[index].compatibleSdkVersion = isHaveSdkVersion(sdkVersion) ? getCompatibleSdkVersionWithSdkVersion(sdkVersion) : '4.0.0(10)';
+        if (Number(sdkVersion) >= 12) {
+          delete productsInfo[index].compileSdkVersion;
+        } else {
+          productsInfo[index].compileSdkVersion = isHaveSdkVersion(sdkVersion) ? getCompileSdkVersionWithSdkVersion(sdkVersion) : '4.0.0(10)';
+        }
       }
     }
     fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
