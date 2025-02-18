@@ -38,6 +38,7 @@ const { getAbsolutePath, validOptions, checkProjectType } = require('./src/cli/u
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
+const { modifyModules, modifyProject } = require('./src/cli/ace-modify');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
@@ -50,7 +51,7 @@ const commandsSort = {
 const subCommands = ['apk', 'hap', 'ios'];
 const installCommands = ['apk', 'hap', 'hsp', 'ios'];
 const aceCommands = ['build', 'check', 'clean', 'config', 'create', 'devices', 'help',
-  'install', 'launch', 'log', 'new', 'run', 'test', 'uninstall'];
+  'install', 'launch', 'log', 'new', 'run', 'test', 'uninstall', 'modify'];
 parseCommander();
 function parseCommander() {
   program.configureHelp({
@@ -89,6 +90,7 @@ Common commands:
   parseRun();
   parseTest();
   parseUninstall();
+  parseModify();
 
   const userInputCommand = process.argv.slice(2);
   if (userInputCommand.length === 0 || ['help', '--help', '-h'].includes(userInputCommand[0]) && userInputCommand.length === 1) {
@@ -635,6 +637,61 @@ Available subcommands:
     commandHelp(logCmd);
   }
   logCmd.unknownOption = () => unknownOptions();
+  commandsSort['Application'].push(program.commands[program.commands.length - 1]);
+}
+
+function parseModify() {
+  const ModifyCmd = program.command('modify', { hidden: true })
+    .usage('[arguments]')
+    .description(`modify HarmonyOS project to ArkUI-X project structre`)
+    .option('--project', 'modify current project all modules.')
+    .option('--modules', 'modify specified modules')
+    .action((modifyType) => {
+      if (modifyType.project) {
+        modifyProject();
+      } else if (modifyType.modules) {
+        inquirer.prompt([{
+          name: 'repair',
+          type: 'input',
+          message: `Enter the number of modules to be modified:`,
+          validate(val) {
+            const number = parseInt(val, 10);
+            if (val === '' || isNaN(number) || number <= 0 || number > 10) {
+              return 'Please enter a number 1 - 10！';
+            } else {
+              return true;
+            }
+          },
+        }]).then(answers => {
+          const modifyNumber = parseInt(answers.repair, 10);
+          inquirer.prompt([{
+            name: 'repair',
+            type: 'input',
+            message: `Enter the modify module name(Multiple modules can be entered and separated by ","):`,
+            validate(val) {
+              if (val === '') {
+                return 'Input is empty,Please enter modify module name!';
+              }
+              const modules = val.split(',');
+              if (modifyNumber !== modules.length) {
+                return 'Incorrect number of mudules to be modified';
+              } else {
+                return true;
+              }
+            },
+          }]).then(answersModules => {
+            const modules = answersModules.repair.split(',');
+            modifyModules(modules);
+          });
+        });
+      } else {
+        console.log('Please input modify type with --project or --modules.` ');
+      }
+    });
+  if (process.argv[2] === 'help' && process.argv[3] === 'modify') {
+    commandHelp(ModifyCmd);
+  }
+  ModifyCmd.unknownOption = () => unknownOptions();
   commandsSort['Application'].push(program.commands[program.commands.length - 1]);
 }
 

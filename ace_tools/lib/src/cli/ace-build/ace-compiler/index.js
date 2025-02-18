@@ -585,9 +585,10 @@ function compiler(fileType, cmd) {
         console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);
       }
     }
-  }
-  if (!syncHvigor(projectDir)) {
-    return false;
+  } else {
+    if (!syncHvigor(projectDir)) {
+      return false;
+    }
   }
   currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
