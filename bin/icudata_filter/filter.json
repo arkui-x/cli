@@ -1,0 +1,7 @@
+{
+    "includeChildren": true,
+    "includelist": [
+        "ug",
+		"zh"
+    ]
+}
