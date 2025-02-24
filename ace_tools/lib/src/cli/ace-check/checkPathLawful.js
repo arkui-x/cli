@@ -196,7 +196,7 @@ function validSdkDir(typeSdkDir, sdkType, info) {
   if (!dirExist) {
     if (info) {
       if (sdkType === 'ArkUI-X') {
-        info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect, please refer to https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
+        info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect, please refer to https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
       } else {
         info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
       }
