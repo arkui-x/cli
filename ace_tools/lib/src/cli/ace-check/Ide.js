@@ -306,5 +306,5 @@ const androidStudio = new Ide(
 module.exports = {
   devEcoStudio,
   androidStudio,
-  readIdeXmlPath
+  readIdeXmlPath,
 };

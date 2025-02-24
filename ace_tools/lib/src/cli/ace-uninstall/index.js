@@ -51,7 +51,7 @@ function uninstall(fileType, device, bundle) {
     'ios': 'iOS APP',
     'apk': 'APK',
     'hap': 'HAP',
-    'haphsp': 'HAP'
+    'haphsp': 'HAP',
   };
   if (successFlag) {
     console.log(`${fileTypeDict[fileType]} uninstalled.`);
@@ -67,8 +67,7 @@ function uninstallApp(toolObj, device, bundle) {
   if (isSimulator(device)) {
     cmdPath = 'xcrun simctl uninstall';
     deviceOption = device ? device : 'booted';
-  }
-  else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
+  } else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
     cmdPath = toolObj['xcrun devicectl'] + ' device uninstall app ';
     deviceOption = device ? `--device ${device}` : '';
   } else if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {

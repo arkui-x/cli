@@ -177,5 +177,5 @@ module.exports = {
   getJavaSdkDirInEnv,
   getJavaVersion,
   getJavaSdkDirInIde,
-  setJavaSdkDirInEnv
+  setJavaSdkDirInEnv,
 };

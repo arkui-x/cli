@@ -20,7 +20,7 @@ const JSON5 = require('json5');
 const exec = require('child_process').execSync;
 const {
   Platform,
-  platform
+  platform,
 } = require('../ace-check/platform');
 const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion} = require('../util');
 
@@ -89,7 +89,7 @@ function createPackageFile(packagePaths, packageArray) {
   });
 }
 
-function modifyOhPackageJson(projectPath,sdkVersion) {
+function modifyOhPackageJson(projectPath, sdkVersion) {
   const ohPackageFile = path.join(projectPath, 'oh-package.json5');
   if (fs.existsSync(ohPackageFile)) {
     const ohPackageFileInfo = fs.readFileSync(ohPackageFile).toString();
@@ -100,7 +100,7 @@ function modifyOhPackageJson(projectPath,sdkVersion) {
   }
 }
 
-function modifyHvigorJson(projectPath,sdkVersion) {
+function modifyHvigorJson(projectPath, sdkVersion) {
   const hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
   if (fs.existsSync(hvigorfile)) {
     const hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
@@ -121,8 +121,8 @@ function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
     return;
   }
   if (Number(openharmonyosVersion) >= 12) {
-    modifyOhPackageJson(projectPath,openharmonyosVersion);
-    modifyHvigorJson(projectPath,openharmonyosVersion);
+    modifyOhPackageJson(projectPath, openharmonyosVersion);
+    modifyHvigorJson(projectPath, openharmonyosVersion);
   }
   const buildProfile = path.join(projectPath, 'build-profile.json5');
   if (fs.existsSync(buildProfile)) {
@@ -442,9 +442,9 @@ function createIosScriptInPbxproj(projectPath) {
           );
           runOnlyForDeploymentPostprocessing = 0;
           shellPath = "/bin/sh";
-          shellScript = '# Select whether you want to execute the compile arkts script.`+ `\n` + "configBuildFlag=false" +
-    `\n` + `if [ "$configBuildFlag" = "false" ]; then` + `\n\t` + "exit 0" + `\n` + "fi" + `\n` +
-    "sh ${SRCROOT}/buildArkTS.sh" + `';
+          shellScript = '# Select whether you want to execute the compile arkts script.` + `\n` + 'configBuildFlag=false' +
+    `\n` + `if [ "$configBuildFlag" = "false" ]; then` + `\n\t` + 'exit 0' + `\n` + 'fi' + `\n` +
+    'sh ${SRCROOT}/buildArkTS.sh' + `';
       };
 /* End PBXShellScriptBuildPhase section */`;
   if (!fs.existsSync(pbxProjInfoPath)) {
@@ -681,5 +681,5 @@ module.exports = {
   getProjectInfo,
   createAndroidTaskInBuildGradle,
   createAndroidAndIosBuildArkTSShell,
-  createIosScriptInPbxproj
+  createIosScriptInPbxproj,
 };

@@ -87,5 +87,5 @@ module.exports = {
   javaSdkVersionDevEco,
   ohpmDir,
   sourceDir,
-  sourceArkuiXSdkVersion
+  sourceArkuiXSdkVersion,
 };

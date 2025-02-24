@@ -106,11 +106,11 @@ function replaceResourceJson(abilityName) {
     resourceStringJson.string.push(
       {
         name: abilityName + '_desc',
-        value: 'description'
+        value: 'description',
       },
       {
         name: abilityName + '_label',
-        value: 'label'
+        value: 'label',
       }
     );
     const resourceEnStringPath = path.join(currentDir, 'src/main/resources/en_US/element/string.json');
@@ -118,11 +118,11 @@ function replaceResourceJson(abilityName) {
     resourceEnStringJson.string.push(
       {
         name: abilityName + '_desc',
-        value: 'description'
+        value: 'description',
       },
       {
         name: abilityName + '_label',
-        value: 'label'
+        value: 'label',
       }
     );
     fs.writeFileSync(resourceEnStringPath, JSON.stringify(resourceEnStringJson, '', '  '));
@@ -131,11 +131,11 @@ function replaceResourceJson(abilityName) {
     resourceZhStringJson.string.push(
       {
         name: abilityName + '_desc',
-        value: 'description'
+        value: 'description',
       },
       {
         name: abilityName + '_label',
-        value: 'label'
+        value: 'label',
       }
     );
     fs.writeFileSync(resourceZhStringPath, JSON.stringify(resourceZhStringJson, '', '  '));
@@ -148,7 +148,7 @@ function replaceResourceJson(abilityName) {
 
 function updateManifest(abilityName) {
   try {
-    const newTsFilePath = path.join(currentDir, 'src/main/ets', abilityName, abilityName + '.ets');
+    const newTsFilePath = path.join(currentDir, 'src/main/ets', abilityName, `${abilityName}.ets`);
     fs.renameSync(path.join(currentDir, 'src/main/ets', abilityName, 'EntryAbility.ets'), newTsFilePath);
     let content = fs.readFileSync(newTsFilePath, 'utf8');
     content = content.replace(/EntryAbility/g, abilityName);
@@ -167,7 +167,7 @@ function updateManifest(abilityName) {
         icon: '$media:icon',
         label: '$string:' + abilityName + '_label',
         startWindowIcon: '$media:icon',
-        startWindowBackground: '$color:start_window_background'
+        startWindowBackground: '$color:start_window_background',
       }
     );
     fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJson, '', '  '));
@@ -275,7 +275,7 @@ function createAbility() {
         return false;
       }
       return checkAbilityName(val, moduleAbilityList, moduleName);
-    }
+    },
   }];
   inquirer.prompt(question).then(answers => {
     abilityCreateInfo.abilityModuleName = moduleName;

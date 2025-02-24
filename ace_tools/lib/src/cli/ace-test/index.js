@@ -28,12 +28,12 @@ function test(fileType, device, cmd) {
   if (!validInputDevice(device)) {
     return false;
   }
-  if (isSimulator(device) && fileType === 'ios'){
+  if (isSimulator(device) && fileType === 'ios') {
     console.error('Simulator does not support testing ios');
     return false;
   }
-  if(cmd.skipInstall){
-    if(launch(fileType, device, cmd)){
+  if (cmd.skipInstall) {
+    if (launch(fileType, device, cmd)) {
       return true;
     }
     console.error('Skip install and test failed.');

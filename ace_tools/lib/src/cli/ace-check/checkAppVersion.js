@@ -72,5 +72,5 @@ module.exports = {
   checkXcodeVersion,
   checkIdeviceVersion,
   checkDeployVersion,
-  getxCodeDir
+  getxCodeDir,
 };

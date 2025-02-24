@@ -78,10 +78,10 @@ function sdkPathCheck(typeSdkDir, sdkType, info) {
 }
 
 function androidSdkPathCheck(androidSdkDir, info) {
-  if (!fs.existsSync(path.join(androidSdkDir, 'build-tools'))
-    || !fs.statSync(path.join(androidSdkDir, 'build-tools')).isDirectory()
-    || !fs.existsSync(path.join(androidSdkDir, 'platform-tools'))
-    || !fs.statSync(path.join(androidSdkDir, 'platform-tools')).isDirectory()
+  if (!fs.existsSync(path.join(androidSdkDir, 'build-tools')) ||
+    !fs.statSync(path.join(androidSdkDir, 'build-tools')).isDirectory() ||
+    !fs.existsSync(path.join(androidSdkDir, 'platform-tools')) ||
+    !fs.statSync(path.join(androidSdkDir, 'platform-tools')).isDirectory()
   ) {
     if (info) {
       info.push(`The Android SDK path you configured "${androidSdkDir}" is wrong`);
@@ -118,13 +118,13 @@ function newValidHarmonyOsSdk(harmonyosSdkDir, harmonyOsDirs, sdkType, info) {
   } else {
     if (harmonyOsDirs.length === 1) {
       const harmonyOsPath = path.join(harmonyosSdkDir, harmonyOsDirs[0], 'sdk-pkg.json');
-      let sdkVersion = JSON.parse(fs.readFileSync(harmonyOsPath))["data"]["platformVersion"];
-      if (sdkVersion >= "5.0.0") {
+      let sdkVersion = JSON.parse(fs.readFileSync(harmonyOsPath))['data']['platformVersion'];
+      if (sdkVersion >= '5.0.0') {
         return true;
       }
     }
-    if (!fs.existsSync(path.join(harmonyosSdkDir, 'licenses'))
-      || !fs.statSync(path.join(harmonyosSdkDir, 'licenses')).isDirectory()) {
+    if (!fs.existsSync(path.join(harmonyosSdkDir, 'licenses')) ||
+      !fs.statSync(path.join(harmonyosSdkDir, 'licenses')).isDirectory()) {
       if (info) {
         info.push(`Licenses of ${sdkType} SDK is missing.`);
       }
@@ -139,10 +139,10 @@ function newValidHarmonyOsSdk(harmonyosSdkDir, harmonyOsDirs, sdkType, info) {
 }
 
 function oldValidHarmonyOsSdk(harmonyosSdkDir, sdkType, info) {
-  if (!fs.existsSync(path.join(harmonyosSdkDir, 'hmscore'))
-    || !fs.statSync(path.join(harmonyosSdkDir, 'hmscore')).isDirectory()
-    || !fs.existsSync(path.join(harmonyosSdkDir, 'openharmony'))
-    || !fs.statSync(path.join(harmonyosSdkDir, 'openharmony')).isDirectory()) {
+  if (!fs.existsSync(path.join(harmonyosSdkDir, 'hmscore')) ||
+    !fs.statSync(path.join(harmonyosSdkDir, 'hmscore')).isDirectory() ||
+    !fs.existsSync(path.join(harmonyosSdkDir, 'openharmony')) ||
+    !fs.statSync(path.join(harmonyosSdkDir, 'openharmony')).isDirectory()) {
     if (info) {
       info.push(`The ${sdkType} SDK path you configured "${harmonyosSdkDir}" is wrong`);
     }
@@ -192,8 +192,8 @@ function validSdkDir(typeSdkDir, sdkType, info) {
   if (sdkType === 'HarmonyOS') {
     typeSdkDir = path.dirname(typeSdkDir);
   }
-  if (!fs.existsSync(path.join(typeSdkDir, 'licenses'))
-    || !fs.statSync(path.join(typeSdkDir, 'licenses')).isDirectory()) {
+  if (!fs.existsSync(path.join(typeSdkDir, 'licenses')) ||
+    !fs.statSync(path.join(typeSdkDir, 'licenses')).isDirectory()) {
     if (info) {
       info.push(`Licenses of ${sdkType} SDK is missing.`);
     }
@@ -397,5 +397,5 @@ module.exports = {
   javaSdkPathCheck,
   ohpmDirPathCheck,
   sdkPathCheck,
-  sourceDirPathCheck
+  sourceDirPathCheck,
 };

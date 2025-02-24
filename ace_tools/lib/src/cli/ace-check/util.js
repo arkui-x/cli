@@ -69,5 +69,5 @@ module.exports = {
   optionInfo,
   reletedInfo,
   showWarningInfo,
-  cmpVersion
+  cmpVersion,
 };

@@ -79,12 +79,12 @@ function createProject(projectAbsolutePath, projectTempPath, bundleName, project
         return false;
       }
     }
-    let createFlag = 'created'
+    let createFlag = 'created';
     if (isRepairProject) {
       if (template !== aceLibraryProType) {
         createAndroidAndIosShell(projectTempPath);
       }
-      createFlag = 'repaired'
+      createFlag = 'repaired';
     }
     if (template !== aceLibraryProType) {
       console.log(`
@@ -101,7 +101,7 @@ Project ${createFlag}. Target directory:  ${projectAbsolutePath}.
 Your library code is in ${path.join(currentProjectPath, 'entry')}.`);
     }
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', 'Project created failed! Target directory: ' + projectAbsolutePath + '.' + error);
+    console.error('\x1B[31m%s\x1B[0m', `Project created failed! Target directory: ${projectAbsolutePath}. ${error}`);
   }
 }
 
@@ -319,5 +319,5 @@ function copyStageTemplate(templatePath, projectTempPath, template, sdkVersion) 
 module.exports = {
   create,
   repairProject,
-  createProject
+  createProject,
 };

@@ -19,11 +19,11 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const {
   Platform,
-  platform
+  platform,
 } = require('../../ace-check/platform');
 const {
   createLocalProperties,
-  copyToBuildDir
+  copyToBuildDir,
 } = require('../ace-build');
 const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
@@ -332,8 +332,8 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     }
     cmds.push(`${buildCmd} -p product=default --mode module ${moduleStr} assembleHsp --no-daemon --no-parallel`);
     gradleMessage = 'Building a HSP file...';
-  } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework'
-    || fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
+  } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework' ||
+    fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
     let moduleStr = '';
     if (commonModule) {
       moduleStr = ' -p module=' + commonModule.join(',');
@@ -360,7 +360,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
-      env: process.env
+      env: process.env,
     });
     if (cmd.aot) {
       if (currentSystem === 'HarmonyOS') {
@@ -381,11 +381,11 @@ function buildAot(cmd, moduleList) {
   let arkAotCompilerPath;
   const openHarmonyVersion = getSdkVersion(projectDir);
   if (platform === Platform.Windows) {
-    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build-win/bin/ark_aot_compiler.exe`)
+    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build-win/bin/ark_aot_compiler.exe`);
   } else if (platform === Platform.Linux) {
-    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build/bin/ark_aot_compiler`)
+    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build/bin/ark_aot_compiler`);
   } else if (platform === Platform.MacOS) {
-    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build-mac/bin/ark_aot_compiler`)
+    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build-mac/bin/ark_aot_compiler`);
   }
 
   let aotDir;
@@ -393,9 +393,9 @@ function buildAot(cmd, moduleList) {
 
   moduleList.forEach(module => {
     const targetFile = path.join(projectDir, `${modulePathList[module]}/build/default/intermediates/loader_out/default/ets/modules.abc`);
-    let aotBuildCmd = `${arkAotCompilerPath}`
-      + ` --compiler-target-triple=aarch64-unknown-linux-gnu --aot-file=${modulePathList[module]} --log-level=info --compiler-trace-deopt=true`
-      + ` --compiler-trace-bc=true ${targetFile}`;
+    let aotBuildCmd = `${arkAotCompilerPath}` +
+      ` --compiler-target-triple=aarch64-unknown-linux-gnu --aot-file=${modulePathList[module]} --log-level=info --compiler-trace-deopt=true` +
+      ` --compiler-trace-bc=true ${targetFile}`;
     aotDir = path.join(projectDir, `${modulePathList[module]}/build/default/intermediates/loader_out/an`);
     deleteOldFile(aotDir);
     if (cmd.targetPlatform) {
@@ -404,13 +404,13 @@ function buildAot(cmd, moduleList) {
       cmd.targetPlatform.split(',').forEach(abi => {
         if (abi === 'arm64') {
           targetTriple = 'aarch64-unknown-linux-gnu';
-          abiDir = 'arm64-v8a'
+          abiDir = 'arm64-v8a';
         } else if (abi === 'arm') {
           targetTriple = 'arm-unknown-linux-gnu';
-          abiDir = 'armeabi-v7a'
+          abiDir = 'armeabi-v7a';
         } else if (abi === 'x86_64') {
           targetTriple = 'x86_64-unknown-linux-gnu';
-          abiDir = 'x86_64'
+          abiDir = 'x86_64';
         }
 
         aotBuildCmd = aotBuildCmd.replace('aarch64-unknown-linux-gnu', targetTriple);
@@ -421,7 +421,7 @@ function buildAot(cmd, moduleList) {
       fs.mkdirSync(path.join(aotDir, 'arm64-v8a'), { recursive: true });
       cmds.push(`cd ${path.join(aotDir, 'arm64-v8a')} && ${aotBuildCmd}`);
     }
-  })
+  });
 
   let gradleMessage = 'AOT file built successfully.';
   let isBuildSuccess = true;
@@ -445,11 +445,11 @@ function buildAot(cmd, moduleList) {
 }
 
 function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testModule) {
-  if (readConfig()
-    && writeLocalProperties()
-    && runGradle(fileType, cmd, moduleListSpecified, commonModule, testModule)
-    && copyStageBundleToAndroidAndIOS(commonModule, cmd)
-    && copyTestStageBundleToAndroidAndIOS(testModule, fileType, cmd)) {
+  if (readConfig() &&
+    writeLocalProperties() &&
+    runGradle(fileType, cmd, moduleListSpecified, commonModule, testModule) &&
+    copyStageBundleToAndroidAndIOS(commonModule, cmd) &&
+    copyTestStageBundleToAndroidAndIOS(testModule, fileType, cmd)) {
     process.env.ACEBUILDFLAG = true;
     if (fileType === 'hap' || fileType === 'haphsp') {
       console.log(`HAP file built successfully.`);
@@ -544,7 +544,7 @@ function compiler(fileType, cmd) {
     'ios-xcframework': 'iOS XCFramework',
     'apk': 'Android APK file',
     'bundle': 'bundle file',
-    'ios': 'iOS APP file'
+    'ios': 'iOS APP file',
   };
   if (isAppProject(projectDir)) {
     if (fileType === 'aar' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
@@ -579,7 +579,7 @@ function compiler(fileType, cmd) {
         exec(cmds, {
           encoding: 'utf-8',
           stdio: 'inherit',
-          env: process.env
+          env: process.env,
         });
       } catch (error) {
         console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);
