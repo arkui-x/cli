@@ -38,8 +38,8 @@ function isModuleNameQualified(name) {
   const regEn = /[`~!@#$%^&*()+<>?:"{},.\/;'\\[\]]/im;
   const regCn = /[·！#￥（——）：；“”‘、，|《。》？、【】[\]]/im;
 
-  if (regEn.test(name) || regCn.test(name) || !isNaN(name[0])
-    || name.length > 31 || name[0] === '_' || name.length === 1) {
+  if (regEn.test(name) || regCn.test(name) || !isNaN(name[0]) ||
+    name.length > 31 || name[0] === '_' || name.length === 1) {
     return false;
   }
   return true;
@@ -206,15 +206,15 @@ function modifyBuildProfile(moduleName, modulePath) {
     const buildPathJson = JSON5.parse(fs.readFileSync(srcBuildPath).toString());
     const moduleInfo = {
       'name': moduleName,
-      'srcPath': './' + modulePath,
+      'srcPath': `./${modulePath}`,
       'targets': [
         {
           'name': 'default',
           'applyToProducts': [
-            'default'
-          ]
-        }
-      ]
+            'default',
+          ],
+        },
+      ],
     };
     buildPathJson.modules.push(moduleInfo);
     fs.writeFileSync(srcBuildPath, JSON5.stringify(buildPathJson, '', '  '));
@@ -364,7 +364,7 @@ function createStageModule(moduleList, templateDir, absolutePath) {
         return false;
       }
       return checkModuleName(moduleList, val);
-    }
+    },
   }];
   inquirer.prompt(question).then(answers => {
     const moduleName = answers.moduleName;
@@ -378,7 +378,7 @@ function createStageModule(moduleList, templateDir, absolutePath) {
         } else {
           return 'input must be an integer: 1 or 2 or 3.';
         }
-      }
+      },
     }]).then(answers => {
       let moduleType;
       if (answers.type === '3') {
@@ -392,7 +392,7 @@ function createStageModule(moduleList, templateDir, absolutePath) {
             } else {
               return true;
             }
-          }
+          },
         }]).then(answers => {
           if (answers.enable === 'y') {
             moduleType = 'ShareC++';
@@ -409,7 +409,7 @@ function createStageModule(moduleList, templateDir, absolutePath) {
               } else {
                 return true;
               }
-            }
+            },
           }]).then(answers => {
             setModuleCreateInfo(absolutePath, moduleName, answers.cross, moduleType);
             if (createStageModuleInSource(moduleName, templateDir, moduleType)) {
@@ -436,13 +436,13 @@ function createStageModule(moduleList, templateDir, absolutePath) {
             } else {
               return true;
             }
-          }
+          },
         }]).then(answers => {
           setModuleCreateInfo(absolutePath, moduleName, answers.cross, moduleType);
           if (answers.cross === 'y') {
-            if (createStageModuleInSource(moduleName, templateDir, moduleType)
-              && createStageInAndroid(moduleName, templateDir, moduleType)
-              && createStageInIOS(moduleName, templateDir, moduleType)) {
+            if (createStageModuleInSource(moduleName, templateDir, moduleType) &&
+              createStageInAndroid(moduleName, templateDir, moduleType) &&
+              createStageInIOS(moduleName, templateDir, moduleType)) {
               addCrossPlatform(projectDir, moduleName);
               return replaceStageProjectInfo(moduleName, moduleType);
             }
@@ -747,9 +747,9 @@ function repairModule(templateDir, absolutePath, projectTempPath) {
       }
     } else {
       if (module.moduleCrossPlatform === 'y') {
-        if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType)
-          && createStageInAndroid(module.moduleName, templateDir, module.moduleType)
-          && createStageInIOS(module.moduleName, templateDir, module.moduleType)) {
+        if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType) &&
+          createStageInAndroid(module.moduleName, templateDir, module.moduleType) &&
+          createStageInIOS(module.moduleName, templateDir, module.moduleType)) {
           addCrossPlatform(projectTempPath, module.moduleName);
           replaceStageProjectInfo(module.moduleName, module.moduleType);
         }
@@ -767,5 +767,5 @@ function repairModule(templateDir, absolutePath, projectTempPath) {
 module.exports = {
   createModule,
   updateCrossPlatformModules,
-  repairModule
+  repairModule,
 };

@@ -46,7 +46,7 @@ const commandsSort = {
   'Application': [],
   'Device': [],
   'Environment': [],
-  'Project': []
+  'Project': [],
 };
 const subCommands = ['apk', 'hap', 'ios'];
 const installCommands = ['apk', 'hap', 'hsp', 'ios'];
@@ -55,7 +55,7 @@ const aceCommands = ['build', 'check', 'clean', 'config', 'create', 'devices', '
 parseCommander();
 function parseCommander() {
   program.configureHelp({
-    showGlobalOptions: true
+    showGlobalOptions: true,
   });
   program.addHelpText('before', 'Manage your ArkUI cross-platform app development.');
   program.addHelpText('before',
@@ -152,8 +152,8 @@ function parseCreate() {
       } else if (cmd.template === 'app' || cmd.template === 'library' || cmd.template === 'plugin_napi') {
         initInfo.template = cmd.template;
       } else {
-        console.error('\x1B[31m%s\x1B[0m', 'Failed to create the project.' +
-          '\nInvalid template type ' + cmd.template + ', choose from the app, library or plugin_napi options.');
+        console.error('\x1B[31m%s\x1B[0m', `Failed to create the project.` +
+          `Invalid template type ${cmd.template}, choose from the app, library or plugin_napi options.`);
         return false;
       }
 
@@ -165,8 +165,8 @@ function parseCreate() {
         } else {
           const currentProjectTemplate = checkProjectType(absolutePath);
           if (initInfo.template !== currentProjectTemplate) {
-            console.log('\x1B[31m%s\x1B[0m', 'The requested template type ' + initInfo.template +
-              " doesn't match the existing template type of " + currentProjectTemplate + '.');
+            console.log('\x1B[31m%s\x1B[0m', `The requested template type ${initInfo.template}
+                doesn't match the existing template type of ${currentProjectTemplate}.`);
             return false;
           }
           inquirer.prompt([{
@@ -179,7 +179,7 @@ function parseCreate() {
               } else {
                 return true;
               }
-            }
+            },
           }]).then(answers => {
             if (answers.repair.toLowerCase() === 'y') {
               const projectInfo = getProjectInfo(absolutePath);
@@ -215,7 +215,7 @@ function parseCreate() {
               'letter, and include only letters, digits and underscores (_)';
           }
           return true;
-        }
+        },
       }]).then(answers => {
         initInfo.platform = '';
         initInfo.project = answers.project || projectName;
@@ -224,20 +224,20 @@ function parseCreate() {
         inquirer.prompt([{
           name: 'bundleName',
           type: 'input',
-          message: 'Enter the bundleName (com.example.' + initInfo.project.toLowerCase() + '):',
+          message: `Enter the bundleName (com.example.${initInfo.project.toLowerCase()}):`,
           validate(val) {
             if (val === '') {
-              val = 'com.example.' + initInfo.project.toLowerCase();
+              val = `com.example.${initInfo.project.toLowerCase()}`;
             }
             if (!isBundleNameValid(val)) {
               return 'The bundle name must contain 7 to 128 characters,start with a letter,and include ' +
               'only lowercase letters, digits,underscores(_) and at least one separator(.).';
             }
             return true;
-          }
+          },
         }]).then(answers => {
-          initInfo.bundleName = answers.bundleName ? answers.bundleName.toLowerCase()
-            : 'com.example.' + initInfo.project.toLowerCase();
+          initInfo.bundleName = answers.bundleName ? answers.bundleName.toLowerCase() :
+            `com.example.${initInfo.project.toLowerCase()}`;
           inquirer.prompt([{
             name: 'runtimeOS',
             type: 'input',
@@ -248,12 +248,12 @@ function parseCreate() {
               } else {
                 return 'input must be an integer: 1 or 2.';
               }
-            }
+            },
           }]).then(answers => {
             initInfo.runtimeOS = answers.runtimeOS;
             let sdkVersionShowMap = getShowSdkVersion();
             let sdkChooseStr = '';
-            sdkVersionShowMap.forEach((value,key) => {
+            sdkVersionShowMap.forEach((value, key) => {
               if (sdkChooseStr !== '') {
                 sdkChooseStr = sdkChooseStr + ', ';
               }
@@ -270,9 +270,9 @@ function parseCreate() {
                 } else {
                   return getChooseSdkVersionTip(sdkVersionShowMap);
                 }
-              }
+              },
             }]).then(answers => {
-              initInfo.sdkVersion = sdkVersionShowMap.get(answers['Complie SDk'])
+              initInfo.sdkVersion = sdkVersionShowMap.get(answers['Complie SDk']);
               create(initInfo);
             });
           });
@@ -288,7 +288,7 @@ function parseCreate() {
 
 function getChooseSdkVersionTip(sdkVersionShowMap) {
   let sdkChooseStr = '';
-  sdkVersionShowMap.forEach((value,key) => {
+  sdkVersionShowMap.forEach((value, key) => {
     if (sdkChooseStr === '') {
       sdkChooseStr = sdkChooseStr + key;
     } else {
@@ -389,7 +389,7 @@ function parseConfig() {
           'nodejs-dir': cmd.nodejsDir,
           'ohpm-dir': cmd.ohpmDir,
           'openharmony-sdk': cmd.openharmonySdk,
-          'source-dir': cmd.sourceDir
+          'source-dir': cmd.sourceDir,
         });
       } else {
         console.log('Please use ace config with options :' + `
@@ -478,7 +478,7 @@ Available subcommands:
     buildSubcommand
       .action((cmd) => {
         cmd.simulator = cmd.simulator && platform === Platform.MacOS;
-        if (cmd.release && cmd.debug || cmd.release && cmd.profile || cmd.profile && cmd.debug) {
+        if ((cmd.release && cmd.debug) || (cmd.release && cmd.profile) || (cmd.profile && cmd.debug)) {
           console.error('\x1B[31m%s\x1B[0m', 'Multiple build models are not allowed to exist at the same time.');
           return false;
         }
@@ -580,7 +580,7 @@ Available subcommands:
       }
     })
     .action((fileType, options, cmd) => {
-      if (options.release && options.debug || options.release && options.profile || options.profile && options.debug) {
+      if ((options.release && options.debug) || (options.release && options.profile) || (options.profile && options.debug)) {
         console.error('\x1B[31m%s\x1B[0m', 'Multiple run models are not allowed to exist at the same time.');
         return false;
       }
@@ -807,7 +807,7 @@ function chooseDevice(fileType, options, func) {
         } else {
           return `choose 1 ~ ${mapDevice.size}.`;
         }
-      }
+      },
     }]).then(answers => {
       const id = answers.ID;
       if (id === 'q' || id === 'quit') {

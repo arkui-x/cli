@@ -20,7 +20,7 @@ const { getConfig, modifyConfigPath } = require('../ace-config');
 const {
   Platform,
   platform,
-  homeDir
+  homeDir,
 } = require('./platform');
 const { sdkPathCheck } = require('./checkPathLawful');
 const { readIdeXmlPath } = require('./Ide');
@@ -392,5 +392,5 @@ module.exports = {
   openHarmonySdk,
   harmonyOsSdk,
   arkuiXSdk,
-  androidSdk
+  androidSdk,
 };

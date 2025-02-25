@@ -17,7 +17,7 @@ const fs = require('fs');
 
 const {
   Platform,
-  platform
+  platform,
 } = require('../ace-check/platform');
 const { getConfig } = require('../ace-config');
 const config = getConfig();
@@ -51,5 +51,5 @@ function copyToBuildDir(src) {
 module.exports = {
   config,
   createLocalProperties,
-  copyToBuildDir
+  copyToBuildDir,
 };

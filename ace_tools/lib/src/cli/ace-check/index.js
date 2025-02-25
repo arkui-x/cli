@@ -30,7 +30,7 @@ const {
   javaSdkVersionAndroid,
   javaSdkVersionDevEco,
   ohpmDir,
-  sourceDir
+  sourceDir,
 } = require('./configs');
 const { devices, devicesList } = require('../ace-devices');
 const info = require('./Info');
@@ -40,7 +40,7 @@ const {
   optionTitle,
   requirementInfo,
   optionInfo,
-  showWarningInfo
+  showWarningInfo,
 } = require('./util');
 const { Platform, platform } = require('./platform');
 
@@ -141,7 +141,7 @@ function showWarning() {
     javaSdkDirDevEco || javaSdkDirAndroid,
     arkuiXSdkDir,
     androidSdkDir,
-    androidStudioDir
+    androidStudioDir,
   ];
 
   const warningInfo = [
@@ -155,7 +155,7 @@ function showWarning() {
     info.warnAndroidStudio,
     info.warnDevEcoStudio,
     info.warnMacTools,
-    info.warnXcodeVersion
+    info.warnXcodeVersion,
   ];
   const msgs = [];
   if (platform !== Platform.Linux) {

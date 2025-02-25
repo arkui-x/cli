@@ -426,12 +426,12 @@ function cleanLibs(projectDir, abiFilters, fileType) {
 
 function getSdkVersionMap() {
   const sdkVersionMap = new Map([
-    ['10',new Map([['compileSdkVersion','4.0.0(10)'],['compatibleSdkVersion','4.0.0(10)'],['modelVersion','4.0.0'],['runtimeOS','HarmonyOS']])],
-    ['11',new Map([['compileSdkVersion','4.1.0(11)'],['compatibleSdkVersion','4.1.0(11)'],['modelVersion','4.1.0'],['runtimeOS','HarmonyOS']])],
-    ['12',new Map([['compileSdkVersion','5.0.0(12)'],['compatibleSdkVersion','5.0.0(12)'],['modelVersion','5.0.0'],['runtimeOS','HarmonyOS']])],
-    ['13',new Map([['compileSdkVersion','5.0.1(13)'],['compatibleSdkVersion','5.0.1(13)'],['modelVersion','5.0.1'],['runtimeOS','HarmonyOS']])],
-    ['14',new Map([['compileSdkVersion','5.0.2(14)'],['compatibleSdkVersion','5.0.2(14)'],['modelVersion','5.0.2'],['runtimeOS','HarmonyOS']])],
-  ])
+    ['10', new Map([['compileSdkVersion', '4.0.0(10)'], ['compatibleSdkVersion', '4.0.0(10)'], ['modelVersion', '4.0.0'], ['runtimeOS', 'HarmonyOS']])],
+    ['11', new Map([['compileSdkVersion', '4.1.0(11)'], ['compatibleSdkVersion', '4.1.0(11)'], ['modelVersion', '4.1.0'], ['runtimeOS', 'HarmonyOS']])],
+    ['12', new Map([['compileSdkVersion', '5.0.0(12)'], ['compatibleSdkVersion', '5.0.0(12)'], ['modelVersion', '5.0.0'], ['runtimeOS', 'HarmonyOS']])],
+    ['13', new Map([['compileSdkVersion', '5.0.1(13)'], ['compatibleSdkVersion', '5.0.1(13)'], ['modelVersion', '5.0.1'], ['runtimeOS', 'HarmonyOS']])],
+    ['14', new Map([['compileSdkVersion', '5.0.2(14)'], ['compatibleSdkVersion', '5.0.2(14)'], ['modelVersion', '5.0.2'], ['runtimeOS', 'HarmonyOS']])],
+  ]);
   return sdkVersionMap;
 }
 
@@ -451,8 +451,8 @@ function getShowSdkVersion() {
   let sdkVersionMap = getSdkVersionMap();
   let showMap = new Map();
   let index = 1;
-  sdkVersionMap.forEach((value,key) => {
-    showMap.set(index.toString(),key);
+  sdkVersionMap.forEach((value, key) => {
+    showMap.set(index.toString(), key);
     index = index + 1;
   });
   return showMap;
@@ -465,8 +465,8 @@ function isHaveSdkVersion(sdkVersion) {
 
 function getSdkVersionWithCompileSdkVersion(compileSdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
-  let sdkVersion = "";
-  sdkVersionMap.forEach((value,key) => {
+  let sdkVersion = '';
+  sdkVersionMap.forEach((value, key) => {
     let lcompileSdkVersion = value.get('compileSdkVersion');
     if (lcompileSdkVersion === compileSdkVersion) {
       sdkVersion = key;
@@ -478,7 +478,7 @@ function getSdkVersionWithCompileSdkVersion(compileSdkVersion) {
 function getCompileSdkVersionWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('compileSdkVersion');
@@ -487,7 +487,7 @@ function getCompileSdkVersionWithSdkVersion(sdkVersion) {
 function getCompatibleSdkVersionWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('compatibleSdkVersion');
@@ -496,7 +496,7 @@ function getCompatibleSdkVersionWithSdkVersion(sdkVersion) {
 function getRuntimeOSWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('runtimeOS');
@@ -505,7 +505,7 @@ function getRuntimeOSWithSdkVersion(sdkVersion) {
 function getModelVersionWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('modelVersion');
@@ -747,5 +747,5 @@ module.exports = {
   getRuntimeOSWithSdkVersion,
   getModelVersionWithSdkVersion,
   getSdkVersionWithModelVersion,
-  replaceInfo
+  replaceInfo,
 };
