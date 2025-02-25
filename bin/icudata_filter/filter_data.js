@@ -13,12 +13,24 @@
  * limitations under the License.
  */
 
-// 引入必要的模块
-const { exec } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const { exec } = require('child_process');
 
-// 定义 IO 类
+const ALL_TREES = [
+  "locales",
+  "curr",
+  "lang",
+  "region",
+  "zone",
+  "unit",
+  "coll",
+  "brkitr",
+  "rbnf",
+];
+
+// 类 IO
 class IO {
   constructor(srcDir) {
     this.srcDir = srcDir;
@@ -26,69 +38,192 @@ class IO {
 
   // 读取 locale 依赖文件
   readLocaleDeps(tree) {
-    return this._readJSON(path.join(tree, 'LOCALE_DEPS.json'));
+    const filename = path.join(tree, 'LOCALE_DEPS.json');
+    return this._readJson(filename);
   }
 
   // 读取 JSON 文件
-  _readJSON(filename) {
+  _readJson(filename) {
     const fullPath = path.join(this.srcDir, filename);
     return JSON.parse(fs.readFileSync(fullPath, 'utf-8'));
   }
 }
 
-// 定义 Filter 类
+// 抽象基类 Filter
 class Filter {
-  static _fileToStem(file) {
-    let lastSlash = file.lastIndexOf('/');
-    let lastDot = file.lastIndexOf('.');
-    return file.slice(lastSlash + 1, lastDot);
+  static createFromJson(jsonData, io) {
+    if (!io) throw new Error('IO instance cannot be null');
+
+    const filterType = (jsonData && jsonData.filterType) || 'file-stem';
+
+    switch (filterType) {
+      case 'file-stem':
+        return new FileStemFilter(jsonData);
+      case 'language':
+        return new LanguageFilter(jsonData);
+      case 'regex':
+        return new RegexFilter(jsonData);
+      case 'exclude':
+        return new ExclusionFilter();
+      case 'union':
+        return new UnionFilter(jsonData, io);
+      case 'locale':
+        return new LocaleFilter(jsonData, io);
+      default:
+        throw new Error(`Error: Unknown filterType option: ${filterType}`)
+    }
+  }
+
+  filter(request) {
+    if (!request.applyFileFilter(this)) {
+      return [];
+    }
+    for (const file of request.allInputFiles()) {
+      this.match(file);
+    }
+    return [request];
+  }
+
+  static _fileToFileStem(file) {
+    const start = file.lastIndexOf('/');
+    const limit = file.lastIndexOf('.');
+    return file.slice(start + 1, limit);
   }
 
   static _fileToSubdir(file) {
-    let lastSlash = file.lastIndexOf('/');
-    if (lastSlash === -1) {
-      return null;
-    }
-    return file.slice(0, lastSlash);
+    const limit = file.lastIndexOf('/');
+    return limit !== -1 ? file.slice(0, limit) : null;
   }
 
   match(file) {
+    throw new Error("Must be implemented by subclass");
+  }
+}
+
+// InclusionFilter 类
+class InclusionFilter extends Filter {
+  match() {
+    return true;
+  }
+}
+
+// ExclusionFilter 类
+class ExclusionFilter extends Filter {
+  match() {
     return false;
   }
 }
 
-// 定义 locale 正则表达式
-const LANGUAGE_SCRIPT_REGEX = /^(?<language>[a-z]{2,3})_[A-Z][a-z]{3}$/;
+// IncludeExcludeFilter 抽象类
+class IncludeExcludeFilter extends Filter {
+  constructor(jsonData) {
+    super();
+
+    this.isIncludelist = false;
+    this.includelist = undefined;
+    this.excludelist = undefined;
+
+    if (jsonData.whitelist || jsonData.includelist) {
+      this.isIncludelist = true;
+      this.includelist = jsonData.whitelist || jsonData.includelist;
+    } else if (jsonData.blacklist || jsonData.excludelist) {
+      this.isIncludelist = false;
+      this.excludelist = jsonData.blacklist || jsonData.excludelist;
+    } else {
+      throw new Error("Need either includelist or excludelist");
+    }
+  }
+
+  match(file) {
+    const fileStem = Filter._fileToFileStem(file);
+    return this._shouldInclude(fileStem);
+  }
+
+  _shouldInclude() {
+    throw new Error("Must be implemented by subclass");
+  }
+}
+
+// FileStemFilter 类
+class FileStemFilter extends IncludeExcludeFilter {
+  _shouldInclude(fileStem) {
+    if (this.isIncludelist) {
+      return this.includelist.includes(fileStem);
+    } else {
+      return !this.excludelist.includes(fileStem);
+    }
+  }
+}
+
+// LanguageFilter 类
+class LanguageFilter extends IncludeExcludeFilter {
+  _shouldInclude(fileStem) {
+    const parts = fileStem.split('_');
+    const language = parts[0];
+    if (language === 'root') {
+      return true;
+    }
+    if (this.isIncludelist) {
+      return this.includelist.includes(language);
+    } else {
+      return !this.excludelist.includes(language);
+    }
+  }
+}
+
+// RegexFilter 类
+class RegexFilter extends IncludeExcludeFilter {
+  constructor(...args) {
+    super(...args);
+
+    if (this.isIncludelist) {
+      this.includelist = this.includelist.map(pat => new RegExp(pat));
+    } else {
+      this.excludelist = this.excludelist.map(pat => new RegExp(pat));
+    }
+  }
+
+  _shouldInclude(fileStem) {
+    if (this.isIncludelist) {
+      return this.includelist.some(pattern => pattern.test(fileStem));
+    } else {
+      return !this.excludelist.some(pattern => pattern.test(fileStem));
+    }
+  }
+}
+
+// UnionFilter 类
+class UnionFilter extends Filter {
+  constructor(jsonData, io) {
+    super();
+    this.subFilters = [];
+    for (const filterJson of jsonData.unionOf) {
+      const filter = Filter.createFromJson(filterJson, io);
+      if (filter) {
+        this.subFilters.push(filter);
+      } else {
+        throw new Error("Invalid filter configuration");
+      }
+    }
+  }
+
+  match(file) {
+    return this.subFilters.some(filter => filter.match(file));
+  }
+}
+
+// LocaleFilter 类
+const LANGUAGE_SCRIPT_REGEX = /^([a-z]{2,3})_[A-Z][a-z]{3}$/;
 const LANGUAGE_ONLY_REGEX = /^[a-z]{2,3}$/;
 
-// 定义所有 locale tree
-const ALL_TREES = [
-  'locales',
-  'curr',
-  'lang',
-  'region',
-  'zone',
-  'unit',
-  'coll',
-  'brkitr',
-  'rbnf',
-];
-
-// 定义 LocaleFilter 类
 class LocaleFilter extends Filter {
   constructor(jsonData, io) {
     super();
-    if (jsonData.whitelist) {
-      this.localesRequested = jsonData.whitelist;
-    } else if (jsonData.includelist) {
-      this.localesRequested = jsonData.includelist;
-    } else {
-      throw new Error('You must have an includelist in a locale filter');
-    }
+
+    this.localesRequested = (jsonData.whitelist || jsonData.includelist).map(String);
     this.includeChildren = jsonData.includeChildren !== undefined ? jsonData.includeChildren : true;
     this.includeScripts = jsonData.includeScripts !== undefined ? jsonData.includeScripts : false;
 
-    // 加载依赖数据
     this.dependencyDataByTree = {};
     for (const tree of ALL_TREES) {
       this.dependencyDataByTree[tree] = io.readLocaleDeps(tree);
@@ -96,168 +231,306 @@ class LocaleFilter extends Filter {
   }
 
   match(file) {
-    let tree = Filter._fileToSubdir(file);
+    const tree = Filter._fileToSubdir(file);
     if (!tree) {
-      return false;
+        return false;
     }
-    let locale = Filter._fileToStem(file);
+    const locale = Filter._fileToFileStem(file);
 
-    // 检查是否是必选 locale
-    if (this._localesRequired(tree).includes(locale)) {
+    const requiredLocales = this._localesRequired(tree);
+
+    if (requiredLocales.includes(locale)) {
       return true;
     }
 
-    // 匹配递归规则
     return this._matchRecursive(locale, tree);
+  }
+
+  _localesRequired(tree) {
+    const locales = [];
+    for (const locale of this.localesRequested) {
+      let currentLocale = locale;
+      while (currentLocale) {
+        locales.push(currentLocale);
+        currentLocale = this._getPrevParentLocale(currentLocale, tree);
+      }
+    }
+    return locales;
   }
 
   _matchRecursive(locale, tree) {
     if (!locale) {
-      return false;
+        return false;
     }
     if (this.localesRequested.includes(locale)) {
-      return true;
+        return true;
     }
 
-    // 检查语言脚本规则
     if (this.includeScripts) {
-      const scriptMatch = locale.match(LANGUAGE_SCRIPT_REGEX);
-      if (scriptMatch) {
-        const [, baseLocale] = scriptMatch;
-        return this._matchRecursive(baseLocale, tree);
+      const match = locale.match(LANGUAGE_SCRIPT_REGEX);
+      if (match) {
+        return this._matchRecursive(match[1], tree);
       }
     }
 
-    // 检查是否是子树
     if (this.includeChildren) {
-      const parent = this._getParentLocale(locale, tree);
-      return this._matchRecursive(parent, tree);
+      const parent = this._getPrevParentLocale(locale, tree);
+      if (parent) {
+        return this._matchRecursive(parent, tree);
+      }
     }
 
     return false;
   }
 
-  _getParentLocale(locale, tree) {
+  _getPrevParentLocale(locale, tree) {
     const dependencyData = this.dependencyDataByTree[tree];
-    if (dependencyData.parents && locale in dependencyData.parents) {
+    if (!dependencyData) {
+        return null;
+    }
+
+    if (dependencyData.parents && dependencyData.parents[locale]) {
       return dependencyData.parents[locale];
     }
-    if (dependencyData.aliases && locale in dependencyData.aliases) {
+    if (dependencyData.aliases && dependencyData.aliases[locale]) {
       return dependencyData.aliases[locale];
     }
+
     if (LANGUAGE_ONLY_REGEX.test(locale)) {
       return 'root';
     }
-    const lastUnderscore = locale.lastIndexOf('_');
-    if (lastUnderscore < 0) {
-      if (locale === 'root') {
-        return null;
+
+    const idx = locale.lastIndexOf('_');
+    if (idx < 0) {
+      return locale === 'root' ? null : locale;
+    }
+    return locale.slice(0, idx);
+  }
+}
+
+async function applyFilters(requests, config, io) {
+  const fileFilteredRequests = await _applyFileFilters(requests, config, io);
+  const resourceFilteredRequests = await _applyResourceFilters(fileFilteredRequests, config, io);
+  return resourceFilteredRequests;
+}
+
+async function _applyFileFilters(oldRequests, config, io) {
+  const allCategories = [...oldRequests].map(req => req.category);
+  const filters = await _preprocessFileFilters(allCategories, config, io);
+  const newRequests = [];
+
+  for (const request of oldRequests) {
+    const category = request.category;
+    if (category in filters) {
+      newRequests.push(...filters[category].filter(request));
+    } else {
+      newRequests.push(request);
+    }
+  }
+
+  return newRequests;
+}
+
+async function _preprocessFileFilters(allCategories, jsonData, io) {
+  allCategories.sort();
+
+  const filters = {};
+  const defaultFilter = jsonData.strategy === 'additive' ? 'exclude' : 'include';
+
+  for (const category of allCategories) {
+    let filterJson = defaultFilter;
+
+    if (jsonData.featureFilters && category in jsonData.featureFilters) {
+      filterJson = jsonData.featureFilters[category];
+    }
+
+    if (filterJson === 'include' && jsonData.localeFilter && category.endsWith('_tree')) {
+      filterJson = jsonData.localeFilter;
+    }
+
+    if (filterJson === 'exclude') {
+      filters[category] = new ExclusionFilter();
+    } else if (filterJson === 'include') {
+      filters[category] = new InclusionFilter();
+    } else {
+      const filter = Filter.createFromJson(filterJson, io);
+      if (filter) {
+        filters[category] = filter;
       } else {
-        throw new Error(`Invalid locale: ${tree}/${locale}`);
+        console.error(`Error: Invalid filter configuration for category ${category}`);
       }
     }
-    return locale.slice(0, lastUnderscore);
   }
 
-  _localesRequired(tree) {
-    const requiredLocales = [];
-    for (const locale of this.localesRequested) {
-      let currentLocale = locale;
-      while (currentLocale !== null) {
-        requiredLocales.push(currentLocale);
-        currentLocale = this._getParentLocale(currentLocale, tree);
+  if (jsonData.featureFilters) {
+    Object.keys(jsonData.featureFilters).forEach(category => {
+      if (!allCategories.includes(category)) {
+        console.warn(`Warning: category ${category} is not known`);
       }
-    }
-    return requiredLocales;
+    });
   }
+
+  return filters;
 }
 
-function executor({ toolDir = '', removeFile = '', allDatFile = '', outDir = '' }) {
-  let outFile = path.join(outDir, 'icudt72l.dat');
-  let icuTool = path.join(toolDir, 'icupkg');
-  if (toolDir !== 'windows') {
-    // 赋予可执行权限
-    fs.chmodSync(icuTool, 0o755);
-  }
-  // execPath 写入需要执行的命令
-  let execPath = `${icuTool} -r ${removeFile} ${allDatFile} ${outFile}`;
+function removePrefix(filename) {
+  const prefixMap = {
+    "unidata/": "",
+    "mappings/": "",
+    "locales/": "",
+    "brkitr/lstm/": "brkitr/",
+    "sprep/": "",
+    "brkitr/dictionaries/": "brkitr/",
+    "in/": "",
+    "misc/": "",
+  };
 
-  // 执行函数
-  let child = exec(execPath, (error, stdout, stderr) => {
-    if (error) {
-      throw new Error(error);
-    }
+  let result = filename;
+  Object.keys(prefixMap).forEach(p => {
+    result = result.replace(p, prefixMap[p]);
   });
+
+  const idx = result.lastIndexOf('.');
+  result = result.replace(result.slice(idx), ".*");
+  return result;
 }
 
-// 主程序
-(async () => {
-  // 解析命令行参数
+function parseArguments() {
   const args = {};
-
-  // 找到所有以 -- 开头的参数
   for (let i = 2; i < process.argv.length; i++) {
-    if (process.argv[i].startsWith('--')) {
-      const key = process.argv[i].replace('--', '');
-      const value = process.argv[i + 1];
-      args[key] = value;
-      i++; // 跳过下一个值
+    const current = process.argv[i];
+    if (current.startsWith('--')) {
+      const key = current.slice(2); // remove '--'
+      const value = process.argv[i + 1]; // next argument as value
+      args[key] = value || '';
+      i++;
     }
   }
+ 
+  return {
+    resDir: args.res_dir || 'data',
+    datFile: args.dat_file || 'icudt72l.dat',
+    filterFile: args.filter || 'deafault_filter.json',
+    toolDir: args.tool_dir || 'linux',
+    outDir: args.out_dir || 'out',
+  };
+}
 
-  // 检查必要的参数
-  let isValid = args.res_dir && args.dat_file && args.filter && args.tool_dir && args.out_dir;
-  if (!isValid) {
-    throw new Error('Usage: --res_dir <path> --dat_file <path> --filter <path> --tool_dir <path> --out_dir <path>');
+function removePrefix(filename) {
+  const prefixMap = {
+    "unidata/": "",
+    "mappings/": "",
+    "locales/": "",
+    "brkitr/lstm/": "brkitr/",
+    "sprep/": "",
+    "brkitr/dictionaries/": "brkitr/",
+    "in/": "",
+    "misc/": "",
+  };
+ 
+  let result = filename;
+  Object.keys(prefixMap).forEach(p => {
+    result = result.replace(p, prefixMap[p]);
+  });
+ 
+  const idx = result.lastIndexOf('.');
+  if (idx !== -1) {
+    result = result.replace(result.slice(idx), ".*");
+  }
+ 
+  return result;
+}
+
+async function main() {
+  const args = parseArguments();
+  const resDir = args.resDir || '';
+  const datFile = args.datFile || '';
+  const filterFile = args.filterFile || '';
+  const toolDir = args.toolDir || '';
+  const outDir = args.outDir || '';
+
+  let jsonConfig, icuData, io, allCategories, filters, includeList, removeList, finalFilterFile;
+
+  try {
+    if (filterFile === "deafault_filter.json") {
+      finalFilterFile = path.join(resDir, filterFile);
+      jsonConfig = JSON.parse(await fs.promises.readFile(finalFilterFile, 'utf8'));
+    } else {
+      finalFilterFile = path.join(resDir, "filter_pattern.json");
+      let filterPattern = await fs.promises.readFile(finalFilterFile, 'utf8');
+      let locale = await fs.promises.readFile(filterFile, 'utf8');
+      filterPattern = filterPattern.replace(/"replace locale"/g, locale);
+      jsonConfig = JSON.parse(filterPattern);
+    }
+  } catch (err) {
+    console.error(`Error reading filter file: ${err.message}`);
     process.exit(1);
   }
 
-  const toolDir = args.tool_dir;
-  const dataDir = args.res_dir;
-  const filterFile = args.filter;
-  const resListFile = path.join(dataDir, 'res_list.json');
+  try {
+    const icuDataPath = path.join(resDir, 'icudata.json');
+    icuData = JSON.parse(await fs.promises.readFile(icuDataPath, 'utf8'));
+  } catch (err) {
+    console.error(`Error reading icudata.json: ${err.message}`);
+    process.exit(1);
+  }
 
-  // 读取 filter 文件
-  const filterData = JSON.parse(fs.readFileSync(filterFile, 'utf-8'));
+  io = new IO(resDir);
+  allCategories = Object.keys(icuData);
 
-  // 读取 res_list 文件
-  const allResFile = JSON.parse(fs.readFileSync(resListFile, 'utf-8'));
+  try {
+    filters = await _preprocessFileFilters(allCategories, jsonConfig, io);
+  } catch (err) {
+    throw new Error(`Error preprocessing filters: ${err.message}`);
+  }
 
-  // 初始化 IO 和 LocaleFilter
-  const io = new IO(dataDir);
-  const localeFilter = new LocaleFilter(filterData, io);
+  includeList = [];
+  removeList = [];
 
-  // 处理文件列表
-  const deleteFile = [];
+  for (const category of Object.keys(icuData)) {
+    if (!(category in filters)) continue;
 
-  for (const [tree, locales] of Object.entries(allResFile)) {
-    for (const locale of locales) {
-      const file = `${tree}/${locale}`;
-      const resPath = tree !== 'locales' ? `${tree}/${locale.slice(0, -4)}.res` : `${locale.slice(0, -4)}.res`;
-
-      if (!localeFilter.match(file)) {
-        deleteFile.push(resPath);
+    const filter = filters[category];
+    for (const file of icuData[category]) {
+      const isMatch = await filter.match(file);
+      if (isMatch) {
+        includeList.push(file);
+      } else {
+        removeList.push(file);
       }
     }
   }
 
-  try {
-    // 使用 { recursive: true } 参数来递归创建文件夹
-    fs.mkdirSync(args.out_dir, { recursive: true });
-  } catch (err) {
-    // 如果文件夹已存在，捕获异常并忽略
-    if (err.code !== 'EEXIST') {
-      throw new Error(`创建文件夹时出错：${err}`);
-    }
-  }
-  // 写入删除文件
-  const removeFile = path.join(args.out_dir, 'remove.txt');
-  fs.writeFileSync(removeFile, deleteFile.join('\n'), 'utf-8');
+  // 创建输出目录
+  await fs.promises.mkdir(outDir, { recursive: true });
 
-  executor({
-    toolDir: args.tool_dir,
-    removeFile,
-    allDatFile: args.dat_file,
-    outDir: args.out_dir,
+  // 生成 remove.txt
+  const removeFile = path.join(outDir, 'remove.txt');
+  await fs.promises.writeFile(removeFile, removeList.map(removePrefix).join('\n') + '\n');
+
+  // 执行 icupkg 命令
+  let icuToolsPath = path.join(toolDir, 'icupkg');
+  const outFilePath = path.join(outDir, 'icudt72l.dat');
+
+  if (toolDir !== 'windows') {
+    // 赋予可执行权限
+    fs.chmodSync(icuToolsPath, 0o755);
+  } else {
+    icuToolsPath = path.join(toolDir, 'icupkg.exe');
+  }
+
+  const cmd = `${icuToolsPath} -r ${removeFile} ${datFile} ${outFilePath}`;
+
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) {
+      throw new Error(`Error executing icupkg: ${error.message}`);
+    }
   });
-})();
+}
+
+if (require.main === module) {
+  main().catch(err => {
+    console.error(`[ICUData] gen icudt72l.dat failed: ${err}`);
+    process.exit(1);
+  });
+}
