@@ -1,0 +1,8 @@
+{
+    "strategy": "subtractive",
+    "localeFilter" : {
+      "filterType" : "locale",
+      "includeChildren": false,
+      "includelist": "replace locale"
+    }
+  }

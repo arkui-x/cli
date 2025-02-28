@@ -1,0 +1,134 @@
+{
+  "strategy": "additive",
+  "localeFilter": {
+    "filterType": "locale",
+    "includeChildren": false,
+    "includelist": [
+      "root",
+      "en",
+      "en_US",
+      "zh",
+      "zh_CN",
+      "zh_HK",
+      "zh_TW",
+      "zh_Hant",
+      "zh_Hans",
+      "zh_Hant_HK",
+      "zh_Hant_TW",
+      "zh_Hans_CN",
+      "bo",
+      "ug"
+    ]
+  },
+  "featureFilters": {
+    "locales_tree": "include",
+    "normalization": {
+      "whitelist": [
+        "nfkc"
+      ]
+    },
+    "lang_tree": {
+    "whitelist": [
+      "root",
+      "en",
+      "en_US",
+      "zh",
+      "zh_CN",
+      "zh_HK",
+      "zh_TW",
+      "zh_Hant",
+      "zh_Hans",
+      "zh_Hant_HK",
+      "zh_Hant_TW",
+      "zh_Hans_CN",
+      "bo",
+      "ug"
+    ]
+    },
+    "unit_tree": {
+      "whitelist": [
+        "root",
+        "en",
+        "zh"
+      ]
+    },
+    "brkitr_dictionaries": "include",
+    "brkitr_rules": "include",
+    "brkitr_tree": {
+      "whitelist": [
+        "root"
+      ]
+    },
+    "uemoji": "include",
+    "cnvalias": "include",
+    "ulayout": "include",
+    "zone_supplemental": "include",
+    "rbnf_tree": {
+    "whitelist": [
+      "root",
+      "en",
+      "en_US",
+      "zh",
+      "zh_CN",
+      "zh_HK",
+      "zh_TW",
+      "zh_Hant",
+      "zh_Hans",
+      "zh_Hant_HK",
+      "zh_Hant_TW",
+      "zh_Hans_CN",
+      "bo",
+      "ug",
+      "yue"
+    ]
+    },
+    "misc": {
+      "whitelist": [
+        "icustd",
+        "likelySubtags",
+        "icuver",
+        "supplementalData",
+        "numberingSystems",
+        "keyTypeData",
+        "pluralRanges",
+        "plurals"
+      ]
+    },
+    "zone_tree": {
+    "whitelist": [
+      "root",
+      "en",
+      "en_US",
+      "zh",
+      "zh_CN",
+      "zh_HK",
+      "zh_TW",
+      "zh_Hant",
+      "zh_Hans",
+      "zh_Hant_HK",
+      "zh_Hant_TW",
+      "zh_Hans_CN",
+      "bo",
+      "ug"
+    ]
+    },
+    "curr_tree": {
+    "whitelist": [
+      "root",
+      "en",
+      "en_US",
+      "zh",
+      "zh_CN",
+      "zh_HK",
+      "zh_TW",
+      "zh_Hant",
+      "zh_Hans",
+      "zh_Hant_HK",
+      "zh_Hant_TW",
+      "zh_Hans_CN",
+      "bo",
+      "ug"
+    ]
+    }
+  }
+}
