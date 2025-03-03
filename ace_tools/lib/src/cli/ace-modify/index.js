@@ -331,7 +331,7 @@ function addUrlInIosPlist() {
     infoPlist.CFBundleURLTypes[0].CFBundleURLSchemes = ['com.example.myapplication'];
   } else {
     infoPlist.CFBundleURLTypes.push({
-      CFBundleURLSchemes: ['com.example.myapplication']
+      CFBundleURLSchemes: ['com.example.myapplication'],
     });
   }
   const updatedInfoPlistContent = plist.build(infoPlist);
@@ -415,12 +415,12 @@ function modifyProject() {
   } else {
     let entryModuleString = `(`;
     for (const entryModuleNow of entryTypeArray) {
-      entryModuleString = entryModuleString + `${entryModuleNow}`;
+      entryModuleString = `${entryModuleString}${entryModuleNow}`;
       if (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) {
-        entryModuleString = entryModuleString + ' ';
+        entryModuleString = `${entryModuleString} `;
       }
     }
-    entryModuleString = entryModuleString + `)`;
+    entryModuleString = `${entryModuleString})`;
     inquirer.prompt([{
       name: 'repair',
       type: 'input',
@@ -431,7 +431,7 @@ function modifyProject() {
         } else {
           return `please enter one of ${entryModuleString}:`;
         }
-      }
+      },
     }]).then(answersModules => {
       const modifyModulesArray = [];
       const modifyModulesTypeArray = [];
@@ -503,12 +503,12 @@ function modifyModules(modules) {
   } else {
     let entryModuleString = `(`;
     for (const entryModuleNow of entryTypeArray) {
-      entryModuleString = entryModuleString + `${entryModuleNow}`;
+      entryModuleString = `${entryModuleString}${entryModuleNow}`;
       if (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) {
-        entryModuleString = entryModuleString + ' ';
+        entryModuleString = `${entryModuleString} `;
       }
     }
-    entryModuleString = entryModuleString + `)`;
+    entryModuleString = `${entryModuleString})`;
     inquirer.prompt([{
       name: 'repair',
       type: 'input',
@@ -519,7 +519,7 @@ function modifyModules(modules) {
         } else {
           return `please enter one of ${entryModuleString}:`;
         }
-      }
+      },
     }]).then(answersModules => {
       const modifyModulesArray = [];
       const modifyModulesTypeArray = [];
