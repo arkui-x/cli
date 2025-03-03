@@ -703,7 +703,7 @@ function replaceInfo(files, replaceInfos, strs) {
     const lines = data.split('\n');
     for (let j = 0; j < lines.length; j++) {
       if (lines[j].includes(replaceInfos[i])) {
-        const newLine = lines[j].replace(replaceInfos[i], strs[i]);
+        const newLine = lines[j].replaceAll(replaceInfos[i], strs[i]);
         lines[j] = newLine;
       }
     }

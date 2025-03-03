@@ -104,7 +104,7 @@ function createStageInAndroid(moduleName, templateDir, moduleType) {
     fs.writeFileSync(destFilePath,
       fs.readFileSync(destFilePath).toString().replace(new RegExp('ArkUIInstanceName', 'g'), packageName + ':'
         + moduleName + ':' + capitalize(moduleName) + 'Ability:'));
-    if (isAppProject(projectDir) && fs.existsSync(path.join(dest, 'EntryEntryAbilityActivity.java'))) {
+    if (isAppProject(projectDir)) {
       const createActivityXmlInfo =
         '    <activity \n' +
         '            android:name=".' + destClassName + '"\n' +
@@ -329,9 +329,9 @@ function createStageInIOS(moduleName, templateDir, moduleType) {
       }
       const curManifestXmlInfo = fs.readFileSync(delegateFile).toString();
       const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-      const insertImportIndex = curManifestXmlInfo.lastIndexOf('#import "EntryEntryAbilityViewController.h"');
+      const insertImportIndex = curManifestXmlInfo.lastIndexOf('AbilityViewController.h"') + 24;
       const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
-        '#import "' + destClassName + '.h"\n' +
+        '\n#import "' + destClassName + '.h"' +
         curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
         createViewControlInfo + curManifestXmlInfo.slice(insertIndex + 26);
       fs.writeFileSync(delegateFile, updateManifestXmlInfo);
@@ -768,4 +768,6 @@ module.exports = {
   createModule,
   updateCrossPlatformModules,
   repairModule,
+  createStageInIOS,
+  createStageInAndroid,
 };

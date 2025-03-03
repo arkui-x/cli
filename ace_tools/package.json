@@ -16,7 +16,8 @@
         "commander": "^11.0.0",
         "ejs": "^3.1.9",
         "express": "^4.18.2",
-        "inquirer": "^8.2.6"
+        "inquirer": "^8.2.6",
+        "plist": "^3.0.4"
     },
     "devDependencies": {
         "@babel/core": "7.20.12",
