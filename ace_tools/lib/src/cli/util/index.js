@@ -430,8 +430,21 @@ function getSdkVersionMap() {
     ['11',new Map([['compileSdkVersion','4.1.0(11)'],['compatibleSdkVersion','4.1.0(11)'],['modelVersion','4.1.0'],['runtimeOS','HarmonyOS']])],
     ['12',new Map([['compileSdkVersion','5.0.0(12)'],['compatibleSdkVersion','5.0.0(12)'],['modelVersion','5.0.0'],['runtimeOS','HarmonyOS']])],
     ['13',new Map([['compileSdkVersion','5.0.1(13)'],['compatibleSdkVersion','5.0.1(13)'],['modelVersion','5.0.1'],['runtimeOS','HarmonyOS']])],
+    ['14',new Map([['compileSdkVersion','5.0.2(14)'],['compatibleSdkVersion','5.0.2(14)'],['modelVersion','5.0.2'],['runtimeOS','HarmonyOS']])],
   ])
   return sdkVersionMap;
+}
+
+function getSdkVersionWithModelVersion(modelVersion) {
+  const sdkVersionMap = getSdkVersionMap();
+  let sdkVersion = '';
+  sdkVersionMap.forEach((value, key) => {
+    const lModelVersion = value.get('modelVersion');
+    if (lModelVersion === modelVersion) {
+      sdkVersion = key;
+    }
+  });
+  return sdkVersion;
 }
 
 function getShowSdkVersion() {
@@ -500,6 +513,7 @@ function getModelVersionWithSdkVersion(sdkVersion) {
 
 function getSdkVersion(projectDir) {
   const buildProfilePath = path.join(projectDir, 'build-profile.json5');
+  const hvigorfilePath = path.join(projectDir, '/hvigor/hvigor-config.json5');
   const integrateFilePath = path.join(projectDir, '.hvigor/cache/meta.json');
   if (fs.existsSync(buildProfilePath)) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfilePath).toString());
@@ -509,9 +523,14 @@ function getSdkVersion(projectDir) {
     if ('compileSdkVersion' in buildProfileInfo.app.products[0]) {
       return getSdkVersionWithCompileSdkVersion(buildProfileInfo.app.products[0].compileSdkVersion);
     } else {
-      if (fs.existsSync(integrateFilePath)) {
-        const intergrateInfo = JSON5.parse(fs.readFileSync(integrateFilePath).toString());
-        return getSdkVersionWithCompileSdkVersion(intergrateInfo.compileSdkVersion);;
+      const hvigorfileInfo = JSON5.parse(fs.readFileSync(hvigorfilePath).toString());
+      if (hvigorfileInfo.modelVersion) {
+        return getSdkVersionWithModelVersion(hvigorfileInfo.modelVersion);
+      } else {
+        if (fs.existsSync(integrateFilePath)) {
+          const intergrateInfo = JSON5.parse(fs.readFileSync(integrateFilePath).toString());
+          return getSdkVersionWithCompileSdkVersion(intergrateInfo.compileSdkVersion);
+        }
       }
     }
   } else {
@@ -675,6 +694,24 @@ function setDevEcoSdkInEnv(DevEcoDir) {
   }
 }
 
+function replaceInfo(files, replaceInfos, strs) {
+  for (let i = 0; i < files.length; i++) {
+    const data = fs.readFileSync(files[i], 'utf8');
+    if (data === undefined) {
+      return;
+    }
+    const lines = data.split('\n');
+    for (let j = 0; j < lines.length; j++) {
+      if (lines[j].includes(replaceInfos[i])) {
+        const newLine = lines[j].replace(replaceInfos[i], strs[i]);
+        lines[j] = newLine;
+      }
+    }
+    const newData = lines.join('\n');
+    fs.writeFileSync(files[i], newData, 'utf8');
+  }
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -708,5 +745,7 @@ module.exports = {
   getCompileSdkVersionWithSdkVersion,
   getCompatibleSdkVersionWithSdkVersion,
   getRuntimeOSWithSdkVersion,
-  getModelVersionWithSdkVersion
+  getModelVersionWithSdkVersion,
+  getSdkVersionWithModelVersion,
+  replaceInfo
 };
