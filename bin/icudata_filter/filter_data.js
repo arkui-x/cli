@@ -411,6 +411,7 @@ function parseArguments() {
     resDir: args.res_dir || 'data',
     datFile: args.dat_file || 'icudt72l.dat',
     filterFile: args.filter || 'deafault_filter.json',
+    module: args.module || 'deafault',
     toolDir: args.tool_dir || 'linux',
     outDir: args.out_dir || 'out',
   };
@@ -446,17 +447,26 @@ async function main() {
   const resDir = args.resDir || '';
   const datFile = args.datFile || '';
   const filterFile = args.filterFile || '';
+  const module = args.module || '';
   const toolDir = args.toolDir || '';
   const outDir = args.outDir || '';
 
   let jsonConfig, icuData, io, allCategories, filters, includeList, removeList, finalFilterFile;
 
   try {
-    if (filterFile === "deafault_filter.json") {
-      finalFilterFile = path.join(resDir, filterFile);
+    if (filterFile === `deafault_filter.json` || module === `deafault`) {
+      finalFilterFile = path.join(resDir, `deafault_filter.json`);
       jsonConfig = JSON.parse(await fs.promises.readFile(finalFilterFile, 'utf8'));
     } else {
-      finalFilterFile = path.join(resDir, "filter_pattern.json");
+      if (module === 'intl') {
+        finalFilterFile = path.join(resDir, `intl_filter_pattern.json`);
+      } else if (module === 'i18n') {
+        finalFilterFile = path.join(resDir, `i18n_filter_pattern.json`);
+      } else if (module === 'both') {
+        finalFilterFile = path.join(resDir, `filter_pattern.json`);
+      } else {
+        throw new Error(`param --module should be intl/i18n/both.`);
+      }
       let filterPattern = await fs.promises.readFile(finalFilterFile, 'utf8');
       let locale = await fs.promises.readFile(filterFile, 'utf8');
       filterPattern = filterPattern.replace(/"replace locale"/g, locale);
@@ -512,7 +522,7 @@ async function main() {
   let icuToolsPath = path.join(toolDir, 'icupkg');
   const outFilePath = path.join(outDir, 'icudt72l.dat');
 
-  if (toolDir !== 'windows') {
+  if (os.type() !== 'Windows_NT') {
     // 赋予可执行权限
     fs.chmodSync(icuToolsPath, 0o755);
   } else {
