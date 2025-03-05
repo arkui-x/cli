@@ -16,6 +16,7 @@
 const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
+const { commandLineToolsDir, devEcoStudioDir } = require('../ace-check/configs');
 const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfo } = require('../util/index');
 const { Platform, platform } = require('../ace-check/platform');
 const inquirer = require('inquirer');
@@ -126,11 +127,11 @@ function getProjectModelVersion() {
 }
 
 function getDevVersion() {
-  const config = getConfig();
-  const devDir = config['deveco-studio-path'];
-  let devSdkPath = `${devDir}/Contents/sdk/default/sdk-pkg.json`;
-  if (platform !== Platform.MacOS) {
-    devSdkPath = `${devDir}\\sdk\\default\\sdk-pkg.json`;
+  let devSdkPath = `${devEcoStudioDir}/Contents/sdk/default/sdk-pkg.json`;
+  if (platform === Platform.Windows) {
+    devSdkPath = `${devEcoStudioDir}\\sdk\\default\\sdk-pkg.json`;
+  } else if (platform === Platform.Linux) {
+    devSdkPath = `${commandLineToolsDir}/sdk/default/sdk-pkg.json`;
   }
   const data = fs.readFileSync(devSdkPath, 'utf8');
   const jsonObj = JSON5.parse(data);

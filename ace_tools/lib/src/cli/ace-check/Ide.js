@@ -19,7 +19,7 @@ const Process = require('child_process');
 
 const { Platform, platform, homeDir } = require('./platform');
 const { getConfig, modifyConfigPath } = require('../ace-config');
-const { typeStudioPathCheck } = require('./checkPathLawful');
+const { typeStudioPathCheck, typeCommandLineToolsPathCheck } = require('./checkPathLawful');
 const { cmpVersion } = require('./util');
 
 const environment = process.env;
@@ -58,6 +58,14 @@ class Ide {
     if (ideHomeDir) {
       return ideHomeDir;
     }
+  }
+
+  locateCommandLineTools() {
+    const config = this.checkConfig();
+    if (config && typeCommandLineToolsPathCheck(config)) {
+      return config;
+    }
+    return '';
   }
 
   getDefaultPath() {
@@ -303,8 +311,17 @@ const androidStudio = new Ide(
   'androidstudio'
 );
 
+const commandLineTools = new Ide(
+  'Command Line Tools',
+  [],
+  [],
+  [],
+  'commandlinetools'
+);
+
 module.exports = {
   devEcoStudio,
   androidStudio,
+  commandLineTools,
   readIdeXmlPath,
 };
