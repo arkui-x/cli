@@ -3,7 +3,7 @@
 ## 简介
 ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工具，支持在Windows/Ubuntu/macOS平台运行，用于构建OpenHarmony/HarmonyOS、Android和iOS平台的应用程序，其功能包括开发环境检查，新建项目，编译打包，安装调试等。
 
-如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
+如需搭建安装ACE Tools的运行环境请参考：[ACE Tools快速指南](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md)。
 
 **注释：** ACE - ArkUI跨平台运行环境 (ArkUI Cross-platform Environment)。
 
@@ -14,7 +14,7 @@ ACE Tools是一套为ArkUI-X项目跨平台应用开发者提供的命令行工�
 命令行各平台使用不同脚本文件做为入口，再通过Node.js执行到ace_tools.js文件，使用npm模块commander解析命令行执行各子模块导出的方法。
 
 ## 目录结构
-ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https://gitee.com/arkui-x/docs/blob/master/zh-cn/framework-dev/quick-start/project-structure-guide.md) , ACE Tools工具链的代码在//developtools/ace_tools下，目录结构如下图所示：
+ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/framework-dev/quick-start/project-structure-guide.md) , ACE Tools工具链的代码在//developtools/ace_tools下，目录结构如下图所示：
 
 ```
 /developtools/ace_tools
@@ -87,7 +87,7 @@ ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk
 Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
 ```
 
-配置ACE工具链相关环境时，参见[路径合法性判断说明](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-ace-config.md)。
+配置ACE工具链相关环境时，参见[路径合法性判断说明](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-ace-config.md)。
 
 ### ace check
 
@@ -364,7 +364,7 @@ ace build <subCommand> [arguments]
 | --target [moduleName]          | hap、hsp                                                    | 指定目标模块名进行构建。                     |
 | --target-platform \<platform\> | apk、aab、aar、bundle                                        | 编译apk的目标平台[arm, arm64, x86_64]        |
 | -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
-| --analyze                 	     | hap、apk、ios                          						| 通过rom size工具对打出的包进行包体积解析；[rom size工具使用方法](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-rom-size.md)。             |
+| --analyze                 	     | hap、apk、ios                          						| 通过rom size工具对打出的包进行包体积解析；[rom size工具使用方法](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-rom-size.md)。             |
 | --aot                          | apk、aab                                                     | AOT编译打包构建。                            |
 | -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
 
@@ -561,7 +561,7 @@ ace test 先检查设备是否连接，确定设备类型，然后执行跨平�
 
 在Windows平台上可以构建安装并测试Apk，在Linux平台上可以构建安装并测试Apk，在Mac平台上可以构建安装并测试Apk和App，暂时不支持iOS模拟器上的单元测试。
 
-相关说明参见 [xts](https://gitee.com/arkui-x/xts)
+相关说明参见 [xts](https://gitcode.com/arkui-x/xts)
 
 语法：
 
