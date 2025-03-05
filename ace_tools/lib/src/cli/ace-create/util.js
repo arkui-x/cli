@@ -22,7 +22,7 @@ const {
   Platform,
   platform,
 } = require('../ace-check/platform');
-const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion} = require('../util');
+const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion, getArkuixPluginWithModelVersion} = require('../util');
 
 function replaceInfo(files, replaceInfos, strs) {
   files.forEach((filePath, index) => {
@@ -106,7 +106,7 @@ function modifyHvigorJson(projectPath, sdkVersion) {
     const hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
     delete hvigorversionInfo.hvigorVersion;
     delete hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'];
-    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = '4.2.3';
+    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = getArkuixPluginWithModelVersion(hvigorversionInfo.modelVersion);
     fs.writeFileSync(hvigorfile, JSON.stringify(hvigorversionInfo, '', '  '));
     const hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
     let nowModelVersion = getModelVersionWithSdkVersion(sdkVersion);

@@ -15,10 +15,10 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const { replaceInfo } = require('../util/index');
-const inquirer = require('inquirer');
-const { createStageInIOS, createStageInAndroid } = require('../ace-create/module/index');
 const plist = require('plist');
+const inquirer = require('inquirer');
+const { replaceInfo, getArkuixPluginWithModelVersion } = require('../util/index');
+const { createStageInIOS, createStageInAndroid } = require('../ace-create/module/index');
 
 function modifyCopyFileSync(source, destination) {
   fs.copyFileSync(source, destination);
@@ -198,7 +198,7 @@ function modifyCrossModule(moduleName, appName) {
   fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.h', `./.arkui-x/ios/app/${nowName}ViewController.h`);
 }
 
-function modifyModuleHvigorInfo(moduleName) {
+function modifyModuleHvigorInfo(moduleName, moduleType) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
@@ -207,8 +207,16 @@ function modifyModuleHvigorInfo(moduleName) {
   replaceInfos.push('@ohos/hvigor-ohos-plugin');
   strs.push('@ohos/hvigor-ohos-arkui-x-plugin');
   files.push(`${modulePath}/hvigorfile.ts`);
-  replaceInfos.push('hapTasks');
-  strs.push('HapTasks');
+  if (moduleType === 'entry' || moduleType === 'feature') {
+    replaceInfos.push('hapTasks');
+    strs.push('HapTasks');
+  } else if (moduleType === 'shared') {
+    replaceInfos.push('hspTasks');
+    strs.push('HspTasks');
+  } else {
+    replaceInfos.push('');
+    strs.push('');
+  }
   replaceInfo(files, replaceInfos, strs);
 }
 
@@ -227,7 +235,7 @@ function modifyProjectHvigorInfo() {
   const data = fs.readFileSync(hvigorConfigPath, 'utf8');
   const jsonObj = JSON5.parse(data);
   if (!('@ohos/hvigor-ohos-arkui-x-plugin' in jsonObj.dependencies)) {
-    jsonObj.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = '3.1.1';
+    jsonObj.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = getArkuixPluginWithModelVersion(jsonObj.modelVersion);
   }
   const newJsonString = JSON5.stringify(jsonObj);
   fs.writeFileSync(hvigorConfigPath, newJsonString, 'utf8');
@@ -289,24 +297,11 @@ function checkProblem() {
   }
 }
 
-function modifyHspHvigor(moduleName) {
-  const files = [];
-  const replaceInfos = [];
-  const strs = [];
-  const modulePath = getModulePath(moduleName);
-  files.push(`${modulePath}/hvigorfile.ts`);
-  replaceInfos.push('@ohos/hvigor-ohos-plugin');
-  strs.push('@ohos/hvigor-ohos-arkui-x-plugin');
-  files.push(`${modulePath}/hvigorfile.ts`);
-  replaceInfos.push('hspTasks');
-  strs.push('HspTasks');
-  replaceInfo(files, replaceInfos, strs);
-}
-
 function addModuleInArkuixConfig(hspModule) {
   const akruixConfigPath = './.arkui-x/arkui-x-config.json5';
   if (!fs.existsSync(akruixConfigPath)) {
     console.log(`error: The project does not contain the .arkui-x/arkui-x-config.json5 file. please modify an entry/feature type module as the cross-platform entry!`);
+    return;
   }
   const data = fs.readFileSync(akruixConfigPath, 'utf8');
   const jsonObj = JSON5.parse(data);
@@ -321,6 +316,7 @@ function addUrlInIosPlist() {
   const infoPlistPath = './.arkui-x/ios/app/Info.plist';
   const infoPlistContent = fs.readFileSync(infoPlistPath, 'utf8');
   const infoPlist = plist.parse(infoPlistContent);
+  const bundleName = getAppName();
   if (!infoPlist.CFBundleURLTypes) {
     infoPlist.CFBundleURLTypes = [];
   }
@@ -328,10 +324,10 @@ function addUrlInIosPlist() {
     if (!infoPlist.CFBundleURLTypes[0].CFBundleURLSchemes) {
       infoPlist.CFBundleURLTypes[0].CFBundleURLSchemes = [];
     }
-    infoPlist.CFBundleURLTypes[0].CFBundleURLSchemes = ['com.example.myapplication'];
+    infoPlist.CFBundleURLTypes[0].CFBundleURLSchemes = [bundleName];
   } else {
     infoPlist.CFBundleURLTypes.push({
-      CFBundleURLSchemes: ['com.example.myapplication'],
+      CFBundleURLSchemes: [bundleName],
     });
   }
   const updatedInfoPlistContent = plist.build(infoPlist);
@@ -349,7 +345,7 @@ function modifyEntryModule(moduleName) {
   replaceiOSProjectInfo(appName);
   modifyCrossModule(moduleName, appName);
   modifyProjectHvigorInfo();
-  modifyModuleHvigorInfo(moduleName);
+  modifyModuleHvigorInfo(moduleName, 'entry');
   modifyDirStructure(appName);
 }
 
@@ -361,7 +357,7 @@ function modifyFeatureModule(moduleName) {
   createStageInIOS(moduleName, templateDir, 'feature');
   addUrlInIosPlist();
   createStageInAndroid(moduleName, templateDir, 'feature');
-  modifyModuleHvigorInfo(moduleName);
+  modifyModuleHvigorInfo(moduleName, 'feature');
 }
 
 function copyAndroidiOSTemplate(moduleName, type) {
@@ -374,7 +370,7 @@ function copyAndroidiOSTemplate(moduleName, type) {
       modifyEntryModule(moduleName);
     }
   } else if (type === 'shared') {
-    modifyHspHvigor(moduleName);
+    modifyModuleHvigorInfo(moduleName, 'shared');
   } else if (type === 'har') {
     return true;
   } else {

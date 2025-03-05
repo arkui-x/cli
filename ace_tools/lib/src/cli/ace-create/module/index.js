@@ -22,6 +22,7 @@ const { getSdkVersion } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability');
 const { getModuleList, getCurrentProjectSystem, getModuleType, addFileToPbxproj,
   isAppProject, getIosProjectName } = require('../../util');
+const searchOffset = 24; // 'AbilityViewController.h"' string length is 24
 
 let projectDir = process.cwd();
 let currentSystem;
@@ -329,7 +330,7 @@ function createStageInIOS(moduleName, templateDir, moduleType) {
       }
       const curManifestXmlInfo = fs.readFileSync(delegateFile).toString();
       const insertIndex = curManifestXmlInfo.lastIndexOf('} // other ViewController');
-      const insertImportIndex = curManifestXmlInfo.lastIndexOf('AbilityViewController.h"') + 24;
+      const insertImportIndex = curManifestXmlInfo.lastIndexOf('AbilityViewController.h"') + searchOffset;
       const updateManifestXmlInfo = curManifestXmlInfo.slice(0, insertImportIndex) +
         '\n#import "' + destClassName + '.h"' +
         curManifestXmlInfo.slice(insertImportIndex, insertIndex) +
