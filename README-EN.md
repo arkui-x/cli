@@ -3,7 +3,7 @@
 ## Introduction
 ACE Tools is a command line (CLI) tool that allows ArkUI-X project developers to build applications on the OpenHarmony, Android, and iOS platforms. Its functions include development environment check, project creation, building and packaging, and installation and debugging.
 
-For details about setting up an environment for using ACE Tools，see [ACE Tools Quick Guide](https://gitee.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md).
+For details about setting up an environment for using ACE Tools，see [ACE Tools Quick Guide](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-ace-tools.md).
 
 ACE stands for Ability Cross-platform Environment. It is a cross-platform programming framework dedicated to OpenHarmony.
 
@@ -14,7 +14,7 @@ ACE stands for Ability Cross-platform Environment. It is a cross-platform progra
 The script file used as the tool entry varies depending on the platform. Use the appropriate script file to launch the tool. Then, run **ace_tools.js** through Node.js, and use the commander module of npm to parse the commands and execute the exported methods of each sub-module.
 
 ## Directory Structure
-For details about the source code structure of the ArkUI-X project, see [ArkUI-X Project Structure](https://gitee.com/arkui-x/docs/blob/master/en/framework-dev/quick-start/project-structure-guide.md). The code of the ACE Tools is available at **//developtools/ace_tools**. The directory structure is as follows:
+For details about the source code structure of the ArkUI-X project, see [ArkUI-X Project Structure](https://gitcode.com/arkui-x/docs/blob/master/en/framework-dev/quick-start/project-structure-guide.md). The code of the ACE Tools is available at **//developtools/ace_tools**. The directory structure is as follows:
 
 ```
 /developtools/ace_tools/cli
