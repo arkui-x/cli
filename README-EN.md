@@ -63,6 +63,11 @@ ace config [options] <path>
 | --deveco-studio-path | DevEco Studio installation directory (optional).|
 | --android-studio-path | Android Studio installation directory (optional).|
 | --java-sdk | JDK directory.|
+| --nodejs-dir  | Node.js directory。        |
+| --ohpm-dir  | Ohpm directory。 |
+| --openharmony-sdk | OpenHarmony SDK directory。 |
+| --source-dir | ArkUI-X code directory。 |
+| --command-line-tools-path | Command Line Tools directory（only linux） |
 
 For example, using ace config to configure the OpenHarmony SDK path:
 ```shell
@@ -84,15 +89,23 @@ The following table lists the check items.
 
 | Item        | Description                        | Windows | Linux | Mac  |
 | ---------------- | ---------------------------- | ------- | ----- | ---- |
-| Node.js           | Node.js directory.                 | Yes     | Yes   | Yes  |
-| OpenHarmony SDK  | OpenHarmony SDK directory.         | Yes     | Yes   | Yes  |
+| adb | Android debug tool | Yes | Yes | Yes |
 | Android SDK      | Android SDK directory.             | Yes     | Yes   | Yes  |
-| DevEco Studio    | DevEco Studio installation directory.       | Yes     | No   | Yes  |
 | Android Studio   | Android Studio installation directory.      | Yes     | Yes   | Yes  |
-| Connected device        | All currently connected devices.          | Yes     | Yes   | Yes  |
-| Xcode            | Xcode version.           | No     | No   | Yes  |
-| libimobiledevice | libimobiledevice version.| No     | No   | Yes  |
+| ArkUI-X SDK      | ArkUI-X SDK directory             | Yes      | Yes     | Yes |
+| ArkUI-X source   | ArkUI-X code directory              | Yes      | Yes    | Yes |
+| DevEco Studio    | DevEco Studio installation directory.       | Yes     | No   | Yes  |
+| Command Line Tools    | Command Line Tools directory        | No      | Yes    | No   |
+| HarmonyOS hdc | HarmonyOS device debug tool | Yes | Yes | Yes |
+| HarmonyOS SDK    | HarmonyOS SDK directory          | Yes      | Yes    | Yes   |
 | ios-deploy       | ios-deploy version.      | No     | No   | Yes  |
+| libimobiledevice | libimobiledevice version.| No     | No   | Yes  |
+| Node.js           | Node.js directory.                 | Yes     | Yes   | Yes  |
+| Ohpm            | Ohpm directory                   | Yes      | Yes     | Yes |
+| OpenHarmony SDK  | OpenHarmony SDK directory.         | Yes     | Yes   | Yes  |
+| OpenHarmony hdc | OpenHarmony debug tool | Yes | Yes | Yes |
+| Xcode            | Xcode version.           | No     | No   | Yes  |
+| Connected device        | All currently connected devices.          | Yes     | Yes   | Yes  |
 
 Syntax:
 
@@ -125,6 +138,38 @@ Tools info :[×] hdc is not installed [√] adb installed [√] ios-deploy insta
   • iOS Devices	[....] Found 00008020-001C0D92146A002E (N841AP, iPhone XR, iphoneos, arm64e, 15.0, 19A346) a.k.a. 'iPhone Xr 15.0' connected through USB.
 
   √ Ace-check found no issues.
+
+ohos@user:~$ ace check -v
+[√] ArkUI-X (ArkUI-X SDK version 5.0.2.58)
+  • ArkUI-X SDK at /home/user/Arkui-x/SDK
+  • Node.js (v16.20.1) Runtime Environment at /home/user/cli/cli/bin/node
+[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 5.0.2.123)
+  • OpenHarmony SDK at /home/user/OpenHarmony/Sdk
+  • Ohpm at /home/user/command-line-tools
+  • Java SDK at /home/user/JDK/jdk-17.0.6/
+  • Java(TM) SE Runtime Environment (build 17.0.6+9-LTS-190)
+[√] HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version 5.0.2)
+  • HarmonyOS SDK at /home/user/command-line-tools/sdk
+  • Ohpm at /home/user/command-line-tools
+  • Java SDK at /home/user/JDK/jdk-17.0.6/
+  • Java(TM) SE Runtime Environment (build 17.0.6+9-LTS-190)
+[√] Android toolchains - develop for Android devices (Android SDK version 30.0.3)
+  • Android SDK at /home/user/Android/Sdk
+  • Java SDK at /home/user/AndroidStudio/android-studio/jbr
+  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
+[√] Command Line Tools
+  • Command Line Tools at /home/user/command-line-tools
+[√] Android Studio (version AI-223.8836.35.2231.11005911)
+  • Android Studio at /home/user/AndroidStudio/android-studio
+  • Java SDK at /home/user/AndroidStudio/android-studio/jbr
+  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
+Tools info :[√] OpenHarmony hdc installed
+            [√] HarmonyOS hdc installed
+            [√] adb installed
+
+[!] No connected device
+
+  ! ACE Tools found issues in 1 category.
 ```
 
 ### ace devices

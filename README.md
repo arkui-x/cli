@@ -74,6 +74,7 @@ ace config [arguments]
 | --ohpm-dir  | Ohpm路径。 |
 | --openharmony-sdk | OpenHarmony SDK路径。 |
 | --source-dir | ArkUI-X源码路径。 |
+| --command-line-tools-path | Command Line Tools工具路径（仅linux系统下可设置） |
 
 例如使用ace config配置OpenHarmony SDK路径：
 ```shell
@@ -103,6 +104,7 @@ Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
 | ArkUI-X SDK      | ArkUI-X SDK路径             | 是      | 是     | 是 |
 | ArkUI-X source   | ArkUI-X源码路径              | 是      | 是    | 是 |
 | DevEco Studio    | DevEco Studio安装路径        | 是      | 否    | 是   |
+| Command Line Tools    | Command Line Tools工具路径        | 否      | 是    | 否   |
 | HarmonyOS hdc | HarmonyOS设备调试工具 | 是 | 是 | 是 |
 | HarmonyOS SDK    | HarmonyOS SDK路径          | 是      | 是    | 是   |
 | ios-deploy       | 当前ios-deploy的版本号       | 否      | 否    | 是   |
@@ -190,6 +192,38 @@ Tools info :[√] OpenHarmony hdc installed
   •  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 
   √ ACE Tools found no issues.
+
+ohos@user:~$ ace check -v
+[√] ArkUI-X (ArkUI-X SDK version 5.0.2.58)
+  • ArkUI-X SDK at /home/user/Arkui-x/SDK
+  • Node.js (v16.20.1) Runtime Environment at /home/user/cli/cli/bin/node
+[√] OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version 5.0.2.123)
+  • OpenHarmony SDK at /home/user/OpenHarmony/Sdk
+  • Ohpm at /home/user/command-line-tools
+  • Java SDK at /home/user/JDK/jdk-17.0.6/
+  • Java(TM) SE Runtime Environment (build 17.0.6+9-LTS-190)
+[√] HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version 5.0.2)
+  • HarmonyOS SDK at /home/user/command-line-tools/sdk
+  • Ohpm at /home/user/command-line-tools
+  • Java SDK at /home/user/JDK/jdk-17.0.6/
+  • Java(TM) SE Runtime Environment (build 17.0.6+9-LTS-190)
+[√] Android toolchains - develop for Android devices (Android SDK version 30.0.3)
+  • Android SDK at /home/user/Android/Sdk
+  • Java SDK at /home/user/AndroidStudio/android-studio/jbr
+  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
+[√] Command Line Tools
+  • Command Line Tools at /home/user/command-line-tools
+[√] Android Studio (version AI-223.8836.35.2231.11005911)
+  • Android Studio at /home/user/AndroidStudio/android-studio
+  • Java SDK at /home/user/AndroidStudio/android-studio/jbr
+  • OpenJDK Runtime Environment (build 17.0.6+0-17.0.6b829.9-10027231)
+Tools info :[√] OpenHarmony hdc installed
+            [√] HarmonyOS hdc installed
+            [√] adb installed
+
+[!] No connected device
+
+  ! ACE Tools found issues in 1 category.
 
 ```
 

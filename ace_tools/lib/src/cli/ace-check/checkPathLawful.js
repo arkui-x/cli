@@ -39,6 +39,9 @@ function checkPath(configType, configPath) {
   if (configType === 'source-dir') {
     isValid = sourceDirPathCheck(configPath, info);
   }
+  if (configType === 'command-line-tools-path') {
+    isValid = typeCommandLineToolsPathCheck(configPath, info);
+  }
   const logType = '\x1b[31m%s\x1b[0m';
   const logStr = 'Error: ';
   info.forEach((key) => {
@@ -196,6 +199,36 @@ function validSdkDir(typeSdkDir, sdkType, info) {
     !fs.statSync(path.join(typeSdkDir, 'licenses')).isDirectory()) {
     if (info) {
       info.push(`Licenses of ${sdkType} SDK is missing.`);
+    }
+    return false;
+  }
+  return true;
+}
+
+function typeCommandLineToolsPathCheck(typestudioDir, info) {
+  const typestudio = 'Command Line Tools';
+  if (platform !== Platform.Linux) {
+    if (info) {
+      info.push(`The ${typestudio} path can be set only in the Linux system`);
+    }
+    return false;
+  }
+  if (!fs.existsSync(typestudioDir)) {
+    if (info) {
+      info.push(`The ${typestudio} path you configured "${typestudioDir}" does not exist`);
+    }
+    return false;
+  }
+  if (!fs.statSync(typestudioDir).isDirectory()) {
+    if (info) {
+      info.push(`The ${typestudio} path you configured "${typestudioDir}" is wrong`);
+    }
+    return false;
+  }
+  let devecostudioPlatformDir = path.join(typestudioDir, 'bin/hvigorw');
+  if (!fs.existsSync(devecostudioPlatformDir)) {
+    if (info) {
+      info.push(`The ${typestudio} path you configured "${typestudioDir}" is wrong`);
     }
     return false;
   }
@@ -398,4 +431,5 @@ module.exports = {
   ohpmDirPathCheck,
   sdkPathCheck,
   sourceDirPathCheck,
+  typeCommandLineToolsPathCheck,
 };
