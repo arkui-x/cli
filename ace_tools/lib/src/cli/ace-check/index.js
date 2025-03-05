@@ -216,8 +216,9 @@ function check(cmd) {
   if (!androidSdkDir) {
     errorTimes++;
   }
-  checkDevEco(errorTimes);
-  
+  if (checkDevEco()) {
+    errorTimes++;
+  }
   if (!androidStudioDir) {
     errorTimes++;
   }
@@ -235,16 +236,18 @@ function check(cmd) {
   printCheckInfo(errorTimes);
 }
 
-function checkDevEco(errorTimes) {
+function checkDevEco() {
+  let isErr = false;
   if (platform !== Platform.Linux) {
     if (!devEcoStudioDir) {
-      errorTimes++;
+      isErr = true;
     }
   } else {
     if (!commandLineToolsDir) {
-      errorTimes++;
+      isErr = true;
     }
   }
+  return isErr;
 }
 
 function printCheckInfo(errorTimes) {
