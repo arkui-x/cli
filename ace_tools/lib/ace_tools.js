@@ -375,6 +375,7 @@ function parseConfig() {
     .option('--ohpm-dir [Ohpm Dir]', 'Ohpm path.')
     .option('--openharmony-sdk [OpenHarmony SDK]', 'OpenHarmony SDK path.')
     .option('--source-dir [Source Dir]', 'Source path.')
+    .option('--command-line-tools-path [command line tools Dir]', 'Command Line Tools path.(only linux)')
     .description(`Configure ArkUI cross-platform settings.`)
     .action((cmd) => {
       if (Object.keys(cmd).length !== 0) {
@@ -389,21 +390,23 @@ function parseConfig() {
           'nodejs-dir': cmd.nodejsDir,
           'ohpm-dir': cmd.ohpmDir,
           'openharmony-sdk': cmd.openharmonySdk,
-          'source-dir': cmd.sourceDir
+          'source-dir': cmd.sourceDir,
+          'command-line-tools-path': cmd.commandLineToolsPath,
         });
       } else {
         console.log('Please use ace config with options :' + `
-        --android-sdk         [Android SDK]
-        --android-studio-path [Android Studio Path]
-        --arkui-x-sdk         [ArkUI-X SDK]
-        --build-dir           [Build Dir]
-        --deveco-studio-path  [DevEco Studio Path]
-        --harmonyos-sdk       [HarmonyOS SDK]
-        --java-sdk            [Java SDK]
-        --nodejs-dir          [Nodejs Dir]
-        --ohpm-dir            [Ohpm Dir]
-        --openharmony-sdk     [OpenHarmony SDK]
-        --source-dir          [Source Dir]`);
+        --android-sdk             [Android SDK]
+        --android-studio-path     [Android Studio Path]
+        --arkui-x-sdk             [ArkUI-X SDK]
+        --build-dir               [Build Dir]
+        --deveco-studio-path      [DevEco Studio Path]
+        --harmonyos-sdk           [HarmonyOS SDK]
+        --java-sdk                [Java SDK]
+        --nodejs-dir              [Nodejs Dir]
+        --ohpm-dir                [Ohpm Dir]
+        --openharmony-sdk         [OpenHarmony SDK]
+        --source-dir              [Source Dir]
+        --command-line-tools-path [Command Line Tools Path(only linux)]`);
       }
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'config') {

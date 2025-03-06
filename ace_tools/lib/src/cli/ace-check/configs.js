@@ -16,7 +16,7 @@
 const path = require('path');
 
 const { openHarmonySdk, harmonyOsSdk, arkuiXSdk, androidSdk } = require('./Sdk');
-const { devEcoStudio, androidStudio} = require('./Ide');
+const { devEcoStudio, androidStudio, commandLineTools} = require('./Ide');
 const { checkNodejs, getNodejsVersion} = require('./checkNodejs');
 const checkOhpm = require('./checkOhpm');
 const { checkXcodeVersion, checkIdeviceVersion, checkDeployVersion, getxCodeDir } = require('./checkAppVersion');
@@ -45,6 +45,8 @@ const ohpmDir = checkOhpm();
 const devEcoStudioDir = devEcoStudio.locateIde();
 const devEcoStudioVersion = devEcoStudio.getVersion(devEcoStudioDir);
 
+const commandLineToolsDir = commandLineTools.locateCommandLineTools();
+
 const androidStudioDir = androidStudio.locateIde();
 const androidStudioVersion = androidStudio.getVersion(androidStudioDir);
 
@@ -68,6 +70,7 @@ module.exports = {
   nodejsDir,
   nodejsVersion,
   devEcoStudioDir,
+  commandLineToolsDir,
   devEcoStudioVersion,
   androidStudioDir,
   androidStudioVersion,
