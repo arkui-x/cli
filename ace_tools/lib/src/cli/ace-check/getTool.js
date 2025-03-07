@@ -18,7 +18,7 @@ const path = require('path');
 const JSON5 = require('json5');
 const { cmpVersion } = require('./util');
 const { Platform, platform } = require('./platform');
-const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion, devEcoStudioDir } = require('./configs');
+const { openHarmonySdkDir, harmonyOsSdkDir, androidSdkDir, deployVersion, ohpmDir, xCodeDir, xCodeVersion, devEcoStudioDir, commandLineToolsDir } = require('./configs');
 function getTools() {
   const toolPaths = [];
   let hdcPath = {};
@@ -240,6 +240,13 @@ function getAapt() {
 }
 
 function getIntergrateHvigorw() {
+  if (platform === Platform.Linux) {
+    if (fs.existsSync(path.join(commandLineToolsDir, 'bin/hvigorw'))) {
+      return path.join(commandLineToolsDir, 'bin/hvigorw');
+    } else {
+      return null;
+    }
+  }
   if (!devEcoStudioDir) {
     return null;
   } else {

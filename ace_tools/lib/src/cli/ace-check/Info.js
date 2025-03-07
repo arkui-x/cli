@@ -33,12 +33,14 @@ class Info {
     this.noNodejs = `Node.js Runtime Environment is not found`;
     this.noJavaSdk = `Java SDK is not found`;
     this.noDevEcoStudio = `DevEco Studio is not installed, you can install in https://devecostudio.huawei.com`;
+    this.noCommandLineTools = `Command Line Tools is not set, you can download in https://developer.huawei.com/consumer/cn/download/command-line-tools-for-hmos`;
     this.noAndroidStudio = `Android Studio is not installed, you can install in https://developer.android.google.cn/studio`;
     this.arkuiXSdkTitle = `ArkUI-X (ArkUI-X SDK version ${arkuiXSdkVersion})`;
     this.openHarmonyTitle = `OpenHarmony toolchains - develop for OpenHarmony devices (OpenHarmony SDK version ${openHarmonySdkVersion})`;
     this.harmonyOsTitle = `HarmonyOS toolchains - develop for HarmonyOS devices (HarmonyOS SDK version ${harmonyOsSdkVersion})`;
     this.androidTitle = `Android toolchains - develop for Android devices (Android SDK version ${androidSdkVersion})`;
     this.devEcoStudioTitle = `DevEco Studio (version ${devEcoStudioVersion})`;
+    this.commandLineToolsTitle = `Command Line Tools`;
     this.androidStudioTitle = `Android Studio (version ${androidStudioVersion})`;
     this.openHarmonyLicenses = `All OpenHarmony licenses accepted`;
     this.androidLicenses = `All Android licenses accepted`;
@@ -116,6 +118,10 @@ class Info {
     return `DevEco Studio at ${devEcoStudioDir}`;
   }
 
+  hasCommandLineTools(commandLineToolsDir) {
+    return `Command Line Tools at ${commandLineToolsDir}`;
+  }
+
   hasAndroidStudio(androidStudioDir) {
     return `Android Studio at ${androidStudioDir}`;
   }
@@ -154,6 +160,10 @@ class Info {
 
   devEcoStudioInfo(devEcoStudioDir) {
     return devEcoStudioDir ? this.hasDevEcoStudio(devEcoStudioDir) : this.noDevEcoStudio;
+  }
+
+  commandLineToolsInfo(commandLineToolsDir) {
+    return commandLineToolsDir ? this.hasCommandLineTools(commandLineToolsDir) : this.noCommandLineTools;
   }
 
   androidStudioInfo(androidStudioDir) {

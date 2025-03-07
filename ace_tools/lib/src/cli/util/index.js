@@ -426,13 +426,25 @@ function cleanLibs(projectDir, abiFilters, fileType) {
 
 function getSdkVersionMap() {
   const sdkVersionMap = new Map([
-    ['10',new Map([['compileSdkVersion','4.0.0(10)'],['compatibleSdkVersion','4.0.0(10)'],['modelVersion','4.0.0'],['runtimeOS','HarmonyOS']])],
-    ['11',new Map([['compileSdkVersion','4.1.0(11)'],['compatibleSdkVersion','4.1.0(11)'],['modelVersion','4.1.0'],['runtimeOS','HarmonyOS']])],
-    ['12',new Map([['compileSdkVersion','5.0.0(12)'],['compatibleSdkVersion','5.0.0(12)'],['modelVersion','5.0.0'],['runtimeOS','HarmonyOS']])],
-    ['13',new Map([['compileSdkVersion','5.0.1(13)'],['compatibleSdkVersion','5.0.1(13)'],['modelVersion','5.0.1'],['runtimeOS','HarmonyOS']])],
-    ['14',new Map([['compileSdkVersion','5.0.2(14)'],['compatibleSdkVersion','5.0.2(14)'],['modelVersion','5.0.2'],['runtimeOS','HarmonyOS']])],
-  ])
+    ['10', new Map([['compileSdkVersion', '4.0.0(10)'], ['compatibleSdkVersion', '4.0.0(10)'], ['modelVersion', '4.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '3.1.1']])],
+    ['11', new Map([['compileSdkVersion', '4.1.0(11)'], ['compatibleSdkVersion', '4.1.0(11)'], ['modelVersion', '4.1.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '3.1.1']])],
+    ['12', new Map([['compileSdkVersion', '5.0.0(12)'], ['compatibleSdkVersion', '5.0.0(12)'], ['modelVersion', '5.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.3']])],
+    ['13', new Map([['compileSdkVersion', '5.0.1(13)'], ['compatibleSdkVersion', '5.0.1(13)'], ['modelVersion', '5.0.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.4']])],
+    ['14', new Map([['compileSdkVersion', '5.0.2(14)'], ['compatibleSdkVersion', '5.0.2(14)'], ['modelVersion', '5.0.2'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.7']])],
+  ]);
   return sdkVersionMap;
+}
+
+function getArkuixPluginWithModelVersion(modelVersion) {
+  const sdkVersionMap = getSdkVersionMap();
+  let arkuixPluginVersion = '';
+  sdkVersionMap.forEach((value, key) => {
+    const lModelVersion = value.get('modelVersion');
+    if (lModelVersion === modelVersion) {
+      arkuixPluginVersion = value.get('hvigor-ohos-arkui-x-plugin');
+    }
+  });
+  return arkuixPluginVersion;
 }
 
 function getSdkVersionWithModelVersion(modelVersion) {
@@ -703,7 +715,7 @@ function replaceInfo(files, replaceInfos, strs) {
     const lines = data.split('\n');
     for (let j = 0; j < lines.length; j++) {
       if (lines[j].includes(replaceInfos[i])) {
-        const newLine = lines[j].replace(replaceInfos[i], strs[i]);
+        const newLine = lines[j].replaceAll(replaceInfos[i], strs[i]);
         lines[j] = newLine;
       }
     }
@@ -747,5 +759,6 @@ module.exports = {
   getRuntimeOSWithSdkVersion,
   getModelVersionWithSdkVersion,
   getSdkVersionWithModelVersion,
-  replaceInfo
+  replaceInfo,
+  getArkuixPluginWithModelVersion,
 };

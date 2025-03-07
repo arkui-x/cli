@@ -18,6 +18,7 @@ const {
   harmonyOsSdkDir,
   nodejsDir,
   devEcoStudioDir,
+  commandLineToolsDir,
   androidStudioDir,
   androidSdkDir,
   xCodeVersion,
@@ -107,6 +108,11 @@ function checkRequired(errorTimes, showdetail = false) {
       if (javaSdkDirDevEco) {
         requirementInfo(info.javaSdkVersionInfo(javaSdkVersionDevEco), javaSdkDirDevEco, showdetail);
       }
+    }
+  } else {
+    optionTitle(info.commandLineToolsTitle, commandLineToolsDir);
+    if (!commandLineToolsDir || showdetail) {
+      optionInfo(info.commandLineToolsInfo(commandLineToolsDir), commandLineToolsDir);
     }
   }
   optionTitle(info.androidStudioTitle, androidStudioDir);
@@ -210,7 +216,7 @@ function check(cmd) {
   if (!androidSdkDir) {
     errorTimes++;
   }
-  if (!devEcoStudioDir) {
+  if (checkDevEco()) {
     errorTimes++;
   }
   if (!androidStudioDir) {
@@ -228,6 +234,20 @@ function check(cmd) {
     errorTimes += 1;
   }
   printCheckInfo(errorTimes);
+}
+
+function checkDevEco() {
+  let isErr = false;
+  if (platform !== Platform.Linux) {
+    if (!devEcoStudioDir) {
+      isErr = true;
+    }
+  } else {
+    if (!commandLineToolsDir) {
+      isErr = true;
+    }
+  }
+  return isErr;
 }
 
 function printCheckInfo(errorTimes) {
