@@ -103,13 +103,13 @@ function modifyOhPackageJson(projectPath, sdkVersion) {
 function modifyHvigorJson(projectPath, sdkVersion) {
   const hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
   if (fs.existsSync(hvigorfile)) {
+    let nowModelVersion = getModelVersionWithSdkVersion(sdkVersion);
     const hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
     delete hvigorversionInfo.hvigorVersion;
     delete hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'];
-    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = getArkuixPluginWithModelVersion(hvigorversionInfo.modelVersion);
+    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = getArkuixPluginWithModelVersion(nowModelVersion);
     fs.writeFileSync(hvigorfile, JSON.stringify(hvigorversionInfo, '', '  '));
     const hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
-    let nowModelVersion = getModelVersionWithSdkVersion(sdkVersion);
     let modelVersionStr = `\n  "modelVersion": "${nowModelVersion}",`;
     const hvigorInfo = hvigorFileInfo.slice(0, 1) + modelVersionStr + hvigorFileInfo.slice(1);
     fs.writeFileSync(hvigorfile, hvigorInfo);
