@@ -437,7 +437,7 @@ function getSdkVersionMap() {
 
 function getArkuixPluginWithModelVersion(modelVersion) {
   const sdkVersionMap = getSdkVersionMap();
-  let arkuixPluginVersion = '';
+  let arkuixPluginVersion = '4.2.3';
   sdkVersionMap.forEach((value, key) => {
     const lModelVersion = value.get('modelVersion');
     if (lModelVersion === modelVersion) {
