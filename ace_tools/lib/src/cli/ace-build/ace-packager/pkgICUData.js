@@ -178,7 +178,7 @@ const langMap = {
     'ro': 'ro',
     'mk': 'mk',
     'mn': 'mn',
-    'my-MM': ['my_MM', 'my_ZG'],
+    'my-MM': 'my_MM',
     'nb': 'nb',
     'ne': 'ne',
     'tl': 'tl',
@@ -209,7 +209,7 @@ const langMap = {
     'en': 'en',
     'en-US': 'en_US',
     'en-CA': 'en_CA',
-  }
+  },
 };
 
 function getSubProjectDirName(fileType, projectDir) {
@@ -220,6 +220,8 @@ function getSubProjectDirName(fileType, projectDir) {
     return ['ios'];
   } else if (fileType === 'aar') {
     return getAarName(projectDir);
+  } else {
+    return [];
   }
 }
 
@@ -235,7 +237,7 @@ function getLangList(fileType, projectDir, system, newLangList) {
         gradleData = gradleData.trim().split('\n');
         for (const element of gradleData) {
           if (element.indexOf(`resConfigs`) >= 0) {
-            langList = '[' + element.replace(`resConfigs`, '') + ']';
+            langList = `[${element.replace('resConfigs', '')}]`
             langList = JSON.parse(langList);
           } else if (element.indexOf(`resConfig`) >= 0) {
             langList.push(element.replace(`resConfig`, '').replaceAll('"', '').trim());
@@ -270,7 +272,7 @@ function getLangList(fileType, projectDir, system, newLangList) {
   if (system === 'android') {
     const iso6391OrIso6392Lang = new RegExp('^[a-zA-Z]{2,3}$');
     const iso6391OrIso6392LangAndLocale = new RegExp('^[a-zA-Z]{2,3}-[rR][a-zA-Z]{2}$');
-    const bcp47Lang = new RegExp(`^b\\+[a-zA-Z]{2,3}(\\+[a-zA-Z0-9]{2,})*$`);
+    const bcp47Lang = new RegExp(`^b\\+(?<lang>[a-zA-Z]{2,3})(\\+(?<ext>[a-zA-Z0-9]{2,}))*$`);
     for (const item of langList) {
       let icuKey = '';
       if (iso6391OrIso6392Lang.test(item) && item.toLowerCase() !== 'car') {
@@ -292,11 +294,10 @@ function getLangList(fileType, projectDir, system, newLangList) {
   } else if (system === 'ios') {
     for (const item of langList) {
       if (langMap[system][item]) {
-        const itemValue = langMap[system][item];
-        if (Array.isArray(itemValue)) {
-          newLangList.push(...itemValue);
+        if (item === 'my-MM') {
+          newLangList.push('my_MM', 'my_ZG');
         } else {
-          newLangList.push(itemValue);
+          newLangList.push(langMap[system][item]);
         }
       } else {
         isFullCopy = true;
@@ -305,9 +306,11 @@ function getLangList(fileType, projectDir, system, newLangList) {
   }
   if (isFullCopy) {
     console.warn('Warning: The language configuration in the gradle file is unsupported, and the full copy of the ICU data will be performed');
-    newLangList = [];
+    newLangList.length = 0;
   } else {
-    newLangList = Array.from(new Set(newLangList));
+    const setList = Array.from(new Set(newLangList));
+    newLangList.length = 0;
+    newLangList.push(...setList);
   }
   return isFullCopy;
 }
@@ -343,8 +346,9 @@ function checkICUData(projectDir) {
     currentPaltform = path.join(icuDataToolPath, 'mac');
     icupkgPath = path.join(currentPaltform, 'icupkg');
   }
-  if (!fs.existsSync(icuDataToolPath) || !fs.existsSync(datFilePath) || !fs.existsSync(icupkgPath) ||
-  !fs.existsSync(dataFilterPath) || !fs.existsSync(filterToolPath) || !fs.existsSync(dataFilterFilePath)) {
+  const isValid = !fs.existsSync(icuDataToolPath) || !fs.existsSync(datFilePath) || !fs.existsSync(icupkgPath) ||
+    !fs.existsSync(dataFilterPath) || !fs.existsSync(filterToolPath) || !fs.existsSync(dataFilterFilePath);
+  if (isValid) {
     isOk = false;
   }
   return {isOk, currentArkUIXPath, datFilePath, icuDataToolPath, dataFilterPath, filterToolPath, currentPaltform};
@@ -395,11 +399,10 @@ function execCopyDatCmd(cmds, srcPath, destPath) {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
-      env: process.env
+      env: process.env,
     });
     fs.writeFileSync(destPath, fs.readFileSync(srcPath));
   } catch (err) {
-    console.error('copy icudt72l.dat error: ', err);
     throw new Error('copy icudt72l.dat error, please check.');
   }
 }
@@ -411,7 +414,7 @@ function checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath) {
   const versionList = [5, 1, 0, 57];
   let arkUIXVersion = '0.0.0.0';
   try {
-    arkUIXVersion = JSON.parse(fs.readFileSync(path.join(currentArkUIXPath, 'arkui-x.json')))['version'];
+    arkUIXVersion = JSON.parse(fs.readFileSync(path.join(currentArkUIXPath, 'arkui-x.json'))).version;
   } catch (err) {
     throw new Error('Ace get ArkUI-X version failed. please check.');
   }
@@ -424,11 +427,10 @@ function checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath) {
       break;
     } else if (versionWithoutDotsList[i] === versionList[i]) {
       continue;
-    } else if (versionWithoutDotsList[i] < versionList[i]) {
+    } else {
       return false;
     }
   }
-  console.log(`current ArkUI-X version: ${arkUIXVersion}, isOk: ${isOk}`)
   if (!isOk) {
     throw new Error('icudata tool not found, please check.');
   }
@@ -455,10 +457,9 @@ function copyDat(projectDir, system, fileType, depMap) {
     try {
       fs.writeFileSync(destPath, fs.readFileSync(datFilePath));
     } catch (err) {
-      console.error('copy icudt72l.dat err:', err);
       throw new Error('copy icudt72l.dat error, please check.');
     }
-    return;
+    return true;
   }
   const buildOutDir = path.join(outDir, 'out');
   let cmds = `node ${filterToolPath} --res_dir ${dataFilterPath} --dat_file ${datFilePath} --tool_dir ${currentPaltform} --out_dir ${buildOutDir}`;
