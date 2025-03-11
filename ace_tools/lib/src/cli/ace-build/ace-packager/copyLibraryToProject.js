@@ -346,7 +346,8 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
         true, function(libname) { }, allLibSet);
     });
   }
-  copyDat(projectDir, system, fileType, depMap);
+  // icudata tool entry, temporary comment due to incomplete IDE development
+  // copyDat(projectDir, system, fileType, depMap);
 }
 
 /*
