@@ -87,7 +87,7 @@ function cleanAndroid() {
   try {
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   } catch (error) {
     console.error(error);
@@ -113,7 +113,7 @@ function cleanIOS() {
   try {
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   } catch (error) {
     console.error(error);
@@ -158,7 +158,7 @@ function cleanOHOS() {
   try {
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   } catch (error) {
     console.log(error);
@@ -237,7 +237,7 @@ function cleanAAR() {
   try {
     exec(cmds, {
       encoding: 'utf-8',
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   } catch (error) {
     console.error(error);

@@ -199,7 +199,7 @@ function launch(fileType, device, options) {
     'ios': 'iOS APP',
     'apk': 'APK',
     'hap': 'HAP',
-    'haphsp': 'HAP'
+    'haphsp': 'HAP',
   };
   if (!options.path && !isProjectRootDir(projectDir)) {
     return false;
@@ -291,8 +291,8 @@ function getCmdLaunch(toolObj, device, options) {
 }
 
 function getTestOption(options, esOption, toolType = undefined) {
-  const cmdPrefix = esOption? 'test test' : toolType === iosDeployTool? '--args "test':'-e test';
-  const cmdSuffix = toolType !== iosDeployTool? '' : '"';
+  const cmdPrefix = esOption ? 'test test' : toolType === iosDeployTool ? '--args "test' : '-e test';
+  const cmdSuffix = toolType !== iosDeployTool ? '' : '"';
   const testBundleName = `${esOption}bundleName ${options.b}`;
   const testModuleName = `${esOption}moduleName ${options.m}`;
   const unittest = `${esOption}unittest ${options.unittest}`;

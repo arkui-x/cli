@@ -105,11 +105,11 @@ function getCpuList(buildProject, projectDir, system, cmd) {
           const abiList = [];
           cmd.targetPlatform.split(',').forEach(abi => {
             if (abi === 'arm64') {
-              abiList.push("arm64-v8a");
+              abiList.push('arm64-v8a');
             } else if (abi === 'arm') {
-              abiList.push("armeabi-v7a");
+              abiList.push('armeabi-v7a');
             } else if (abi === 'x86_64') {
-              abiList.push("x86_64");
+              abiList.push('x86_64');
             }
           });
           ndkList = abiList;
@@ -445,17 +445,17 @@ function loadApiConfigJson(arkuiXSdkPath) {
   let apiConfigMap = new Map();
   let rootpath = {
     'android': path.join(arkuiXSdkPath, '/engine'),
-    'ios': path.join(arkuiXSdkPath, '/engine')
+    'ios': path.join(arkuiXSdkPath, '/engine'),
   };
   apiConfigMap = loadApiConfig(rootpath, engineApiConfig, apiConfigMap);
   rootpath = {
     'android': path.join(arkuiXSdkPath, '/plugins/api'),
-    'ios': path.join(arkuiXSdkPath, '/plugins/api')
+    'ios': path.join(arkuiXSdkPath, '/plugins/api'),
   };
   apiConfigMap = loadApiConfig(rootpath, pluginsApiConfig, apiConfigMap);
   rootpath = {
     'android': path.join(arkuiXSdkPath, '/plugins/component'),
-    'ios': path.join(arkuiXSdkPath, '/plugins/component')
+    'ios': path.join(arkuiXSdkPath, '/plugins/component'),
   };
   apiConfigMap = loadApiConfig(rootpath, pluginsComponentApiConfig, apiConfigMap);
   return apiConfigMap;

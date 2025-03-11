@@ -257,5 +257,5 @@ function sleep(sleepTime) {
 }
 module.exports = {
   log,
-  getBundleName
+  getBundleName,
 };

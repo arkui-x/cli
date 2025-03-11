@@ -18,7 +18,7 @@ const os = require('os');
 const Platform = {
   'Linux': 'Linux',
   'MacOS': 'Darwin',
-  'Windows': 'Windows_NT'
+  'Windows': 'Windows_NT',
 };
 
 const platform = os.type();
@@ -28,5 +28,5 @@ const homeDir = os.homedir();
 module.exports = {
   Platform,
   platform,
-  homeDir
+  homeDir,
 };

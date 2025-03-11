@@ -463,8 +463,8 @@ function getShowSdkVersion() {
   let sdkVersionMap = getSdkVersionMap();
   let showMap = new Map();
   let index = 1;
-  sdkVersionMap.forEach((value,key) => {
-    showMap.set(index.toString(),key);
+  sdkVersionMap.forEach((value, key) => {
+    showMap.set(index.toString(), key);
     index = index + 1;
   });
   return showMap;
@@ -477,8 +477,8 @@ function isHaveSdkVersion(sdkVersion) {
 
 function getSdkVersionWithCompileSdkVersion(compileSdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
-  let sdkVersion = "";
-  sdkVersionMap.forEach((value,key) => {
+  let sdkVersion = '';
+  sdkVersionMap.forEach((value, key) => {
     let lcompileSdkVersion = value.get('compileSdkVersion');
     if (lcompileSdkVersion === compileSdkVersion) {
       sdkVersion = key;
@@ -490,7 +490,7 @@ function getSdkVersionWithCompileSdkVersion(compileSdkVersion) {
 function getCompileSdkVersionWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('compileSdkVersion');
@@ -499,7 +499,7 @@ function getCompileSdkVersionWithSdkVersion(sdkVersion) {
 function getCompatibleSdkVersionWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('compatibleSdkVersion');
@@ -508,7 +508,7 @@ function getCompatibleSdkVersionWithSdkVersion(sdkVersion) {
 function getRuntimeOSWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('runtimeOS');
@@ -517,7 +517,7 @@ function getRuntimeOSWithSdkVersion(sdkVersion) {
 function getModelVersionWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
-    return "";
+    return '';
   }
   let sdkVersionData = sdkVersionMap.get(sdkVersion);
   return sdkVersionData.get('modelVersion');

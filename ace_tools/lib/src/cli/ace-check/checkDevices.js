@@ -53,14 +53,13 @@ function checkDevices() {
             'name': item['name'],
             'udid': item['udid'],
             'title': title,
-            'Simulator': true
-          }
+            'Simulator': true,
+          };
           devicesOutputs.push(JSON.stringify(devicesjson));
         });
       });
       continue;
-    }
-    else {
+    } else {
       continue;
     }
 
@@ -98,8 +97,8 @@ function getIosDevices(out) {
       'udid': item['identifier'],
       'title': 'iOS Devices\t',
       'Simulator': false,
-      'iosVersion': item['operatingSystemVersion']
-    }
+      'iosVersion': item['operatingSystemVersion'],
+    };
     devices.push(JSON.stringify(devicesjson));
   });
   return devices;
@@ -108,13 +107,13 @@ function getIosDevices(out) {
 function getDevices(out) {
   let splitArr = out.split(/[\r\n]+/);
   splitArr = splitArr.filter(item => {
-    return item !== 'List of devices attached' && item !== 'List of targets attached:' && item !== ''
-      && item.indexOf('[Empty]') === -1 && item.indexOf('device to be connected') === -1 && item.indexOf('hdc') !== 1
-      && item.indexOf('Not support std mode') === -1 && item.indexOf('COM1') === -1 && item.indexOf('UART') === -1;
+    return item !== 'List of devices attached' && item !== 'List of targets attached:' && item !== '' &&
+      item.indexOf('[Empty]') === -1 && item.indexOf('device to be connected') === -1 && item.indexOf('hdc') !== 1 &&
+      item.indexOf('Not support std mode') === -1 && item.indexOf('COM1') === -1 && item.indexOf('UART') === -1;
   });
   return splitArr;
 }
 
 module.exports = {
-  checkDevices
+  checkDevices,
 };

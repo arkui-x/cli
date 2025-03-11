@@ -194,7 +194,7 @@ function getXcframeworkList(depMap, system, pbxprojFileContent) {
       xcframeworkMap.set(libraryName, {
         embedUuid: generateUUID(pbxprojFileContent, generatedUUIDSet),
         uuid: generateUUID(pbxprojFileContent, generatedUUIDSet),
-        fileRefUuid: generateUUID(pbxprojFileContent, generatedUUIDSet)
+        fileRefUuid: generateUUID(pbxprojFileContent, generatedUUIDSet),
       });
     }
   });
@@ -294,13 +294,13 @@ const existLibInfoProcessor = {
   parserForExist: pbxListParserForExistFromText,
   checkIfLibExists: pbxCheckIfLibExistsFromList,
   existRebuilder: pbxGetExistLibsFromList,
-  libNameRange: { startOf: '/* ', endOf: ' in ' }
+  libNameRange: { startOf: '/* ', endOf: ' in ' },
 };
 const existLibInfoProcessor2 = {
   parserForExist: pbxListParserForExistFromText,
   checkIfLibExists: pbxCheckIfLibExistsFromList,
   existRebuilder: pbxGetExistLibsFromList,
-  libNameRange: { startOf: '/* ', endOf: ' */' }
+  libNameRange: { startOf: '/* ', endOf: ' */' },
 };
 
 function updateXBuildFileContent(fileType, xcframework, pbxprojFileInfo,
