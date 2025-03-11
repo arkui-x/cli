@@ -122,11 +122,12 @@ const langMap = {
     'en_ca': 'en_CA',
   },
   'ios': {
-    'zh-Hans': 'zh_CN',
-    'zh-Hans-CN': 'zh_CN',
+    'zh-Hans': 'zh_Hans',
+    'zh-Hans-CN': 'zh_Hans_CN',
     'zh-HK': 'zh_HK',
-    'zh-Hans-HK': 'zh_HK',
-    'zh-Hant-TW': 'zh_TW',
+    'zh-Hant': 'zh_Hant',
+    'zh-Hant-HK': 'zh_Hant_HK',
+    'zh-Hant-TW': 'zh_Hant_TW',
     'bo-CN': 'bo_CN',
     'bo': 'bo',
     'pt': 'pt',
@@ -177,8 +178,7 @@ const langMap = {
     'ro': 'ro',
     'mk': 'mk',
     'mn': 'mn',
-    'my-ZG': 'my_ZG',
-    'my-MM': 'my_MM',
+    'my-MM': ['my_MM', 'my_ZG'],
     'nb': 'nb',
     'ne': 'ne',
     'tl': 'tl',
@@ -189,7 +189,7 @@ const langMap = {
     'eu': 'eu',
     'bs': 'bs',
     'gl': 'gl',
-    'jv-Latn': 'jv_Latn',
+    'jv-ID': 'jv_Latn',
     'ml': 'ml',
     'mr': 'mr',
     'ta': 'ta',
@@ -205,7 +205,9 @@ const langMap = {
     'pa': 'pa',
     'te': 'te',
     'zh': 'zh',
-    'en': 'en'
+    'en': 'en',
+    'en-US': 'en_US',
+    'en-CA': 'en_CA',
   }
 };
 
@@ -286,6 +288,19 @@ function getLangList(fileType, projectDir, system, newLangList) {
         isFullCopy = true;
       }
     }
+  } else if (system === 'ios') {
+    for (const item of langList) {
+      if (langMap[system][item]) {
+        const itemValue = langMap[system][item];
+        if (Array.isArray(itemValue)) {
+          newLangList.push(...itemValue);
+        } else {
+          newLangList.push(itemValue);
+        }
+      } else {
+        isFullCopy = true;
+      }
+    }
   }
   if (isFullCopy) {
     console.warn('Warning: The language configuration in the gradle file is unsupported, and the full copy of the ICU data will be performed');
@@ -360,7 +375,6 @@ function createOutDir() {
     }
     fs.mkdirSync(outDir, { recursive: true });
   } catch (err) {
-    console.error('create tmp dir err.');
     throw new Error('create tmp dir error, please check.');
   }
   return outDir;
@@ -390,7 +404,7 @@ function execCopyDatCmd(cmds, srcPath, destPath) {
 }
 
 function checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath) {
-  if (sdkVersion < 16) {
+  if (sdkVersion < 18) {
     return false;
   }
   const versionList = [5, 1, 0, 57];
@@ -398,7 +412,6 @@ function checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath) {
   try {
     arkUIXVersion = JSON.parse(fs.readFileSync(path.join(currentArkUIXPath, 'arkui-x.json')))['version'];
   } catch (err) {
-    console.error('Ace get ArkUI-X version failed. please check.');
     throw new Error('Ace get ArkUI-X version failed. please check.');
   }
   const versionWithoutDotsList = arkUIXVersion.split('.');
@@ -414,8 +427,8 @@ function checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath) {
       return false;
     }
   }
+  console.log(`current ArkUI-X version: ${arkUIXVersion}, isOk: ${isOk}`)
   if (!isOk) {
-    console.error('icudata tool not found, please check.');
     throw new Error('icudata tool not found, please check.');
   }
   return true;
