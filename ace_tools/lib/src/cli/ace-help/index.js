@@ -23,12 +23,12 @@ function aceHelp(commandsSort) {
       helpText += `  ${command._name}   \t\t ${command._description}\n`;
     });
   }
-  program.addHelpText("after", `\nRun "ace help <command>" for more information about a command.`);
+  program.addHelpText('after', `\nRun "ace help <command>" for more information about a command.`);
   return helpText;
 }
 
 function commandHelp(helpCmd) {
-  helpCmd.addHelpText("afterAll", `\nRun "ace help" to see global options.`);
+  helpCmd.addHelpText('afterAll', `\nRun "ace help" to see global options.`);
   helpCmd.help();
 }
 
@@ -36,7 +36,7 @@ function subcommandHelp(helpCmd, subArgs, subcommand, helpSubCmd) {
   if (typeof process.argv[4] === 'undefined' || !subArgs.includes(process.argv[4])) {
     commandHelp(helpCmd);
   } else if (subcommand === process.argv[4]) {
-    helpSubCmd.addHelpText("afterAll", `\nRun "ace help" to see global options.`);
+    helpSubCmd.addHelpText('afterAll', `\nRun "ace help" to see global options.`);
     helpSubCmd.help();
   }
 }

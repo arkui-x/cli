@@ -134,5 +134,5 @@ function getNodejsVersion() {
 
 module.exports = {
   checkNodejs,
-  getNodejsVersion
+  getNodejsVersion,
 };

@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('../ace-check/platform');
 const { getConfig } = require('../ace-config');
-const { sourceDirPathCheck } = require('../ace-check/checkPathLawful')
+const { sourceDirPathCheck } = require('../ace-check/checkPathLawful');
 
 function checkPlatform() {
   if (platform === Platform.Windows) {
@@ -57,6 +57,6 @@ module.exports = {
   checkPlatform,
   getSourceDir,
   getSourceArkuixPath,
-  getSourceArkuixVersion
+  getSourceArkuixVersion,
 };
 

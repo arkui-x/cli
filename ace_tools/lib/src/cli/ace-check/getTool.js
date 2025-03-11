@@ -46,7 +46,6 @@ function getTools() {
     if (deployVersion) {
       toolPaths.push({ 'ios-deploy': 'ios-deploy' });
     } 
-    
   }
   return toolPaths;
 }
@@ -140,7 +139,7 @@ function getHmsToolPath(newPath) {
   if (sdkPlatformVersion.size === 0) {
     toolPath = '';
   } else if (sdkPlatformVersion.size === 1) {
-    if ([...sdkPlatformVersion.keys()][0] === "4.0.0(10)" || [...sdkPlatformVersion.keys()][0] === "4.1.0(11)") {
+    if ([...sdkPlatformVersion.keys()][0] === '4.0.0(10)' || [...sdkPlatformVersion.keys()][0] === '4.1.0(11)') {
         toolchainsPath = 'base/toolchains';
     }
     toolPath = getValidToolPath(path.join(newPath, [...sdkPlatformVersion.values()][0], toolchainsPath));
@@ -154,7 +153,7 @@ function getHmsToolPath(newPath) {
       }
     }
     const maxVersion = compareVer[compareVer.length - 1];
-    if (maxVersion === "4.0.0(10)" || maxVersion === "4.1.0(11)") {
+    if (maxVersion === '4.0.0(10)' || maxVersion === '4.1.0(11)') {
       toolchainsPath = 'base/toolchains';
     }
     toolPath = getValidToolPath(path.join(newPath, sdkPlatformVersion.get(maxVersion), toolchainsPath));
@@ -271,5 +270,5 @@ module.exports = {
   getToolByType,
   getOhpmTools,
   getAapt,
-  getIntergrateHvigorw
+  getIntergrateHvigorw,
 };

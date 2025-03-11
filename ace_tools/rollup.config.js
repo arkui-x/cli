@@ -23,7 +23,7 @@ import shebang from 'rollup-plugin-preserve-shebang';
 const path = require('path');
 const fs = require('fs');
 
-const argv = process.argv
+const argv = process.argv;
 const distPath = argv[5] || path.join(__dirname, 'dist');
 const templatePath = path.join(__dirname, 'templates');
 const distTemplatePath = path.join(distPath, 'templates');
@@ -61,22 +61,22 @@ export default {
     name: 'ace_tools',
     sourcemap: true,
     globals: {
-      "path": "path",
-      "child_process": "child_process",
-      "fs": "fs",
-      "process": "process",
-      "os": "os",
-      "crypto": "crypto",
-      "events": "events",
-      "readline": "readline",
-      "tty": "tty",
-      "stream": "stream",
-      "assert": "assert",
-      "buffer": "buffer",
-      "util": "util",
-      "string_decoder": "string_decoder"
+      'path': 'path',
+      'child_process': 'child_process',
+      'fs': 'fs',
+      'process': 'process',
+      'os': 'os',
+      'crypto': 'crypto',
+      'events': 'events',
+      'readline': 'readline',
+      'tty': 'tty',
+      'stream': 'stream',
+      'assert': 'assert',
+      'buffer': 'buffer',
+      'util': 'util',
+      'string_decoder': 'string_decoder',
     },
-    sourcemap: false
+    sourcemap: false,
   },
   plugins: [
     shebang('#!/usr/bin/env node'),
@@ -86,11 +86,11 @@ export default {
     }),
     commonjs({
       ignore: ['conditional-runtime-dependency'],
-      requireReturnsDefault: true
+      requireReturnsDefault: true,
     }),
     babel({
-      exclude: 'node_modules/**'
+      exclude: 'node_modules/**',
     }),
     terser()
-  ]
+  ],
 };

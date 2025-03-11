@@ -108,5 +108,5 @@ function modifyConfigPath(key, path) {
 module.exports = {
   setConfig,
   getConfig,
-  modifyConfigPath
+  modifyConfigPath,
 };

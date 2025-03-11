@@ -27,7 +27,7 @@ function getDevicesList() {
     return {
       'all': [],
       'available': [],
-      'unavailable': []
+      'unavailable': [],
     };
   }
   const devices = checkDevices() || [];
@@ -43,7 +43,7 @@ function getDevicesList() {
   return {
     'all': devices,
     'available': availableDevices,
-    'unavailable': unavailableDevices
+    'unavailable': unavailableDevices,
   };
 }
 
@@ -251,5 +251,5 @@ module.exports = {
   getDeviceType,
   devicesList,
   isSimulator,
-  getIosVersion
+  getIosVersion,
 };

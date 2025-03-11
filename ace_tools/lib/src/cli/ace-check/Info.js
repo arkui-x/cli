@@ -21,7 +21,7 @@ const {
   harmonyOsSdkVersion,
   devEcoStudioVersion,
   androidStudioVersion,
-  sourceArkuiXSdkVersion
+  sourceArkuiXSdkVersion,
 } = require('./configs');
 class Info {
   constructor() {

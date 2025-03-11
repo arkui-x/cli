@@ -393,5 +393,5 @@ function execInstallCmd(fileType, toolObj, device, filePathList) {
 
 module.exports = {
   install,
-  isInstallFileExist
+  isInstallFileExist,
 };

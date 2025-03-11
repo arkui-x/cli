@@ -111,7 +111,7 @@ function buildAPK(target, cmd) {
     try {
       exec(cmd, {
         encoding: 'utf-8',
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
     } catch (error) {
       gradleMessage = 'Build apk failed.';
@@ -122,8 +122,8 @@ function buildAPK(target, cmd) {
     console.error('recoverTestTem apk failed.');
     return false;
   }
-  if(cmd.debug&&cmd.analyze){
-    console.log("\x1b[33m%s\x1b[0m","WARN: Unable to support analyzing package size for debug APK, only support analyzing release APK.");
+  if (cmd.debug && cmd.analyze) {
+    console.log('\x1b[33m%s\x1b[0m', 'WARN: Unable to support analyzing package size for debug APK, only support analyzing release APK.');
     return false;
   }
   console.log(gradleMessage);
@@ -220,7 +220,7 @@ function buildAAR(cmd) {
       setJavaSdkDirInEnv(javaSdkDirAndroid);
       exec(cmd, {
         encoding: 'utf-8',
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
     } catch (error) {
       gradleMessage = 'Failed to build the AAR file.';
@@ -243,9 +243,9 @@ function buildFramework(cmd) {
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
-  let arch = "arm64";
+  let arch = 'arm64';
   if (os.arch() === 'x64' && cmd.simulator) {
-    arch = "x86_64";
+    arch = 'x86_64';
   }
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
@@ -256,12 +256,12 @@ function buildFramework(cmd) {
   frameworkNameList.forEach(frameworkName => {
     const frameworkProj = path.join(frameworkDir, `${frameworkName}.xcodeproj`);
     const exportPath = path.join(frameworkDir, `build/outputs/ios-framework`);
-    const cmdStr = `xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
-      + `clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
+    const cmdStr = `xcodebuild -project ${frameworkProj} -sdk ${sdk} -configuration "${mode}" ` +
+      `${platform} ARCHS=${arch} clean build CONFIGURATION_BUILD_DIR=${exportPath}`;
     try {
       exec(cmdStr, {
         encoding: 'utf-8',
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
     } catch (error) {
       gradleMessage = 'Build ios-framework failed.';
@@ -285,9 +285,9 @@ function buildXcFramework(cmd) {
   let isBuildSuccess = true;
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
-  let arch = "arm64";
+  let arch = 'arm64';
   if (os.arch() === 'x64' && cmd.simulator) {
-    arch = "x86_64";
+    arch = 'x86_64';
   }
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
@@ -306,7 +306,7 @@ function buildXcFramework(cmd) {
       cmds.forEach(cmdStr => {
         exec(cmdStr, {
           encoding: 'utf-8',
-          stdio: 'inherit'
+          stdio: 'inherit',
         });
       });
     } catch (error) {
@@ -324,7 +324,7 @@ function packager(target, cmd) {
   }
   if (target === 'apk') {
     if (isAndroidSdkValid() && writeLocalProperties()) {
-      if (buildAPK(target,cmd)) {
+      if (buildAPK(target, cmd)) {
         copyToOutput(target);
         return true;
       }
@@ -344,7 +344,7 @@ function packager(target, cmd) {
       }
     }
   } else if (target === 'ios') {
-    if (buildiOS(target,cmd)) {
+    if (buildiOS(target, cmd)) {
       copyToOutput(target);
       return true;
     }
@@ -378,9 +378,9 @@ function buildiOS(target, cmd) {
   const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
   let sdk = 'iphoneos';
   let platform = `generic/platform="iOS"`;
-  let arch = "arm64";
+  let arch = 'arm64';
   if (os.arch() === 'x64' && cmd.simulator) {
-    arch = "x86_64";
+    arch = 'x86_64';
   }
   if (cmd.simulator) {
     sdk = 'iphonesimulator';
@@ -390,8 +390,8 @@ function buildiOS(target, cmd) {
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
   }
-  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ${platform} ARCHS=${arch} `
-    + `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
+  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ` +
+    `${platform} ARCHS=${arch} clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
   cmds.push(cmdStr);
   let manifestPath = path.join(projectDir, 'AppScope/app.json5');
   let manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
@@ -404,7 +404,7 @@ function buildiOS(target, cmd) {
     try {
       exec(cmd, {
         encoding: 'utf-8',
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
     } catch (error) {
       if (error.stdout !== null) {
