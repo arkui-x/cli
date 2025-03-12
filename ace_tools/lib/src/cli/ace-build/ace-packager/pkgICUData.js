@@ -53,7 +53,7 @@ const langMap = new Map([
     ['ne', 'ne'], ['tl', 'tl'], ['bn', 'bn'], ['uk', 'uk'], ['zz-ZX', 'zz_ZX'], ['en-GB', 'en_GB'], ['eu', 'eu'],
     ['bs', 'bs'], ['gl', 'gl'], ['jv-ID', 'jv_Latn'], ['ml', 'ml'], ['mr', 'mr'], ['ta', 'ta'], ['uz', 'uz'],
     ['ug', 'ug'], ['mai', 'mai'], ['mi', 'mi'], ['am', 'am'], ['as', 'as'], ['gu', 'gu'], ['kn', 'kn'], ['or', 'or'],
-    ['pa', 'pa'], ['te', 'te'], ['zh', 'zh'], ['en', 'en'], ['en-US', 'en_US'], ['en-CA', 'en_CA'],])]
+    ['pa', 'pa'], ['te', 'te'], ['zh', 'zh'], ['en', 'en'], ['en-US', 'en_US'], ['en-CA', 'en_CA'],])],
 ]);
 
 function getSubProjectDirName(fileType, projectDir) {
@@ -69,23 +69,24 @@ function getSubProjectDirName(fileType, projectDir) {
   }
 }
 
-function getLangList(fileType, projectDir, system, newLangList) {
-  let langList = [];
+function getLangListFromConfigFile(projectDir, langList, system, fileType) {
   const subProjectNameList = getSubProjectDirName(fileType, projectDir);
   const resConfigsReg = new RegExp(`^//.*$`);
   for (const buildProject of subProjectNameList) {
     if (system === 'android') {
       const androidGradlePath = path.join(projectDir, `.arkui-x/android/${buildProject}/build.gradle`);
-      if (fs.existsSync(androidGradlePath)) {
-        let gradleData = fs.readFileSync(androidGradlePath, 'utf-8');
-        gradleData = gradleData.trim().split('\n');
-        for (const element of gradleData) {
-          if (!resConfigsReg.test(element.trim()) && element.indexOf(`resConfigs`) >= 0) {
-            langList = `[${element.replace('resConfigs', '')}]`;
-            langList = JSON.parse(langList);
-          } else if (!resConfigsReg.test(element.trim()) && element.indexOf(`resConfig`) >= 0) {
-            langList.push(element.replace(`resConfig`, '').replaceAll('"', '').trim());
-          }
+      if (!fs.existsSync(androidGradlePath)) {
+        return false;
+      }
+      let gradleData = fs.readFileSync(androidGradlePath, 'utf-8');
+      gradleData = gradleData.trim().split('\n');
+      for (const element of gradleData) {
+        if (!resConfigsReg.test(element.trim()) && element.indexOf(`resConfigs`) >= 0) {
+          let langListStr = `[${element.replace('resConfigs', '')}]`;
+          langListStr = JSON.parse(langListStr);
+          langList.push(...langListStr);
+        } else if (!resConfigsReg.test(element.trim()) && element.indexOf(`resConfig`) >= 0) {
+          langList.push(element.replace(`resConfig`, '').replaceAll('"', '').trim());
         }
       }
     } else if (system === 'ios') {
@@ -112,6 +113,14 @@ function getLangList(fileType, projectDir, system, newLangList) {
       }
     }
   }
+  return true;
+}
+
+function getLangList(fileType, projectDir, system, newLangList) {
+  const langList = [];
+  if (!getLangListFromConfigFile(projectDir, langList, system, fileType)) {
+    return false;
+  }
   let isFullCopy = false;
   if (system === 'android') {
     const iso6391OrIso6392Lang = new RegExp('^[a-zA-Z]{2,3}$');
@@ -132,6 +141,7 @@ function getLangList(fileType, projectDir, system, newLangList) {
       if (langMap.get(system).has(icuKey)) {
         newLangList.push(langMap.get(system).get(icuKey));
       } else {
+        console.warn(`Warning: Unsupported language: ${item}.`);
         isFullCopy = true;
       }
     }
@@ -144,12 +154,12 @@ function getLangList(fileType, projectDir, system, newLangList) {
           newLangList.push(langMap.get(system).get(item));
         }
       } else {
+        console.warn(`Warning: Unsupported language: ${item}.`);
         isFullCopy = true;
       }
     }
   }
   if (isFullCopy) {
-    console.warn('Warning: The language configuration in the gradle file is unsupported, and the full copy of the ICU data will be performed');
     newLangList.length = 0;
   } else {
     const setList = Array.from(new Set(newLangList));
