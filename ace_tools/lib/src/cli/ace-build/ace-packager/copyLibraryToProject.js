@@ -23,6 +23,7 @@ const { appCpu2SdkLibMap, appCpu2DestLibDir, clearLibBeforeCopy } = require('./g
 const { updateIosProjectPbxproj } = require('./adjustPbxproj4Framework');
 const { getSdkVersion } = require('../../util/index');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
+const { copyDat } = require('./pkgICUData');
 
 const arkUIXSdkName = 'arkui-x';
 let arkuiXSdkPath = '';
@@ -345,6 +346,8 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
         true, function(libname) { }, allLibSet);
     });
   }
+  // icudata tool entry, temporary comment due to incomplete IDE development
+  // copyDat(projectDir, system, fileType, depMap);
 }
 
 /*
