@@ -39,6 +39,7 @@ const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } 
 const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
 const { modifyModules, modifyProject } = require('./src/cli/ace-modify');
+const { analysisProject } = require('./src/cli/ace-analysis/index');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
@@ -51,7 +52,7 @@ const commandsSort = {
 const subCommands = ['apk', 'hap', 'ios'];
 const installCommands = ['apk', 'hap', 'hsp', 'ios'];
 const aceCommands = ['build', 'check', 'clean', 'config', 'create', 'devices', 'help',
-  'install', 'launch', 'log', 'new', 'run', 'test', 'uninstall', 'modify'];
+  'install', 'launch', 'log', 'new', 'run', 'test', 'uninstall', 'modify', 'analysis'];
 parseCommander();
 function parseCommander() {
   program.configureHelp({
@@ -91,6 +92,7 @@ Common commands:
   parseTest();
   parseUninstall();
   parseModify();
+  parseAnalysis();
 
   const userInputCommand = process.argv.slice(2);
   if (userInputCommand.length === 0 || ['help', '--help', '-h'].includes(userInputCommand[0]) && userInputCommand.length === 1) {
@@ -695,7 +697,31 @@ function parseModify() {
     commandHelp(ModifyCmd);
   }
   ModifyCmd.unknownOption = () => unknownOptions();
-  commandsSort['Application'].push(program.commands[program.commands.length - 1]);
+  commandsSort['Project'].push(program.commands[program.commands.length - 1]);
+}
+
+function parseAnalysis() {
+  const analysisCmd = program.command('analysis', { hidden: true })
+    .usage('[arguments]')
+    .description(`Analysis the interfaces that do not support cross-platform.`)
+    .option('--sdk [sdkPath]', 'Specifies the harmonyOS and OpenHarmony sdk path of the project use.')
+    .action((options) => {
+      if (options.sdk) {
+        if (fs.existsSync(path.join(options.sdk, 'default', 'sdk-pkg.json')) || fs.existsSync(path.join(options.sdk, 'sdk-pkg.json'))) {
+          analysisProject(options.sdk);
+        } else {
+          console.log(`please input the correct sdk path`);
+        }
+      } else {
+        console.log(`sdk path not found, please use '--sdk <sdkPath>'`);
+        return false;
+      }
+    });
+  if (process.argv[2] === 'help' && process.argv[3] === 'analysis') {
+    commandHelp(analysisCmd);
+  }
+  analysisCmd.unknownOption = () => unknownOptions();
+  commandsSort['Project'].push(program.commands[program.commands.length - 1]);
 }
 
 function parseClean() {
