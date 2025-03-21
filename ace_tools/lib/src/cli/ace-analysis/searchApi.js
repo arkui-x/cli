@@ -161,10 +161,8 @@ function traversalFolderAll(folderPath, notSupoortApi) {
     files.forEach(item => {
         if(item.includes('d.ts') || item.includes('d.ets')) {
             const filePath = path.join(folderPath, item);
-            if (fs.statSync(filePath).isFile()) {
-                if (isHaveNotSupportApiInFile(notSupoortApi, filePath)) {
-                    searchList.push(item);
-                }
+            if (fs.statSync(filePath).isFile() && isHaveNotSupportApiInFile(notSupoortApi, filePath)) {
+                searchList.push(item);
             }   
         }
     });
@@ -197,7 +195,7 @@ function getApiFileTraversal(notSupoortApi, allImportFileList) {
     if (apiCountList.length > 1) {
         return ' ';
     }
-    retrun ' ';
+    return ' ';
 }
 
 function traversalFolder(folderPath, notSupoortApi, importFileList) {
@@ -207,15 +205,11 @@ function traversalFolder(folderPath, notSupoortApi, importFileList) {
     }
     const files = fs.readdirSync(folderPath);
     files.forEach(item => {
-        if(item.includes('d.ts') || item.includes('d.ets')) {
-            if (isItemInList(item, importFileList)) {
-                const filePath = path.join(folderPath, item)
-                if (fs.statSync(filePath).isFile()) {
-                    if (isHaveNotSupportApiInFile(notSupoortApi, filePath)) {
-                        searchList.push(item);
-                    }
-                }
-            }
+        if((item.includes('d.ts') || item.includes('d.ets')) && isItemInList(item, importFileList)) {
+            const filePath = path.join(folderPath, item);
+            if (fs.statSync(filePath).isFile() && isHaveNotSupportApiInFile(notSupoortApi, filePath)) {
+                searchList.push(item);
+            }   
         }
     });
     return searchList;

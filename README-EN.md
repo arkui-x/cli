@@ -29,6 +29,7 @@ For details about the source code structure of the ArkUI-X project, see [ArkUI-X
 │   ├── ace-launch              # ArkUI-X application launch
 │   ├── ace-log                 #  ArkUI-X application run log
 │   ├── ace-modify              # modify the project to ArkUI-X/ directories.
+│   ├── ace-analysis            # Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics
 │   ├── ace-run                 # ArkUI-X application build and run
 |   ├── ace-test                # ArkUI-X application build and excute test case like unitTest or uiTest
 │   ├── ace-uninstall           # ArkUI-X application uninstall
@@ -499,6 +500,7 @@ ace help <subcommand>
 | install   | Installs an ArkUI-X application on a connected device.                            |
 | uninstall | Uninstalls an ArkUI-X application on a connected device.                                  |
 | modify    | Modify HarmonyOS project to ArkUI-X project structre.                                 |
+| analysis  | Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics                                 |
 | launch    | Launches an ArkUI-X application on a connected device.                                    |
 | log       | Displays the logs of an ArkUI-X application in scrolling mode.                        |
 | run       | Runs an ArkUI-X application.                                          |
@@ -569,4 +571,35 @@ ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by 
 ","): entry,libraryHar,libraryHsp
+```
+
+### ace analysis
+
+Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics
+
+ace anlysis This command need in the root directory of the application project.The sdk path used by the current project needs to be transferred through --sdk,When the command is executed,the system checks whether the input sdk path is correct，Check whether the defalut/sdk-pkg.json file exists in the sdk path，If this file exists,,the directory is correct. Continue to use this sdk path for analysis.During the analysis, the ace build apk compilation command is executed first, and the compilation log is saved in the analysis_build_logs.txt file.Then, analyze and search for data related to the unsupported API interface based on the error reported in the compilation log.Finally, the retrieved data is generated in a file named chart.html,You can view the APIs that do not support cross-platform in all modules, and check the d.ts interface files in which the not supported cross-platformthe APIs are located, and all information about every modules that do not support cross-platform interfaces，This allows developers to quickly understand the cross-platform support of all interfaces in their project and evaluate the workload required for cross-platform transformation.
+
+Syntax:
+
+```shell
+ace analysis --sdk [sdk path]
+```
+- arguments
+
+| Option | Description                                                         |
+| :--- | ------------------------------------------------------------ |
+| --sdk  | sdk path used by the current project                              |
+
+windows:
+```
+ohos@user % cd test
+ohos@user % ace analysis --sdk "C:\Program Files\Huawei\DevEco Studio\sdk"
+Analysis success! Please view chart.html
+```
+
+mac:
+```
+ohos@user % cd test
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+Analysis success! Please view chart.html
 ```

@@ -108,7 +108,7 @@ function createAllDtsHtml() {
     const allApiJsStr = `var chartDom = document.getElementById('allApiChart');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
-          chart.setOption(option);`
+          chart.setOption(option);`;
     let allDtsHtmlData = initHtmlData();
     const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
     const allApiHtmlStr = `<div id="allApiChart" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
@@ -184,7 +184,7 @@ function getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName) {
     const allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
-          chart.setOption(option);`
+          chart.setOption(option);`;
     let oneModuleDtsHtmlData = initHtmlData();
     const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
     const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
@@ -234,7 +234,7 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
     const allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
-          chart.setOption(option);`
+          chart.setOption(option);`;
     let oneModuleSelfHtmlData = initHtmlData();
     const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * selfFileArray.length;
     const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
@@ -245,7 +245,7 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
 
 function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName) {
     const tableId = `${nowModuleName}table`
-    const tableHtmlStr = `<div id="${tableId}"></div>`
+    const tableHtmlStr = `<div id="${tableId}"></div>`;
     const dataStr = changeOption(nowModuleApiArray);
     const tableJsStr = `const ${nowModuleName}data = ${dataStr};
       const ${nowModuleName}table = document.createElement('table');

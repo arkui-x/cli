@@ -30,6 +30,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 │   ├── ace-launch              # 在设备上运行ArkUI跨平台应用
 │   ├── ace-log                 # 展示正在运行的跨平台应用的日志
 │   ├── ace-modify              # 将鸿蒙工程改造为ArkUI-X工程
+│   ├── ace-analysis            # 分析ArkUI-X工程中不支持跨平台的接口并输出统计
 │   ├── ace-run                 # 编译并在设备上运行ArkUI跨平台应用
 |   ├── ace-test                # 执行跨平台应用包单元测试
 │   ├── ace-uninstall           # 将跨平台应用从连接的设备上卸载
@@ -670,6 +671,8 @@ ace help <command>
 | test | 执行跨平台应用包单元测试。 |
 | uninstall | 将跨平台应用从设备上卸载。 |
 | modify | 将鸿蒙工程改造为ArkUI-X工程 |
+| analysis | 分析ArkUI-X工程中不支持跨平台的接口并输出统计 |
+
 
 提示内容：
 
@@ -701,7 +704,6 @@ Application:
   run                    Run your ArkUI cross-platform app on an attached device.
   test                   Run ArkUI cross-platform unit tests for the current project.
   uninstall              Uninstall an ArkUI cross-platform app on an attached device.
-  modify   		         modify HarmonyOS project to ArkUI-X project structre
 
 Device:
   devices                List the connected devices.
@@ -715,6 +717,8 @@ Project:
   clean                  Delete the build/ directories.
   create                 Create a new ArkUI cross-platform project.
   new                    Create a new ability or module for your project.
+  modify   		           modify HarmonyOS project to ArkUI-X project structre
+  analysis               Analysis the interfaces that do not support cross-platform.
 
 Run "ace help <command>" for more information about a command.
 ```
@@ -745,4 +749,35 @@ ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by 
 ","): entry,libraryHar,libraryHsp
+```
+
+### ace analysis
+
+分析ArkUI-X工程中不支持跨平台的接口并输出统计
+
+ace anlysis 该命令需要在应用工程根目录下执行，需要通过--sdk传入当前工程使用的sdk路径，执行命令时会先判断传入的sdk路径是否正确，sdk路径下是否有defalut/sdk-pkg.json文件，有此文件代表目录正确，继续使用此sdk路径进行分析。分析过程中会先执行一次ace build apk编译命令，并将编译的日志保存在analysis_build_logs.txt文件中。之后根据编译日志中的报错开始分析检索，查找不支持的api接口相关的数据。最后将查找检索的数据生成一个名为chart.html的文件中，其中可以查看整个工程中不支持跨平台的api分别分布在哪些module模块中，分别分布在哪些d.ts接口文件中，以及每个module模块中不支持跨平台接口的所有信息，让开发者可以更快的了解自己项目所有接口的跨平台支持情况，评估做跨平台改造需要的工作量。
+
+语法：
+
+```shell
+ace analysis --sdk [sdk path]
+```
+- arguments
+
+| 参数 | 说明                                                         |
+| :--- | ------------------------------------------------------------ |
+| --sdk  | 当前工程使用的sdk路径                              |
+
+windows:
+```
+ohos@user % cd test
+ohos@user % ace analysis --sdk "C:\Program Files\Huawei\DevEco Studio\sdk"
+Analysis success! Please view chart.html
+```
+
+mac:
+```
+ohos@user % cd test
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+Analysis success! Please view chart.html
 ```
