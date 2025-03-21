@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 const fs = require('fs');
 const MODULE_BASE_WIDTH = 200;
 const MODULE_SHOW_WIDTH = 145;
@@ -8,9 +22,9 @@ let alldtsList;
 let moduleApiList;
 
 function createAllModuleHtml() {
-    let apiNumberArray= [];
+    let apiNumberArray = [];
     let keyArray = [];
-    for( let key of moduleApiList.keys()) {
+    for (let key of moduleApiList.keys()) {
         keyArray.push(key);
         let notSupportApiArray = moduleApiList.get(key);
         apiNumberArray.push(notSupportApiArray.length);
@@ -56,9 +70,9 @@ function createAllModuleHtml() {
 }
 
 function createAllDtsHtml() {
-    let dtsApiNumberArray= [];
+    let dtsApiNumberArray = [];
     let dtsFileArray = [];
-    for( let key of alldtsList.keys()) {
+    for (let key of alldtsList.keys()) {
         dtsFileArray.push(key);
         let notSupportApiArray = alldtsList.get(key);
         dtsApiNumberArray.push(notSupportApiArray.length);
@@ -97,7 +111,7 @@ function createAllDtsHtml() {
           chart.setOption(option);`
     let allDtsHtmlData = initHtmlData();
     const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
-    const allApiHtmlStr = `<div id="allApiChart" style="width: 1400px; height: ${allApiHeight}px;"></div>`
+    const allApiHtmlStr = `<div id="allApiChart" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
     allDtsHtmlData.htmlStr = allApiHtmlStr;
     allDtsHtmlData.jsStr = allApiJsStr;
     return allDtsHtmlData;
@@ -105,7 +119,7 @@ function createAllDtsHtml() {
 
 function getModuleDtsMap(nowModuleApiArray) {
     let nowModuleDtsMap = new Map();
-    for (var i = 0; i < nowModuleApiArray.length; i++) {
+    for (let i = 0; i < nowModuleApiArray.length; i++) {
         const nowApiData = nowModuleApiArray[i];
         if (!nowModuleDtsMap.has(nowApiData.dtsFile)) {
             nowModuleDtsMap.set(nowApiData.dtsFile, []);
@@ -118,7 +132,7 @@ function getModuleDtsMap(nowModuleApiArray) {
 
 function getModuleSelfMap(nowModuleApiArray) {
     let nowModuleSelfMap = new Map();
-    for (var i = 0; i < nowModuleApiArray.length; i++) {
+    for (let i = 0; i < nowModuleApiArray.length; i++) {
         const nowApiData = nowModuleApiArray[i];
         if (!nowModuleSelfMap.has(nowApiData.selfFile)) {
             nowModuleSelfMap.set(nowApiData.selfFile, []);
@@ -130,9 +144,9 @@ function getModuleSelfMap(nowModuleApiArray) {
 }
 
 function getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName) {
-    let dtsApiNumberArray= [];
+    let dtsApiNumberArray = [];
     let dtsFileArray = [];
-    for( let key of nowModuleDtsMap.keys()) {
+    for (let key of nowModuleDtsMap.keys()) {
         dtsFileArray.push(key);
         let nowApiArray = nowModuleDtsMap.get(key);
         dtsApiNumberArray.push(nowApiArray.length);
@@ -173,16 +187,16 @@ function getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName) {
           chart.setOption(option);`
     let oneModuleDtsHtmlData = initHtmlData();
     const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
-    const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`
+    const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
     oneModuleDtsHtmlData.htmlStr = allApiHtmlStr;
     oneModuleDtsHtmlData.jsStr = allApiJsStr;
     return oneModuleDtsHtmlData;
 }
 
 function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
-    let selfApiNumberArray= [];
+    let selfApiNumberArray = [];
     let selfFileArray = [];
-    for( let key of nowModuleSelfMap.keys()) {
+    for (let key of nowModuleSelfMap.keys()) {
         selfFileArray.push(key);
         let nowApiArray = nowModuleSelfMap.get(key);
         selfApiNumberArray.push(nowApiArray.length);
@@ -223,7 +237,7 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
           chart.setOption(option);`
     let oneModuleSelfHtmlData = initHtmlData();
     const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * selfFileArray.length;
-    const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`
+    const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
     oneModuleSelfHtmlData.htmlStr = allApiHtmlStr;
     oneModuleSelfHtmlData.jsStr = allApiJsStr;
     return oneModuleSelfHtmlData;
@@ -260,7 +274,7 @@ function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName) {
           ${nowModuleName}tbody.appendChild(row);
       });
       ${nowModuleName}table.appendChild(${nowModuleName}tbody);
-      document.getElementById('${tableId}').appendChild(${nowModuleName}table);`
+      document.getElementById('${tableId}').appendChild(${nowModuleName}table);`;
       let tableHtmlData = initHtmlData();
       tableHtmlData.htmlStr = tableHtmlStr;
       tableHtmlData.jsStr = tableJsStr;
@@ -268,9 +282,9 @@ function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName) {
 }
 
 function createEveryModuleHtml() {
-    let everyModuleHtmlStr ='';
+    let everyModuleHtmlStr = '';
     let everyModuleJsStr = '';
-    for( let key of moduleApiList.keys()) {
+    for (let key of moduleApiList.keys()) {
         const nowModuleName = key;
         const nowModuleApiArray = moduleApiList.get(key);
         const nowModuleDtsMap = getModuleDtsMap(nowModuleApiArray);
@@ -321,7 +335,7 @@ function createHtmlString() {
     return htmlContent;
 }
 
-function initHtmlData(htmlString = "", jsString = "") {
+function initHtmlData(htmlString = '', jsString = '') {
     let htmlData = { htmlStr:htmlString, jsStr:jsString };
     return htmlData;
 }

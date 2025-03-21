@@ -704,7 +704,7 @@ function parseAnalysis() {
   const analysisCmd = program.command('analysis', { hidden: true })
     .usage('[arguments]')
     .description(`Analysis the interfaces that do not support cross-platform.`)
-    .option('--sdk [sdkPath]', 'Specifies the harmonyOS and OpenHarmony sdk path of the project use.')
+    .option('--sdk [sdkPath]', 'Specifies the sdk path of the project use.')
     .action((options) => {
       if (options.sdk) {
         if (fs.existsSync(path.join(options.sdk, 'default', 'sdk-pkg.json')) || fs.existsSync(path.join(options.sdk, 'sdk-pkg.json'))) {
@@ -714,14 +714,13 @@ function parseAnalysis() {
         }
       } else {
         console.log(`sdk path not found, please use '--sdk <sdkPath>'`);
-        return false;
       }
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'analysis') {
     commandHelp(analysisCmd);
   }
   analysisCmd.unknownOption = () => unknownOptions();
-  commandsSort['Project'].push(program.commands[program.commands.length - 1]);
+  commandsSort.Project.push(program.commands[program.commands.length - 1]);
 }
 
 function parseClean() {
