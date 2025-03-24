@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 const fs = require('fs');
-const path = require('path')
+const path = require('path');
 const { spawn } = require('child_process');
 const { Platform, platform } = require('../ace-check/platform');
 const { createHtml, setData } = require('./createHtml');
@@ -28,7 +28,7 @@ const buildLogPath = './analysis_build_logs.txt';
 const MODULE_SUFFIX = "/src/main/ets";
 const ERROR_LOG = 'ArkTS:ERROR File';
 const SPLIT_STR_FILE = ":";
-const FILE_NAME = "File: ";
+const FILE_NAME = 'File: ';
 const SPLIT_STR = '/';
 
 let alldtsList;
@@ -159,7 +159,7 @@ function traversalFolderAll(folderPath, notSupoortApi) {
     let searchList = [];
     const files = fs.readdirSync(folderPath);
     files.forEach(item => {
-        if(item.includes('d.ts') || item.includes('d.ets')) {
+        if (item.includes('d.ts') || item.includes('d.ets')) {
             const filePath = path.join(folderPath, item);
             if (fs.statSync(filePath).isFile() && isHaveNotSupportApiInFile(notSupoortApi, filePath)) {
                 searchList.push(item);
@@ -180,7 +180,7 @@ function getApiFileTraversal(notSupoortApi, allImportFileList) {
     const apiFolderPath = `${GLOBAL_SDK_PATH}${PATH_TRAVERSAL_API}`;
     const files = fs.readdirSync(apiFolderPath);
     files.forEach(item => {
-        const nowFolderPath = path.join(apiFolderPath, item)
+        const nowFolderPath = path.join(apiFolderPath, item);
         if (fs.statSync(nowFolderPath).isDirectory()) {
             const searchListNow = traversalFolder(nowFolderPath, notSupoortApi. allImportFileList);
             apiCountList = apiCountList.concat(searchListNow);
@@ -205,7 +205,7 @@ function traversalFolder(folderPath, notSupoortApi, importFileList) {
     }
     const files = fs.readdirSync(folderPath);
     files.forEach(item => {
-        if((item.includes('d.ts') || item.includes('d.ets')) && isItemInList(item, importFileList)) {
+        if ((item.includes('d.ts') || item.includes('d.ets')) && isItemInList(item, importFileList)) {
             const filePath = path.join(folderPath, item);
             if (fs.statSync(filePath).isFile() && isHaveNotSupportApiInFile(notSupoortApi, filePath)) {
                 searchList.push(item);
@@ -317,7 +317,7 @@ function getDtsFileFromComponent(componentName, notSupportApi) {
         }
         componentFileName = `${componentFileName}${componentName.charAt(i).toLowerCase()}`
     }
-    let componentFileNameAddSuffix = `${componentFileName}.d.ts`
+    let componentFileNameAddSuffix = `${componentFileName}.d.ts`;
     let componentFilePath = `${GLOBAL_SDK_PATH}${PATH_TRAVERSAL_COMPONENT}${componentFileNameAddSuffix}`;
     if (!(fs.existsSync(componentFilePath))) {
         componentFileNameAddSuffix = `${componentFileName}.d.ets`;
@@ -327,10 +327,10 @@ function getDtsFileFromComponent(componentName, notSupportApi) {
         }
     }
     if (componentFilePath === ' ') {
-        componentFileNameAddSuffix = `${componentName.toLowerCase()}.d.ts`
+        componentFileNameAddSuffix = `${componentName.toLowerCase()}.d.ts`;
         componentFilePath = `${GLOBAL_SDK_PATH}${PATH_TRAVERSAL_COMPONENT}${componentFileNameAddSuffix}`;
         if (!(fs.existsSync(componentFilePath))) {
-            componentFileNameAddSuffix = `${componentFileName}.d.ets`
+            componentFileNameAddSuffix = `${componentFileName}.d.ets`;
             componentFilePath = `${GLOBAL_SDK_PATH}${PATH_TRAVERSAL_COMPONENT}${componentFileNameAddSuffix}`;
             if (!(fs.existsSync(componentFilePath))) {
                 return ' ';
@@ -347,7 +347,7 @@ function getDtsFileFromComponent(componentName, notSupportApi) {
 function isHaveNotSupportApiInFile(notSupoortApi, filePath) {
     const data = fs.readFileSync(filePath, 'utf8');
     const lines = data.split('\n');
-    for (var i = 0; i < lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
         if (lines[i].includes(notSupoortApi)) {
             const index = lines[i].indexOf(notSupoortApi);
             const frontString = lines[i].slice(0, index);
@@ -380,6 +380,11 @@ function isUpper(str) {
     return /[A-Z]/.test(str);
 }
 
+function initComponentSearchData(indexData, isInData, findTypeData) {
+    let searchData = { nowIndex:indexData, isWhileIn:isInData, whileFindType:findTypeData, componentName:' ' };
+    return searchData;
+}
+
 function getComponentName(fileData, notSupportApi) {
     let componentName = ' ';
     const data = fs.readFileSync(fileData.path, 'utf8');
@@ -391,71 +396,72 @@ function getComponentName(fileData, notSupportApi) {
     if (lineString.trim().slice(0, 1) !== '.') {
         return componentName;
     }
-    let nowIndex = 2;
-    let isWhileIn = true;
-    let whileFindType = 0;
-    while (isWhileIn) {
-        if (lines[fileData.line - nowIndex].trim().slice(0, 1) === '.') {
+    let searchData = initComponentSearchData(2, true, 0);
+    while (searchData.isWhileIn) {
+        if (lines[fileData.line - searchData.nowIndex].trim().slice(0, 1) === '.') {
             whileFindType = 0;
-            nowIndex = nowIndex + 1;
-        } else if (lines[fileData.line - nowIndex].trim() === '})' || lines[fileData.line - nowIndex].trim() === '}))') {
+            searchData.nowIndex = searchData.nowIndex + 1;
+        } else if (lines[fileData.line - searchData.nowIndex].trim() === '})' || lines[fileData.line - searchData.nowIndex].trim() === '}))') {
             whileFindType = 1;
-            nowIndex = nowIndex + 1;
+            searchData.nowIndex = searchData.nowIndex + 1;
         } else {
-            if (whileFindType === 0) {
-                const nowLine = lines[fileData.line - nowIndex].trim();
-                const nowLineLength = nowLine.length;
-                if ((nowLine.slice(nowLineLength - 2, nowLineLength)) === '})') {
-                    if (nowLine.includes('({')) {
-                        const componentIndex = nowLine.indexOf('({');
-                        componentName = nowLine.slice(0, componentIndex);
-                        isWhileIn = false;
-                    } else {
-                        whileFindType = 2;
-                        nowIndex = nowIndex + 1;
-                    }
-                } else if ((nowLine.slice(nowLineLength - 1, nowLineLength)) === ')') {
-                    if (nowLine.includes('(')) {
-                        const componentIndex = nowLine.indexOf('(');
-                        componentName = nowLine.slice(0, componentIndex);
-                        isWhileIn = false;
-                    } else {
-                        whileFindType = 3;
-                        nowIndex = nowIndex + 1;
-                    }
-                } else {
-                    isWhileIn = false;
-                }
-            } else if (whileFindType === 1) {
-                const nowLine = lines[fileData.line - nowIndex];
-                if (nowLine.includes('=> {' && nowLine.trim().slice(0, 1) === '.')) {
-                    whileFindType = 0;
-                    nowIndex = nowIndex + 1;
-                } else if (nowLine.includes('({')) {
-                    const componentIndex = nowLine.trim().indexOf('({');
-                    componentName = nowLine.trim().slice(0, componentIndex);
-                    isWhileIn = false;
-                } else {
-                    nowIndex = nowIndex + 1;
-                }
-            } else if (whileFindType === 2) {
-                const nowLine = lines[fileData.line - nowIndex].trim();
-                if (nowLine.includes('({')) {
-                    const componentIndex = nowLine.indexOf('({');
-                    componentName = nowLine.slice(0, componentIndex);
-                    isWhileIn = false;
-                }
-            } else if (whileFindType === 3) {
-                const nowLine = lines[fileData.line - nowIndex].trim();
-                if (nowLine.includes('(')) {
-                    const componentIndex = nowLine.indexOf('(');
-                    componentName = nowLine.slice(0, componentIndex);
-                    isWhileIn = false;
-                }
-            }
+            let searchDataBranch = getComponentNameBranch(fileData, searchData, lines);
+            searchData = initComponentSearchData(searchDataBranch.nowIndex, searchDataBranch.isWhileIn, searchDataBranch.whileFindType);
+            componentName = searchDataBranch.componentName;
         }
     }
     return componentName;
+}
+
+function getComponentNameBranch(fileData, searchData, lines) {
+    let nowSearchData = initComponentSearchData(searchData.nowIndex, searchData.isWhileIn, searchData.whileFindType);
+    if (nowSearchData.whileFindType === 0) {
+        const nowLine = lines[fileData.line - nowSearchData.nowIndex].trim();
+        const nowLineLength = nowLine.length;
+        if ((nowLine.slice(nowLineLength - 2, nowLineLength)) === '})') {
+            if (nowLine.includes('({')) {
+                const componentIndex = nowLine.indexOf('({');
+                nowSearchData.componentName = nowLine.slice(0, componentIndex);
+                nowSearchData.isWhileIn = false;
+            } else {
+                nowSearchData.whileFindType = 2;
+                nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
+            }
+        } else if ((nowLine.slice(nowLineLength - 1, nowLineLength)) === ')') {
+            
+            if (nowLine.includes('(')) {
+                const componentIndex = nowLine.indexOf('(');
+                nowSearchData.componentName = nowLine.slice(0, componentIndex);
+                nowSearchData.isWhileIn = false;
+            } else {
+                nowSearchData.whileFindType = 3;
+                nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
+            }
+        } else {
+            nowSearchData.isWhileIn = false;
+        }
+    } else if (nowSearchData.whileFindType === 1) {
+        const nowLine = lines[fileData.line - nowSearchData.nowIndex];
+        if (nowLine.includes('=> {' && nowLine.trim().slice(0, 1) === '.')) {
+            nowSearchData.whileFindType = 0;
+            nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
+        } else if (nowLine.includes('({')) {
+            const componentIndex = nowLine.trim().indexOf('({');
+            nowSearchData.componentName = nowLine.trim().slice(0, componentIndex);
+            nowSearchData.isWhileIn = false;
+        } else {
+            nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
+        }
+    } else if (nowSearchData.whileFindType === 2 && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('({')) {
+        const componentIndex = nowLine.indexOf('({');
+        nowSearchData.componentName = nowLine.slice(0, componentIndex);
+        nowSearchData.isWhileIn = false;
+    } else if (nowSearchData.whileFindType === 3 && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('(')) {
+        const componentIndex = nowLine.indexOf('(');
+        nowSearchData.componentName = nowLine.slice(0, componentIndex);
+        nowSearchData.isWhileIn = false;
+    }
+    return nowSearchData;
 }
 
 function getPointStartName(fileData) {
@@ -529,7 +535,7 @@ function getMultiLineImportData(lines, importIndex, notSupportApi) {
     const multiLineFromFile = (lines[fromLineIndex].slice(index + 6, lines[fromLineIndex].length - 2)).trim();
     let multiLineImportList = [];
     for (let i = 1; i < fromIndex; i++) {
-        const importFileName =  (lines[importIndex + i]).trim().replace(/,/g, '');
+        const importFileName = (lines[importIndex + i]).trim().replace(/,/g, '');
         multiLineImportList.push(importFileName);
     }
     if (multiLineImportList.includes(notSupportApi)) {

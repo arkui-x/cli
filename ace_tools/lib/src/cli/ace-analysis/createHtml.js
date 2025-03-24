@@ -180,7 +180,7 @@ function getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName) {
         }]
     };
     const optionStr = changeOption(option);
-    const htmlId = `${nowModuleName}dtsChart`
+    const htmlId = `${nowModuleName}dtsChart`;
     const allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
@@ -230,7 +230,7 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
         }]
     };
     const optionStr = changeOption(option);
-    const htmlId = `${nowModuleName}selfChart`
+    const htmlId = `${nowModuleName}selfChart`;
     const allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
@@ -244,7 +244,7 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
 }
 
 function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName) {
-    const tableId = `${nowModuleName}table`
+    const tableId = `${nowModuleName}table`;
     const tableHtmlStr = `<div id="${tableId}"></div>`;
     const dataStr = changeOption(nowModuleApiArray);
     const tableJsStr = `const ${nowModuleName}data = ${dataStr};
