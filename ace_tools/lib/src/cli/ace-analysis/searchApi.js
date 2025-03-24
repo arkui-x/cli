@@ -27,7 +27,7 @@ NOT_SUPPORT_LOG = "can't support crossplatform application.";
 const buildLogPath = './analysis_build_logs.txt';
 const MODULE_SUFFIX = "/src/main/ets";
 const ERROR_LOG = 'ArkTS:ERROR File';
-const SPLIT_STR_FILE = ":";
+const SPLIT_STR_FILE = ':';
 const FILE_NAME = 'File: ';
 const SPLIT_STR = '/';
 
@@ -315,7 +315,7 @@ function getDtsFileFromComponent(componentName, notSupportApi) {
         if (isUpper(componentName.charAt(i))) {
             componentFileName = `${componentFileName}_`;
         }
-        componentFileName = `${componentFileName}${componentName.charAt(i).toLowerCase()}`
+        componentFileName = `${componentFileName}${componentName.charAt(i).toLowerCase()}`;
     }
     let componentFileNameAddSuffix = `${componentFileName}.d.ts`;
     let componentFilePath = `${GLOBAL_SDK_PATH}${PATH_TRAVERSAL_COMPONENT}${componentFileNameAddSuffix}`;

@@ -593,7 +593,7 @@ ace analysis --sdk [sdk path]
 windows:
 ```
 ohos@user % cd test
-ohos@user % ace analysis --sdk "C:\Program Files\Huawei\DevEco Studio\sdk"
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
 Analysis success! Please view chart.html
 ```
 

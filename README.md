@@ -717,7 +717,7 @@ Project:
   clean                  Delete the build/ directories.
   create                 Create a new ArkUI cross-platform project.
   new                    Create a new ability or module for your project.
-  modify   		           modify HarmonyOS project to ArkUI-X project structre
+  modify   		           modify project to ArkUI-X project structre
   analysis               Analysis the interfaces that do not support cross-platform.
 
 Run "ace help <command>" for more information about a command.
@@ -771,7 +771,7 @@ ace analysis --sdk [sdk path]
 windows:
 ```
 ohos@user % cd test
-ohos@user % ace analysis --sdk "C:\Program Files\Huawei\DevEco Studio\sdk"
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
 Analysis success! Please view chart.html
 ```
 
