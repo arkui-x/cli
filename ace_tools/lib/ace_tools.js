@@ -648,7 +648,7 @@ Available subcommands:
 function parseModify() {
   const ModifyCmd = program.command('modify', { hidden: true })
     .usage('[arguments]')
-    .description(`modify HarmonyOS project to ArkUI-X project structre`)
+    .description(`Modify HarmonyOS project to ArkUI-X project structre.`)
     .option('--project', 'modify current project all modules.')
     .option('--modules', 'modify specified modules')
     .action((modifyType) => {

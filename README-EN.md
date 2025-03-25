@@ -550,7 +550,7 @@ Commands:
 
 modify HarmonyOS project to ArkUI-X project structre
 
-ace modify This command need in the root directory of the application project. When running the command, will first check whether the build-profile.json5 file exists in the current directory. If this file exists, it means that the directory is correct, and then continue the modification. The transformation process mainly involves generating the .arkui-x directory and the iOS and Android cross-platform projects in it. Set the corresponding configurations in the iOS and Android projects according to the relevant configurations of the HarmonyOS project. Set the ArkUI-X compilation options for the HarmonyOS module.
+The ace modify command needs to be executed in the root directory of the application project. Currently, cross-platform reconstruction is supported at the project level (all modules in the entire project) and at the module level (one module or multiple modules). After the reconstruction, the application project supports cross-platform compilation. Supports running on Windows and MacOS platforms.
 
 Syntax:
 
@@ -567,10 +567,12 @@ ace modify [arguments]
 
 ```
 ohos@user % ace modify --project
+modify HarmonyOS project to ArkUI-X project success!
 ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by 
 ","): entry,libraryHar,libraryHsp
+modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
 ```
 
 ### ace analysis
@@ -592,14 +594,12 @@ ace analysis --sdk [sdk path]
 
 windows:
 ```
-ohos@user % cd test
 ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
 Analysis success! Please view chart.html
 ```
 
 mac:
 ```
-ohos@user % cd test
 ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
 Analysis success! Please view chart.html
 ```
