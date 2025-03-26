@@ -546,7 +546,7 @@ Commands:
   help [command]                  display help for command
 ```
 
-### ace modify
+### ace modify<a id="sectionModify"></a>
 
 modify HarmonyOS project to ArkUI-X project structre
 
@@ -579,7 +579,9 @@ modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
 
 Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics
 
-ace anlysis This command need in the root directory of the application project.The sdk path used by the current project needs to be transferred through --sdk,When the command is executed,the system checks whether the input sdk path is correct，Check whether the defalut/sdk-pkg.json file exists in the sdk path，If this file exists,,the directory is correct. Continue to use this sdk path for analysis.During the analysis, the ace build apk compilation command is executed first, and the compilation log is saved in the analysis_build_logs.txt file.Then, analyze and search for data related to the unsupported API interface based on the error reported in the compilation log.Finally, the retrieved data is generated in a file named chart.html,You can view the APIs that do not support cross-platform in all modules, and check the d.ts interface files in which the not supported cross-platformthe APIs are located, and all information about every modules that do not support cross-platform interfaces，This allows developers to quickly understand the cross-platform support of all interfaces in their project and evaluate the workload required for cross-platform transformation.
+The ace anlysis command needs to be executed in the root directory of the cross-platform application project. (Developers can run [ace modify](#sectionModify) to transform the HarmonyOS project into a cross-platform project that can be compiled.) Developers need to enter the HarmonyOS SDK path used by the current application compilation based on the --sdk parameter, that is, the path of the built-in SDK in DevEco Studio. For the built-in SDK path on Windows and MacOS platforms, see the following example code.
+
+After this command is executed, the chart.html file is output, which displays the application modules and d.ts files that do not support cross-platform API distribution in the entire project, and the specific information about each module that does not support cross-platform APIs. This allows developers to quickly understand the cross-platform support of all APIs in the project and further evaluate the adaptation workload for cross-platform transformation in the later stage.
 
 Syntax:
 
@@ -590,7 +592,7 @@ ace analysis --sdk [sdk path]
 
 | Option | Description                                                         |
 | :--- | ------------------------------------------------------------ |
-| --sdk  | sdk path used by the current project                              |
+| --sdk  | HarmonyOS sdk path used by the current project                              |
 
 windows:
 ```

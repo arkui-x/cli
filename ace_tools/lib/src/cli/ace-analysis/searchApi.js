@@ -16,7 +16,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const { Platform, platform } = require('../ace-check/platform');
-const { createHtml, setData } = require('./createHtml');
+const { createHtml } = require('./createHtml');
 GLOBAL_SDK_PATH = '/Applications/DevEco-Studio.app/Contents/sdk';
 PATH_KIT_HMS = (platform === Platform.MacOS) ? '/default/hms/ets/kits/' : '\\default\\hms\\ets\\kits\\';
 PATH_KIT_OH = (platform === Platform.MacOS) ? '/default/openharmony/ets/kits/' : '\\default\\openharmony\\ets\\kits\\';
@@ -30,9 +30,6 @@ const ERROR_LOG = 'ArkTS:ERROR File';
 const SPLIT_STR_FILE = ':';
 const FILE_NAME = 'File: ';
 const SPLIT_STR = '/';
-
-let alldtsList;
-let moduleApiList;
 
 function captureLogs() {
    const options = { maxBuffer: 10 * 1024 * 1024, shell: true, env: { ...process.env, CUSTOM_VAR: 'value' }, cwd: process.cwd(), encoding: 'utf-8' };
@@ -54,6 +51,8 @@ function captureLogs() {
 }
 
 function analysisBuildLog() {
+    let alldtsList = new Map();
+    let moduleApiList = new Map();
     if (!(fs.existsSync(buildLogPath))) {
         console.log('\x1B[31m%s\x1B[0m', `Error: No compilation log file found`);
         return;
@@ -62,11 +61,10 @@ function analysisBuildLog() {
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
         if ((lines[i].includes(ERROR_LOG))) {
-            analysisBuildLogLine(lines[i], lines[i + 1]);
+            analysisBuildLogLine(lines[i], lines[i + 1], alldtsList, moduleApiList);
         }
     }
-    setData(alldtsList, moduleApiList);
-    createHtml();
+    createHtml(alldtsList, moduleApiList);
     fs.unlink(buildLogPath, (error) => {
         if (error) {
             return;
@@ -74,7 +72,7 @@ function analysisBuildLog() {
     });
 }
 
-function analysisBuildLogLine(line, nextLine) {
+function analysisBuildLogLine(line, nextLine, alldtsList, moduleApiList) {
     if (!line || line.length === 0 || !nextLine || nextLine.length === 0) {
         return;
     }
@@ -627,8 +625,6 @@ function initFileData(filePath = '', fileName = '', fileLine = '', fileColumn = 
 
 function searchApi(sdkPath) {
     GLOBAL_SDK_PATH = sdkPath;
-    alldtsList = new Map();
-    moduleApiList = new Map();
     captureLogs();
 }
 

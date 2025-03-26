@@ -18,10 +18,7 @@ const MODULE_SHOW_WIDTH = 145;
 const API_BASE_HEIGHT = 200;
 const API_SHOW_HEIGHT = 66;
 
-let alldtsList;
-let moduleApiList;
-
-function createAllModuleHtml() {
+function createAllModuleHtml(moduleApiList) {
     let apiNumberArray = [];
     let keyArray = [];
     for (let key of moduleApiList.keys()) {
@@ -69,7 +66,7 @@ function createAllModuleHtml() {
     return allModuleHtmlData;
 }
 
-function createAllDtsHtml() {
+function createAllDtsHtml(alldtsList) {
     let dtsApiNumberArray = [];
     let dtsFileArray = [];
     for (let key of alldtsList.keys()) {
@@ -281,7 +278,7 @@ function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName) {
       return tableHtmlData;
 }
 
-function createEveryModuleHtml() {
+function createEveryModuleHtml(moduleApiList) {
     let everyModuleHtmlStr = '';
     let everyModuleJsStr = '';
     for (let key of moduleApiList.keys()) {
@@ -308,10 +305,10 @@ function createEveryModuleHtml() {
     return everyModuleHtmlData;
 }
 
-function createHtmlString() {
-    const allModuleHtmlData = createAllModuleHtml();
-    const allDtsHtmlData = createAllDtsHtml();
-    const everyModuleHtmlData = createEveryModuleHtml();
+function createHtmlString(alldtsList, moduleApiList) {
+    const allModuleHtmlData = createAllModuleHtml(moduleApiList);
+    const allDtsHtmlData = createAllDtsHtml(alldtsList);
+    const everyModuleHtmlData = createEveryModuleHtml(moduleApiList);
     const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -348,15 +345,10 @@ function changeOption(option) {
     return optionStr;
 }
 
-function setData(alldtsListData, moduleApiListData) {
-    alldtsList = alldtsListData;
-    moduleApiList = moduleApiListData;
-}
-
-function createHtml() {
-  const htmlContent = createHtmlString();
+function createHtml(alldtsList, moduleApiList) {
+  const htmlContent = createHtmlString(alldtsList, moduleApiList);
   fs.writeFileSync('./chart.html', htmlContent, 'utf-8');
   console.log('Analysis success! Please view chart.html');
 }
 
-module.exports = { createHtml, setData };
+module.exports = { createHtml };

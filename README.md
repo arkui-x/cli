@@ -723,7 +723,7 @@ Project:
 Run "ace help <command>" for more information about a command.
 ```
 
-### ace modify
+### ace modify<a id="sectionModify"></a>
 
 将鸿蒙工程改造为ArkUI-X工程
 
@@ -756,7 +756,9 @@ modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
 
 分析跨平台应用工程中不支持跨平台的API并统计输出
 
-ace anlysis 该命令需要在应用工程根目录下执行，需要通过--sdk传入当前工程使用的sdk路径，执行命令时会先判断传入的sdk路径是否正确，sdk路径下是否有defalut/sdk-pkg.json文件，有此文件代表目录正确，继续使用此sdk路径进行分析。分析过程中会先执行一次ace build apk编译命令，并将编译的日志保存在analysis_build_logs.txt文件中。之后根据编译日志中的报错开始分析检索，查找不支持的api接口相关的数据。最后将查找检索的数据生成一个名为chart.html的文件中，其中可以查看整个工程中不支持跨平台的api分别分布在哪些module模块中，分别分布在哪些d.ts接口文件中，以及每个module模块中不支持跨平台接口的所有信息，让开发者可以更快的了解自己项目所有接口的跨平台支持情况，评估做跨平台改造需要的工作量。
+ace anlysis 命令需要在跨平台应用工程根目录下执行（开发者可以先执行[ace modify](#sectionModify)，将鸿蒙工程改造为可编译的跨平台工程），开发者需要基于--sdk参数输入当前应用编译使用的HarmonyOS SDK路径，即当前DevEco Studio内置SDK的路径，Windows和MacOS平台的内置SDK路径参考下方示例代码。
+
+该命令执行后最终会输出chart.html文件，可视化展示整个工程中不支持跨平台的API分布的应用module、d.ts文件，以及每个module中不支持跨平台API的具体信息，让开发者可以更快地了解项目所有API的跨平台支持情况，进一步评估后期跨平台改造的适配工作量。
 
 语法：
 
@@ -767,7 +769,7 @@ ace analysis --sdk [sdk path]
 
 | 参数 | 说明                                                         |
 | :--- | ------------------------------------------------------------ |
-| --sdk  | 当前工程使用的sdk路径                              |
+| --sdk  | 当前应用编译使用的HarmonyOS SDK路径                              |
 
 windows:
 ```

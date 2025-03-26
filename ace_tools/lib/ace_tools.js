@@ -704,7 +704,7 @@ function parseAnalysis() {
   const analysisCmd = program.command('analysis', { hidden: true })
     .usage('[arguments]')
     .description(`Analysis the interfaces that do not support cross-platform.`)
-    .option('--sdk [sdkPath]', 'Specifies the sdk path of the project use.')
+    .option('--sdk [sdkPath]', 'Specifies the HarmonyOS sdk path of the project use.')
     .action((options) => {
       if (options.sdk) {
         if (fs.existsSync(path.join(options.sdk, 'default', 'sdk-pkg.json')) || fs.existsSync(path.join(options.sdk, 'sdk-pkg.json'))) {
