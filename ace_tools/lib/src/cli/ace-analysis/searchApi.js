@@ -17,21 +17,17 @@ const path = require('path');
 const { spawn } = require('child_process');
 const { Platform, platform } = require('../ace-check/platform');
 const { createHtml } = require('./createHtml');
-GLOBAL_SDK_PATH = '/Applications/DevEco-Studio.app/Contents/sdk';
-PATH_KIT_HMS = (platform === Platform.MacOS) ? '/default/hms/ets/kits/' : '\\default\\hms\\ets\\kits\\';
-PATH_KIT_OH = (platform === Platform.MacOS) ? '/default/openharmony/ets/kits/' : '\\default\\openharmony\\ets\\kits\\';
-PATH_TRAVERSAL_COMPONENT = (platform === Platform.MacOS) ? '/default/openharmony/ets/component/' : '\\default\\openharmony\\ets\\component\\';
-PATH_TRAVERSAL_API = (platform === Platform.MacOS) ? '/default/openharmony/ets/api/' : '\\default\\openharmony\\ets\\api\\';
-PATH_TRAVERSAL_HMS_API = (platform === Platform.MacOS) ? '/default/hms/ets/api/' : '\\default\\hms\\ets\\api\\';
-NOT_SUPPORT_LOG = 'can\'t support crossplatform application.';
-const buildLogPath = './analysis_build_logs.txt';
-const MODULE_SUFFIX = '/src/main/ets';
-const ERROR_LOG = 'ArkTS:ERROR File';
-const SPLIT_STR_FILE = ':';
-const FILE_NAME = 'File: ';
-const SPLIT_STR = '/';
+let GLOBAL_SDK_PATH = '/Applications/DevEco-Studio.app/Contents/sdk';
+const PATH_KIT_HMS = (platform === Platform.MacOS) ? '/default/hms/ets/kits/' : '\\default\\hms\\ets\\kits\\';
+const PATH_KIT_OH = (platform === Platform.MacOS) ? '/default/openharmony/ets/kits/' : '\\default\\openharmony\\ets\\kits\\';
+const PATH_TRAVERSAL_COMPONENT = (platform === Platform.MacOS) ? '/default/openharmony/ets/component/' : '\\default\\openharmony\\ets\\component\\';
+const PATH_TRAVERSAL_API = (platform === Platform.MacOS) ? '/default/openharmony/ets/api/' : '\\default\\openharmony\\ets\\api\\';
+const PATH_TRAVERSAL_HMS_API = (platform === Platform.MacOS) ? '/default/hms/ets/api/' : '\\default\\hms\\ets\\api\\';
+const FROM_FRONT_LENGTH = 6;
+const FROM_SUFFIX_LENGTH = 2;
 
 function captureLogs() {
+   const buildLogPath = './analysis_build_logs.txt';
    const options = { maxBuffer: 10 * 1024 * 1024, shell: true, env: { ...process.env, CUSTOM_VAR: 'value' }, cwd: process.cwd(), encoding: 'utf-8' };
    const logFileStream = fs.createWriteStream(buildLogPath);
    const child = spawn('ace build apk', [], options);
@@ -42,7 +38,7 @@ function captureLogs() {
    child.on('close', (code) => {
      child.kill();
      logFileStream.end();
-     analysisBuildLog();
+     analysisBuildLog(buildLogPath);
    });
    child.on('error', (error) => {
        child.kill();
@@ -50,7 +46,7 @@ function captureLogs() {
    });
 }
 
-function analysisBuildLog() {
+function analysisBuildLog(buildLogPath) {
     let alldtsList = new Map();
     let moduleApiList = new Map();
     if (!(fs.existsSync(buildLogPath))) {
@@ -60,8 +56,9 @@ function analysisBuildLog() {
     const data = fs.readFileSync(buildLogPath, 'utf8');
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
-        if ((lines[i].includes(ERROR_LOG))) {
-            analysisBuildLogLine(lines[i], lines[i + 1], alldtsList, moduleApiList);
+        const lineNextIndex = i + 1;
+        if ((lines[i].includes('ArkTS:ERROR File'))) {
+            analysisBuildLogLine(lines[i], lines[lineNextIndex], alldtsList, moduleApiList);
         }
     }
     createHtml(alldtsList, moduleApiList);
@@ -245,7 +242,7 @@ function getImportFileList(fileData) {
 function getOneLineImportFileList(searchLine) {
     let fileList = [];
     const fromIndex = searchLine.indexOf('from');
-    const fromFile = searchLine.slice(fromIndex + 5, searchLine.length - 2).trim().replace(/'/g, '');
+    const fromFile = searchLine.slice(fromIndex + FROM_FRONT_LENGTH, searchLine.length - FROM_SUFFIX_LENGTH).trim();
     if (fromFile.includes('../') || fromFile.includes('/')) {
         return fileList;
     }
@@ -300,7 +297,7 @@ function getKitFileImportFileList(fromKitFile, importList) {
         }
         if (isHave) {
             const fromIndex = lines[i].indexOf('from');
-            const fromFile = lines[i].slice(fromIndex + 5, lines[i].length - 2).trim().replace(/'/g, '');
+            const fromFile = lines[i].slice(fromIndex + FROM_FRONT_LENGTH, lines[i].length - FROM_SUFFIX_LENGTH).trim();
             fileList.push(fromFile);
         }
     }
@@ -349,22 +346,24 @@ function isHaveNotSupportApiInFile(notSupoortApi, filePath) {
         if (lines[i].includes(notSupoortApi)) {
             const index = lines[i].indexOf(notSupoortApi);
             const frontString = lines[i].slice(0, index);
-            const sinceLine = i - 2;
-            const deprecatedLine = i - 3;
-            const crossplatformLine = i - 4;
-            if (sinceLine < 0 || deprecatedLine < 0 || crossplatformLine < 0) {
+            const previousLineValue = 1;
+            const previousLineIndex = i - previousLineValue;
+            const sinceLineIndex = previousLineIndex - previousLineValue;
+            const deprecatedLineIndex = sinceLineIndex - previousLineValue;
+            const crossplatformLineIndex = deprecatedLineIndex - previousLineValue;
+            if (sinceLineIndex < 0 || deprecatedLineIndex < 0 || crossplatformLineIndex < 0) {
                 continue;
             }
             const firstChar = lines[i].trim().charAt(0);
             if (firstChar === '*') {
                 continue;
             }
-            if (lines[sinceLine].includes('@since') && 
-                !(lines[sinceLine].includes('@deprecatedLine')) &&
-                !(lines[deprecatedLine].includes('@deprecatedLine')) &&
-                !(lines[sinceLine].includes('@crossplatform')) &&
-                !(lines[deprecatedLine].includes('@crossplatform')) &&
-                !(lines[crossplatformLine].includes('@crossplatform')) &&
+            if (lines[sinceLineIndex].includes('@since') && 
+                !(lines[sinceLineIndex].includes('@deprecatedLine')) &&
+                !(lines[deprecatedLineIndex].includes('@deprecatedLine')) &&
+                !(lines[sinceLineIndex].includes('@crossplatform')) &&
+                !(lines[deprecatedLineIndex].includes('@crossplatform')) &&
+                !(lines[crossplatformLineIndex].includes('@crossplatform')) &&
                 !(frontString.includes('(')) &&
                 !(frontString.includes(':'))) {
                 return true;
@@ -383,7 +382,13 @@ function initComponentSearchData(indexData, isInData, findTypeData) {
     return searchData;
 }
 
+function initSearchComponentType() {
+    let searchComponentType = { pointType:0, closureType:1, propertyType:2, partmerType:3 };
+    return searchComponentType;
+}
+
 function getComponentName(fileData, notSupportApi) {
+    const searchComponentType = initSearchComponentType();
     let componentName = ' ';
     const data = fs.readFileSync(fileData.path, 'utf8');
     const lines = data.split('\n');
@@ -394,16 +399,16 @@ function getComponentName(fileData, notSupportApi) {
     if (lineString.trim().slice(0, 1) !== '.') {
         return componentName;
     }
-    let searchData = initComponentSearchData(2, true, 0);
+    let searchData = initComponentSearchData(2, true, searchComponentType.pointType);
     while (searchData.isWhileIn) {
         if (lines[fileData.line - searchData.nowIndex].trim().slice(0, 1) === '.') {
-            whileFindType = 0;
+            whileFindType = searchComponentType.pointType;
             searchData.nowIndex = searchData.nowIndex + 1;
         } else if (lines[fileData.line - searchData.nowIndex].trim() === '})' || lines[fileData.line - searchData.nowIndex].trim() === '}))') {
-            whileFindType = 1;
+            whileFindType = searchComponentType.closureType;
             searchData.nowIndex = searchData.nowIndex + 1;
         } else {
-            let searchDataBranch = getComponentNameBranch(fileData, searchData, lines);
+            let searchDataBranch = getComponentNameBranch(fileData, searchData, lines, searchComponentType);
             searchData = initComponentSearchData(searchDataBranch.nowIndex, searchDataBranch.isWhileIn, searchDataBranch.whileFindType);
             componentName = searchDataBranch.componentName;
         }
@@ -411,9 +416,9 @@ function getComponentName(fileData, notSupportApi) {
     return componentName;
 }
 
-function getComponentNameBranch(fileData, searchData, lines) {
+function getComponentNameBranch(fileData, searchData, lines, searchComponentType) {
     let nowSearchData = initComponentSearchData(searchData.nowIndex, searchData.isWhileIn, searchData.whileFindType);
-    if (nowSearchData.whileFindType === 0) {
+    if (nowSearchData.whileFindType === searchComponentType.pointType) {
         const nowLine = lines[fileData.line - nowSearchData.nowIndex].trim();
         const nowLineLength = nowLine.length;
         if ((nowLine.slice(nowLineLength - 2, nowLineLength)) === '})') {
@@ -422,7 +427,7 @@ function getComponentNameBranch(fileData, searchData, lines) {
                 nowSearchData.componentName = nowLine.slice(0, componentIndex);
                 nowSearchData.isWhileIn = false;
             } else {
-                nowSearchData.whileFindType = 2;
+                nowSearchData.whileFindType = searchComponentType.propertyType;
                 nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
             }
         } else if ((nowLine.slice(nowLineLength - 1, nowLineLength)) === ')') {
@@ -432,16 +437,16 @@ function getComponentNameBranch(fileData, searchData, lines) {
                 nowSearchData.componentName = nowLine.slice(0, componentIndex);
                 nowSearchData.isWhileIn = false;
             } else {
-                nowSearchData.whileFindType = 3;
+                nowSearchData.whileFindType = searchComponentType.partmerType;
                 nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
             }
         } else {
             nowSearchData.isWhileIn = false;
         }
-    } else if (nowSearchData.whileFindType === 1) {
+    } else if (nowSearchData.whileFindType === searchComponentType.closureType) {
         const nowLine = lines[fileData.line - nowSearchData.nowIndex];
         if (nowLine.includes('=> {' && nowLine.trim().slice(0, 1) === '.')) {
-            nowSearchData.whileFindType = 0;
+            nowSearchData.whileFindType = searchComponentType.pointType;
             nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
         } else if (nowLine.includes('({')) {
             const componentIndex = nowLine.trim().indexOf('({');
@@ -450,11 +455,11 @@ function getComponentNameBranch(fileData, searchData, lines) {
         } else {
             nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
         }
-    } else if (nowSearchData.whileFindType === 2 && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('({')) {
+    } else if (nowSearchData.whileFindType === searchComponentType.propertyType && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('({')) {
         const componentIndex = nowLine.indexOf('({');
         nowSearchData.componentName = nowLine.slice(0, componentIndex);
         nowSearchData.isWhileIn = false;
-    } else if (nowSearchData.whileFindType === 3 && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('(')) {
+    } else if (nowSearchData.whileFindType === searchComponentType.partmerType && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('(')) {
         const componentIndex = nowLine.indexOf('(');
         nowSearchData.componentName = nowLine.slice(0, componentIndex);
         nowSearchData.isWhileIn = false;
@@ -466,21 +471,21 @@ function getPointStartName(fileData) {
     const data = fs.readFileSync(fileData.path, 'utf8');
     const lines = data.split('\n');
     const lineString = lines[fileData.line - 1];
-    let endIndex = fileData.column - 2;
-    let nowIndex = fileData.column;
+    let nowApiIndex = fileData.column - 1;
+    const previousCharValue = 1;
+    let endIndex = nowApiIndex - previousCharValue;
+    let nowIndex = endIndex - previousCharValue;
     if (!lineString || lineString === '' || lineString === undefined) {
         return ' ';
     }
-    if (fileData.column - 2 < 0) {
+    if (endIndex < 0) {
         return ' ';
     }
-    if (lineString.charAt(fileData.column - 2) !== '.') {
+    if (lineString.charAt(endIndex) !== '.') {
         return ' ';
     }
-    if (fileData.column - 3 < 0) {
+    if (nowIndex < 0) {
         return ' ';
-    } else {
-        nowIndex = fileData.column - 3;
     }
     while (isAlpha(lineString.charAt(nowIndex)) || lineString.charAt(nowIndex) === '.') {
         if (lineString.charAt(nowIndex) === '.') {
@@ -530,7 +535,7 @@ function getMultiLineImportData(lines, importIndex, notSupportApi) {
     }
     const fromLineIndex = importIndex + fromIndex;
     const index = lines[fromLineIndex].indexOf('from');
-    const multiLineFromFile = (lines[fromLineIndex].slice(index + 6, lines[fromLineIndex].length - 2)).trim();
+    const multiLineFromFile = (lines[fromLineIndex].slice(index + FROM_FRONT_LENGTH, lines[fromLineIndex].length - FROM_SUFFIX_LENGTH)).trim();
     let multiLineImportList = [];
     for (let i = 1; i < fromIndex; i++) {
         const importFileName = (lines[importIndex + i]).trim().replace(/,/g, '');
@@ -549,7 +554,7 @@ function getMultiLineImportData(lines, importIndex, notSupportApi) {
 
 function apiInImport(importLine, notSupportApi) {
     const index = importLine.indexOf('from');
-    const importFileName = importLine.slice(index + 6, importLine.length - 2);
+    const importFileName = importLine.slice(index + FROM_FRONT_LENGTH, importLine.length - FROM_SUFFIX_LENGTH);
     if (importFileName.includes('kit.')) {
         return searchApiInKitFIle(importFileName, notSupportApi);
     } else {
@@ -576,7 +581,7 @@ function searchApiInKitFIle(kitFileName, notSupportApi) {
              lines[i].includes(`import`) &&
              lines[i].includes(`from`)) {
                 const index = lines[i].indexOf(`from`);
-                const apiFile = lines[i].slice(index + 6, lines[i].length - 2);
+                const apiFile = lines[i].slice(index + FROM_FRONT_LENGTH, lines[i].length - FROM_SUFFIX_LENGTH);
                 return `${apiFile}.d.ts`;
             }
     }
@@ -584,25 +589,27 @@ function searchApiInKitFIle(kitFileName, notSupportApi) {
 }
 
 function getNotSupportApi(nextLine) {
+    const notSupportLog = 'can\'t support crossplatform application.';
     let notSupportApi = '';
-    if (!(nextLine.includes(NOT_SUPPORT_LOG))) {
+    if (!(nextLine.includes(notSupportLog))) {
         return notSupportApi;
     }
-    const index = nextLine.indexOf(NOT_SUPPORT_LOG);
+    const index = nextLine.indexOf(notSupportLog);
     notSupportApi = nextLine.slice(0, index).trim().replace(/'/g, '');
     return notSupportApi;
 }
 
 function getModuleNameFromBuildLog(line) {
-    const index = line.indexOf(MODULE_SUFFIX);
-    const stringArray = line.slice(0, index).split(SPLIT_STR);
+    const index = line.indexOf('/src/main/ets');
+    const stringArray = line.slice(0, index).split('/');
     const moduleName = stringArray[stringArray.length - 1];
     return moduleName;
 }
 
 function getFileDataFromBuildLog(line) {
-    const index = line.indexOf(FILE_NAME);
-    const fileDataArray = line.slice(index + 6, line.length).split(SPLIT_STR_FILE);
+    const fileName = 'File: ';
+    const index = line.indexOf(fileName);
+    const fileDataArray = line.slice(index + fileName.length, line.length).split(':');
     let fileData = initFileData();
     if (platform === Platform.MacOS) {
         fileData.path = fileDataArray[0];
@@ -613,7 +620,7 @@ function getFileDataFromBuildLog(line) {
         fileData.line = fileDataArray[2];
         fileData.column = fileDataArray[3];
     }
-    const pathArray = fileData.path.split(SPLIT_STR);
+    const pathArray = fileData.path.split('/');
     fileData.name = pathArray[pathArray.length - 1];
     return fileData;
 }

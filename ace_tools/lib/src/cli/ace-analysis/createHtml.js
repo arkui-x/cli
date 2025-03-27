@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 const fs = require('fs');
-const MODULE_BASE_WIDTH = 200;
-const MODULE_SHOW_WIDTH = 145;
 const API_BASE_HEIGHT = 200;
 const API_SHOW_HEIGHT = 66;
 
@@ -59,7 +57,9 @@ function createAllModuleHtml(moduleApiList) {
           var option = ${optionStr};
           chart.setOption(option);`;
     let allModuleHtmlData = initHtmlData();
-    const allModuleWidth = MODULE_BASE_WIDTH + MODULE_SHOW_WIDTH * keyArray.length;
+    const moduleBaseWidth = 200;
+    const moduleShowWidth = 145;
+    const allModuleWidth = moduleBaseWidth + moduleShowWidth * keyArray.length;
     const allModuleHtmlStr = `<div id="allModuleChart" style="width: ${allModuleWidth}px; height: 400px;"></div>`;
     allModuleHtmlData.htmlStr = allModuleHtmlStr;
     allModuleHtmlData.jsStr = allModuleJsStr;
