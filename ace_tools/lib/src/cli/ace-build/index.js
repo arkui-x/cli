@@ -49,7 +49,7 @@ function checkVersion(target, cmd) {
         return true;
       },
     }]).then(answersModules => {
-      if (answersModules.repair !== 'Y') {
+      if (answersModules.repair !== 'Y' && answersModules.repair !== 'y') {
         console.log('The project structure and configuration need to be upgraded before use.');
       } else {
         upgradProjectConfig(apiVersion, devVersion);
