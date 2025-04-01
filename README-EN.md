@@ -29,6 +29,7 @@ For details about the source code structure of the ArkUI-X project, see [ArkUI-X
 │   ├── ace-launch              # ArkUI-X application launch
 │   ├── ace-log                 #  ArkUI-X application run log
 │   ├── ace-modify              # modify the project to ArkUI-X/ directories.
+│   ├── ace-analysis            # Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics
 │   ├── ace-run                 # ArkUI-X application build and run
 |   ├── ace-test                # ArkUI-X application build and excute test case like unitTest or uiTest
 │   ├── ace-uninstall           # ArkUI-X application uninstall
@@ -499,6 +500,7 @@ ace help <subcommand>
 | install   | Installs an ArkUI-X application on a connected device.                            |
 | uninstall | Uninstalls an ArkUI-X application on a connected device.                                  |
 | modify    | Modify HarmonyOS project to ArkUI-X project structre.                                 |
+| analysis  | Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics                                 |
 | launch    | Launches an ArkUI-X application on a connected device.                                    |
 | log       | Displays the logs of an ArkUI-X application in scrolling mode.                        |
 | run       | Runs an ArkUI-X application.                                          |
@@ -544,11 +546,11 @@ Commands:
   help [command]                  display help for command
 ```
 
-### ace modify
+### ace modify<a id="sectionModify"></a>
 
 modify HarmonyOS project to ArkUI-X project structre
 
-ace modify This command need in the root directory of the application project. When running the command, will first check whether the build-profile.json5 file exists in the current directory. If this file exists, it means that the directory is correct, and then continue the modification. The transformation process mainly involves generating the .arkui-x directory and the iOS and Android cross-platform projects in it. Set the corresponding configurations in the iOS and Android projects according to the relevant configurations of the HarmonyOS project. Set the ArkUI-X compilation options for the HarmonyOS module.
+The ace modify command needs to be executed in the root directory of the application project. Currently, cross-platform reconstruction is supported at the project level (all modules in the entire project) and at the module level (one module or multiple modules). After the reconstruction, the application project supports cross-platform compilation. Supports running on Windows and MacOS platforms.
 
 Syntax:
 
@@ -565,8 +567,41 @@ ace modify [arguments]
 
 ```
 ohos@user % ace modify --project
+modify HarmonyOS project to ArkUI-X project success!
 ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by 
 ","): entry,libraryHar,libraryHsp
+modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
+```
+
+### ace analysis
+
+Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics
+
+The ace anlysis command needs to be executed in the root directory of the cross-platform application project. (Developers can run [ace modify](#sectionModify) to transform the HarmonyOS project into a cross-platform project that can be compiled.) Developers need to enter the HarmonyOS SDK path used by the current application compilation based on the --sdk parameter, that is, the path of the built-in SDK in DevEco Studio. For the built-in SDK path on Windows and MacOS platforms, see the following example code.
+
+After this command is executed, the chart.html file is output, which displays the application modules and d.ts files that do not support cross-platform API distribution in the entire project, and the specific information about each module that does not support cross-platform APIs. This allows developers to quickly understand the cross-platform support of all APIs in the project and further evaluate the adaptation workload for cross-platform transformation in the later stage.
+
+Syntax:
+
+```shell
+ace analysis --sdk [sdk path]
+```
+- arguments
+
+| Option | Description                                                         |
+| :--- | ------------------------------------------------------------ |
+| --sdk  | HarmonyOS sdk path used by the current project                              |
+
+windows:
+```
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
+Analysis success! Please view chart.html
+```
+
+mac:
+```
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+Analysis success! Please view chart.html
 ```

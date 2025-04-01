@@ -30,6 +30,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 │   ├── ace-launch              # 在设备上运行ArkUI跨平台应用
 │   ├── ace-log                 # 展示正在运行的跨平台应用的日志
 │   ├── ace-modify              # 将鸿蒙工程改造为ArkUI-X工程
+│   ├── ace-analysis            # 分析跨平台应用工程中不支持跨平台的API并统计输出
 │   ├── ace-run                 # 编译并在设备上运行ArkUI跨平台应用
 |   ├── ace-test                # 执行跨平台应用包单元测试
 │   ├── ace-uninstall           # 将跨平台应用从连接的设备上卸载
@@ -669,7 +670,9 @@ ace help <command>
 | run | 运行跨平台应用包。 |
 | test | 执行跨平台应用包单元测试。 |
 | uninstall | 将跨平台应用从设备上卸载。 |
-| modify | 将鸿蒙工程改造为ArkUI-X工程 |
+| modify | 将鸿蒙工程改造为ArkUI-X工程。 |
+| analysis | 分析跨平台应用工程中不支持跨平台的API并统计输出。 |
+
 
 提示内容：
 
@@ -701,7 +704,6 @@ Application:
   run                    Run your ArkUI cross-platform app on an attached device.
   test                   Run ArkUI cross-platform unit tests for the current project.
   uninstall              Uninstall an ArkUI cross-platform app on an attached device.
-  modify   		         modify HarmonyOS project to ArkUI-X project structre
 
 Device:
   devices                List the connected devices.
@@ -715,15 +717,17 @@ Project:
   clean                  Delete the build/ directories.
   create                 Create a new ArkUI cross-platform project.
   new                    Create a new ability or module for your project.
+  modify   		         Modify project to ArkUI-X project structre.
+  analysis               Analysis the interfaces that do not support cross-platform.
 
 Run "ace help <command>" for more information about a command.
 ```
 
-### ace modify
+### ace modify<a id="sectionModify"></a>
 
 将鸿蒙工程改造为ArkUI-X工程
 
-ace modify 该命令需要在应用工程根目录下执行，执行命令时会先判断当前目录下是否有build-profile.json5文件，有此文件代表目录正确，继续进行改造。改造过程主要是生成.arkui-x目录，包含其中的iOS和安卓跨平台工程。将鸿蒙工程中的相关配置，设置为跨平台工程中的对应配置。设置鸿蒙模块的ArkUI-X编译选项。
+ace modify 命令需要在应用工程根目录下执行，当前支持工程级（整项目所有module），以及模块级（指定单module或者多module）的跨平台改造，改造完成后的应用工程支持直接进行跨平台编译，支持运行在Windows和MacOS平台
 
 语法：
 
@@ -734,15 +738,47 @@ ace modify [arguments]
 
 | 参数 | 说明                                                         |
 | :--- | ------------------------------------------------------------ |
-| --project  | 改造当前目录下的整个鸿蒙工程                              |
-| --modules  | 改造当前目录下鸿蒙工程中指定的模块                 |
+| --project  | 工程级跨平台改造                            |
+| --modules  | 模块级跨平台改造，支持指定单模块或者多模块                 |
 
 
 ```
-ohos@user % cd test
 ohos@user % ace modify --project
+modify HarmonyOS project to ArkUI-X project success!
 ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by 
 ","): entry,libraryHar,libraryHsp
+modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
+```
+
+### ace analysis
+
+分析跨平台应用工程中不支持跨平台的API并统计输出
+
+ace anlysis 命令需要在跨平台应用工程根目录下执行（开发者可以先执行[ace modify](#sectionModify)，将鸿蒙工程改造为可编译的跨平台工程），开发者需要基于--sdk参数输入当前应用编译使用的HarmonyOS SDK路径，即当前DevEco Studio内置SDK的路径，Windows和MacOS平台的内置SDK路径参考下方示例代码。
+
+该命令执行后最终会输出chart.html文件，可视化展示整个工程中不支持跨平台的API分布的应用module、d.ts文件，以及每个module中不支持跨平台API的具体信息，让开发者可以更快地了解项目所有API的跨平台支持情况，进一步评估后期跨平台改造的适配工作量。
+
+语法：
+
+```shell
+ace analysis --sdk [sdk path]
+```
+- arguments
+
+| 参数 | 说明                                                         |
+| :--- | ------------------------------------------------------------ |
+| --sdk  | 当前应用编译使用的HarmonyOS SDK路径                              |
+
+windows:
+```
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
+Analysis success! Please view chart.html
+```
+
+mac:
+```
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+Analysis success! Please view chart.html
 ```
