@@ -431,7 +431,8 @@ function getSdkVersionMap() {
     ['12', new Map([['compileSdkVersion', '5.0.0(12)'], ['compatibleSdkVersion', '5.0.0(12)'], ['modelVersion', '5.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.3']])],
     ['13', new Map([['compileSdkVersion', '5.0.1(13)'], ['compatibleSdkVersion', '5.0.1(13)'], ['modelVersion', '5.0.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.4']])],
     ['14', new Map([['compileSdkVersion', '5.0.2(14)'], ['compatibleSdkVersion', '5.0.2(14)'], ['modelVersion', '5.0.2'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.7']])],
-    ['15', new Map([['compileSdkVersion', '5.0.3(15)'], ['compatibleSdkVersion', '5.0.3(15)'], ['modelVersion', '5.0.3'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.12']])]
+    ['15', new Map([['compileSdkVersion', '5.0.3(15)'], ['compatibleSdkVersion', '5.0.3(15)'], ['modelVersion', '5.0.3'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.12']])],
+    ['16', new Map([['compileSdkVersion', '5.0.4(16)'], ['compatibleSdkVersion', '5.0.4(16)'], ['modelVersion', '5.0.4'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.22']])]
   ]);
   return sdkVersionMap;
 }
