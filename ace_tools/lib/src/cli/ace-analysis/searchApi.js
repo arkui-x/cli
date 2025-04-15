@@ -28,12 +28,12 @@ const FROM_SUFFIX_LENGTH = 2;
 const BUILD_COMMADN_CLOSE_CODE_SUCCESS = 0;
 const BUILD_COMMADN_CLOSE_CODE_FAIL = -1;
 
-function captureLogs(buildlog) {
+function captureLogs() {
     const buildLogPath = './analysis_build_logs.txt';
     const options = { maxBuffer: 10 * 1024 * 1024, shell: true, env: { ...process.env, CUSTOM_VAR: 'value' }, cwd: process.cwd(), encoding: 'utf-8' };
     const logFileStream = fs.createWriteStream(buildLogPath);
     const child = spawn('ace build apk', [], options);
-    console.log(`start run \"ace build apk\" to build project ...`);
+    console.log(`start build project ...`);
     let closeCode = BUILD_COMMADN_CLOSE_CODE_SUCCESS;
     const timer = setTimeout(() => {
         const data = fs.readFileSync(buildLogPath, 'utf8');
@@ -722,7 +722,7 @@ function searchApi(sdkPath, buildlog) {
         }
         return;
     }
-    captureLogs(buildlog);
+    captureLogs();
 }
 
 module.exports = { searchApi };
