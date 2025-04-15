@@ -26,11 +26,24 @@ const { copy, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
 const aceHarmonyOS = '2';
 const acePluginNapiProType = 'plugin_napi';
 const aceLibraryProType = 'library';
+const exec = require('child_process').execSync;
+let useCocoapods = false;
 
 function create(args) {
-  const { projectAbsolutePath, outputDir, project, bundleName, runtimeOS, template, currentProjectPath, sdkVersion } = args;
+  const { projectAbsolutePath, outputDir, project, bundleName, runtimeOS, template, currentProjectPath, sdkVersion, integrationApproach } = args;
+  useCocoapods = (integrationApproach === '2');
   const projectTempPath = getTempPath(outputDir);
   createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
+  if (useCocoapods) {
+    if (!checkCocoaPodsInstalled()) {
+      console.error('CocoaPods is not installed. Please install CocoaPods(brew install cocoapods) and try again.');
+      return;
+    }
+    if (!createPodfile(projectTempPath)) {
+      console.error('create Podfile failed.');
+      return;
+    }
+  }
   if (template !== aceLibraryProType) {
     createAndroidAndIosShell(projectTempPath);
   }
@@ -41,6 +54,27 @@ function create(args) {
     "moduleInfo":[],
     "abilityInfo":[]
 }`, 'utf8');
+}
+
+function createPodfile(projectTempPath) {
+  try {
+    exec('pod init', {
+      cwd: path.join(projectTempPath, '.arkui-x/ios'),
+      stdio: 'inherit',
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function checkCocoaPodsInscdtalled() {
+  try {
+    const output = exec('pod --version', { stdio: 'pipe' });
+    return output.toString().trim().length > 0;
+  } catch (error) {
+    return false;
+  }
 }
 
 function createAndroidAndIosShell(projectTempPath) {
@@ -95,6 +129,9 @@ In order to run your app, type:
     $ ace run
       
 Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
+      if (useCocoapods) {
+        console.info('\x1B[31m%s\x1B[0m', 'The DevEco does not currently support Build APP(s), Please use ace tools to build the project.');
+      }
     } else {
       console.log(`
 Project ${createFlag}. Target directory:  ${projectAbsolutePath}.
@@ -263,7 +300,8 @@ function copyAndroidiOSTemplate(templatePath, projectTempPath, template, sdkVers
   if (!copy(path.join(templatePath, '/android'), path.join(projectTempPath, '.arkui-x/android'))) {
     return false;
   }
-  if (!copy(path.join(templatePath, '/ios'), path.join(projectTempPath, '.arkui-x/ios'))) {
+  if (!copy(path.join((useCocoapods ? path.join(templatePath, 'cocoapods') : templatePath), '/ios'),
+    path.join(projectTempPath, '.arkui-x/ios'))) {
     return false;
   }
   if (template === acePluginNapiProType) {
