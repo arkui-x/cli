@@ -705,10 +705,11 @@ function parseAnalysis() {
     .usage('[arguments]')
     .description(`Analysis the interfaces that do not support cross-platform.`)
     .option('--sdk [sdkPath]', 'Specifies the HarmonyOS sdk path of the project use.')
+    .option('--buildlog [buildLogPath]', 'Specifies the build log path.', 'Run the build command')
     .action((options) => {
       if (options.sdk) {
         if (fs.existsSync(path.join(options.sdk, 'default', 'sdk-pkg.json')) || fs.existsSync(path.join(options.sdk, 'sdk-pkg.json'))) {
-          analysisProject(options.sdk);
+          analysisProject(options.sdk, options.buildlog);
         } else {
           console.log(`please input the correct sdk path`);
         }

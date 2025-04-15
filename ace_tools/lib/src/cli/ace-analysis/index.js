@@ -14,8 +14,8 @@
  */
 const { searchApi} = require('./searchApi');
 
-function analysisProject(sdkPath) {
-    searchApi(sdkPath);
+function analysisProject(sdkPath, buildlog) {
+    searchApi(sdkPath, buildlog);
 }
 
 module.exports = { analysisProject };
