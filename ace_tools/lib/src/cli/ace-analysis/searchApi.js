@@ -40,18 +40,18 @@ function captureLogs() {
     console.log(`start build project ...`);
     let closeCode = BUILD_COMMADN_CLOSE_CODE_SUCCESS;
     const timer = setTimeout(() => {
-        if (!(checkBuildResult(buildLogPath))) {
-            closeCode = BUILD_COMMADN_CLOSE_CODE_FAIL;
-            child.kill();
-            logFileStream.end();
-            fs.unlink(buildLogPath, (error) => {
-                if (error) {
-                    return;
-                }
-            });
-            console.log(`project build fail, please run \"ace build apk\" and resolve the problem`);
+        if (checkBuildResult(buildLogPath)) {
             return;
         }
+        closeCode = BUILD_COMMADN_CLOSE_CODE_FAIL;
+        child.kill();
+        logFileStream.end();
+        fs.unlink(buildLogPath, (error) => {
+            if (error) {
+                return;
+            }
+        });
+        console.log(`project build fail, please run \"ace build apk\" and resolve the problem`);
     }, 8000);
     child.stdout.on('data', (data) => {
         const filteredData = data.toString().replace(/\u001b\[\d+m/g, '');
@@ -123,7 +123,7 @@ function analysisBuildLog(buildLogPath, isDelLogFile) {
 function preAnalysisBuildLog(buildLogPath) {
     let isHaveSuccessLog = false;
     let isHaveApkBuiltSuc = false;
-    let isHaveNotSupportLog = false;
+    let isHaveSupportLog = false;
     const data = fs.readFileSync(buildLogPath, 'utf8');
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
@@ -134,7 +134,7 @@ function preAnalysisBuildLog(buildLogPath) {
             isHaveApkBuiltSuc = true;
         }
         if ((lines[i].includes('can\'t support crossplatform application.'))) {
-            isHaveNotSupportLog = true;
+            isHaveSupportLog = true;
         }
     }
     let isBuildSuccess = false;
@@ -142,16 +142,16 @@ function preAnalysisBuildLog(buildLogPath) {
         isBuildSuccess = true;
     }
     isNeedAnalysis = true;
-    if (isBuildSuccess && !isHaveNotSupportLog) {
+    if (isBuildSuccess && !isHaveSupportLog) {
         console.log(`The project is build successfully, and no APIs that do not support cross-platform are found.`);
         isNeedAnalysis = false;
-    } else if (isBuildSuccess && isHaveNotSupportLog) {
+    } else if (isBuildSuccess && isHaveSupportLog) {
         console.log(`The project is build successfully.`);
         isNeedAnalysis = false;
-    } else if (!isBuildSuccess && !isHaveNotSupportLog) {
+    } else if (!isBuildSuccess && !isHaveSupportLog) {
         console.log(`The project build fail, please run \"ace build apk\" and resolve the problem`);
         isNeedAnalysis = false;
-    } else if (!isBuildSuccess && isHaveNotSupportLog) {
+    } else if (!isBuildSuccess && isHaveSupportLog) {
         isNeedAnalysis = true;
     }
     return isNeedAnalysis;

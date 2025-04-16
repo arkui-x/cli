@@ -351,7 +351,7 @@ function createHtml(alldtsList, moduleApiList) {
   const htmlContent = createHtmlString(alldtsList, moduleApiList);
   fs.writeFileSync('./chart.html', htmlContent, 'utf-8');
   const nowPath = process.cwd();
-  const chartHtmlPath =`${nowPath}/chart.html` 
+  const chartHtmlPath = `${nowPath}/chart.html`;
   console.log(`Analysis success! Please view chart.html(${chartHtmlPath})`);
 }
 
