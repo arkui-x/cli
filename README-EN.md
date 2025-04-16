@@ -592,16 +592,31 @@ ace analysis --sdk [sdk path]
 
 | Option | Description                                                         |
 | :--- | ------------------------------------------------------------ |
-| --sdk  | HarmonyOS sdk path used by the current project                              |
+| --sdk  | HarmonyOS or OpenHarmony sdk path used by the current project (optional).                      |
+| --buildlog  | Path of the current project compilation log file (optional).                       |
 
 windows:
 ```
-ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
-Analysis success! Please view chart.html
+ohos@user % ace analysis
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
+```
+```
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk" --buildlog "./analysis_build_logs_1.txt"
+the log path is valid, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
 ```
 
 mac:
 ```
-ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
-Analysis success! Please view chart.html
+ohos@user % ace analysis
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
+```
+```
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk --buildlog ./analysis_build_logs_1.txt
+the log path is valid, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
 ```

@@ -769,16 +769,31 @@ ace analysis --sdk [sdk path]
 
 | 参数 | 说明                                                         |
 | :--- | ------------------------------------------------------------ |
-| --sdk  | 当前应用编译使用的HarmonyOS SDK路径                              |
+| --sdk  | 当前工程编译使用的HarmonyOS或OpenHarmony SDK路径（可选参数）。  
+| --buildlog  | 当前工程编译日志文件路径（可选参数）。                           |
 
 windows:
 ```
-ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
-Analysis success! Please view chart.html
+ohos@user % ace analysis
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
+```
+```
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk" --buildlog "./analysis_build_logs_1.txt"
+the log path is valid, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
 ```
 
 mac:
 ```
-ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
-Analysis success! Please view chart.html
+ohos@user % ace analysis
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
+```
+```
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk --buildlog ./analysis_build_logs_1.txt
+the log path is valid, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
 ```
