@@ -15,6 +15,7 @@
 const fs = require('fs');
 const path = require('path');
 const process = require('process');
+const { Platform, platform } = require('../ace-check/platform');
 const API_BASE_HEIGHT = 200;
 const API_SHOW_HEIGHT = 66;
 
@@ -351,7 +352,10 @@ function createHtml(alldtsList, moduleApiList) {
   const htmlContent = createHtmlString(alldtsList, moduleApiList);
   fs.writeFileSync('./chart.html', htmlContent, 'utf-8');
   const nowPath = process.cwd();
-  const chartHtmlPath = `${nowPath}/chart.html`;
+  let chartHtmlPath = `${nowPath}/chart.html`;
+  if (platform === Platform.Windows) {
+    chartHtmlPath = `${nowPath}\\chart.html`;
+  }
   console.log(`Analysis success! Please view chart.html(${chartHtmlPath})`);
 }
 
