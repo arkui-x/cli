@@ -14,9 +14,12 @@
  */
 const fs = require('fs');
 const path = require('path');
+const JSON5 = require('json5');
 const { spawn } = require('child_process');
 const { Platform, platform } = require('../ace-check/platform');
 const { createHtml } = require('./createHtml');
+const { getDevVersion } = require('../ace-build');
+const { openHarmonySdkDir, devEcoStudioDir } = require('../ace-check/configs');
 let GLOBAL_SDK_PATH = '/Applications/DevEco-Studio.app/Contents/sdk';
 const PATH_KIT_HMS = (platform === Platform.MacOS) ? '/default/hms/ets/kits/' : '\\default\\hms\\ets\\kits\\';
 const PATH_KIT_OH = (platform === Platform.MacOS) ? '/default/openharmony/ets/kits/' : '\\default\\openharmony\\ets\\kits\\';
@@ -27,6 +30,7 @@ const FROM_FRONT_LENGTH = 6;
 const FROM_SUFFIX_LENGTH = 2;
 const BUILD_COMMADN_CLOSE_CODE_SUCCESS = 0;
 const BUILD_COMMADN_CLOSE_CODE_FAIL = -1;
+const BUILD_UPGRADE_LOG_LENGTH = 2;
 
 function captureLogs() {
     const buildLogPath = './analysis_build_logs.txt';
@@ -36,9 +40,7 @@ function captureLogs() {
     console.log(`start build project ...`);
     let closeCode = BUILD_COMMADN_CLOSE_CODE_SUCCESS;
     const timer = setTimeout(() => {
-        const data = fs.readFileSync(buildLogPath, 'utf8');
-        const lines = data.split('\n');
-        if (lines.length === 0 || (lines.length === 1 && !(lines[0]))) {
+        if (!(checkBuildResult(buildLogPath))) {
             closeCode = BUILD_COMMADN_CLOSE_CODE_FAIL;
             child.kill();
             logFileStream.end();
@@ -50,7 +52,7 @@ function captureLogs() {
             console.log(`project build fail, please run \"ace build apk\" and resolve the problem`);
             return;
         }
-    }, 15000);
+    }, 8000);
     child.stdout.on('data', (data) => {
         const filteredData = data.toString().replace(/\u001b\[\d+m/g, '');
         logFileStream.write(filteredData);
@@ -73,6 +75,21 @@ function captureLogs() {
         child.kill();
         logFileStream.end();
     });
+}
+
+function checkBuildResult(buildLogPath) {
+    const data = fs.readFileSync(buildLogPath, 'utf8');
+    const lines = data.split('\n');
+    if (lines.length > BUILD_UPGRADE_LOG_LENGTH) {
+        return true;
+    }
+    let isBuildResult = true;
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].includes('not find project configuration sdk') || lines[i].includes('Whether to upgrade？(Y/N)')) {
+            isBuildResult = false;
+        }
+    }
+    return isBuildResult;
 }
 
 function analysisBuildLog(buildLogPath, isDelLogFile) {
@@ -711,14 +728,64 @@ function initFileData(filePath = '', fileName = '', fileLine = '', fileColumn = 
     return fileData;
 }
 
+function getSdkPath() {
+    let localSdkPath = '';
+    const filePath = './build-profile.json5';
+    const data = fs.readFileSync(filePath, 'utf8');
+    const jsonObj = JSON5.parse(data);
+    if (jsonObj.app.products[0] === undefined) {
+        return localSdkPath;
+    }
+    let projectRuntimeOS = jsonObj.app.products[0].runtimeOS;
+    if (projectRuntimeOS === 'HarmonyOS') {
+        const devVersion = getDevVersion();
+        if (devVersion >= 12) {
+            localSdkPath = `${devEcoStudioDir}/Contents/sdk`;
+            if (platform === Platform.Windows) {
+                localSdkPath = `${devEcoStudioDir}\\sdk`;
+            }
+        }
+    } else {
+        let projectCompileSdkVersion = jsonObj.app.products[0].compileSdkVersion;
+        localSdkPath = path.join(openHarmonySdkDir, `${projectCompileSdkVersion}`);
+    }
+    return localSdkPath;
+}
+
+function checkSdkPath(sdkPath) {
+    if (!sdkPath || sdkPath === undefined) {
+        return false;
+    }
+    if (fs.existsSync(path.join(sdkPath, 'default', 'sdk-pkg.json')) ||
+        fs.existsSync(path.join(sdkPath, 'sdk-pkg.json')) ||
+        fs.existsSync(path.join(sdkPath, 'ets')) ||
+        fs.existsSync(path.join(sdkPath, 'js'))) {
+        return true;
+    }
+    return false;
+}
+
 function searchApi(sdkPath, buildlog) {
-    GLOBAL_SDK_PATH = sdkPath;
-    if (buildlog !== 'Run the build command') {
+    if (sdkPath && sdkPath !== undefined) {
+        if (!(checkSdkPath(sdkPath))) {
+            console.log(`please input the correct sdk path`);
+            return;
+        }
+        GLOBAL_SDK_PATH = sdkPath;
+    } else {
+        let localSdkPath = getSdkPath();
+        if (!(checkSdkPath(localSdkPath))) {
+            console.log(`get sdk path fail, please check ace config or input the sdk path`);
+            return;
+        }
+        GLOBAL_SDK_PATH = localSdkPath;
+    }
+    if (buildlog && buildlog !== '') {
         if (fs.existsSync(buildlog)) {
             console.log(`the log path is valid, start analysis log ...`);
             analysisBuildLog(buildlog, false);
         } else {
-            console.log(`the path does not exist. Please enter the correct path`);
+            console.log(`the log path does not exist. Please enter the correct path`);
         }
         return;
     }

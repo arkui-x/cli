@@ -31,6 +31,9 @@ function build(target, cmd) {
 }
 
 function checkVersion(target, cmd) {
+  if (!(getIsArkuixProject())) {
+    return true;
+  }
   const apiVersion = getProjectApiVersion();
   const devVersion = getDevVersion();
   const runtimeOSStr = getRuntimeOS();
@@ -61,6 +64,16 @@ function checkVersion(target, cmd) {
     return false;
   } else {
     return true;
+  }
+}
+
+function getIsArkuixProject() {
+  const projectDir = process.cwd();
+  const arkuixPath = path.join(projectDir, '.arkui-x');
+  if (fs.existsSync(arkuixPath)) {
+    return true;
+  } else {
+    return false;
   }
 }
 
@@ -140,4 +153,4 @@ function getDevVersion() {
   return devVersionNumber;
 }
 
-module.exports = build;
+module.exports = {build, getDevVersion};

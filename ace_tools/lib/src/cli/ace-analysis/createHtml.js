@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 const fs = require('fs');
+const path = require('path');
+const process = require('process');
 const API_BASE_HEIGHT = 200;
 const API_SHOW_HEIGHT = 66;
 
@@ -348,7 +350,9 @@ function changeOption(option) {
 function createHtml(alldtsList, moduleApiList) {
   const htmlContent = createHtmlString(alldtsList, moduleApiList);
   fs.writeFileSync('./chart.html', htmlContent, 'utf-8');
-  console.log('Analysis success! Please view chart.html');
+  const nowPath = process.cwd();
+  const chartHtmlPath =`${nowPath}/chart.html` 
+  console.log(`Analysis success! Please view chart.html(${chartHtmlPath})`);
 }
 
 module.exports = { createHtml };
