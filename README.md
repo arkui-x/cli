@@ -762,7 +762,7 @@ ace anlysis 命令需要在跨平台应用工程根目录下执行（开发者�
 语法：
 
 ```shell
-ace analysis --sdk [sdk path]
+ace analysis [arguments]
 ```
 - arguments
 

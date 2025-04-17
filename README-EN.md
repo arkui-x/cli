@@ -585,7 +585,7 @@ After this command is executed, the chart.html file is output, which displays th
 Syntax:
 
 ```shell
-ace analysis --sdk [sdk path]
+ace analysis [arguments]
 ```
 - arguments
 
