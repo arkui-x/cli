@@ -57,14 +57,7 @@ function createAllModuleHtml(moduleApiList) {
         }]
     };
     const optionStr = changeOption(option);
-    const allModuleJsStr = `var chartDom = document.getElementById('allModuleChart');
-          var chart = echarts.init(chartDom);
-          var option = ${optionStr};
-          chart.setOption(option);
-          chart.on('click', function(params) {
-              const targetElement = document.getElementById(\`\${params.name}dtsChart\`);
-              targetElement.scrollIntoView();
-          });`;
+    const allModuleJsStr = createAllModuleJsStr(optionStr);
     let allModuleHtmlData = initHtmlData();
     const moduleBaseWidth = 200;
     const moduleShowWidth = 145;
@@ -73,6 +66,18 @@ function createAllModuleHtml(moduleApiList) {
     allModuleHtmlData.htmlStr = allModuleHtmlStr;
     allModuleHtmlData.jsStr = allModuleJsStr;
     return allModuleHtmlData;
+}
+
+function createAllModuleJsStr(optionStr) {
+    const allModuleJsStr = `var chartDom = document.getElementById('allModuleChart');
+          var chart = echarts.init(chartDom);
+          var option = ${optionStr};
+          chart.setOption(option);
+          chart.on('click', function(params) {
+              const targetElement = document.getElementById(\`\${params.name}dtsChart\`);
+              targetElement.scrollIntoView();
+          });`;
+    return allModuleJsStr;
 }
 
 function createAllDtsHtml(alldtsList) {
