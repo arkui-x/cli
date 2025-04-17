@@ -745,21 +745,15 @@ function getSdkPath() {
                 localSdkPath = `${devEcoStudioDir}\\sdk`;
             }
         }
-    } else {
-        let projectCompileSdkVersion = jsonObj.app.products[0].compileSdkVersion;
-        localSdkPath = path.join(openHarmonySdkDir, `${projectCompileSdkVersion}`);
     }
     return localSdkPath;
 }
 
 function checkSdkPath(sdkPath) {
-    if (!sdkPath || sdkPath === undefined) {
+    if (!sdkPath || sdkPath === undefined || sdkPath === '') {
         return false;
     }
-    if (fs.existsSync(path.join(sdkPath, 'default', 'sdk-pkg.json')) ||
-        fs.existsSync(path.join(sdkPath, 'sdk-pkg.json')) ||
-        fs.existsSync(path.join(sdkPath, 'ets')) ||
-        fs.existsSync(path.join(sdkPath, 'js'))) {
+    if (fs.existsSync(path.join(sdkPath, 'default', 'sdk-pkg.json')) || fs.existsSync(path.join(sdkPath, 'sdk-pkg.json'))) {
         return true;
     }
     return false;
@@ -768,14 +762,14 @@ function checkSdkPath(sdkPath) {
 function searchApi(sdkPath, buildlog) {
     if (sdkPath && sdkPath !== undefined) {
         if (!(checkSdkPath(sdkPath))) {
-            console.log(`please input the correct sdk path`);
+            console.log(`please input the correct HarmonyOS sdk path`);
             return;
         }
         GLOBAL_SDK_PATH = sdkPath;
     } else {
         let localSdkPath = getSdkPath();
         if (!(checkSdkPath(localSdkPath))) {
-            console.log(`get sdk path fail, please check ace config or input the sdk path`);
+            console.log(`get sdk path fail, please check ace config or input the HarmonyOS sdk path`);
             return;
         }
         GLOBAL_SDK_PATH = localSdkPath;

@@ -570,8 +570,7 @@ ohos@user % ace modify --project
 modify HarmonyOS project to ArkUI-X project success!
 ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
-? Enter the modify module name(Multiple modules can be entered and separated by 
-","): entry,libraryHar,libraryHsp
+? Enter the modify module name(Multiple modules can be entered and separated by ","): entry,libraryHar,libraryHsp
 modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
 ```
 
@@ -593,13 +592,26 @@ ace analysis --sdk [sdk path]
 | Option | Description                                                         |
 | :--- | ------------------------------------------------------------ |
 | --sdk  | HarmonyOS or OpenHarmony sdk path used by the current project (optional).                      |
-| --buildlog  | Path of the current project compilation log file (optional).                       |
+| --buildlog  | After the current project is compiled, the path of the log file that contains the error message "XXX can't support crossplatform application." (optional).                       |
+
+Note: --buildlog is an optional parameter. Run the ace build apk command in the project directory. If the compilation log contains "XXX can't support crossplatform application.", copy all the compilation logs to the **.txt file. Use this txt file path as the --buildlog parameter.
 
 windows:
 ```
 ohos@user % ace analysis
 start build project ...
 project build finish, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
+```
+```
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
+```
+```
+ohos@user % ace analysis --buildlog "./analysis_build_logs_1.txt"
+the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
@@ -613,6 +625,17 @@ mac:
 ohos@user % ace analysis
 start build project ...
 project build finish, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
+```
+```
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
+```
+```
+ohos@user % ace analysis --buildlog ./analysis_build_logs_1.txt
+the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```

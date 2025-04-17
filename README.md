@@ -747,8 +747,7 @@ ohos@user % ace modify --project
 modify HarmonyOS project to ArkUI-X project success!
 ohos@user % ace modify --modules
 ? Enter the number of modules to be modified: 3
-? Enter the modify module name(Multiple modules can be entered and separated by 
-","): entry,libraryHar,libraryHsp
+? Enter the modify module name(Multiple modules can be entered and separated by ","): entry,libraryHar,libraryHsp
 modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
 ```
 
@@ -769,14 +768,27 @@ ace analysis --sdk [sdk path]
 
 | 参数 | 说明                                                         |
 | :--- | ------------------------------------------------------------ |
-| --sdk  | 当前工程编译使用的HarmonyOS或OpenHarmony SDK路径（可选参数）。  
-| --buildlog  | 当前工程编译日志文件路径（可选参数）。                           |
+| --sdk  | 当前工程编译使用的HarmonyOS或OpenHarmony SDK路径（可选参数）。   |
+| --buildlog  | 当前工程编译后包含“XXX can't support crossplatform application.”报错的日志文件路径（可选参数）。                |
+
+注意：--buildlog为可选参数，先在工程目录下执行ace build apk命令，查看编译日志中如果包含“XXX can't support crossplatform application.”报错，如果包含则将所有编译日志拷贝到**.txt文件中，将此txt文件路径作为--buildlog参数。
 
 windows:
 ```
 ohos@user % ace analysis
 start build project ...
 project build finish, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
+```
+```
+ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***\chart.html)
+```
+```
+ohos@user % ace analysis --buildlog "./analysis_build_logs_1.txt"
+the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
@@ -790,6 +802,17 @@ mac:
 ohos@user % ace analysis
 start build project ...
 project build finish, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
+```
+```
+ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+start build project ...
+project build finish, start analysis log ...
+Analysis success! Please view chart.html(***/chart.html)
+```
+```
+ohos@user % ace analysis --buildlog ./analysis_build_logs_1.txt
+the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```

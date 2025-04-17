@@ -704,7 +704,7 @@ function parseAnalysis() {
   const analysisCmd = program.command('analysis', { hidden: true })
     .usage('[arguments]')
     .description(`Analysis the interfaces that do not support cross-platform.`)
-    .option('--sdk [sdkPath]', 'Specifies the HarmonyOS/OpenHarmony sdk path of the project use.')
+    .option('--sdk [sdkPath]', 'Specifies the HarmonyOS sdk path of the project use.')
     .option('--buildlog [buildLogPath]', 'Specifies the build log path.')
     .action((options) => {
       analysisProject(options.sdk, options.buildlog);

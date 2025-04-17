@@ -22,10 +22,12 @@ const API_SHOW_HEIGHT = 66;
 function createAllModuleHtml(moduleApiList) {
     let apiNumberArray = [];
     let keyArray = [];
+    let apiCount = 0;
     for (let key of moduleApiList.keys()) {
         keyArray.push(key);
         let notSupportApiArray = moduleApiList.get(key);
         apiNumberArray.push(notSupportApiArray.length);
+        apiCount = apiCount + notSupportApiArray.length;
     }
     const option = {
         tooltip: {
@@ -35,7 +37,7 @@ function createAllModuleHtml(moduleApiList) {
             }
         },
         title: {
-          text: '模块不支持Api统计'
+          text: `模块不支持Api统计（共${apiCount}）`
         },
         xAxis: {
           type: 'category',
@@ -58,7 +60,11 @@ function createAllModuleHtml(moduleApiList) {
     const allModuleJsStr = `var chartDom = document.getElementById('allModuleChart');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
-          chart.setOption(option);`;
+          chart.setOption(option);
+          chart.on('click', function(params) {
+              const targetElement = document.getElementById(\`\${params.name}dtsChart\`);
+              targetElement.scrollIntoView();
+          });`;
     let allModuleHtmlData = initHtmlData();
     const moduleBaseWidth = 200;
     const moduleShowWidth = 145;
