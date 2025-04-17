@@ -105,7 +105,7 @@ function analysisBuildLog(buildLogPath, isDelLogFile) {
         const lines = data.split('\n');
         for (let i = 0; i < lines.length; i++) {
             const lineNextIndex = i + 1;
-            if ((lines[i].includes('ArkTS:ERROR File'))) {
+            if ((lines[i].includes('ArkTS:ERROR File')) || (lines[i].includes('ArkTS:WARN File'))) {
                 analysisBuildLogLine(lines[i], lines[lineNextIndex], alldtsList, moduleApiList);
             }
         }
@@ -146,8 +146,7 @@ function preAnalysisBuildLog(buildLogPath) {
         console.log(`The project is build successfully, and no APIs that do not support cross-platform are found.`);
         isNeedAnalysis = false;
     } else if (isBuildSuccess && isHaveSupportLog) {
-        console.log(`The project is build successfully.`);
-        isNeedAnalysis = false;
+        isNeedAnalysis = true;
     } else if (!isBuildSuccess && !isHaveSupportLog) {
         console.log(`The project build fail, please run \"ace build apk\" and resolve the problem`);
         isNeedAnalysis = false;
