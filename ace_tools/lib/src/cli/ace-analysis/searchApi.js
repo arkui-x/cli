@@ -510,8 +510,8 @@ function getComponentName(fileData, notSupportApi) {
 
 function getComponentNameBranch(fileData, searchData, lines, searchComponentType) {
     let nowSearchData = initComponentSearchData(searchData.nowIndex, searchData.isWhileIn, searchData.whileFindType);
+    const nowLine = lines[fileData.line - nowSearchData.nowIndex].trim();
     if (nowSearchData.whileFindType === searchComponentType.pointType) {
-        const nowLine = lines[fileData.line - nowSearchData.nowIndex].trim();
         const nowLineLength = nowLine.length;
         if ((nowLine.slice(nowLineLength - 2, nowLineLength)) === '})') {
             if (nowLine.includes('({')) {
@@ -535,7 +535,6 @@ function getComponentNameBranch(fileData, searchData, lines, searchComponentType
             nowSearchData.isWhileIn = false;
         }
     } else if (nowSearchData.whileFindType === searchComponentType.closureType) {
-        const nowLine = lines[fileData.line - nowSearchData.nowIndex];
         if (nowLine.includes('=> {' && nowLine.trim().slice(0, 1) === '.')) {
             nowSearchData.whileFindType = searchComponentType.pointType;
             nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
@@ -546,11 +545,11 @@ function getComponentNameBranch(fileData, searchData, lines, searchComponentType
         } else {
             nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
         }
-    } else if (nowSearchData.whileFindType === searchComponentType.propertyType && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('({')) {
+    } else if (nowSearchData.whileFindType === searchComponentType.propertyType && nowLine.includes('({')) {
         const componentIndex = nowLine.indexOf('({');
         nowSearchData.componentName = nowLine.slice(0, componentIndex);
         nowSearchData.isWhileIn = false;
-    } else if (nowSearchData.whileFindType === searchComponentType.partmerType && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('(')) {
+    } else if (nowSearchData.whileFindType === searchComponentType.partmerType && nowLine.includes('(')) {
         const componentIndex = nowLine.indexOf('(');
         nowSearchData.componentName = nowLine.slice(0, componentIndex);
         nowSearchData.isWhileIn = false;
