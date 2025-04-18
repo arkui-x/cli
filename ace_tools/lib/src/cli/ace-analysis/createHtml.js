@@ -13,16 +13,21 @@
  * limitations under the License.
  */
 const fs = require('fs');
+const path = require('path');
+const process = require('process');
+const { Platform, platform } = require('../ace-check/platform');
 const API_BASE_HEIGHT = 200;
 const API_SHOW_HEIGHT = 66;
 
 function createAllModuleHtml(moduleApiList) {
     let apiNumberArray = [];
     let keyArray = [];
+    let apiCount = 0;
     for (let key of moduleApiList.keys()) {
         keyArray.push(key);
         let notSupportApiArray = moduleApiList.get(key);
         apiNumberArray.push(notSupportApiArray.length);
+        apiCount = apiCount + notSupportApiArray.length;
     }
     const option = {
         tooltip: {
@@ -32,7 +37,7 @@ function createAllModuleHtml(moduleApiList) {
             }
         },
         title: {
-          text: '模块不支持Api统计'
+          text: `模块不支持Api统计（共${apiCount}）`
         },
         xAxis: {
           type: 'category',
@@ -52,10 +57,7 @@ function createAllModuleHtml(moduleApiList) {
         }]
     };
     const optionStr = changeOption(option);
-    const allModuleJsStr = `var chartDom = document.getElementById('allModuleChart');
-          var chart = echarts.init(chartDom);
-          var option = ${optionStr};
-          chart.setOption(option);`;
+    const allModuleJsStr = createAllModuleJsStr(optionStr);
     let allModuleHtmlData = initHtmlData();
     const moduleBaseWidth = 200;
     const moduleShowWidth = 145;
@@ -64,6 +66,18 @@ function createAllModuleHtml(moduleApiList) {
     allModuleHtmlData.htmlStr = allModuleHtmlStr;
     allModuleHtmlData.jsStr = allModuleJsStr;
     return allModuleHtmlData;
+}
+
+function createAllModuleJsStr(optionStr) {
+    const allModuleJsStr = `var chartDom = document.getElementById('allModuleChart');
+          var chart = echarts.init(chartDom);
+          var option = ${optionStr};
+          chart.setOption(option);
+          chart.on('click', function(params) {
+              const targetElement = document.getElementById(\`\${params.name}dtsChart\`);
+              targetElement.scrollIntoView();
+          });`;
+    return allModuleJsStr;
 }
 
 function createAllDtsHtml(alldtsList) {
@@ -348,7 +362,12 @@ function changeOption(option) {
 function createHtml(alldtsList, moduleApiList) {
   const htmlContent = createHtmlString(alldtsList, moduleApiList);
   fs.writeFileSync('./chart.html', htmlContent, 'utf-8');
-  console.log('Analysis success! Please view chart.html');
+  const nowPath = process.cwd();
+  let chartHtmlPath = `${nowPath}/chart.html`;
+  if (platform === Platform.Windows) {
+    chartHtmlPath = `${nowPath}\\chart.html`;
+  }
+  console.log(`Analysis success! Please view chart.html(${chartHtmlPath})`);
 }
 
 module.exports = { createHtml };

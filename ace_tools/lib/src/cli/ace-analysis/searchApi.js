@@ -14,9 +14,12 @@
  */
 const fs = require('fs');
 const path = require('path');
+const JSON5 = require('json5');
 const { spawn } = require('child_process');
 const { Platform, platform } = require('../ace-check/platform');
 const { createHtml } = require('./createHtml');
+const { getDevVersion } = require('../ace-build');
+const { openHarmonySdkDir, devEcoStudioDir } = require('../ace-check/configs');
 let GLOBAL_SDK_PATH = '/Applications/DevEco-Studio.app/Contents/sdk';
 const PATH_KIT_HMS = (platform === Platform.MacOS) ? '/default/hms/ets/kits/' : '\\default\\hms\\ets\\kits\\';
 const PATH_KIT_OH = (platform === Platform.MacOS) ? '/default/openharmony/ets/kits/' : '\\default\\openharmony\\ets\\kits\\';
@@ -25,48 +28,132 @@ const PATH_TRAVERSAL_API = (platform === Platform.MacOS) ? '/default/openharmony
 const PATH_TRAVERSAL_HMS_API = (platform === Platform.MacOS) ? '/default/hms/ets/api/' : '\\default\\hms\\ets\\api\\';
 const FROM_FRONT_LENGTH = 6;
 const FROM_SUFFIX_LENGTH = 2;
+const BUILD_COMMADN_CLOSE_CODE_SUCCESS = 0;
+const BUILD_COMMADN_CLOSE_CODE_FAIL = -1;
+const BUILD_UPGRADE_LOG_LENGTH = 2;
 
 function captureLogs() {
-   const buildLogPath = './analysis_build_logs.txt';
-   const options = { maxBuffer: 10 * 1024 * 1024, shell: true, env: { ...process.env, CUSTOM_VAR: 'value' }, cwd: process.cwd(), encoding: 'utf-8' };
-   const logFileStream = fs.createWriteStream(buildLogPath);
-   const child = spawn('ace build apk', [], options);
-   child.stderr.on('data', (data) => {
-       const filteredData = data.toString().replace(/\u001b\[\d+m/g, '');
-       logFileStream.write(filteredData);
-   });
-   child.on('close', (code) => {
-     child.kill();
-     logFileStream.end();
-     analysisBuildLog(buildLogPath);
-   });
-   child.on('error', (error) => {
-       child.kill();
-       logFileStream.end();
-   });
+    const buildLogPath = './analysis_build_logs.txt';
+    const options = { maxBuffer: 10 * 1024 * 1024, shell: true, env: { ...process.env, CUSTOM_VAR: 'value' }, cwd: process.cwd(), encoding: 'utf-8' };
+    const logFileStream = fs.createWriteStream(buildLogPath);
+    const child = spawn('ace build apk', [], options);
+    console.log(`start build project ...`);
+    let closeCode = BUILD_COMMADN_CLOSE_CODE_SUCCESS;
+    const timer = setTimeout(() => {
+        if (checkBuildResult(buildLogPath)) {
+            return;
+        }
+        closeCode = BUILD_COMMADN_CLOSE_CODE_FAIL;
+        child.kill();
+        logFileStream.end();
+        fs.unlink(buildLogPath, (error) => {
+            if (error) {
+                return;
+            }
+        });
+        console.log(`project build fail, please run \"ace build apk\" and resolve the problem`);
+    }, 8000);
+    child.stdout.on('data', (data) => {
+        const filteredData = data.toString().replace(/\u001b\[\d+m/g, '');
+        logFileStream.write(filteredData);
+    });
+    child.stderr.on('data', (data) => {
+        const filteredData = data.toString().replace(/\u001b\[\d+m/g, '');
+        logFileStream.write(filteredData);
+    });
+    child.on('close', (code) => {
+        if (closeCode !== BUILD_COMMADN_CLOSE_CODE_FAIL) {
+            child.kill();
+            logFileStream.end();
+            clearTimeout(timer);
+            console.log(`project build finish, start analysis log ...`);
+            analysisBuildLog(buildLogPath, true);
+        }
+    });
+    child.on('error', (error) => {
+        closeCode = BUILD_COMMADN_CLOSE_CODE_FAIL;
+        child.kill();
+        logFileStream.end();
+    });
 }
 
-function analysisBuildLog(buildLogPath) {
+function checkBuildResult(buildLogPath) {
+    const data = fs.readFileSync(buildLogPath, 'utf8');
+    const lines = data.split('\n');
+    if (lines.length > BUILD_UPGRADE_LOG_LENGTH) {
+        return true;
+    }
+    let isBuildResult = true;
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].includes('not find project configuration sdk') || lines[i].includes('Whether to upgrade？(Y/N)')) {
+            isBuildResult = false;
+        }
+    }
+    return isBuildResult;
+}
+
+function analysisBuildLog(buildLogPath, isDelLogFile) {
     let alldtsList = new Map();
     let moduleApiList = new Map();
     if (!(fs.existsSync(buildLogPath))) {
         console.log('\x1B[31m%s\x1B[0m', `Error: No compilation log file found`);
         return;
     }
+    let isNeedAnalysis = preAnalysisBuildLog(buildLogPath);
+    if (isNeedAnalysis) {
+        const data = fs.readFileSync(buildLogPath, 'utf8');
+        const lines = data.split('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const lineNextIndex = i + 1;
+            if ((lines[i].includes('ArkTS:ERROR File')) || (lines[i].includes('ArkTS:WARN File'))) {
+                analysisBuildLogLine(lines[i], lines[lineNextIndex], alldtsList, moduleApiList);
+            }
+        }
+        createHtml(alldtsList, moduleApiList);
+    }
+    if (isDelLogFile) {
+        fs.unlink(buildLogPath, (error) => {
+            if (error) {
+                return;
+            }
+        });
+    }
+}
+
+function preAnalysisBuildLog(buildLogPath) {
+    let isHaveSuccessLog = false;
+    let isHaveApkBuiltSuc = false;
+    let isHaveSupportLog = false;
     const data = fs.readFileSync(buildLogPath, 'utf8');
     const lines = data.split('\n');
     for (let i = 0; i < lines.length; i++) {
-        const lineNextIndex = i + 1;
-        if ((lines[i].includes('ArkTS:ERROR File'))) {
-            analysisBuildLogLine(lines[i], lines[lineNextIndex], alldtsList, moduleApiList);
+        if ((lines[i].includes('BUILD SUCCESSFUL'))) {
+            isHaveSuccessLog = true;
+        }
+        if ((lines[i].includes('APK file built successfully'))) {
+            isHaveApkBuiltSuc = true;
+        }
+        if ((lines[i].includes('can\'t support crossplatform application.'))) {
+            isHaveSupportLog = true;
         }
     }
-    createHtml(alldtsList, moduleApiList);
-    fs.unlink(buildLogPath, (error) => {
-        if (error) {
-            return;
-        }
-    });
+    let isBuildSuccess = false;
+    if (isHaveSuccessLog && isHaveApkBuiltSuc) {
+        isBuildSuccess = true;
+    }
+    isNeedAnalysis = true;
+    if (isBuildSuccess && !isHaveSupportLog) {
+        console.log(`The project is build successfully, and no APIs that do not support cross-platform are found.`);
+        isNeedAnalysis = false;
+    } else if (isBuildSuccess && isHaveSupportLog) {
+        isNeedAnalysis = true;
+    } else if (!isBuildSuccess && !isHaveSupportLog) {
+        console.log(`The project build fail, please run \"ace build apk\" and resolve the problem`);
+        isNeedAnalysis = false;
+    } else if (!isBuildSuccess && isHaveSupportLog) {
+        isNeedAnalysis = true;
+    }
+    return isNeedAnalysis;
 }
 
 function analysisBuildLogLine(line, nextLine, alldtsList, moduleApiList) {
@@ -76,7 +163,7 @@ function analysisBuildLogLine(line, nextLine, alldtsList, moduleApiList) {
     const moduleName = getModuleNameFromBuildLog(line);
     const fileData = getFileDataFromBuildLog(line);
     const notSupportApi = getNotSupportApi(nextLine);
-    if (!fileData || !(fileData.path) || !notSupportApi) {
+    if (!fileData || !(fileData.path) || !(fileData.line) || !(fileData.column) || !notSupportApi) {
         return;
     }
     let notSupportApiFileName = getDtsFileFromImport(fileData.path, notSupportApi);
@@ -214,7 +301,7 @@ function isItemInList(item, list) {
     if (list.length <= 0) {
         return true;
     }
-    isIn = false;
+    let isIn = false;
     for (let i = 0; i < list.length; i++) {
         if (item.includes(list[i])) {
             isIn = true;
@@ -401,11 +488,16 @@ function getComponentName(fileData, notSupportApi) {
     }
     let searchData = initComponentSearchData(2, true, searchComponentType.pointType);
     while (searchData.isWhileIn) {
+        if (fileData.line - searchData.nowIndex < 0 || 
+            fileData.line - searchData.nowIndex >= lines.length ||
+            lines[fileData.line - searchData.nowIndex] === undefined) {
+            break;
+        }
         if (lines[fileData.line - searchData.nowIndex].trim().slice(0, 1) === '.') {
-            whileFindType = searchComponentType.pointType;
+            searchData.whileFindType = searchComponentType.pointType;
             searchData.nowIndex = searchData.nowIndex + 1;
         } else if (lines[fileData.line - searchData.nowIndex].trim() === '})' || lines[fileData.line - searchData.nowIndex].trim() === '}))') {
-            whileFindType = searchComponentType.closureType;
+            searchData.whileFindType = searchComponentType.closureType;
             searchData.nowIndex = searchData.nowIndex + 1;
         } else {
             let searchDataBranch = getComponentNameBranch(fileData, searchData, lines, searchComponentType);
@@ -418,8 +510,8 @@ function getComponentName(fileData, notSupportApi) {
 
 function getComponentNameBranch(fileData, searchData, lines, searchComponentType) {
     let nowSearchData = initComponentSearchData(searchData.nowIndex, searchData.isWhileIn, searchData.whileFindType);
+    const nowLine = lines[fileData.line - nowSearchData.nowIndex].trim();
     if (nowSearchData.whileFindType === searchComponentType.pointType) {
-        const nowLine = lines[fileData.line - nowSearchData.nowIndex].trim();
         const nowLineLength = nowLine.length;
         if ((nowLine.slice(nowLineLength - 2, nowLineLength)) === '})') {
             if (nowLine.includes('({')) {
@@ -431,7 +523,6 @@ function getComponentNameBranch(fileData, searchData, lines, searchComponentType
                 nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
             }
         } else if ((nowLine.slice(nowLineLength - 1, nowLineLength)) === ')') {
-            
             if (nowLine.includes('(')) {
                 const componentIndex = nowLine.indexOf('(');
                 nowSearchData.componentName = nowLine.slice(0, componentIndex);
@@ -444,7 +535,6 @@ function getComponentNameBranch(fileData, searchData, lines, searchComponentType
             nowSearchData.isWhileIn = false;
         }
     } else if (nowSearchData.whileFindType === searchComponentType.closureType) {
-        const nowLine = lines[fileData.line - nowSearchData.nowIndex];
         if (nowLine.includes('=> {' && nowLine.trim().slice(0, 1) === '.')) {
             nowSearchData.whileFindType = searchComponentType.pointType;
             nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
@@ -455,11 +545,11 @@ function getComponentNameBranch(fileData, searchData, lines, searchComponentType
         } else {
             nowSearchData.nowIndex = nowSearchData.nowIndex + 1;
         }
-    } else if (nowSearchData.whileFindType === searchComponentType.propertyType && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('({')) {
+    } else if (nowSearchData.whileFindType === searchComponentType.propertyType && nowLine.includes('({')) {
         const componentIndex = nowLine.indexOf('({');
         nowSearchData.componentName = nowLine.slice(0, componentIndex);
         nowSearchData.isWhileIn = false;
-    } else if (nowSearchData.whileFindType === searchComponentType.partmerType && (lines[fileData.line - nowSearchData.nowIndex].trim()).includes('(')) {
+    } else if (nowSearchData.whileFindType === searchComponentType.partmerType && nowLine.includes('(')) {
         const componentIndex = nowLine.indexOf('(');
         nowSearchData.componentName = nowLine.slice(0, componentIndex);
         nowSearchData.isWhileIn = false;
@@ -600,7 +690,13 @@ function getNotSupportApi(nextLine) {
 }
 
 function getModuleNameFromBuildLog(line) {
-    const index = line.indexOf('/src/main/ets');
+    let index = line.indexOf('/src/main/ets');
+    if (index === -1) {
+        index = line.indexOf('/src/main/ts');
+    }
+    if (index === -1) {
+        return '';
+    }
     const stringArray = line.slice(0, index).split('/');
     const moduleName = stringArray[stringArray.length - 1];
     return moduleName;
@@ -630,8 +726,61 @@ function initFileData(filePath = '', fileName = '', fileLine = '', fileColumn = 
     return fileData;
 }
 
-function searchApi(sdkPath) {
-    GLOBAL_SDK_PATH = sdkPath;
+function getSdkPath() {
+    let localSdkPath = '';
+    const filePath = './build-profile.json5';
+    const data = fs.readFileSync(filePath, 'utf8');
+    const jsonObj = JSON5.parse(data);
+    if (jsonObj.app.products[0] === undefined) {
+        return localSdkPath;
+    }
+    let projectRuntimeOS = jsonObj.app.products[0].runtimeOS;
+    if (projectRuntimeOS === 'HarmonyOS') {
+        const devVersion = getDevVersion();
+        if (devVersion >= 12) {
+            localSdkPath = `${devEcoStudioDir}/Contents/sdk`;
+            if (platform === Platform.Windows) {
+                localSdkPath = `${devEcoStudioDir}\\sdk`;
+            }
+        }
+    }
+    return localSdkPath;
+}
+
+function checkSdkPath(sdkPath) {
+    if (!sdkPath || sdkPath === undefined || sdkPath === '') {
+        return false;
+    }
+    if (fs.existsSync(path.join(sdkPath, 'default', 'sdk-pkg.json')) || fs.existsSync(path.join(sdkPath, 'sdk-pkg.json'))) {
+        return true;
+    }
+    return false;
+}
+
+function searchApi(sdkPath, buildlog) {
+    if (sdkPath && sdkPath !== undefined) {
+        if (!(checkSdkPath(sdkPath))) {
+            console.log(`please input the correct HarmonyOS sdk path`);
+            return;
+        }
+        GLOBAL_SDK_PATH = sdkPath;
+    } else {
+        let localSdkPath = getSdkPath();
+        if (!(checkSdkPath(localSdkPath))) {
+            console.log(`get sdk path fail, please check ace config or input the HarmonyOS sdk path`);
+            return;
+        }
+        GLOBAL_SDK_PATH = localSdkPath;
+    }
+    if (buildlog && buildlog !== '') {
+        if (fs.existsSync(buildlog)) {
+            console.log(`the log path is valid, start analysis log ...`);
+            analysisBuildLog(buildlog, false);
+        } else {
+            console.log(`the log path does not exist. Please enter the correct path`);
+        }
+        return;
+    }
     captureLogs();
 }
 

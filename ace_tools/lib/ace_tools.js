@@ -26,7 +26,7 @@ const { setConfig } = require('./src/cli/ace-config');
 const check = require('./src/cli/ace-check');
 const { devices, getDeviceID, showValidDevice, getDeviceType } = require('./src/cli/ace-devices');
 const compiler = require('./src/cli/ace-build/ace-compiler');
-const build = require('./src/cli/ace-build');
+const { build } = require('./src/cli/ace-build');
 const { install } = require('./src/cli/ace-install');
 const uninstall = require('./src/cli/ace-uninstall');
 const { log } = require('./src/cli/ace-log');
@@ -705,16 +705,9 @@ function parseAnalysis() {
     .usage('[arguments]')
     .description(`Analysis the interfaces that do not support cross-platform.`)
     .option('--sdk [sdkPath]', 'Specifies the HarmonyOS sdk path of the project use.')
+    .option('--buildlog [buildLogPath]', 'Specifies the build log path.')
     .action((options) => {
-      if (options.sdk) {
-        if (fs.existsSync(path.join(options.sdk, 'default', 'sdk-pkg.json')) || fs.existsSync(path.join(options.sdk, 'sdk-pkg.json'))) {
-          analysisProject(options.sdk);
-        } else {
-          console.log(`please input the correct sdk path`);
-        }
-      } else {
-        console.log(`sdk path not found, please use '--sdk <sdkPath>'`);
-      }
+      analysisProject(options.sdk, options.buildlog);
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'analysis') {
     commandHelp(analysisCmd);

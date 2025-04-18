@@ -337,6 +337,9 @@ function addUrlInIosPlist() {
 function modifyEntryModule(moduleName) {
   fs.mkdirSync('.arkui-x');
   modifyCopyFileSync(`${globalThis.templatePath}/arkui-x-config.json5`, './.arkui-x/arkui-x-config.json5');
+  const jsonData = JSON5.parse(fs.readFileSync('./.arkui-x/arkui-x-config.json5', 'utf8'));
+  jsonData.modules = [];
+  fs.writeFileSync('./.arkui-x/arkui-x-config.json5', JSON5.stringify(jsonData, null));
   modifyCopyFolderSync(`${globalThis.templatePath}/android`, './.arkui-x/android');
   modifyCopyFolderSync(`${globalThis.templatePath}/ios`, './.arkui-x/ios');
   const appName = getAppName();
