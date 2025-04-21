@@ -141,7 +141,7 @@ function preAnalysisBuildLog(buildLogPath) {
     if (isHaveSuccessLog && isHaveApkBuiltSuc) {
         isBuildSuccess = true;
     }
-    isNeedAnalysis = true;
+    let isNeedAnalysis = true;
     if (isBuildSuccess && !isHaveSupportLog) {
         console.log(`The project is build successfully, and no APIs that do not support cross-platform are found.`);
         isNeedAnalysis = false;
