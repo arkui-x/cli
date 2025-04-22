@@ -14,7 +14,7 @@
  */
 
 const compiler = require('../ace-build/ace-compiler');
-const build = require('../ace-build');
+const { build } = require('../ace-build');
 const {install} = require('../ace-install');
 const launch = require('../ace-launch');
 const { log } = require('../ace-log');

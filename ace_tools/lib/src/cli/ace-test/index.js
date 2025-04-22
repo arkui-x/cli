@@ -14,7 +14,7 @@
  */
 
 const compiler = require('../ace-build/ace-compiler');
-const build = require('../ace-build');
+const { build } = require('../ace-build');
 const {install, isInstallFileExist} = require('../ace-install');
 const launch = require('../ace-launch');
 const { isProjectRootDir, validInputDevice, getEntryModule } = require('../util');
