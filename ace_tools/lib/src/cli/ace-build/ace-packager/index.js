@@ -30,7 +30,7 @@ const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid } = require('../../ace-ch
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi, getAndroidModule,
   getIosProjectName } = require('../../util');
-const { copyLibraryToProject } = require('./copyLibraryToProject');
+const { copyLibraryToProject, installPodfiles } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 const analyze = require('../ace-analyze/index');
 const projectDir = process.cwd();
@@ -363,8 +363,21 @@ function packager(target, cmd) {
 }
 
 function buildiOS(target, cmd) {
-  copyLibraryToProject('ios', cmd, projectDir, 'ios');
-  const cmds = [];
+  const useCocoapods = (platform === Platform.MacOS && fs.existsSync(path.join(projectDir, '.arkui-x/ios', 'Podfile')));
+  if (useCocoapods) {
+    installPodfiles('ios', cmd, projectDir, 'ios');
+    try {
+      exec('pod install', {
+        cwd: path.join(projectDir, '.arkui-x/ios'),
+        stdio: 'inherit',
+      });
+    } catch (error) {
+      console.error('install Podfiles ios failed.');
+      return false;
+    }
+  } else {
+    copyLibraryToProject('ios', cmd, projectDir, 'ios');
+  }
   let mode = 'Release';
   if (cmd.debug) {
     mode = 'Debug';
@@ -374,25 +387,7 @@ function buildiOS(target, cmd) {
     return false;
   }
   const iosProjectName = getIosProjectName(projectDir);
-  const projectSettingDir = path.join(projectDir, '.arkui-x/ios', `${iosProjectName}.xcodeproj`);
-  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
-  let sdk = 'iphoneos';
-  let platform = `generic/platform="iOS"`;
-  let arch = 'arm64';
-  if (os.arch() === 'x64' && cmd.simulator) {
-    arch = 'x86_64';
-  }
-  if (cmd.simulator) {
-    sdk = 'iphonesimulator';
-    platform = `generic/platform="iOS Simulator"`;
-  }
-  let signCmd = '';
-  if (cmd.nosign) {
-    signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
-  }
-  const cmdStr = `xcodebuild -project ${projectSettingDir} -sdk ${sdk} -configuration "${mode}" ` +
-    `${platform} ARCHS=${arch} clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
-  cmds.push(cmdStr);
+  const cmds = [generateBuildCommand(useCocoapods, cmd, mode, iosProjectName)];
   let manifestPath = path.join(projectDir, 'AppScope/app.json5');
   let manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
   process.env.ACE_VERSION_CODE = manifestJsonObj.app.versionCode;
@@ -414,7 +409,7 @@ function buildiOS(target, cmd) {
 It appears that there was a problem signing your application prior to installation on the device.
 
 Verify that the Bundle Identifier in your project is your signing id in Xcode
-  open .arkui-x/ios/${iosProjectName}.xcodeproj
+  open .arkui-x/ios/${iosProjectName}.${useCocoapods ? 'xcworkspace' : 'xcodeproj'}
           `);
         }
       }
@@ -433,6 +428,33 @@ Verify that the Bundle Identifier in your project is your signing id in Xcode
     }
   }
   return isBuildSuccess;
+}
+
+function generateBuildCommand(useCocoapods, cmd, mode, iosProjectName) {
+  const exportPath = path.join(projectDir, '.arkui-x/ios', 'build/outputs/app/');
+  let sdk = 'iphoneos';
+  let platform = `generic/platform="iOS"`;
+  let arch = 'arm64';
+  if (os.arch() === 'x64' && cmd.simulator) {
+    arch = 'x86_64';
+  }
+  if (cmd.simulator) {
+    sdk = 'iphonesimulator';
+    platform = `generic/platform="iOS Simulator"`;
+  }
+  let signCmd = '';
+  if (cmd.nosign) {
+    signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
+  }
+  if (useCocoapods) {
+    const workspacePath = path.join(projectDir, '.arkui-x/ios', `${iosProjectName}.xcworkspace`);
+    return `xcodebuild -workspace ${workspacePath} -scheme ${iosProjectName} -sdk ${sdk} ` +
+      `-configuration "${mode}" ${platform} ARCHS=${arch} ` +
+      `clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
+  }
+  const projectPath = path.join(projectDir, '.arkui-x/ios', `${iosProjectName}.xcodeproj`);
+  return `xcodebuild -project ${projectPath} -sdk ${sdk} -configuration "${mode}" ` +
+    `${platform} ARCHS=${arch} clean build CONFIGURATION_BUILD_DIR=${exportPath} ${signCmd}`;
 }
 
 module.exports = packager;

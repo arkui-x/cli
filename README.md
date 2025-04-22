@@ -295,6 +295,7 @@ ohos@user:~/cli-project$ ace create test
 ? Enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
 ? Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
 ? Please select the Complie SDk (1: 10, 2: 11, 3: 12): 2 # 输入编译SDK版本
+? Please select the Framework integration approach (1: Native Manual, 2: CocoaPods): 2 # 输入Framework集成方式
 
 Project created. Target directory:  /home/ohos/cli-project/test.
 

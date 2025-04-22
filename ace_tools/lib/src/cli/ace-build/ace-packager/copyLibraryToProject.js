@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const { Platform, platform } = require('../../ace-check/platform');
 const { copy } = require('../../ace-create/util');
-const { getAarName } = require('../../util');
+const { getAarName, getIosProjectName } = require('../../util');
 const { arkuiXSdkDir } = require('../../ace-check/configs');
 const { appCpu2SdkLibMap, appCpu2DestLibDir, clearLibBeforeCopy } = require('./globalConfig');
 const { updateIosProjectPbxproj } = require('./adjustPbxproj4Framework');
@@ -349,6 +349,159 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   copyDat(projectDir, system, fileType, depMap);
 }
 
+function installPodfiles(fileType, cmd, projectDir, system) {
+  const version = getSdkVersion(projectDir);
+  arkuiXSdkPath = getSourceArkuixPath() || (arkuiXSdkDir + `/${version}/arkui-x`);
+  const apiConfigMap = loadApiConfigJson(arkuiXSdkPath);
+  const collectionSet = loadCollectionJson(projectDir);
+  const depMap = finddeps(collectionSet, new Map(), apiConfigMap, system);
+  const sdkPaths = new Set();
+  const handleLibraryPath = (libraryPath, key) => {
+    const checkResult = checkLibraryPath(libraryPath);
+    if (!checkResult) {
+      let guestOption = 1;
+      printLog('\t', key, ':Error ==> cannot find library:', libraryPath);
+      if (!ignoreAll) {
+        guestOption = processOnNotFound();
+      }
+      if (!guestOption || guestOption === 0) {
+        throw new Error(`library not found: ${libraryPath}`);
+      }
+      if (guestOption === 2) {
+        ignoreAll = true;
+      }
+    }
+  };
+  depMap.forEach((value, key) => {
+    const paths = value.library?.[system] || [];
+    for (const libraryPath of paths) {
+      handleLibraryPath(libraryPath, key);
+      sdkPaths.add(path.basename(libraryPath));
+    }
+  });
+  createPodspec(arkuiXSdkPath, Array.from(sdkPaths));
+  updatePodfile(arkuiXSdkPath, projectDir);
+  copyDat(projectDir, system, fileType, depMap);
+}
+
+function createPodspec(arkuiXSdkPath, depCheckSet) {
+  const libpathsArray = depCheckSet
+    .map(libname => findXCFrameworkRelativePath(libname, arkuiXSdkPath))
+    .filter(libpath => libpath)
+    .map(libpath => `"${libpath}"`);
+  const libpaths = libpathsArray.join(',');
+
+  const podspecPath = path.join(arkuiXSdkPath, 'arkui-x.podspec');
+  const content = `
+Pod::Spec.new do |spec|
+
+  spec.name          = "arkui-x"
+  spec.version       = "1.0.0"
+  spec.summary       = "The ArkUI-X project extends the ArkUI framework to multiple OS platforms."
+  spec.description   = <<-DESC
+    The ArkUI-X project extends the ArkUI framework to multiple OS platforms.
+    This enables developers to use one main set of code to develop applications for multiple OS platforms.
+  DESC
+  spec.homepage      = "https://arkui-x.cn"
+  spec.license       = { :type => "Apache" }
+  spec.author        = { "ArkUI Dev Team" => "contact@mail.arkui-x.cn" }
+  spec.source        = { :git => "https://gitcode.com/arkui-x", :tag => "#{spec.version}" }
+  spec.ios.deployment_target = '10.0'
+  spec.vendored_frameworks = ${libpaths}
+
+end`;
+  createFileWithContent(podspecPath, content);
+}
+
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function updatePodfile(arkuiXSdkPath, projectDir) {
+  try {
+    const podfilePath = path.join(projectDir, '.arkui-x/ios/Podfile');
+    const content = fs.readFileSync(podfilePath, 'utf8');
+    const arkuixPodLine = `\n  pod 'arkui-x', :path => '${arkuiXSdkPath}'`;
+
+    if (!content.includes(arkuixPodLine)) {
+      const targetName = getIosProjectName(projectDir);
+      const escapedTargetName = escapeRegExp(targetName);
+      const targetRegex = new RegExp(
+        `(target\\s+['"]${escapedTargetName}['"]\\s+do\\s*[\\s\\S]*?)(\\n\\s*end)`
+      );
+      const updatedContent = content.replace(targetRegex, `$1${arkuixPodLine}$2`);
+      createFileWithContent(podfilePath, updatedContent);
+    }
+  } catch (error) {
+    console.error(`Error updating Podfile: ${error.message}`);
+    throw error;
+  }
+}
+
+function findXCFrameworkRelativePath(frameworkName, searchDir) {
+  if (!frameworkName.endsWith('.xcframework') || !fs.existsSync(searchDir)) {
+    return null;
+  }
+  try {
+    const dirQueue = [searchDir];
+    for (let currentDir = dirQueue.shift(); currentDir; currentDir = dirQueue.shift()) {
+      const foundPath = processDirectory(currentDir, frameworkName, searchDir, dirQueue);
+      if (foundPath) {
+        return foundPath;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error(`find xcframework error: ${error.message}`);
+    return null;
+  }
+}
+
+function processDirectory(currentDir, targetName, baseDir, queue) {
+  try {
+    for (const file of fs.readdirSync(currentDir)) {
+      const filePath = path.join(currentDir, file);
+      const isTarget = checkAndQueue(file, filePath, targetName, baseDir, queue);
+      if (isTarget) {
+        return isTarget;
+      }
+    }
+    return null;
+  } catch (err) {
+    console.error(`Skipping ${currentDir}: ${err.message}`);
+    return null;
+  }
+}
+
+function checkAndQueue(fileName, filePath, targetName, baseDir, queue) {
+  try {
+    if (fileName === targetName) {
+      return path.relative(baseDir, filePath);
+    }
+    if (fs.statSync(filePath).isDirectory()) {
+      queue.push(filePath);
+    }
+    return null;
+  } catch (err) {
+    console.error(`Skipping ${filePath}: ${err.message}`);
+    return null;
+  }
+}
+
+function createFileWithContent(filePath, content) {
+  const fullPath = path.resolve(filePath);
+  try {
+      fs.writeFileSync(fullPath, content, { 
+          encoding: 'utf-8',
+          flag: 'w'
+      });
+      return true;
+  } catch (error) {
+      console.error(`write podspec file fail: ${error.message}`);
+      return false;
+  }
+}
+
 /*
 specifications for callbackFunction
 fullname ---absolute path ,
@@ -535,5 +688,5 @@ function loadApiConfig(RootPath, ApiConfig, apiConfigMap) {
   return apiConfigMap;
 }
 
-module.exports = { copyLibraryToProject };
+module.exports = { copyLibraryToProject, installPodfiles };
 

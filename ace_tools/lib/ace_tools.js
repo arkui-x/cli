@@ -275,7 +275,25 @@ function parseCreate() {
               },
             }]).then(answers => {
               initInfo.sdkVersion = sdkVersionShowMap.get(answers['Complie SDk']);
-              create(initInfo);
+              if (platform === Platform.MacOS) {
+                inquirer.prompt([{
+                  name: 'integrationApproach',
+                  type: 'input',
+                  message: 'Please select the Framework integration approach (1: Native Manual, 2: CocoaPods):',
+                  validate(val) {
+                    if (val === '1' || val === '2') {
+                      return true;
+                    } else {
+                      return 'input must be an integer: 1 or 2.';
+                    }
+                  },
+                }]).then(answers => {
+                  initInfo.integrationApproach = answers.integrationApproach;
+                  create(initInfo);
+                });
+              } else {
+                create(initInfo);
+              }
             });
           });
         });
