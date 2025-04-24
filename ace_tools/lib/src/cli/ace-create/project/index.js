@@ -68,7 +68,7 @@ function createPodfile(projectTempPath) {
   }
 }
 
-function checkCocoaPodsInscdtalled() {
+function checkCocoaPodsInstalled() {
   try {
     const output = exec('pod --version', { stdio: 'pipe' });
     return output.toString().trim().length > 0;
