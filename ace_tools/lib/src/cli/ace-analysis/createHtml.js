@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 const fs = require('fs');
-const path = require('path');
 const process = require('process');
 const { Platform, platform } = require('../ace-check/platform');
 const API_BASE_HEIGHT = 200;
@@ -255,7 +254,7 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
 }
 
 function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleNameIn) {
-    let nowModuleName = nowModuleNameIn.replace(/-/g, "_");
+    let nowModuleName = nowModuleNameIn.replace(/-/g, '_');
     let tableId = `${nowModuleName}table`;
     let tableHtmlStr = `<div id="${tableId}"></div>`;
     let dataStr = changeOption(nowModuleApiArray);
