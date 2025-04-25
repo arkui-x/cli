@@ -29,7 +29,7 @@ function createAllModuleHtml(moduleApiList) {
         apiNumberArray.push(notSupportApiArray.length);
         apiCount = apiCount + notSupportApiArray.length;
     }
-    const option = {
+    let option = {
         tooltip: {
             trigger: 'axis',
             axisPointer: {
@@ -56,25 +56,25 @@ function createAllModuleHtml(moduleApiList) {
           }
         }]
     };
-    const optionStr = changeOption(option);
-    const allModuleJsStr = createAllModuleJsStr(optionStr);
+    let optionStr = changeOption(option);
+    let allModuleJsStr = createAllModuleJsStr(optionStr);
     let allModuleHtmlData = initHtmlData();
-    const moduleBaseWidth = 200;
-    const moduleShowWidth = 145;
-    const allModuleWidth = moduleBaseWidth + moduleShowWidth * keyArray.length;
-    const allModuleHtmlStr = `<div id="allModuleChart" style="width: ${allModuleWidth}px; height: 400px;"></div>`;
+    let moduleBaseWidth = 200;
+    let moduleShowWidth = 145;
+    let allModuleWidth = moduleBaseWidth + moduleShowWidth * keyArray.length;
+    let allModuleHtmlStr = `<div id="allModuleChart" style="width: ${allModuleWidth}px; height: 400px;"></div>`;
     allModuleHtmlData.htmlStr = allModuleHtmlStr;
     allModuleHtmlData.jsStr = allModuleJsStr;
     return allModuleHtmlData;
 }
 
 function createAllModuleJsStr(optionStr) {
-    const allModuleJsStr = `var chartDom = document.getElementById('allModuleChart');
+    let allModuleJsStr = `var chartDom = document.getElementById('allModuleChart');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
           chart.setOption(option);
           chart.on('click', function(params) {
-              const targetElement = document.getElementById(\`\${params.name}dtsChart\`);
+              let targetElement = document.getElementById(\`\${params.name}dtsChart\`);
               targetElement.scrollIntoView();
           });`;
     return allModuleJsStr;
@@ -88,7 +88,7 @@ function createAllDtsHtml(alldtsList) {
         let notSupportApiArray = alldtsList.get(key);
         dtsApiNumberArray.push(notSupportApiArray.length);
     }
-    const option = {
+    let option = {
         tooltip: {
             trigger: 'axis',
             axisPointer: {
@@ -115,14 +115,14 @@ function createAllDtsHtml(alldtsList) {
           }
         }]
     };
-    const optionStr = changeOption(option);
-    const allApiJsStr = `var chartDom = document.getElementById('allApiChart');
+    let optionStr = changeOption(option);
+    let allApiJsStr = `var chartDom = document.getElementById('allApiChart');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
           chart.setOption(option);`;
     let allDtsHtmlData = initHtmlData();
-    const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
-    const allApiHtmlStr = `<div id="allApiChart" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
+    let allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
+    let allApiHtmlStr = `<div id="allApiChart" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
     allDtsHtmlData.htmlStr = allApiHtmlStr;
     allDtsHtmlData.jsStr = allApiJsStr;
     return allDtsHtmlData;
@@ -131,7 +131,7 @@ function createAllDtsHtml(alldtsList) {
 function getModuleDtsMap(nowModuleApiArray) {
     let nowModuleDtsMap = new Map();
     for (let i = 0; i < nowModuleApiArray.length; i++) {
-        const nowApiData = nowModuleApiArray[i];
+        let nowApiData = nowModuleApiArray[i];
         if (!nowModuleDtsMap.has(nowApiData.dtsFile)) {
             nowModuleDtsMap.set(nowApiData.dtsFile, []);
         }
@@ -144,7 +144,7 @@ function getModuleDtsMap(nowModuleApiArray) {
 function getModuleSelfMap(nowModuleApiArray) {
     let nowModuleSelfMap = new Map();
     for (let i = 0; i < nowModuleApiArray.length; i++) {
-        const nowApiData = nowModuleApiArray[i];
+        let nowApiData = nowModuleApiArray[i];
         if (!nowModuleSelfMap.has(nowApiData.selfFile)) {
             nowModuleSelfMap.set(nowApiData.selfFile, []);
         }
@@ -162,7 +162,7 @@ function getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName) {
         let nowApiArray = nowModuleDtsMap.get(key);
         dtsApiNumberArray.push(nowApiArray.length);
     }
-    const option = {
+    let option = {
         tooltip: {
             trigger: 'axis',
             axisPointer: {
@@ -190,15 +190,15 @@ function getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName) {
           }
         }]
     };
-    const optionStr = changeOption(option);
-    const htmlId = `${nowModuleName}dtsChart`;
-    const allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
+    let optionStr = changeOption(option);
+    let htmlId = `${nowModuleName}dtsChart`;
+    let allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
           chart.setOption(option);`;
     let oneModuleDtsHtmlData = initHtmlData();
-    const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
-    const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
+    let allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * dtsFileArray.length;
+    let allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
     oneModuleDtsHtmlData.htmlStr = allApiHtmlStr;
     oneModuleDtsHtmlData.jsStr = allApiJsStr;
     return oneModuleDtsHtmlData;
@@ -212,7 +212,7 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
         let nowApiArray = nowModuleSelfMap.get(key);
         selfApiNumberArray.push(nowApiArray.length);
     }
-    const option = {
+    let option = {
         tooltip: {
             trigger: 'axis',
             axisPointer: {
@@ -240,45 +240,46 @@ function getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName) {
           }
         }]
     };
-    const optionStr = changeOption(option);
-    const htmlId = `${nowModuleName}selfChart`;
-    const allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
+    let optionStr = changeOption(option);
+    let htmlId = `${nowModuleName}selfChart`;
+    let allApiJsStr = `var chartDom = document.getElementById('${htmlId}');
           var chart = echarts.init(chartDom);
           var option = ${optionStr};
           chart.setOption(option);`;
     let oneModuleSelfHtmlData = initHtmlData();
-    const allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * selfFileArray.length;
-    const allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
+    let allApiHeight = API_BASE_HEIGHT + API_SHOW_HEIGHT * selfFileArray.length;
+    let allApiHtmlStr = `<div id="${htmlId}" style="width: 1400px; height: ${allApiHeight}px;"></div>`;
     oneModuleSelfHtmlData.htmlStr = allApiHtmlStr;
     oneModuleSelfHtmlData.jsStr = allApiJsStr;
     return oneModuleSelfHtmlData;
 }
 
-function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName) {
-    const tableId = `${nowModuleName}table`;
-    const tableHtmlStr = `<div id="${tableId}"></div>`;
-    const dataStr = changeOption(nowModuleApiArray);
-    const tableJsStr = `const ${nowModuleName}data = ${dataStr};
-      const ${nowModuleName}table = document.createElement('table');
+function getOneModuleTableHtmlData(nowModuleApiArray, nowModuleNameIn) {
+    let nowModuleName = nowModuleNameIn.replace(/-/g, "_");
+    let tableId = `${nowModuleName}table`;
+    let tableHtmlStr = `<div id="${tableId}"></div>`;
+    let dataStr = changeOption(nowModuleApiArray);
+    let tableJsStr = `let ${nowModuleName}data = ${dataStr};
+      let ${nowModuleName}table = document.createElement('table');
       ${nowModuleName}table.style.width = '80%';
       ${nowModuleName}table.setAttribute('border', '1');
       ${nowModuleName}table.setAttribute('cellpadding', '5');
       ${nowModuleName}table.setAttribute('cellspacing', '0');
-      const ${nowModuleName}thead = ${nowModuleName}table .createTHead();
-      const ${nowModuleName}row = ${nowModuleName}thead.insertRow();
-      const ${nowModuleName}cell1 = ${nowModuleName}row.insertCell(0);
-      const ${nowModuleName}cell2 = ${nowModuleName}row.insertCell(1);
-      const ${nowModuleName}cell3 = ${nowModuleName}row.insertCell(2);
-      const ${nowModuleName}cell4 = ${nowModuleName}row.insertCell(3);
+      let ${nowModuleName}thead = ${nowModuleName}table .createTHead();
+      let ${nowModuleName}row = ${nowModuleName}thead.insertRow();
+      let ${nowModuleName}cell1 = ${nowModuleName}row.insertCell(0);
+      let ${nowModuleName}cell2 = ${nowModuleName}row.insertCell(1);
+      let ${nowModuleName}cell3 = ${nowModuleName}row.insertCell(2);
+      let ${nowModuleName}cell4 = ${nowModuleName}row.insertCell(3);
       ${nowModuleName}cell1.innerHTML = "序号";
       ${nowModuleName}cell2.innerHTML = "接口名";
       ${nowModuleName}cell3.innerHTML = "api文件";
       ${nowModuleName}cell4.innerHTML = "自研开发类文件";
-      const ${nowModuleName}tbody = document.createElement('tbody');
+      let ${nowModuleName}tbody = document.createElement('tbody');
       ${nowModuleName}data.forEach(rowData => {
-          const row = document.createElement('tr');
+          let row = document.createElement('tr');
           Object.values(rowData).forEach(cellText => {
-              const td = document.createElement('td');
+              let td = document.createElement('td');
               td.textContent = cellText;
               row.appendChild(td);
           });
@@ -296,34 +297,34 @@ function createEveryModuleHtml(moduleApiList) {
     let everyModuleHtmlStr = '';
     let everyModuleJsStr = '';
     for (let key of moduleApiList.keys()) {
-        const nowModuleName = key;
-        const nowModuleApiArray = moduleApiList.get(key);
-        const nowModuleDtsMap = getModuleDtsMap(nowModuleApiArray);
-        const nowModuleSelfMap = getModuleSelfMap(nowModuleApiArray);
-        const nowModuleDtsHtmlData = getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName);
-        const nowModuleSelfHtmlData = getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName);
-        const nowModuleTableHtmlData = getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName);
-        const nowModuleHtmlStr = `${nowModuleDtsHtmlData.htmlStr}
+        let nowModuleName = key;
+        let nowModuleApiArray = moduleApiList.get(key);
+        let nowModuleDtsMap = getModuleDtsMap(nowModuleApiArray);
+        let nowModuleSelfMap = getModuleSelfMap(nowModuleApiArray);
+        let nowModuleDtsHtmlData = getOneModuleDtsHtmlData(nowModuleDtsMap, nowModuleName);
+        let nowModuleSelfHtmlData = getOneModuleSelfHtmlData(nowModuleSelfMap, nowModuleName);
+        let nowModuleTableHtmlData = getOneModuleTableHtmlData(nowModuleApiArray, nowModuleName);
+        let nowModuleHtmlStr = `${nowModuleDtsHtmlData.htmlStr}
         ${nowModuleSelfHtmlData.htmlStr}
         ${nowModuleTableHtmlData.htmlStr}
         <div style="margin-top: 40px; margin-bottom: 40px;"></div>`;
         everyModuleHtmlStr = `${everyModuleHtmlStr}
         ${nowModuleHtmlStr}`;
-        const nowModuleJsStr = `${nowModuleDtsHtmlData.jsStr}
+        let nowModuleJsStr = `${nowModuleDtsHtmlData.jsStr}
         ${nowModuleSelfHtmlData.jsStr}
         ${nowModuleTableHtmlData.jsStr}`;
         everyModuleJsStr = `${everyModuleJsStr}
         ${nowModuleJsStr}`;
     }
-    const everyModuleHtmlData = { htmlStr: everyModuleHtmlStr, jsStr: everyModuleJsStr };
+    let everyModuleHtmlData = { htmlStr: everyModuleHtmlStr, jsStr: everyModuleJsStr };
     return everyModuleHtmlData;
 }
 
 function createHtmlString(alldtsList, moduleApiList) {
-    const allModuleHtmlData = createAllModuleHtml(moduleApiList);
-    const allDtsHtmlData = createAllDtsHtml(alldtsList);
-    const everyModuleHtmlData = createEveryModuleHtml(moduleApiList);
-    const htmlContent = `
+    let allModuleHtmlData = createAllModuleHtml(moduleApiList);
+    let allDtsHtmlData = createAllDtsHtml(alldtsList);
+    let everyModuleHtmlData = createEveryModuleHtml(moduleApiList);
+    let htmlContent = `
     <!DOCTYPE html>
     <html>
       <head>
@@ -352,7 +353,7 @@ function initHtmlData(htmlString = '', jsString = '') {
 }
 
 function changeOption(option) {
-    const optionStr = JSON.stringify(option, null, 2)
+    let optionStr = JSON.stringify(option, null, 2)
     .replace(/</g, '\\u003c')
     .replace(/>/g, '\\u003e')
     .replace(/&/g, '\\u0026');
@@ -360,9 +361,9 @@ function changeOption(option) {
 }
 
 function createHtml(alldtsList, moduleApiList) {
-  const htmlContent = createHtmlString(alldtsList, moduleApiList);
+  let htmlContent = createHtmlString(alldtsList, moduleApiList);
   fs.writeFileSync('./chart.html', htmlContent, 'utf-8');
-  const nowPath = process.cwd();
+  let nowPath = process.cwd();
   let chartHtmlPath = `${nowPath}/chart.html`;
   if (platform === Platform.Windows) {
     chartHtmlPath = `${nowPath}\\chart.html`;
