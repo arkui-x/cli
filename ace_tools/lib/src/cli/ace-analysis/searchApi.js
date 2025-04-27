@@ -51,7 +51,7 @@ function captureLogs() {
                 return;
             }
         });
-        console.log(`project build fail, please run \"ace build apk\" and resolve the problem`);
+        console.log('\x1B[31m%s\x1B[0m', `Error: The project build fail, please run \"ace build apk\" and resolve the problem`);
     }, 8000);
     child.stdout.on('data', (data) => {
         const filteredData = data.toString().replace(/\u001b\[\d+m/g, '');
@@ -148,7 +148,7 @@ function preAnalysisBuildLog(buildLogPath) {
     } else if (isBuildSuccess && isHaveSupportLog) {
         isNeedAnalysis = true;
     } else if (!isBuildSuccess && !isHaveSupportLog) {
-        console.log(`The project build fail, please run \"ace build apk\" and resolve the problem`);
+        console.log('\x1B[31m%s\x1B[0m', `Error: The project build fail, please run \"ace build apk\" and resolve the problem`);
         isNeedAnalysis = false;
     } else if (!isBuildSuccess && isHaveSupportLog) {
         isNeedAnalysis = true;
@@ -760,14 +760,14 @@ function checkSdkPath(sdkPath) {
 function searchApi(sdkPath, buildlog) {
     if (sdkPath && sdkPath !== undefined) {
         if (!(checkSdkPath(sdkPath))) {
-            console.log(`please input the correct HarmonyOS sdk path`);
+            console.log('\x1B[31m%s\x1B[0m', `Error: please input the correct HarmonyOS sdk path`);
             return;
         }
         GLOBAL_SDK_PATH = sdkPath;
     } else {
         let localSdkPath = getSdkPath();
         if (!(checkSdkPath(localSdkPath))) {
-            console.log(`get sdk path fail, please check ace config or input the HarmonyOS sdk path`);
+            console.log('\x1B[31m%s\x1B[0m', `Error: get sdk path fail, please check ace config or input the HarmonyOS sdk path`);
             return;
         }
         GLOBAL_SDK_PATH = localSdkPath;
@@ -777,7 +777,7 @@ function searchApi(sdkPath, buildlog) {
             console.log(`the log path is valid, start analysis log ...`);
             analysisBuildLog(buildlog, false);
         } else {
-            console.log(`the log path does not exist. Please enter the correct path`);
+            console.log('\x1B[31m%s\x1B[0m', `Error: the log path does not exist. Please enter the correct path`);
         }
         return;
     }
