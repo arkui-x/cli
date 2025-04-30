@@ -272,7 +272,7 @@ function getModuleType(moduleName, modulePath) {
   try {
     fs.accessSync(moduleJsonPath, fs.constants.F_OK);
   } catch (err) {
-    console.log(`error: module ${moduleName} is not HarmonyOS module!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: module ${moduleName} is not HarmonyOS module!`);
     return '';
   }
   const data = fs.readFileSync(moduleJsonPath, 'utf8');
@@ -293,14 +293,14 @@ function checkProblem() {
     }
   }
   if (isHaveProblem) {
-    console.log("warn:arkui-x project must delete the 'useNormalizedOHMUrl' Setting Items in build-profile.json5");
+    console.log('\x1b[33m%s\x1b[0m', `WARN: arkui-x project must delete the 'useNormalizedOHMUrl' Setting Items in build-profile.json5`);
   }
 }
 
 function addModuleInArkuixConfig(hspModule) {
   const akruixConfigPath = './.arkui-x/arkui-x-config.json5';
   if (!fs.existsSync(akruixConfigPath)) {
-    console.log(`error: The project does not contain the .arkui-x/arkui-x-config.json5 file. please modify an entry/feature type module as the cross-platform entry!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: The project does not contain the .arkui-x/arkui-x-config.json5 file. please modify an entry/feature type module as the cross-platform entry!`);
     return;
   }
   const data = fs.readFileSync(akruixConfigPath, 'utf8');
@@ -398,7 +398,7 @@ function modifyProject() {
     }
   }
   if (entryTypeArray.length < 1) {
-    console.log(`error: The project does not have an entry module，cannot be modify!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: The project does not have an entry module，cannot be modify!`);
   } else if (entryTypeArray.length === 1) {
     const modifyModulesArray = [];
     const modifyModulesTypeArray = [];
@@ -466,7 +466,7 @@ function modifyModules(modules) {
   const filePath = './build-profile.json5';
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
-      console.log('Operation failed. Go to your project directory and try again.');
+      console.log('\x1B[31m%s\x1B[0m', `Error: Operation failed. Go to your project directory and try again.`);
       return;
     }
   });
@@ -558,7 +558,7 @@ function modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray) {
   }
   checkProblem();
   if (isHaveFailed) {
-    console.log(`error: modify HarmonyOS modules ${cleanStr(failedModuleStr, ',')} to ArkUI-X modules failed!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: modify HarmonyOS modules ${cleanStr(failedModuleStr, ',')} to ArkUI-X modules failed!`);
   }
   if (isHaveSuccess) {
     console.log(`modify HarmonyOS modules ${cleanStr(successModuleStr, ',')} to ArkUI-X modules success!`);
