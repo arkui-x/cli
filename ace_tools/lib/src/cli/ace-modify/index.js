@@ -497,7 +497,7 @@ function initModifyType() {
 function modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, nowModifyType) {
   let entryModuleString = `(`;
   for (const entryModuleNow of entryTypeArray) {
-    entryModuleString = (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) ?  `${entryModuleString}${entryModuleNow} ` : `${entryModuleString}${entryModuleNow}` 
+    entryModuleString = (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) ? `${entryModuleString}${entryModuleNow} ` : `${entryModuleString}${entryModuleNow}`;
   }
   entryModuleString = `${entryModuleString})`;
   let nowMessage = `You designated modules has more than two entry modules ${entryModuleString}. Please enter a module as the cross-platform entry:`;
