@@ -491,17 +491,13 @@ function checkNotInProjectModules(modules, modulesArray) {
 }
 
 function initModifyType() {
-  const modifyType = { modifyTypeProject: 0, modifyTypeModules: 1 };
-  return modifyType;
+  return { modifyTypeProject: 0, modifyTypeModules: 1 };
 }
 
 function modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, nowModifyType) {
   let entryModuleString = `(`;
   for (const entryModuleNow of entryTypeArray) {
-    entryModuleString = `${entryModuleString}${entryModuleNow}`;
-    if (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) {
-      entryModuleString = `${entryModuleString} `;
-    }
+    entryModuleString = (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) ?  `${entryModuleString}${entryModuleNow} ` : `${entryModuleString}${entryModuleNow}` 
   }
   entryModuleString = `${entryModuleString})`;
   let nowMessage = `You designated modules has more than two entry modules ${entryModuleString}. Please enter a module as the cross-platform entry:`;
