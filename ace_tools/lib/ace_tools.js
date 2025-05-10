@@ -704,7 +704,11 @@ function parseModify() {
             },
           }]).then(answersModules => {
             const modules = answersModules.repair.split(',');
-            modifyModules(modules);
+            let modifyModulesArray = [];
+            for (let i = 0; i < modules.length; i++) {
+              modifyModulesArray.push(modules[i].trim());
+            }
+            modifyModules(modifyModulesArray);
           });
         });
       } else {

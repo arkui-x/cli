@@ -728,7 +728,7 @@ Run "ace help <command>" for more information about a command.
 
 将鸿蒙工程改造为ArkUI-X工程
 
-ace modify 命令需要在应用工程根目录下执行，当前支持工程级（整项目所有module），以及模块级（指定单module或者多module）的跨平台改造，改造完成后的应用工程支持直接进行跨平台编译，支持运行在Windows和MacOS平台
+ace modify 命令需要在应用工程根目录下执行，当前支持工程级（整项目所有module），以及模块级（指定单module或者多module,目前支持一次改造模块范围1-10个）的跨平台改造，改造完成后的应用工程支持直接进行跨平台编译，支持运行在Windows和MacOS平台
 
 语法：
 
@@ -742,11 +742,21 @@ ace modify [arguments]
 | --project  | 工程级跨平台改造                            |
 | --modules  | 模块级跨平台改造，支持指定单模块或者多模块                 |
 
-
+windows:
 ```
-ohos@user % ace modify --project
+D:\MyApplication>ace modify --project
 modify HarmonyOS project to ArkUI-X project success!
-ohos@user % ace modify --modules
+D:\MyApplication>ace modify --modules
+? Enter the number of modules to be modified: 3
+? Enter the modify module name(Multiple modules can be entered and separated by ","): entry,libraryHar,libraryHsp
+modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
+```
+
+mac:
+```
+ohos@user MyApplication % ace modify --project
+modify HarmonyOS project to ArkUI-X project success!
+ohos@user MyApplication % ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by ","): entry,libraryHar,libraryHsp
 modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
@@ -776,48 +786,48 @@ ace analysis [arguments]
 
 windows:
 ```
-ohos@user % ace analysis
+D:\MyApplication>ace analysis
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
+D:\MyApplication>ace analysis --sdk "***\DevEco Studio\sdk"
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
-ohos@user % ace analysis --buildlog "./analysis_build_logs_1.txt"
+D:\MyApplication>ace analysis --buildlog "./analysis_build_logs_1.txt"
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk "***\DevEco Studio\sdk" --buildlog "./analysis_build_logs_1.txt"
+D:\MyApplication>ace analysis --sdk "***\DevEco Studio\sdk" --buildlog "./analysis_build_logs_1.txt"
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 
 mac:
 ```
-ohos@user % ace analysis
+ohos@user MyApplication % ace analysis
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+ohos@user MyApplication % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```
-ohos@user % ace analysis --buildlog ./analysis_build_logs_1.txt
+ohos@user MyApplication % ace analysis --buildlog ./analysis_build_logs_1.txt
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk --buildlog ./analysis_build_logs_1.txt
+ohos@user MyApplication % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk --buildlog ./analysis_build_logs_1.txt
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```

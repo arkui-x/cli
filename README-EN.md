@@ -550,7 +550,7 @@ Commands:
 
 modify HarmonyOS project to ArkUI-X project structre
 
-The ace modify command needs to be executed in the root directory of the application project. Currently, cross-platform reconstruction is supported at the project level (all modules in the entire project) and at the module level (one module or multiple modules). After the reconstruction, the application project supports cross-platform compilation. Supports running on Windows and MacOS platforms.
+The ace modify command needs to be executed in the root directory of the application project. Currently, cross-platform reconstruction is supported at the project level (all modules in the entire project) and at the module level (one module or multiple modules，1 to 10 modules can be modified at a time). After the reconstruction, the application project supports cross-platform compilation. Supports running on Windows and MacOS platforms.
 
 Syntax:
 
@@ -564,11 +564,21 @@ ace modify [arguments]
 | --project  | Modify the whole HarmonyOS project.                            |
 | --modules  | Modify the specified modules in HarmonyOS project.                |
 
-
+windows:
 ```
-ohos@user % ace modify --project
+D:\MyApplication>ace modify --project
 modify HarmonyOS project to ArkUI-X project success!
-ohos@user % ace modify --modules
+D:\MyApplication>ace modify --modules
+? Enter the number of modules to be modified: 3
+? Enter the modify module name(Multiple modules can be entered and separated by ","): entry,libraryHar,libraryHsp
+modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
+```
+
+mac:
+```
+ohos@user MyApplication % ace modify --project
+modify HarmonyOS project to ArkUI-X project success!
+ohos@user MyApplication % ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by ","): entry,libraryHar,libraryHsp
 modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
@@ -598,48 +608,48 @@ Note: --buildlog is an optional parameter. Run the ace build apk command in the 
 
 windows:
 ```
-ohos@user % ace analysis
+D:\MyApplication>ace analysis
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk "***\DevEco Studio\sdk"
+D:\MyApplication>ace analysis --sdk "***\DevEco Studio\sdk"
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
-ohos@user % ace analysis --buildlog "./analysis_build_logs_1.txt"
+D:\MyApplication>ace analysis --buildlog "./analysis_build_logs_1.txt"
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk "***\DevEco Studio\sdk" --buildlog "./analysis_build_logs_1.txt"
+D:\MyApplication>ace analysis --sdk "***\DevEco Studio\sdk" --buildlog "./analysis_build_logs_1.txt"
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***\chart.html)
 ```
 
 mac:
 ```
-ohos@user % ace analysis
+ohos@user MyApplication % ace analysis
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
+ohos@user MyApplication % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk
 start build project ...
 project build finish, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```
-ohos@user % ace analysis --buildlog ./analysis_build_logs_1.txt
+ohos@user MyApplication % ace analysis --buildlog ./analysis_build_logs_1.txt
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
 ```
-ohos@user % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk --buildlog ./analysis_build_logs_1.txt
+ohos@user MyApplication % ace analysis --sdk /Applications/DevEco-Studio.app/Contents/sdk --buildlog ./analysis_build_logs_1.txt
 the log path is valid, start analysis log ...
 Analysis success! Please view chart.html(***/chart.html)
 ```
