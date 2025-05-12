@@ -550,7 +550,7 @@ Commands:
 
 modify HarmonyOS project to ArkUI-X project structre
 
-The ace modify command needs to be executed in the root directory of the application project. Currently, cross-platform reconstruction is supported at the project level (all modules in the entire project) and at the module level (one module or multiple modules). After the reconstruction, the application project supports cross-platform compilation. Supports running on Windows and MacOS platforms.
+The ace modify command needs to be executed in the root directory of the application project. Currently, cross-platform reconstruction is supported at the project level (all modules in the entire project) and at the module level (one module or multiple modules，1 to 10 modules can be modified at a time). After the reconstruction, the application project supports cross-platform compilation. Supports running on Windows and MacOS platforms.
 
 Syntax:
 
@@ -564,14 +564,28 @@ ace modify [arguments]
 | --project  | Modify the whole HarmonyOS project.                            |
 | --modules  | Modify the specified modules in HarmonyOS project.                |
 
+enter the project directory and run the following command ace modify --project
+```
+cd path/to/arkui-x/app
+ace modify --project
+```
+After the execution is successful, you will see the following prompt
+```
+modify HarmonyOS project to ArkUI-X project success!
 
 ```
-ohos@user % ace modify --project
-modify HarmonyOS project to ArkUI-X project success!
-ohos@user % ace modify --modules
+
+enter the project directory and run the following command ace modify --modules，enter the number and name of the modules to be modified as prompted.
+```
+cd path/to/arkui-x/app
+ace modify --modules
 ? Enter the number of modules to be modified: 3
 ? Enter the modify module name(Multiple modules can be entered and separated by ","): entry,libraryHar,libraryHsp
-modify HarmonyOS modules entry,libraryHar,libraryHsp to ArkUI-X modules success!
+```
+After the execution is successful, you will see the following prompt
+```
+modify HarmonyOS modules {entry,libraryHar,libraryHsp} to ArkUI-X modules success!
+
 ```
 
 ### ace analysis

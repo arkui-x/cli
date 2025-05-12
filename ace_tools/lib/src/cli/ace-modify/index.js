@@ -272,7 +272,7 @@ function getModuleType(moduleName, modulePath) {
   try {
     fs.accessSync(moduleJsonPath, fs.constants.F_OK);
   } catch (err) {
-    console.log(`error: module ${moduleName} is not HarmonyOS module!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: module ${moduleName} is not HarmonyOS module!`);
     return '';
   }
   const data = fs.readFileSync(moduleJsonPath, 'utf8');
@@ -293,14 +293,14 @@ function checkProblem() {
     }
   }
   if (isHaveProblem) {
-    console.log("warn:arkui-x project must delete the 'useNormalizedOHMUrl' Setting Items in build-profile.json5");
+    console.log('\x1b[33m%s\x1b[0m', `WARN: arkui-x project must delete the 'useNormalizedOHMUrl' Setting Items in build-profile.json5`);
   }
 }
 
 function addModuleInArkuixConfig(hspModule) {
   const akruixConfigPath = './.arkui-x/arkui-x-config.json5';
   if (!fs.existsSync(akruixConfigPath)) {
-    console.log(`error: The project does not contain the .arkui-x/arkui-x-config.json5 file. please modify an entry/feature type module as the cross-platform entry!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: The project does not contain the .arkui-x/arkui-x-config.json5 file. please modify an entry/feature type module as the cross-platform entry!`);
     return;
   }
   const data = fs.readFileSync(akruixConfigPath, 'utf8');
@@ -383,7 +383,15 @@ function copyAndroidiOSTemplate(moduleName, type) {
 }
 
 function modifyProject() {
+  if (fs.existsSync('./.arkui-x')) {
+    console.log('\x1B[31m%s\x1B[0m', `Error: The current project is a cross-platform project. If you need to modify the new module, run the ace modify --modules command.`);
+    return;
+  }
   const filePath = './build-profile.json5';
+  if (!fs.existsSync(filePath)) {
+    console.log('\x1B[31m%s\x1B[0m', `Error: Operation failed. Go to your project directory and try again.`);
+    return;
+  }
   const data = fs.readFileSync(filePath, 'utf8');
   const jsonObj = JSON5.parse(data);
   const modulesArray = [];
@@ -397,53 +405,13 @@ function modifyProject() {
       entryTypeArray.push(jsonObj.modules[i].name);
     }
   }
+  const modifyType = initModifyType();
   if (entryTypeArray.length < 1) {
-    console.log(`error: The project does not have an entry module，cannot be modify!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: The project does not have an entry module，cannot be modify!`);
   } else if (entryTypeArray.length === 1) {
-    const modifyModulesArray = [];
-    const modifyModulesTypeArray = [];
-    modifyModulesArray.push(entryTypeArray[0]);
-    modifyModulesTypeArray.push('entry');
-    for (let j = 0; j < modulesArray.length; j++) {
-      if (modulesTypeArray[j] !== 'entry') {
-        modifyModulesArray.push(modulesArray[j]);
-        modifyModulesTypeArray.push(modulesTypeArray[j]);
-      }
-    }
-    modifyProjectModules(modifyModulesArray, modifyModulesTypeArray);
+    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryTypeArray[0], modifyType.modifyTypeProject);
   } else {
-    let entryModuleString = `(`;
-    for (const entryModuleNow of entryTypeArray) {
-      entryModuleString = `${entryModuleString}${entryModuleNow}`;
-      if (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) {
-        entryModuleString = `${entryModuleString} `;
-      }
-    }
-    entryModuleString = `${entryModuleString})`;
-    inquirer.prompt([{
-      name: 'repair',
-      type: 'input',
-      message: `The project has more than two entry modules ${entryModuleString}. Please enter a module as the cross-platform entry:`,
-      validate(val) {
-        if (entryTypeArray.includes(val)) {
-          return true;
-        } else {
-          return `please enter one of ${entryModuleString}:`;
-        }
-      },
-    }]).then(answersModules => {
-      const modifyModulesArray = [];
-      const modifyModulesTypeArray = [];
-      modifyModulesArray.push(answersModules.repair);
-      modifyModulesTypeArray.push('entry');
-      for (let j = 0; j < modulesArray.length; j++) {
-        if (modulesTypeArray[j] !== 'entry') {
-          modifyModulesArray.push(modulesArray[j]);
-          modifyModulesTypeArray.push(modulesTypeArray[j]);
-        }
-      }
-      modifyProjectModules(modifyModulesArray, modifyModulesTypeArray);
-    });
+    modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, modifyType.modifyTypeProject);
   }
 }
 
@@ -464,17 +432,16 @@ function modifyProjectModules(modulesArray, modulesTypeArray) {
 
 function modifyModules(modules) {
   const filePath = './build-profile.json5';
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      console.log('Operation failed. Go to your project directory and try again.');
-      return;
-    }
-  });
+  if (!fs.existsSync(filePath)) {
+    console.log('\x1B[31m%s\x1B[0m', `Error: Operation failed. Go to your project directory and try again.`);
+    return;
+  }
   const data = fs.readFileSync(filePath, 'utf8');
   const jsonObj = JSON5.parse(data);
   const modulesArray = [];
   const modulesTypeArray = [];
   const entryTypeArray = [];
+  const isHaveFeatureModule = false;
   for (let i = 0; i < jsonObj.modules.length; i++) {
     if (modules.includes(jsonObj.modules[i].name)) {
       modulesArray.push(jsonObj.modules[i].name);
@@ -483,55 +450,93 @@ function modifyModules(modules) {
       if (nowModuleType === 'entry') {
         entryTypeArray.push(jsonObj.modules[i].name);
       }
+      if (nowModuleType === 'feature') {
+        isHaveFeatureModule = true;
+      }
     }
   }
+  checkNotInProjectModules(modules, modulesArray);
+  let isHaveArkuiX = false;
+  if (fs.existsSync('./.arkui-x')) {
+    isHaveArkuiX = true;
+  }
+  if (isHaveArkuiX && entryTypeArray.length > 0) {
+    console.log('\x1B[31m%s\x1B[0m', `Error: The entered modules contains entry type module. The project is a cross-platform project and cannot be modified`);
+    return;
+  }
+  const modifyType = initModifyType();
   if (entryTypeArray.length < 1) {
+    if (!isHaveFeatureModule && !isHaveArkuiX) {
+      console.log('\x1B[31m%s\x1B[0m', `Error: The entered module does not contains an entry or feature type module. cannot be modified`);
+      return;
+    }
     modifyDesignatedModules(modulesArray, modulesTypeArray);
   } else if (entryTypeArray.length === 1) {
-    const modifyModulesArray = [];
-    const modifyModulesTypeArray = [];
-    modifyModulesArray.push(entryTypeArray[0]);
-    modifyModulesTypeArray.push('entry');
-    for (let j = 0; j < modulesArray.length; j++) {
-      if (modulesTypeArray[j] !== 'entry') {
-        modifyModulesArray.push(modulesArray[j]);
-        modifyModulesTypeArray.push(modulesTypeArray[j]);
-      }
-    }
-    modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray);
+    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryTypeArray[0], modifyType.modifyTypeModules);
   } else {
-    let entryModuleString = `(`;
-    for (const entryModuleNow of entryTypeArray) {
-      entryModuleString = `${entryModuleString}${entryModuleNow}`;
-      if (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) {
-        entryModuleString = `${entryModuleString} `;
+    modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, modifyType.modifyTypeModules);
+  }
+}
+
+function checkNotInProjectModules(modules, modulesArray) {
+  let notInProjectModulesStr = '';
+  for (let i = 0; i < modules.length; i++) {
+    if (!modulesArray.includes(modules[i])) {
+      notInProjectModulesStr = `${notInProjectModulesStr},${modules[i]}`;
+    }
+  }
+  if (notInProjectModulesStr !== '') {
+    console.log('\x1B[31m%s\x1B[0m', `Error: You entered {${cleanStr(notInProjectModulesStr, ',')}} module is not found in the project. Please confirm!`);
+  }
+}
+
+function initModifyType() {
+  return { modifyTypeProject: 0, modifyTypeModules: 1 };
+}
+
+function modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, nowModifyType) {
+  let entryModuleString = `(`;
+  for (const entryModuleNow of entryTypeArray) {
+    entryModuleString = (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) ? `${entryModuleString}${entryModuleNow} ` : `${entryModuleString}${entryModuleNow}`;
+  }
+  entryModuleString = `${entryModuleString})`;
+  let nowMessage = `You designated modules has more than two entry modules ${entryModuleString}. Please enter a module as the cross-platform entry:`;
+  const modifyType = initModifyType();
+  if (nowModifyType === modifyType.modifyTypeProject) {
+    nowMessage = `The project has more than two entry modules ${entryModuleString}. Please enter a module as the cross-platform entry:`;
+  }
+  inquirer.prompt([{
+    name: 'repair',
+    type: 'input',
+    message: nowMessage,
+    validate(val) {
+      if (entryTypeArray.includes(val)) {
+        return true;
+      } else {
+        return `please enter one of ${entryModuleString}:`;
       }
     }
-    entryModuleString = `${entryModuleString})`;
-    inquirer.prompt([{
-      name: 'repair',
-      type: 'input',
-      message: `You designated modules has more than two entry modules ${entryModuleString}. Please enter a module as the cross-platform entry:`,
-      validate(val) {
-        if (entryTypeArray.includes(val)) {
-          return true;
-        } else {
-          return `please enter one of ${entryModuleString}:`;
-        }
-      },
-    }]).then(answersModules => {
-      const modifyModulesArray = [];
-      const modifyModulesTypeArray = [];
-      modifyModulesArray.push(answersModules.repair);
-      modifyModulesTypeArray.push('entry');
-      for (let j = 0; j < modulesArray.length; j++) {
-        if (modulesTypeArray[j] !== 'entry') {
-          modifyModulesArray.push(modulesArray[j]);
-          modifyModulesTypeArray.push(modulesTypeArray[j]);
-        }
-      }
-      modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray);
-    });
+  }]).then(answersModules => {
+    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, answersModules.repair, nowModifyType);
+  });
+}
+
+function modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryModule, nowModifyType) {
+  const modifyModulesArray = [];
+  const modifyModulesTypeArray = [];
+  modifyModulesArray.push(entryModule);
+  modifyModulesTypeArray.push('entry');
+  for (let j = 0; j < modulesArray.length; j++) {
+    if (modulesTypeArray[j] !== 'entry') {
+      modifyModulesArray.push(modulesArray[j]);
+      modifyModulesTypeArray.push(modulesTypeArray[j]);
+    }
+  }
+  const modifyType = initModifyType();
+  if (nowModifyType === modifyType.modifyTypeProject) {
+    modifyProjectModules(modifyModulesArray, modifyModulesTypeArray);
+  } else {
+    modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray);
   }
 }
 
@@ -558,10 +563,10 @@ function modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray) {
   }
   checkProblem();
   if (isHaveFailed) {
-    console.log(`error: modify HarmonyOS modules ${cleanStr(failedModuleStr, ',')} to ArkUI-X modules failed!`);
+    console.log('\x1B[31m%s\x1B[0m', `Error: modify HarmonyOS modules {${cleanStr(failedModuleStr, ',')}} to ArkUI-X modules failed!`);
   }
   if (isHaveSuccess) {
-    console.log(`modify HarmonyOS modules ${cleanStr(successModuleStr, ',')} to ArkUI-X modules success!`);
+    console.log(`modify HarmonyOS modules {${cleanStr(successModuleStr, ',')}} to ArkUI-X modules success!`);
   }
 }
 
