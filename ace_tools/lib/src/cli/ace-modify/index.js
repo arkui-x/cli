@@ -438,10 +438,10 @@ function modifyModules(modules) {
   }
   const data = fs.readFileSync(filePath, 'utf8');
   const jsonObj = JSON5.parse(data);
-  const modulesArray = [];
-  const modulesTypeArray = [];
-  const entryTypeArray = [];
-  const isHaveFeatureModule = false;
+  let modulesArray = [];
+  let modulesTypeArray = [];
+  let entryTypeArray = [];
+  let isHaveFeatureModule = false;
   for (let i = 0; i < jsonObj.modules.length; i++) {
     if (modules.includes(jsonObj.modules[i].name)) {
       modulesArray.push(jsonObj.modules[i].name);
