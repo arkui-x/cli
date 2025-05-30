@@ -109,6 +109,9 @@ function copyStageBundleToAndroidAndIOS(moduleList, cmd) {
   const androidSystemResPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`);
   isContinue = isContinue && copy(systemResPath, iosSystemResPath);
   isContinue = isContinue && copy(systemResPath, androidSystemResPath);
+  const arkJsonPath = path.join(arkuiXSdkPath, 'arkui-x.json');
+  const androidJsonPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/arkui-x.json`);
+  fs.writeFileSync(androidJsonPath, fs.readFileSync(arkJsonPath));
   return isContinue;
 }
 
