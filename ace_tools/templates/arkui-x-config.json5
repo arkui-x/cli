@@ -1,6 +1,6 @@
 {
-  crossplatform: true,
-  modules: [
-    'entry',
-  ],
+  "crossplatform": true,
+  "modules": [
+    "entry"
+  ]
 }

@@ -20,151 +20,26 @@ const exec = require('child_process').execSync;
 const { arkuiXSdkDir } = require('../../ace-check/configs');
 const { getSdkVersion } = require('../../util/index');
 const { Platform, platform } = require('../../ace-check/platform');
-const { getAarName, isAppProject } = require('../../util');
+const { isAppProject } = require('../../util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
+const JSON5 = require('json5');
 
-const langMap = new Map([
-  ['android', new Map([
-    ['zh_cn', 'zh_CN'], ['zh_hk', 'zh_HK'], ['zh_tw', 'zh_TW'], ['bo_cn', 'bo_CN'], ['bo', 'bo'], ['pt', 'pt'],
-    ['it', 'it'], ['ru', 'ru'], ['fr', 'fr'], ['de', 'de'], ['ar', 'ar'], ['es', 'es'], ['cs', 'cs'], ['hr', 'hr'],
-    ['ja', 'ja'], ['ko', 'ko'], ['pl', 'pl'], ['vi', 'vi'], ['ms', 'ms'], ['az_az', 'az_AZ'], ['az', 'az'],
-    ['be', 'be'], ['bg', 'bg'], ['ca', 'ca'], ['da', 'da'], ['el', 'el'], ['es_us', 'es_US'], ['et', 'et'],
-    ['fa', 'fa'], ['fi', 'fi'], ['hi', 'hi'], ['hu', 'hu'], ['in', 'in'], ['iw', 'iw'], ['ka_ge', 'ka_GE'],
-    ['pt_pt', 'pt_PT'], ['si_lk', 'si_LK'], ['sk', 'sk'], ['ka', 'ka'], ['si', 'si'], ['sl', 'sl'], ['sv', 'sv'],
-    ['th', 'th'], ['tur', 'tr'], ['tr', 'tr'], ['ur', 'ur'], ['kk_kz', 'kk_KZ'], ['kk', 'kk'], ['nl', 'nl'],
-    ['sr_latn', 'sr_Latn'], ['sr', 'sr'], ['km_kh', 'km_KH'], ['km', 'km'], ['sw', 'sw'], ['lv', 'lv'],
-    ['lo_la', 'lo_LA'], ['lo', 'lo'], ['lt', 'lt'], ['ro', 'ro'], ['mk', 'mk'], ['mn', 'mn'], ['my_zg', 'my_ZG'],
-    ['my_mm', 'my_MM'], ['my', 'my'], ['nb', 'nb'], ['ne', 'ne'], ['tl', 'tl'], ['bn', 'bn'], ['uk', 'uk'],
-    ['zz_zx', 'zz_ZX'], ['zz', 'zz'], ['en_gb', 'en_GB'], ['eu', 'eu'], ['bs', 'bs'], ['gl', 'gl'],
-    ['jv_latn', 'jv_Latn'], ['jv', 'jv'], ['ml', 'ml'], ['mr', 'mr'], ['ta', 'ta'], ['uz', 'uz'], ['ug', 'ug'],
-    ['mai', 'mai'], ['mi', 'mi'], ['am', 'am'], ['as', 'as'], ['gu', 'gu'], ['kn', 'kn'], ['or', 'or'], ['pa', 'pa'],
-    ['te', 'te'], ['zh', 'zh'], ['en', 'en'], ['en_us', 'en_US'], ['en_ca', 'en_CA'],
-  ])],
-  ['ios', new Map([
-    ['zh-Hans', 'zh_Hans'], ['zh-Hans-CN', 'zh_Hans_CN'], ['zh-HK', 'zh_HK'], ['zh-Hant', 'zh_Hant'], ['ug-CN', 'ug'],
-    ['zh-Hant-HK', 'zh_Hant_HK'], ['zh-Hant-TW', 'zh_Hant_TW'], ['bo-CN', 'bo_CN'], ['bo', 'bo'], ['pt', 'pt'],
-    ['it', 'it'], ['ru', 'ru'], ['fr', 'fr'], ['de', 'de'], ['ar', 'ar'], ['es', 'es'], ['cs', 'cs'], ['hr', 'hr'],
-    ['ja', 'ja'], ['ko', 'ko'], ['pl', 'pl'], ['vi', 'vi'], ['ms', 'ms'], ['az-AZ', 'az_AZ'], ['be', 'be'],
-    ['bg', 'bg'], ['ca', 'ca'], ['da', 'da'], ['el', 'el'], ['es-US', 'es_US'], ['et', 'et'], ['fa', 'fa'],
-    ['fi', 'fi'], ['hi', 'hi'], ['hu', 'hu'], ['id', 'in'], ['he', 'iw'], ['ka-GE', 'ka_GE'], ['pt-PT', 'pt_PT'],
-    ['si-LK', 'si_LK'], ['sk', 'sk'], ['sl', 'sl'], ['sv', 'sv'], ['th', 'th'], ['tr', 'tr'], ['ur', 'ur'],
-    ['kk-KZ', 'kk_KZ'], ['nl', 'nl'], ['sr-Latn', 'sr_Latn'], ['km-KH', 'km_KH'], ['sw', 'sw'], ['lv', 'lv'],
-    ['lo-LA', 'lo_LA'], ['lt', 'lt'], ['ro', 'ro'], ['mk', 'mk'], ['mn', 'mn'], ['my-MM', 'my_MM'], ['nb', 'nb'],
-    ['ne', 'ne'], ['fil', 'tl'], ['bn', 'bn'], ['uk', 'uk'], ['zz-ZX', 'zz_ZX'], ['en-GB', 'en_GB'], ['eu', 'eu'],
-    ['bs', 'bs'], ['gl', 'gl'], ['jv-ID', 'jv_Latn'], ['ml', 'ml'], ['mr', 'mr'], ['ta', 'ta'], ['uz', 'uz'],
-    ['ug', 'ug'], ['mai', 'mai'], ['mi', 'mi'], ['am', 'am'], ['as', 'as'], ['gu', 'gu'], ['kn', 'kn'], ['or', 'or'],
-    ['pa', 'pa'], ['te', 'te'], ['zh', 'zh'], ['en', 'en'], ['en-US', 'en_US'], ['en-CA', 'en_CA'],])],
-]);
-
-function getSubProjectDirName(fileType, projectDir) {
-  const iosTypes = ['ios', 'ios-framework', 'ios-xcframework'];
-  if (fileType === 'apk') {
-    return ['app'];
-  } else if (iosTypes.includes(fileType)) {
-    return ['ios'];
-  } else if (fileType === 'aar') {
-    return getAarName(projectDir);
-  } else {
-    return [];
-  }
-}
-
-function getLangListFromConfigFile(projectDir, langList, system, fileType) {
-  const subProjectNameList = getSubProjectDirName(fileType, projectDir);
-  const resConfigsReg = new RegExp(`^//.*$`);
-  for (const buildProject of subProjectNameList) {
-    if (system === 'android') {
-      const androidGradlePath = path.join(projectDir, `.arkui-x/android/${buildProject}/build.gradle`);
-      if (!fs.existsSync(androidGradlePath)) {
-        return false;
-      }
-      let gradleData = fs.readFileSync(androidGradlePath, 'utf-8');
-      gradleData = gradleData.trim().split('\n');
-      for (const element of gradleData) {
-        if (!resConfigsReg.test(element.trim()) && element.indexOf(`resConfigs`) >= 0) {
-          let langListStr = `[${element.replace('resConfigs', '')}]`;
-          langListStr = JSON.parse(langListStr);
-          langList.push(...langListStr);
-        } else if (!resConfigsReg.test(element.trim()) && element.indexOf(`resConfig`) >= 0) {
-          langList.push(element.replace(`resConfig`, '').replaceAll('"', '').trim());
-        }
-      }
-    } else if (system === 'ios') {
-      const iosPbxprojPath = path.join(projectDir, '.arkui-x/ios/app.xcodeproj/project.pbxproj');
-      if (!fs.existsSync(iosPbxprojPath)) {
-        return false;
-      }
-      const pbxprojData = fs.readFileSync(iosPbxprojPath, 'utf-8');
-      const knownRegionsRegex = /knownRegions\s*=\s*\(([^)]+)\)/;
-      const match = pbxprojData.match(knownRegionsRegex);
-      if (match) {
-        const languages = match[1].split('\n')
-          .map(line => line.replace(/[";,]/g, '').trim())
-          .filter(Boolean);
-        if (languages.length === 2 && languages.includes('en') && languages.includes('Base')) {
-          return false;
-        } else {
-          languages
-            .filter(lang => lang !== 'Base')
-            .forEach(lang => {
-              langList.push(lang);
-            });
-        }
-      }
-    }
-  }
-  return true;
-}
-
-function getLangList(fileType, projectDir, system, newLangList) {
-  const langList = [];
-  if (!getLangListFromConfigFile(projectDir, langList, system, fileType)) {
-    return false;
-  }
+function getLangList(projectDir, newLangList) {
   let isFullCopy = false;
-  if (system === 'android') {
-    const iso6391OrIso6392Lang = new RegExp('^[a-zA-Z]{2,3}$');
-    const iso6391OrIso6392LangAndLocale = new RegExp('^[a-zA-Z]{2,3}-[rR][a-zA-Z]{2}$');
-    const bcp47Lang = new RegExp(`^b\\+(?<lang>[a-zA-Z]{2,3})(\\+(?<ext>[a-zA-Z0-9]{2,}))*$`);
-    for (const item of langList) {
-      let icuKey = '';
-      if (iso6391OrIso6392Lang.test(item) && item.toLowerCase() !== 'car') {
-        icuKey = item.toLowerCase();
-      } else if (iso6391OrIso6392LangAndLocale.test(item)) {
-        icuKey = item.toLowerCase().replace('-r', '_');
-      } else if (bcp47Lang.test(item)) {
-        icuKey = item.toLowerCase().replaceAll('+', '_');
-        icuKey = icuKey.slice(2);
-      } else {
-        continue;
-      }
-      if (langMap.get(system).has(icuKey)) {
-        newLangList.push(langMap.get(system).get(icuKey));
-      } else {
-        console.warn(`Warning: Unsupported language: ${item}.`);
-        isFullCopy = true;
-      }
-    }
-  } else if (system === 'ios') {
-    for (const item of langList) {
-      if (langMap.get(system).has(item)) {
-        if (item === 'my-MM') {
-          newLangList.push('my_MM', 'my_ZG');
-        } else {
-          newLangList.push(langMap.get(system).get(item));
-        }
-      } else {
-        console.warn(`Warning: Unsupported language: ${item}.`);
-        isFullCopy = true;
-      }
-    }
+  const langPath = path.join(projectDir, '.arkui-x', 'arkui-x-config.json5');
+  let arkuiConfig;
+  try {
+    arkuiConfig = JSON5.parse(fs.readFileSync(langPath));
+  } catch (err) {
+    return true;
   }
-  if (isFullCopy) {
-    newLangList.length = 0;
+  const langList = arkuiConfig?.buildOption?.resConfigs;
+  if (langList && langList.length !== 0) {
+    for (const lang of langList) {
+      newLangList.push(lang);
+    }
   } else {
-    const setList = Array.from(new Set(newLangList));
-    newLangList.length = 0;
-    newLangList.push(...setList);
+    isFullCopy = true;
   }
   return isFullCopy;
 }
@@ -303,17 +178,12 @@ function copyDat(projectDir, system, fileType, depMap) {
   if (pluginCount === 1) {
     type = pluginType;
   }
-  const isFullCopy = getLangList(fileType, projectDir, system, langList);
-  const outDir = createOutDir();
-  const destPath = generateDestDatPath(projectDir, system);
-  if (isFullCopy) {
-    try {
-      fs.writeFileSync(destPath, fs.readFileSync(datFilePath));
-    } catch (err) {
-      throw new Error('copy icudt72l.dat error, please check.');
-    }
+  const isFullCopy = getLangList(projectDir, langList);
+  if (isFullCopy || !hasIntlOrI18nFlag) {
     return true;
   }
+  const outDir = createOutDir();
+  const destPath = generateDestDatPath(projectDir, system);
   const buildOutDir = path.join(outDir, 'out');
   let cmds = `node ${filterToolPath} --res_dir ${dataFilterPath} --dat_file ${datFilePath} --tool_dir ${currentPaltform} --out_dir ${buildOutDir}`;
   let dataFilterFilePath = path.join(outDir, 'filter.json');
