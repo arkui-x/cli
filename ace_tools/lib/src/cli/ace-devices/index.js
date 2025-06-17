@@ -111,6 +111,8 @@ function getDeviceTitle(device) {
     } catch (err) {
       return undefined;
     }
+  } else if (device.includes('TCP') && device.includes('Connected') && device.includes('localhost')) {
+    return 'Simulator device';
   } else {
     if (device.includes(':')) {
       title = device.split(/:/g)[2].split(/[\t\s]+/)[0];
