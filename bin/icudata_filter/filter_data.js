@@ -247,7 +247,7 @@ class LocaleFilter extends Filter {
   }
 
   _localesRequired(tree) {
-    const locales = [];
+    const locales = ['root'];
     for (const locale of this.localesRequested) {
       let currentLocale = locale;
       while (currentLocale) {
@@ -302,7 +302,7 @@ class LocaleFilter extends Filter {
 
     const idx = locale.lastIndexOf('_');
     if (idx < 0) {
-      return locale === 'root' ? null : locale;
+      return null;
     }
     return locale.slice(0, idx);
   }
@@ -391,7 +391,10 @@ function removePrefix(filename) {
   });
 
   const idx = result.lastIndexOf('.');
-  result = result.replace(result.slice(idx), ".*");
+  if (idx !== -1) {
+    result = result.replace(result.slice(idx), ".*");
+  }
+
   return result;
 }
 
@@ -406,40 +409,15 @@ function parseArguments() {
       i++;
     }
   }
- 
+
   return {
     resDir: args.res_dir || 'data',
-    datFile: args.dat_file || 'icudt72l.dat',
+    datFile: args.dat_file || 'icudt74l.dat',
     filterFile: args.filter || 'deafault_filter.json',
     module: args.module || 'deafault',
     toolDir: args.tool_dir || 'linux',
     outDir: args.out_dir || 'out',
   };
-}
-
-function removePrefix(filename) {
-  const prefixMap = {
-    "unidata/": "",
-    "mappings/": "",
-    "locales/": "",
-    "brkitr/lstm/": "brkitr/",
-    "sprep/": "",
-    "brkitr/dictionaries/": "brkitr/",
-    "in/": "",
-    "misc/": "",
-  };
- 
-  let result = filename;
-  Object.keys(prefixMap).forEach(p => {
-    result = result.replace(p, prefixMap[p]);
-  });
- 
-  const idx = result.lastIndexOf('.');
-  if (idx !== -1) {
-    result = result.replace(result.slice(idx), ".*");
-  }
- 
-  return result;
 }
 
 async function main() {
@@ -520,7 +498,7 @@ async function main() {
 
   // 执行 icupkg 命令
   let icuToolsPath = path.join(toolDir, 'icupkg');
-  const outFilePath = path.join(outDir, 'icudt72l.dat');
+  const outFilePath = path.join(outDir, 'icudt74l.dat');
 
   if (os.type() !== 'Windows_NT') {
     // 赋予可执行权限
