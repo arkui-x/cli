@@ -181,6 +181,24 @@ function generateDataFilterFile(dataFilterFilePath, langList) {
   }
 }
 
+function findIcuDataFile(directory) {
+  if (!directory) {
+    directory = '.';
+  }
+  const files = fs.readdirSync(directory);
+  const pattern = /^icudt(\d+)l\.dat$/i;
+
+  for (const filename of files) {
+      if (pattern.test(filename)) {
+          const filePath = path.join(directory, filename);
+          if (fs.statSync(filePath).isFile()) {
+              return path.resolve(filePath);
+          }
+      }
+  }
+  throw new Error('find icu data file error, please check.');
+}
+
 function checkICUData(projectDir) {
   let isOk = true;
   const currentArkUIXPath = getSourceArkuixPath() || path.join(arkuiXSdkDir, String(getSdkVersion(projectDir)), 'arkui-x');
@@ -188,7 +206,7 @@ function checkICUData(projectDir) {
   const icuDataToolPath = path.join(arkUIXToolPath, 'icudata_filter');
   const dataFilterPath = path.join(icuDataToolPath, 'data');
   const filterToolPath = path.join(icuDataToolPath, 'filter_data.js');
-  const datFilePath = path.join(currentArkUIXPath, 'engine/systemres/icudt72l.dat');
+  const datFilePath = findIcuDataFile(path.join(currentArkUIXPath, 'engine/systemres'));
   const dataFilterFilePath = path.join(icuDataToolPath, 'filter.json');
   let currentPaltform = path.join(icuDataToolPath, 'windows');
   let icupkgPath = path.join(currentPaltform, 'icupkg.exe');
@@ -238,11 +256,11 @@ function createOutDir() {
   return outDir;
 }
 
-function generateDestDatPath(projectDir, system) {
+function generateDestDatPath(projectDir, system, datName) {
   const androidDir = isAppProject(projectDir) ? 'app' : 'library';
-  let destPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`, 'icudt72l.dat');
+  let destPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`, datName);
   if (system === 'ios') {
-    destPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres', 'icudt72l.dat');
+    destPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres', datName);
   }
   return destPath;
 }
@@ -256,7 +274,7 @@ function execCopyDatCmd(cmds, srcPath, destPath) {
     });
     fs.writeFileSync(destPath, fs.readFileSync(srcPath));
   } catch (err) {
-    throw new Error('copy icudt72l.dat error, please check.');
+    throw new Error('copy icu data file error, please check.');
   }
 }
 
@@ -305,12 +323,12 @@ function copyDat(projectDir, system, fileType, depMap) {
   }
   const isFullCopy = getLangList(fileType, projectDir, system, langList);
   const outDir = createOutDir();
-  const destPath = generateDestDatPath(projectDir, system);
+  const destPath = generateDestDatPath(projectDir, system, path.basename(datFilePath));
   if (isFullCopy) {
     try {
       fs.writeFileSync(destPath, fs.readFileSync(datFilePath));
     } catch (err) {
-      throw new Error('copy icudt72l.dat error, please check.');
+      throw new Error('copy icu data file error, please check.');
     }
     return true;
   }
@@ -323,7 +341,7 @@ function copyDat(projectDir, system, fileType, depMap) {
   if (hasIntlOrI18nFlag) {
     cmds += ` --filter ${dataFilterFilePath} --module ${type}`;
   }
-  const srcPath = path.join(buildOutDir, 'icudt72l.dat');
+  const srcPath = path.join(buildOutDir, path.basename(datFilePath));
   execCopyDatCmd(cmds, srcPath, destPath);
   return true;
 }
