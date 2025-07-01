@@ -338,7 +338,12 @@ function preprocessFileFilters(requests, config, io) {
 
 function getAllResList(command) {
     const result = exec.execSync(command, { encoding: 'utf-8' });
-    const resultList = result.split('\n');
+    let resultList = [];
+    if (os.type() !== 'Windows_NT') {
+        resultList = result.split('\n');
+    } else {
+        resultList = result.split('\r\n');
+    }
     return resultList.filter(res => res.trim().length > 0);
 }
 
@@ -855,7 +860,10 @@ function getFilterJsonData(filterFile, resDir, module) {
     }
 
     const filterData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    const localeListStr = fs.readFileSync(filterFile, 'utf-8').trim();
+    let localeListStr = '["root"]';
+    if (filterFile !== '') {
+        localeListStr = fs.readFileSync(filterFile, 'utf-8').trim();
+    }
     const localeList = getValidLocaleList(localeListStr);
 
     let filterString = JSON.stringify(filterData);
@@ -887,7 +895,7 @@ async function main() {
     const datFileName = path.basename(datFile);
     const filterFile = args.filter;
     const module = args.module;
-    const toolDir = path.join(args.tool_dir, 'icupkg');
+    let toolDir = path.join(args.tool_dir, 'icupkg');
     const outDir = args.out_dir;
     const removeFile = path.join(outDir, 'remove.txt');
     const outFile = path.join(outDir, datFileName);
@@ -934,7 +942,7 @@ async function main() {
 
 if (require.main === module) {
     main().catch(err => {
-      console.error(`[ICUData] gen icud data file failed: ${err}`);
-      process.exit(1);
+        console.error(`[ICUData] gen icud data file failed: ${err}`);
+        process.exit(1);
     });
-  }
+}
