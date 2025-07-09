@@ -410,7 +410,6 @@ function generate(config, resList) {
 
 function generateCnvalias(resList) {
     if (!resList.includes('cnvalias.icu')) {
-        console.log('cnvalias.icu not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('cnvalias.icu'), 1);
@@ -423,7 +422,6 @@ function generateCnvalias(resList) {
 
 function generateConfusables(resList) {
     if (!resList.includes('confusables.cfu')) {
-        console.log('confusables.cfu not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('confusables.cfu'), 1);
@@ -526,7 +524,6 @@ function generateNormalization(resList) {
 
 function generateCollUcadata(resList) {
     if (!resList.includes('coll/ucadata.icu')) {
-        console.log('coll/ucadata.icu not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('coll/ucadata.icu'), 1);
@@ -561,7 +558,6 @@ function generateFullUnicoreData(resList) {
 
 function generateUnames(resList) {
     if (!resList.includes('unames.icu')) {
-        console.log('unames.icu not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('unames.icu'), 1);
@@ -574,7 +570,6 @@ function generateUnames(resList) {
 
 function generateUlayout(resList) {
     if (!resList.includes('ulayout.icu')) {
-        console.log('ulayout.icu not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('ulayout.icu'), 1);
@@ -587,7 +582,6 @@ function generateUlayout(resList) {
 
 function generateUemoji(resList) {
     if (!resList.includes('uemoji.icu')) {
-        console.log('uemoji.icu not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('uemoji.icu'), 1);
@@ -605,7 +599,7 @@ function generateMisc(resList) {
         'supplementalData.res', 'units.res', 'zoneinfo64.res',
         'dayPeriods.res', 'grammaticalFeatures.res', 'icustd.res',
         'keyTypeData.res', 'metadata.res', 'numberingSystems.res',
-        'plurals.res', 'timezoneTypes.res', 'windowsZones.res'
+        'plurals.res', 'timezoneTypes.res', 'windowsZones.res', 'likelySubtags.res'
     ];
     const outputFiles = resList.filter(res => basenames.includes(res));
     if (outputFiles.length === 0) {
@@ -626,7 +620,6 @@ function generateMisc(resList) {
 
 function generateCurrSupplemental(resList) {
     if (!resList.includes('curr/supplementalData.res')) {
-        console.log('curr/supplementalData.res not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('curr/supplementalData.res'), 1);
@@ -639,7 +632,6 @@ function generateCurrSupplemental(resList) {
 
 function generateZoneSupplemental(resList) {
     if (!resList.includes('zone/tzdbNames.res')) {
-        console.log('zone/tzdbNames.res not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('zone/tzdbNames.res'), 1);
@@ -697,7 +689,6 @@ function generateBrkitrLstm(resList) {
 
 function generateBrkitrAdaboost(resList) {
     if (!resList.includes('brkitr/jaml.res')) {
-        console.log('brkitr/jaml.res not in icu data file');
         return [];
     }
     resList.splice(resList.indexOf('brkitr/jaml.res'), 1);
