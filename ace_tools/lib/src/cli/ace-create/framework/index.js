@@ -84,7 +84,7 @@ function replaceFrameworkInfo(frameworkPath, frameworkName) {
           ` [NSString stringWithFormat:@"%@%@",@"/Frameworks/${frameworkDir}.framework/",BUNDLE_DIRECTORY]];`));
     files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.m'));
     replaceInfos.push('packageName');
-    strs.push(`com.example.${frameworkName}`);
+    strs.push(frameworkName);
 
     files.push(path.join(frameworkPath, 'MyFramework/ArkUIAppDelegate.h'));
     replaceInfos.push('AppDelegate');
