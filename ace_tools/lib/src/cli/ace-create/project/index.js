@@ -109,7 +109,7 @@ function createProject(projectAbsolutePath, projectTempPath, bundleName, project
     fs.mkdirSync(projectTempPath, { recursive: true });
     findStageTemplate(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion);
     if (template === aceLibraryProType) {
-      if (!(createAar(projectTempPath, project) && createFramework(projectTempPath, project))) {
+      if (!(createAar(projectTempPath, bundleName) && createFramework(projectTempPath, bundleName))) {
         return false;
       }
     }
