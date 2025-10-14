@@ -486,10 +486,6 @@ Available subcommands:
       buildSubcommand
         .option('--analyze', 'analyze/diff package size');
     }
-    if (subcommand === 'apk' || subcommand === 'aab') {
-      buildSubcommand
-        .option('--aot', 'Application integrated aot compilation products');
-    }
     if (subcommand === 'hap') {
       buildSubcommand
         .option('--analyze', 'analyze/diff package size')
