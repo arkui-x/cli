@@ -45,49 +45,52 @@ let modulePathList;
 
 function readConfig() {
   try {
-    let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
-    lackDir += nodejsDir ? '' : 'nodejs, ';
-    lackDir += ohpmDir ? '' : 'ohpm, ';
-    if (currentSystem === 'HarmonyOS') {
-      lackDir = (harmonyOsSdkDir ? '' : 'HarmonyOS SDK, ') + lackDir;
-      if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        let errorLog = `Please check ${lackDir}in your environment.`;
-        errorLog = errorLog.replace(', in', ' in');
-        console.error('\x1B[31m%s\x1B[0m', errorLog);
-        return false;
-      }
-    } else {
-      lackDir = (openHarmonySdkDir ? '' : 'OpenHarmony SDK, ') + lackDir;
-      if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        let errorLog = `Please check ${lackDir}in your environment.`;
-        errorLog = errorLog.replace(', in', ' in');
-        console.error('\x1B[31m%s\x1B[0m', errorLog);
-        return false;
-      }
-    }
-    const version = getSdkVersion(projectDir);
-    let arkuiXSdkVersion;
-    let useArkuixMsg;
-    if (getSourceArkuixPath()) {
-      arkuiXSdkPath = getSourceArkuixPath();
-      arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
-      useArkuixMsg = `Use ArkUI-X source, Version ${arkuiXSdkVersion}`;
-    } else {
-      arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
-      let arkuiXMessagePath = path.join(arkuiXSdkPath, 'arkui-x.json');
-      if (!fs.existsSync(arkuiXSdkPath) || !fs.existsSync(arkuiXMessagePath)) {
-          console.log('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
-          return false;
-      }
-      arkuiXSdkVersion = JSON.parse(fs.readFileSync(arkuiXMessagePath))['version'];
-      useArkuixMsg = `Use ArkUI-X SDK, Version ${arkuiXSdkVersion}`;
-    }
-    console.log(useArkuixMsg);
-    return true;
+    return readConfigProcess();
   } catch (error) {
     console.error('\x1B[31m%s\x1B[0m', `Please 'ace check' first.`, error);
     return false;
   }
+}
+function readConfigProcess() {
+  let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
+  lackDir += nodejsDir ? '' : 'nodejs, ';
+  lackDir += ohpmDir ? '' : 'ohpm, ';
+  if (currentSystem === 'HarmonyOS') {
+    lackDir = (harmonyOsSdkDir ? '' : 'HarmonyOS SDK, ') + lackDir;
+    if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
+      let errorLog = `Please check ${lackDir}in your environment.`;
+      errorLog = errorLog.replace(', in', ' in');
+      console.error('\x1B[31m%s\x1B[0m', errorLog);
+      return false;
+    }
+  } else {
+    lackDir = (openHarmonySdkDir ? '' : 'OpenHarmony SDK, ') + lackDir;
+    if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
+      let errorLog = `Please check ${lackDir}in your environment.`;
+      errorLog = errorLog.replace(', in', ' in');
+      console.error('\x1B[31m%s\x1B[0m', errorLog);
+      return false;
+    }
+  }
+  const version = getSdkVersion(projectDir);
+  let arkuiXSdkVersion;
+  let useArkuixMsg;
+  if (getSourceArkuixPath()) {
+    arkuiXSdkPath = getSourceArkuixPath();
+    arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
+    useArkuixMsg = `Use ArkUI-X source, Version ${arkuiXSdkVersion}`;
+  } else {
+    arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
+    let arkuiXMessagePath = path.join(arkuiXSdkPath, 'arkui-x.json');
+    if (!fs.existsSync(arkuiXSdkPath) || !fs.existsSync(arkuiXMessagePath)) {
+        console.log('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
+        return false;
+    }
+    arkuiXSdkVersion = JSON.parse(fs.readFileSync(arkuiXMessagePath))['version'];
+    useArkuixMsg = `Use ArkUI-X SDK, Version ${arkuiXSdkVersion}`;
+  }
+  console.log(useArkuixMsg);
+  return true;
 }
 
 function writeLocalProperties() {
