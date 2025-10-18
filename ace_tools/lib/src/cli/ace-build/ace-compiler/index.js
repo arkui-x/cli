@@ -74,7 +74,12 @@ function readConfig() {
       useArkuixMsg = `Use ArkUI-X source, Version ${arkuiXSdkVersion}`;
     } else {
       arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
-      arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
+      let arkuiXMessagePath = path.join(arkuiXSdkPath, 'arkui-x.json');
+      if (!fs.existsSync(arkuiXSdkPath) || !fs.existsSync(arkuiXMessagePath)) {
+          console.log('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
+          return false;
+      }
+      arkuiXSdkVersion = JSON.parse(fs.readFileSync(arkuiXMessagePath))['version'];
       useArkuixMsg = `Use ArkUI-X SDK, Version ${arkuiXSdkVersion}`;
     }
     console.log(useArkuixMsg);
