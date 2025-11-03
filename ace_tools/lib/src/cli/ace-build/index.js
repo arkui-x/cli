@@ -79,11 +79,7 @@ function checkDevEcoVersion() {
   if (versionArray.length === 0) {
     return false;
   }
-  if (parseInt(versionArray[0]) >= 6) {
-    return true;
-  } else {
-    return false;
-  }
+  return (parseInt(versionArray[0]) >= 6) ? true : false;
 }
 
 function getIsArkuixProject() {

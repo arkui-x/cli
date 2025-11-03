@@ -75,8 +75,8 @@ function readConfigProcess() {
   const version = getSdkVersion(projectDir);
   let arkuiXSdkVersion;
   let useArkuixMsg;
-  if (getSourceArkuixPath()) {
-    arkuiXSdkPath = getSourceArkuixPath();
+  arkuiXSdkPath = getSourceArkuixPath();
+  if (arkuiXSdkPath) {
     arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
     useArkuixMsg = `Use ArkUI-X source, Version ${arkuiXSdkVersion}`;
   } else {
