@@ -16,7 +16,7 @@
 const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
-const { commandLineToolsDir, devEcoStudioDir } = require('../ace-check/configs');
+const { commandLineToolsDir, devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
 const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfo } = require('../util/index');
 const { Platform, platform } = require('../ace-check/platform');
 const inquirer = require('inquirer');
@@ -32,6 +32,9 @@ function build(target, cmd) {
 
 function checkVersion(target, cmd) {
   if (!(getIsArkuixProject())) {
+    return true;
+  }
+  if (checkDevEcoVersion()) {
     return true;
   }
   const apiVersion = getProjectApiVersion();
@@ -65,6 +68,18 @@ function checkVersion(target, cmd) {
   } else {
     return true;
   }
+}
+
+function checkDevEcoVersion() {
+  let nowDevEcoVersion = devEcoStudioVersion;
+  if (nowDevEcoVersion === 'unknown' && nowDevEcoVersion === '') {
+    return false;
+  }
+  let versionArray = nowDevEcoVersion.split('.');
+  if (versionArray.length === 0) {
+    return false;
+  }
+  return (parseInt(versionArray[0]) >= 6) ? true : false;
 }
 
 function getIsArkuixProject() {
