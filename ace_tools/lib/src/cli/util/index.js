@@ -699,6 +699,9 @@ function getLaunchModule(projectDir, inputModules) {
 function getEntryModule(projectDir) {
   let entryModule;
   const moduleList = getModulePathList(projectDir);
+  if (!moduleList) {
+    return '';
+  }
   for (let i = 0; i < Object.values(moduleList).length; i++) {
     const moduleJson = path.join(projectDir, Object.values(moduleList)[i], 'src/main/module.json5');
     const jsonInfo = JSON5.parse(fs.readFileSync(moduleJson).toString());
