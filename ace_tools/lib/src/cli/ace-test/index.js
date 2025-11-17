@@ -33,6 +33,7 @@ function test(fileType, device, cmd) {
     return false;
   }
   if (cmd.skipInstall) {
+    cmd.target = cmd.target || 'entry';
     if (launch(fileType, device, cmd)) {
       return true;
     }
@@ -45,7 +46,7 @@ function test(fileType, device, cmd) {
     }
     let installFlag = true;
     cmd.target = cmd.target || 'entry';
-    installFlag = install(fileType, device, cmd, cmd.path);
+    installFlag = install(fileType, device, cmd);
     if (installFlag && launch(fileType, device, cmd)) {
       return true;
     }

@@ -166,6 +166,18 @@ function getIosSignName(projectDir) {
   return signName[0].split('=')[1].split(';')[0].trim();
 }
 
+function getPathIosSignName(projectDir) {
+  const projfile = fs.readFileSync(path.join(projectDir, 'Info.plist')).toString().trim();
+  const match = projfile.match(/(?<=Sapp)(.*?)(?=S6\.0)/);
+  if (match) {
+    const bundleId = match[0].replace(/^[^a-zA-Z0-9.]+/, '');
+    return bundleId.trim();
+  } else {
+    console.error('No bundle ID found.');
+    return '';
+  }
+}
+
 function isPackageInAndroid(toolObj, device) {
   let comd = '';
   if ('adb' in toolObj) {
@@ -275,7 +287,11 @@ function getCmdLaunch(toolObj, device, options) {
     if (options.test) {
       testOption = getTestOption(options, '', xcrunDevicectlTool);
     }
-    cmdLaunch = `${cmdPath} ${deviceOption} ${getIosSignName(process.cwd())} --terminate-existing ${testOption}`;
+    if (options.skipInstall || options.path) {
+      cmdLaunch = `${cmdPath} ${deviceOption} ${getPathIosSignName(options.path)} --terminate-existing ${testOption}`;
+    } else {
+      cmdLaunch = `${cmdPath} ${deviceOption} ${getIosSignName(process.cwd())} --terminate-existing ${testOption}`;
+    }
   } else if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
     const cmdPath = `${toolObj['ios-deploy']}`;
     const deviceOption = device ? `--id ${device}` : '';
