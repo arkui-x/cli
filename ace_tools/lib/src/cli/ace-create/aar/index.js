@@ -82,8 +82,7 @@ function modifyAarConfig(libraryPath) {
 }
 
 function replaceAarInfo(libraryPath, aarName) {
-  const aarPackage = 'com.example.' + aarName;
-  const packageArray = aarPackage.split('.');
+  const packageArray = aarName.split('.');
   const files = [];
   const replaceInfos = [];
   const strs = [];
@@ -103,33 +102,33 @@ function replaceAarInfo(libraryPath, aarName) {
 
   files.push(path.join(aarPath, 'src/main/AndroidManifest.xml'));
   replaceInfos.push('packageName');
-  strs.push(aarPackage);
+  strs.push(aarName);
   files.push(path.join(aarPath, 'build.gradle'));
   replaceInfos.push('packageName');
-  strs.push(aarPackage);
+  strs.push(aarName);
   files.push(path.join(aarPath, 'build.gradle'));
   replaceInfos.push('application');
   strs.push('library');
 
   files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + aarPackage);
+  strs.push('package ' + aarName);
   files.push(path.join(aarPath, 'src/main/java/MyApplication.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + aarPackage);
+  strs.push('package ' + aarName);
   files.push(path.join(aarPath, 'src/androidTest/java/ExampleInstrumentedTest.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + aarPackage);
+  strs.push('package ' + aarName);
   files.push(path.join(aarPath, 'src/test/java/ExampleUnitTest.java'));
   replaceInfos.push('package packageName');
-  strs.push('package ' + aarPackage);
+  strs.push('package ' + aarName);
 
   files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
   replaceInfos.push('MainActivity');
   strs.push('EntryEntryAbilityActivity');
   files.push(path.join(aarPath, 'src/main/java/MainActivity.java'));
   replaceInfos.push('ArkUIInstanceName');
-  strs.push(aarPackage + ':entry:EntryAbility:');
+  strs.push(aarName + ':entry:EntryAbility:');
 
   if (isNativeCppTemplate(projectDir)) {
     modifyNativeAAR(aarPath, aarName, files, replaceInfos, strs);

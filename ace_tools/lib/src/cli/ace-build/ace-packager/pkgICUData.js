@@ -25,23 +25,19 @@ const { getSourceArkuixPath } = require('../../ace-check/checkSource');
 const JSON5 = require('json5');
 
 function getLangList(projectDir, newLangList) {
-  let isFullCopy = false;
   const langPath = path.join(projectDir, '.arkui-x', 'arkui-x-config.json5');
   let arkuiConfig;
   try {
     arkuiConfig = JSON5.parse(fs.readFileSync(langPath));
   } catch (err) {
-    return true;
+    return;
   }
   const langList = arkuiConfig?.buildOption?.resConfigs;
   if (langList && langList.length !== 0) {
     for (const lang of langList) {
       newLangList.push(lang);
     }
-  } else {
-    isFullCopy = true;
   }
-  return isFullCopy;
 }
 
 function generateDataFilterFile(dataFilterFilePath, langList) {
@@ -56,6 +52,24 @@ function generateDataFilterFile(dataFilterFilePath, langList) {
   }
 }
 
+function findIcuDataFile(directory) {
+  if (!directory) {
+    directory = '.';
+  }
+  const files = fs.readdirSync(directory);
+  const pattern = /^icudt(\d+)l\.dat$/i;
+
+  for (const filename of files) {
+      if (pattern.test(filename)) {
+          const filePath = path.join(directory, filename);
+          if (fs.statSync(filePath).isFile()) {
+              return path.resolve(filePath);
+          }
+      }
+  }
+  throw new Error('find icu data file error, please check.');
+}
+
 function checkICUData(projectDir) {
   let isOk = true;
   const currentArkUIXPath = getSourceArkuixPath() || path.join(arkuiXSdkDir, String(getSdkVersion(projectDir)), 'arkui-x');
@@ -63,7 +77,7 @@ function checkICUData(projectDir) {
   const icuDataToolPath = path.join(arkUIXToolPath, 'icudata_filter');
   const dataFilterPath = path.join(icuDataToolPath, 'data');
   const filterToolPath = path.join(icuDataToolPath, 'filter_data.js');
-  const datFilePath = path.join(currentArkUIXPath, 'engine/systemres/icudt72l.dat');
+  const datFilePath = findIcuDataFile(path.join(currentArkUIXPath, 'engine/systemres'));
   const dataFilterFilePath = path.join(icuDataToolPath, 'filter.json');
   let currentPaltform = path.join(icuDataToolPath, 'windows');
   let icupkgPath = path.join(currentPaltform, 'icupkg.exe');
@@ -113,11 +127,11 @@ function createOutDir() {
   return outDir;
 }
 
-function generateDestDatPath(projectDir, system) {
+function generateDestDatPath(projectDir, system, datName) {
   const androidDir = isAppProject(projectDir) ? 'app' : 'library';
-  let destPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`, 'icudt72l.dat');
+  let destPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`, datName);
   if (system === 'ios') {
-    destPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres', 'icudt72l.dat');
+    destPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres', datName);
   }
   return destPath;
 }
@@ -131,7 +145,7 @@ function execCopyDatCmd(cmds, srcPath, destPath) {
     });
     fs.writeFileSync(destPath, fs.readFileSync(srcPath));
   } catch (err) {
-    throw new Error('copy icudt72l.dat error, please check.');
+    throw new Error('copy icu data file error, please check.');
   }
 }
 
@@ -171,19 +185,19 @@ function copyDat(projectDir, system, fileType, depMap) {
   if (!checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath)) {
     return false;
   }
-  const langList = [];
   const {pluginCount, pluginType} = getIntlOrI18n(depMap);
   let type = 'both';
   const hasIntlOrI18nFlag = pluginCount > 0;
   if (pluginCount === 1) {
     type = pluginType;
   }
-  const isFullCopy = getLangList(projectDir, langList);
-  if (isFullCopy || !hasIntlOrI18nFlag) {
+  const langList = [];
+  getLangList(projectDir, langList);
+  if (hasIntlOrI18nFlag && langList.length === 0) {
     return true;
   }
   const outDir = createOutDir();
-  const destPath = generateDestDatPath(projectDir, system);
+  const destPath = generateDestDatPath(projectDir, system, path.basename(datFilePath));
   const buildOutDir = path.join(outDir, 'out');
   let cmds = `node ${filterToolPath} --res_dir ${dataFilterPath} --dat_file ${datFilePath} --tool_dir ${currentPaltform} --out_dir ${buildOutDir}`;
   let dataFilterFilePath = path.join(outDir, 'filter.json');
@@ -193,7 +207,7 @@ function copyDat(projectDir, system, fileType, depMap) {
   if (hasIntlOrI18nFlag) {
     cmds += ` --filter ${dataFilterFilePath} --module ${type}`;
   }
-  const srcPath = path.join(buildOutDir, 'icudt72l.dat');
+  const srcPath = path.join(buildOutDir, path.basename(datFilePath));
   execCopyDatCmd(cmds, srcPath, destPath);
   return true;
 }

@@ -154,7 +154,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
 function install(fileType, device, cmd, installFilePath) {
   if (cmd && cmd.path && !installFilePath) {
     installPath(fileType, device, cmd.path);
-    return;
+    return true;
   }
   const projectDir = process.cwd();
   if (!installFilePath && !isProjectRootDir(projectDir)) {
@@ -300,7 +300,7 @@ function installPath(fileType, device, filePath) {
       return false;
     }
 
-    if (fs.statSync(fileList[i]).isFile()) {
+    if (fs.statSync(fileList[i]).isFile() || (fs.statSync(fileList[i]).isDirectory() && fileList[i].endsWith('.app'))) {
       const fileExtname = path.extname(fileList[i]).toLowerCase().substring(1);
       if (!fileExtnameList.includes(fileExtname)) {
         console.error('\x1B[31m%s\x1B[0m', `Install file is not match to file type`);

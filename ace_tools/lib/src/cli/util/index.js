@@ -19,6 +19,7 @@ const JSON5 = require('json5');
 const crypto = require('crypto');
 const { getDeviceID, devicesList } = require('../ace-devices');
 const { Platform, platform } = require('../ace-check/platform');
+const { devEcoStudioVersion } = require('../ace-check/configs');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -426,13 +427,17 @@ function cleanLibs(projectDir, abiFilters, fileType) {
 
 function getSdkVersionMap() {
   const sdkVersionMap = new Map([
-    ['10', new Map([['compileSdkVersion', '4.0.0(10)'], ['compatibleSdkVersion', '4.0.0(10)'], ['modelVersion', '4.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '3.1.1']])],
-    ['11', new Map([['compileSdkVersion', '4.1.0(11)'], ['compatibleSdkVersion', '4.1.0(11)'], ['modelVersion', '4.1.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '3.1.1']])],
-    ['12', new Map([['compileSdkVersion', '5.0.0(12)'], ['compatibleSdkVersion', '5.0.0(12)'], ['modelVersion', '5.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.3']])],
-    ['13', new Map([['compileSdkVersion', '5.0.1(13)'], ['compatibleSdkVersion', '5.0.1(13)'], ['modelVersion', '5.0.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.4']])],
-    ['14', new Map([['compileSdkVersion', '5.0.2(14)'], ['compatibleSdkVersion', '5.0.2(14)'], ['modelVersion', '5.0.2'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.7']])],
-    ['15', new Map([['compileSdkVersion', '5.0.3(15)'], ['compatibleSdkVersion', '5.0.3(15)'], ['modelVersion', '5.0.3'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.12']])],
-    ['16', new Map([['compileSdkVersion', '5.0.4(16)'], ['compatibleSdkVersion', '5.0.4(16)'], ['modelVersion', '5.0.4'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.22']])]
+    ['10', new Map([['devEcoVersion', '4.0.0'], ['compileSdkVersion', '4.0.0(10)'], ['compatibleSdkVersion', '4.0.0(10)'], ['modelVersion', '4.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '3.1.1']])],
+    ['11', new Map([['devEcoVersion', '4.1.0'], ['compileSdkVersion', '4.1.0(11)'], ['compatibleSdkVersion', '4.1.0(11)'], ['modelVersion', '4.1.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '3.1.1']])],
+    ['12', new Map([['devEcoVersion', '5.0.3'], ['compileSdkVersion', '5.0.0(12)'], ['compatibleSdkVersion', '5.0.0(12)'], ['modelVersion', '5.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.3']])],
+    ['13', new Map([['devEcoVersion', '5.0.5'], ['compileSdkVersion', '5.0.1(13)'], ['compatibleSdkVersion', '5.0.1(13)'], ['modelVersion', '5.0.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.4']])],
+    ['14', new Map([['devEcoVersion', '5.0.7'], ['compileSdkVersion', '5.0.2(14)'], ['compatibleSdkVersion', '5.0.2(14)'], ['modelVersion', '5.0.2'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.7']])],
+    ['15', new Map([['devEcoVersion', '5.0.9'], ['compileSdkVersion', '5.0.3(15)'], ['compatibleSdkVersion', '5.0.3(15)'], ['modelVersion', '5.0.3'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.12']])],
+    ['16', new Map([['devEcoVersion', '5.0.11'], ['compileSdkVersion', '5.0.4(16)'], ['compatibleSdkVersion', '5.0.4(16)'], ['modelVersion', '5.0.4'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.22']])],
+    ['17', new Map([['devEcoVersion', '5.0.13'], ['compileSdkVersion', '5.0.5(17)'], ['compatibleSdkVersion', '5.0.5(17)'], ['modelVersion', '5.0.5'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.27']])],
+    ['18', new Map([['devEcoVersion', '5.1.0'], ['compileSdkVersion', '5.1.0(18)'], ['compatibleSdkVersion', '5.1.0(18)'], ['modelVersion', '5.1.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.2.17']])],
+    ['19', new Map([['devEcoVersion', '5.1.1'], ['compileSdkVersion', '5.1.1(19)'], ['compatibleSdkVersion', '5.1.1(19)'], ['modelVersion', '5.1.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.19.2']])],
+    ['20', new Map([['devEcoVersion', '6.0.0'], ['compileSdkVersion', '6.0.0(20)'], ['compatibleSdkVersion', '6.0.0(20)'], ['modelVersion', '6.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.20.3']])],
   ]);
   return sdkVersionMap;
 }
@@ -489,6 +494,19 @@ function getSdkVersionWithCompileSdkVersion(compileSdkVersion) {
   return sdkVersion;
 }
 
+function getSdkVersionWithDevEcoVersion(devEcoVersion) {
+  let nowDevEcoVersion = devEcoVersion;
+  let sdkVersionMap = getSdkVersionMap();
+  let sdkVersion = '';
+  sdkVersionMap.forEach((value, key) => {
+    let ldevEcoVersion = value.get('devEcoVersion');
+    if (ldevEcoVersion === nowDevEcoVersion || nowDevEcoVersion.startsWith(ldevEcoVersion)) {
+      sdkVersion = key;
+    }
+  });
+  return sdkVersion;
+}
+
 function getCompileSdkVersionWithSdkVersion(sdkVersion) {
   let sdkVersionMap = getSdkVersionMap();
   if (!(sdkVersionMap.has(sdkVersion))) {
@@ -533,6 +551,10 @@ function getSdkVersion(projectDir) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfilePath).toString());
     if (buildProfileInfo.app.products[0].runtimeOS === 'OpenHarmony') {
       return buildProfileInfo.app.products[0].compileSdkVersion;
+    }
+    let nowSdkVersion = getSdkVersionWithDevEcoVersion(devEcoStudioVersion);
+    if (nowSdkVersion !== '') {
+      return nowSdkVersion;
     }
     if ('compileSdkVersion' in buildProfileInfo.app.products[0]) {
       return getSdkVersionWithCompileSdkVersion(buildProfileInfo.app.products[0].compileSdkVersion);
@@ -677,6 +699,9 @@ function getLaunchModule(projectDir, inputModules) {
 function getEntryModule(projectDir) {
   let entryModule;
   const moduleList = getModulePathList(projectDir);
+  if (!moduleList) {
+    return '';
+  }
   for (let i = 0; i < Object.values(moduleList).length; i++) {
     const moduleJson = path.join(projectDir, Object.values(moduleList)[i], 'src/main/module.json5');
     const jsonInfo = JSON5.parse(fs.readFileSync(moduleJson).toString());

@@ -33,16 +33,19 @@ function create(args) {
   const { projectAbsolutePath, outputDir, project, bundleName, runtimeOS, template, currentProjectPath, sdkVersion, integrationApproach } = args;
   useCocoapods = (integrationApproach === '2');
   const projectTempPath = getTempPath(outputDir);
-  createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
   if (useCocoapods) {
     if (!checkCocoaPodsInstalled()) {
-      console.error('CocoaPods is not installed. Please install CocoaPods(brew install cocoapods) and try again.');
+      console.info('\x1B[31m%s\x1B[0m', 'Project created failed!');
+      console.info('\x1B[33m%s\x1B[0m', 'CocoaPods is not installed. Please install CocoaPods(brew install cocoapods) and try again.');
       return;
     }
+    createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
     if (!createPodfile(projectTempPath)) {
-      console.error('create Podfile failed.');
+      console.info('\x1B[31m%s\x1B[0m', 'create Podfile failed.');
       return;
     }
+  } else {
+    createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
   }
   if (template !== aceLibraryProType) {
     createAndroidAndIosShell(projectTempPath);
@@ -109,7 +112,7 @@ function createProject(projectAbsolutePath, projectTempPath, bundleName, project
     fs.mkdirSync(projectTempPath, { recursive: true });
     findStageTemplate(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion);
     if (template === aceLibraryProType) {
-      if (!(createAar(projectTempPath, project) && createFramework(projectTempPath, project))) {
+      if (!(createAar(projectTempPath, bundleName) && createFramework(projectTempPath, bundleName))) {
         return false;
       }
     }
@@ -130,7 +133,10 @@ In order to run your app, type:
       
 Your app code is in ${path.join(currentProjectPath, 'entry')}.`);
       if (useCocoapods) {
-        console.info('\x1B[31m%s\x1B[0m', 'The DevEco does not currently support Build APP(s), Please use ace tools to build the project.');
+        console.info('\x1B[33m%s\x1B[0m', 
+          'The current project uses CocoaPods as a dependency management tool, ' +
+          'and DevEco Studio does not currently support directly compiling such projects.' +
+          'Please use the ACE build tool (ace tools) for building.');
       }
     } else {
       console.log(`

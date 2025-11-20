@@ -31,7 +31,7 @@ const { isProjectRootDir, getModuleList, getCurrentProjectSystem, isAppProject, 
   modifyAndroidAbi, getModulePathList, getHspModuleList, validInputModule, getSdkVersion, setDevEcoSdkInEnv } = require('../../util');
 const { getOhpmTools, getIntergrateHvigorw } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco,
-  openHarmonySdkVersion, devEcoStudioDir } = require('../../ace-check/configs');
+  devEcoStudioDir } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
@@ -45,44 +45,52 @@ let modulePathList;
 
 function readConfig() {
   try {
-    let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
-    lackDir += nodejsDir ? '' : 'nodejs, ';
-    lackDir += ohpmDir ? '' : 'ohpm, ';
-    if (currentSystem === 'HarmonyOS') {
-      lackDir = (harmonyOsSdkDir ? '' : 'HarmonyOS SDK, ') + lackDir;
-      if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        let errorLog = `Please check ${lackDir}in your environment.`;
-        errorLog = errorLog.replace(', in', ' in');
-        console.error('\x1B[31m%s\x1B[0m', errorLog);
-        return false;
-      }
-    } else {
-      lackDir = (openHarmonySdkDir ? '' : 'OpenHarmony SDK, ') + lackDir;
-      if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
-        let errorLog = `Please check ${lackDir}in your environment.`;
-        errorLog = errorLog.replace(', in', ' in');
-        console.error('\x1B[31m%s\x1B[0m', errorLog);
-        return false;
-      }
-    }
-    const version = getSdkVersion(projectDir);
-    let arkuiXSdkVersion;
-    let useArkuixMsg;
-    if (getSourceArkuixPath()) {
-      arkuiXSdkPath = getSourceArkuixPath();
-      arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
-      useArkuixMsg = `Use ArkUI-X source, Version ${arkuiXSdkVersion}`;
-    } else {
-      arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
-      arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
-      useArkuixMsg = `Use ArkUI-X SDK, Version ${arkuiXSdkVersion}`;
-    }
-    console.log(useArkuixMsg);
-    return true;
+    return readConfigProcess();
   } catch (error) {
     console.error('\x1B[31m%s\x1B[0m', `Please 'ace check' first.`, error);
     return false;
   }
+}
+function readConfigProcess() {
+  let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
+  lackDir += nodejsDir ? '' : 'nodejs, ';
+  lackDir += ohpmDir ? '' : 'ohpm, ';
+  if (currentSystem === 'HarmonyOS') {
+    lackDir = (harmonyOsSdkDir ? '' : 'HarmonyOS SDK, ') + lackDir;
+    if (!harmonyOsSdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
+      let errorLog = `Please check ${lackDir}in your environment.`;
+      errorLog = errorLog.replace(', in', ' in');
+      console.error('\x1B[31m%s\x1B[0m', errorLog);
+      return false;
+    }
+  } else {
+    lackDir = (openHarmonySdkDir ? '' : 'OpenHarmony SDK, ') + lackDir;
+    if (!openHarmonySdkDir || !nodejsDir || !arkuiXSdkDir || !ohpmDir) {
+      let errorLog = `Please check ${lackDir}in your environment.`;
+      errorLog = errorLog.replace(', in', ' in');
+      console.error('\x1B[31m%s\x1B[0m', errorLog);
+      return false;
+    }
+  }
+  const version = getSdkVersion(projectDir);
+  let arkuiXSdkVersion;
+  let useArkuixMsg;
+  arkuiXSdkPath = getSourceArkuixPath();
+  if (arkuiXSdkPath) {
+    arkuiXSdkVersion = JSON.parse(fs.readFileSync(path.join(arkuiXSdkPath, 'arkui-x.json')))['version'];
+    useArkuixMsg = `Use ArkUI-X source, Version ${arkuiXSdkVersion}`;
+  } else {
+    arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
+    let arkuiXMessagePath = path.join(arkuiXSdkPath, 'arkui-x.json');
+    if (!fs.existsSync(arkuiXSdkPath) || !fs.existsSync(arkuiXMessagePath)) {
+        console.log('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
+        return false;
+    }
+    arkuiXSdkVersion = JSON.parse(fs.readFileSync(arkuiXMessagePath))['version'];
+    useArkuixMsg = `Use ArkUI-X SDK, Version ${arkuiXSdkVersion}`;
+  }
+  console.log(useArkuixMsg);
+  return true;
 }
 
 function writeLocalProperties() {
@@ -98,12 +106,12 @@ function writeLocalProperties() {
   return createLocalProperties(filePath, content);
 }
 
-function copyStageBundleToAndroidAndIOS(moduleList, cmd) {
+function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   const androidDir = isAppProject(projectDir) ? 'app' : 'library';
   deleteOldFile(path.join(projectDir, '.arkui-x/ios/arkui-x'));
   deleteOldFile(path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x`));
-  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '', cmd);
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '');
   const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
   const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
   const androidSystemResPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`);
@@ -120,11 +128,11 @@ function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
   if (!cmd.debug || fileType === 'hap' || fileType === 'hsp' || fileType === 'haphsp') {
     return isContinue;
   }
-  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', '_test', cmd);
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', '_test');
   return isContinue;
 }
 
-function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOption, cmd) {
+function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOption) {
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
@@ -155,13 +163,6 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
     isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
     fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
     fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
-    if (cmd && cmd.aot) {
-      const aotPath = path.join(projectDir, modulePathList[module], `build/default/intermediates/loader_out/an`);
-      const distAndroidAotPath = path.join(projectDir, '.arkui-x/android/app/src/main/assets/arkui-x/', destClassName + '/an');
-      const distIOSAotPath = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/an');
-      copy(aotPath, distAndroidAotPath);
-      copy(aotPath, distIOSAotPath);
-    }
   });
   return isContinue;
 }
@@ -365,13 +366,6 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
       stdio: 'inherit',
       env: process.env,
     });
-    if (cmd.aot) {
-      if (currentSystem === 'HarmonyOS') {
-        console.log('HarmonyOS not supported build AOT');
-        return false;
-      }
-      buildAot(cmd, moduleList);
-    }
     return true;
   } catch (error) {
     console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed.\n', error);
@@ -379,79 +373,11 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   }
 }
 
-function buildAot(cmd, moduleList) {
-  const cmds = [];
-  let arkAotCompilerPath;
-  const openHarmonyVersion = getSdkVersion(projectDir);
-  if (platform === Platform.Windows) {
-    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build-win/bin/ark_aot_compiler.exe`);
-  } else if (platform === Platform.Linux) {
-    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build/bin/ark_aot_compiler`);
-  } else if (platform === Platform.MacOS) {
-    arkAotCompilerPath = path.join(openHarmonySdkDir, `${openHarmonyVersion}/ets/build-tools/ets-loader/bin/ark/build-mac/bin/ark_aot_compiler`);
-  }
-
-  let aotDir;
-  const modulePathList = getModulePathList(projectDir);
-
-  moduleList.forEach(module => {
-    const targetFile = path.join(projectDir, `${modulePathList[module]}/build/default/intermediates/loader_out/default/ets/modules.abc`);
-    let aotBuildCmd = `${arkAotCompilerPath}` +
-      ` --compiler-target-triple=aarch64-unknown-linux-gnu --aot-file=${modulePathList[module]} --log-level=info --compiler-trace-deopt=true` +
-      ` --compiler-trace-bc=true ${targetFile}`;
-    aotDir = path.join(projectDir, `${modulePathList[module]}/build/default/intermediates/loader_out/an`);
-    deleteOldFile(aotDir);
-    if (cmd.targetPlatform) {
-      let targetTriple;
-      let abiDir;
-      cmd.targetPlatform.split(',').forEach(abi => {
-        if (abi === 'arm64') {
-          targetTriple = 'aarch64-unknown-linux-gnu';
-          abiDir = 'arm64-v8a';
-        } else if (abi === 'arm') {
-          targetTriple = 'arm-unknown-linux-gnu';
-          abiDir = 'armeabi-v7a';
-        } else if (abi === 'x86_64') {
-          targetTriple = 'x86_64-unknown-linux-gnu';
-          abiDir = 'x86_64';
-        }
-
-        aotBuildCmd = aotBuildCmd.replace('aarch64-unknown-linux-gnu', targetTriple);
-        fs.mkdirSync(path.join(aotDir, abiDir), { recursive: true });
-        cmds.push(`cd ${path.join(aotDir, abiDir)} &&  ${aotBuildCmd}`);
-      });
-    } else {
-      fs.mkdirSync(path.join(aotDir, 'arm64-v8a'), { recursive: true });
-      cmds.push(`cd ${path.join(aotDir, 'arm64-v8a')} && ${aotBuildCmd}`);
-    }
-  });
-
-  let gradleMessage = 'AOT file built successfully.';
-  let isBuildSuccess = true;
-  console.log('Start building aot...');
-  cmds.forEach(cmd => {
-    if (platform === Platform.Windows) {
-      cmd = cmd.replace(/\//g, '\\');
-    }
-    try {
-      exec(cmd, {
-        encoding: 'utf-8',
-        stdio: 'pipe',
-      });
-    } catch (error) {
-      gradleMessage = 'Failed to build the AOT file.';
-      isBuildSuccess = false;
-    }
-  });
-  console.log(gradleMessage);
-  return isBuildSuccess;
-}
-
 function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testModule) {
   if (readConfig() &&
     writeLocalProperties() &&
     runGradle(fileType, cmd, moduleListSpecified, commonModule, testModule) &&
-    copyStageBundleToAndroidAndIOS(commonModule, cmd) &&
+    copyStageBundleToAndroidAndIOS(commonModule) &&
     copyTestStageBundleToAndroidAndIOS(testModule, fileType, cmd)) {
     process.env.ACEBUILDFLAG = true;
     if (fileType === 'hap' || fileType === 'haphsp') {
