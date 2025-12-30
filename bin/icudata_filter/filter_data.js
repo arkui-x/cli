@@ -797,7 +797,7 @@ function parseArguments() {
     const keys = ['res_dir', 'dat_file', 'filter', 'module', 'tool_dir', 'out_dir'];
     keys.forEach(key => {
         if (!(key in configs)) {
-            configs[key] = '';
+            configs[key] = null;
         }
     });
 
@@ -840,27 +840,29 @@ function getValidLocaleList(localeStr) {
 }
 
 function getFilterJsonData(filterFile, resDir, module) {
-    let filePath = path.join(resDir, 'default_filter.json');
-
-    if (module === 'i18n') {
-        filePath = path.join(resDir, 'i18n_filter_pattern.json');
-    } else if (module === 'intl') {
-        filePath = path.join(resDir, 'intl_filter_pattern.json');
-    } else if (module === 'both') {
-        filePath = path.join(resDir, 'filter_pattern.json');
+    if (filterFile !== null) {
+        let filePath = path.join(resDir, 'filter_pattern.json');
+        const filterData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        let localeListStr = fs.readFileSync(filterFile, 'utf-8').trim();
+        const localeList = JSON.parse(getValidLocaleList(localeListStr));
+        if (localeList.length === 0) {
+            localeList.push('root');
+        }
+        let filterString = JSON.stringify(filterData);
+        filterString = filterString.replace(/"replace locale"/g, JSON.stringify(localeList));
+        return JSON.parse(filterString);
     }
 
-    const filterData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-    let localeListStr = '["root"]';
-    if (filterFile !== '') {
-        localeListStr = fs.readFileSync(filterFile, 'utf-8').trim();
+    if (module === null) {
+        let filePath = path.join(resDir, 'default_filter.json');
+        const filterData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        return filterData;
     }
-    const localeList = getValidLocaleList(localeListStr);
 
-    let filterString = JSON.stringify(filterData);
-
-    filterString = filterString.replace(/"replace locale"/g, localeList);
-    return JSON.parse(filterString);
+    if (module !== 'i18n' && module !== 'intl' && module !== 'both') {
+        throw new Error(`parameter module is error value`);
+    }
+    return null;
 }
 
 const icuVersion = 74;
@@ -884,8 +886,6 @@ async function main() {
     }
 
     const datFileName = path.basename(datFile);
-    const filterFile = args.filter;
-    const module = args.module;
     let toolDir = path.join(args.tool_dir, 'icupkg');
     const outDir = args.out_dir;
     const removeFile = path.join(outDir, 'remove.txt');
@@ -896,18 +896,23 @@ async function main() {
         throw new Error(`Error: use ${icuVersion} tools to crop ${nowIcuVersion} data`);
     }
 
+    // Create output directory
+    if (!fs.existsSync(outDir)) {
+        fs.mkdirSync(outDir, { recursive: true });
+    }
+
+    const filterJsonData = getFilterJsonData(args.filter, resDir, args.module);
+    if (filterJsonData === null) {
+        fs.copyFileSync(datFile, outFile);
+        return;
+    }
+
     if (os.type() !== 'Windows_NT') {
         fs.chmodSync(toolDir, 0o755);
     } else {
         toolDir = path.join(args.tool_dir, 'icupkg.exe');
     }
 
-    // Create output directory
-    if (!fs.existsSync(outDir)) {
-        fs.mkdirSync(outDir, { recursive: true });
-    }
-
-    const filterJsonData = getFilterJsonData(filterFile, resDir, module);
     const resList = getAllResList(`${toolDir} -l ${datFile}`);
     const config = new Config(filterJsonData);
 
