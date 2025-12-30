@@ -30,20 +30,19 @@ function getLangList(projectDir, newLangList) {
   try {
     arkuiConfig = JSON5.parse(fs.readFileSync(langPath));
   } catch (err) {
-    return;
+    throw new Error('parse arkui-x-config.json5 failed, please check.');
   }
   const langList = arkuiConfig?.buildOption?.resConfigs;
-  if (langList && langList.length !== 0) {
+  if (langList) {
     for (const lang of langList) {
       newLangList.push(lang);
     }
+    return true;
   }
+  return false;
 }
 
 function generateDataFilterFile(dataFilterFilePath, langList) {
-  if (langList.length === 0) {
-    return false;
-  }
   try {
     fs.writeFileSync(dataFilterFilePath, JSON.stringify(langList, null, 2));
     return true;
@@ -192,20 +191,24 @@ function copyDat(projectDir, system, fileType, depMap) {
     type = pluginType;
   }
   const langList = [];
-  getLangList(projectDir, langList);
-  if (hasIntlOrI18nFlag && langList.length === 0) {
-    return true;
-  }
+  const hasResConfig = getLangList(projectDir, langList);
   const outDir = createOutDir();
   const destPath = generateDestDatPath(projectDir, system, path.basename(datFilePath));
   const buildOutDir = path.join(outDir, 'out');
+  if (!fs.existsSync(buildOutDir)) {
+      fs.mkdirSync(buildOutDir, { recursive: true });
+  }
   let cmds = `node ${filterToolPath} --res_dir ${dataFilterPath} --dat_file ${datFilePath} --tool_dir ${currentPaltform} --out_dir ${buildOutDir}`;
   let dataFilterFilePath = path.join(outDir, 'filter.json');
   if (!generateDataFilterFile(dataFilterFilePath, langList)) {
     dataFilterFilePath = path.join(icuDataToolPath, 'filter.json');
   }
-  if (hasIntlOrI18nFlag) {
+  if (hasIntlOrI18nFlag && hasResConfig) {
     cmds += ` --filter ${dataFilterFilePath} --module ${type}`;
+  } else if (!hasIntlOrI18nFlag && hasResConfig) {
+    cmds += ` --filter ${dataFilterFilePath}`;
+  } else if (hasIntlOrI18nFlag) {
+    cmds += ` --module ${type}`;
   }
   const srcPath = path.join(buildOutDir, path.basename(datFilePath));
   execCopyDatCmd(cmds, srcPath, destPath);
