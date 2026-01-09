@@ -17,6 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const inquirer = require('inquirer');
 const JSON5 = require('json5');
+const { getIsArkuixProject } = require('../../util/index');
 const { copy, modifyHarmonyOSConfig, addCrossPlatform, modifyOpenHarmonyOSConfig, modifyNativeCppConfig } = require('../util');
 const { getSdkVersion } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability');
@@ -631,7 +632,7 @@ function replaceFileString(file, oldString, newString) {
 }
 
 function createModule() {
-  if (!fs.existsSync(path.join(projectDir, 'hvigorw'))) {
+  if (!getIsArkuixProject()) {
     console.error('\x1B[31m%s\x1B[0m', `Operation failed. Go to your ArkUI cross-platform project directory and try again.`);
     return false;
   }

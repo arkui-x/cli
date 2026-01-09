@@ -148,9 +148,15 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
     const hvigorWrapperFile = path.join(projectPath, 'hvigor/hvigor-wrapper.js');
     const hvigorwFile = path.join(projectPath, 'hvigorw');
     const hvigorwBatFile = path.join(projectPath, 'hvigorw.bat');
-    fs.rmSync(hvigorWrapperFile);
-    fs.rmSync(hvigorwFile);
-    fs.rmSync(hvigorwBatFile);
+    if (fs.existsSync(hvigorWrapperFile)) {
+      fs.rmSync(hvigorWrapperFile);
+    }
+    if (fs.existsSync(hvigorwFile)) {
+      fs.rmSync(hvigorwFile);
+    }
+    if (fs.existsSync(hvigorwBatFile)) {
+      fs.rmSync(hvigorwBatFile);
+    }
   }
 
   if (fs.existsSync(buildProfile)) {

@@ -752,6 +752,16 @@ function replaceInfo(files, replaceInfos, strs) {
   }
 }
 
+function getIsArkuixProject() {
+  const projectDir = process.cwd();
+  const arkuixPath = path.join(projectDir, '.arkui-x');
+  if (fs.existsSync(arkuixPath)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -789,4 +799,5 @@ module.exports = {
   getSdkVersionWithModelVersion,
   replaceInfo,
   getArkuixPluginWithModelVersion,
+  getIsArkuixProject,
 };

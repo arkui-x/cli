@@ -426,8 +426,18 @@ function modifyProjectModules(modulesArray, modulesTypeArray) {
   if (arkuixModuleArray.length > 0) {
     addModuleInArkuixConfig(arkuixModuleArray);
   }
+  initProjectInfo();
   checkProblem();
   console.log('modify HarmonyOS project to ArkUI-X project success!');
+}
+
+function initProjectInfo() {
+  fs.writeFileSync('./.projectInfo',
+    `{
+      "projectTemplate":"app",
+      "moduleInfo":[],
+      "abilityInfo":[]
+  }`, 'utf8');
 }
 
 function modifyModules(modules) {
@@ -561,6 +571,7 @@ function modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray) {
   if (arkuixModuleArray.length > 0) {
     addModuleInArkuixConfig(arkuixModuleArray);
   }
+  initProjectInfo();
   checkProblem();
   if (isHaveFailed) {
     console.log('\x1B[31m%s\x1B[0m', `Error: modify HarmonyOS modules {${cleanStr(failedModuleStr, ',')}} to ArkUI-X modules failed!`);

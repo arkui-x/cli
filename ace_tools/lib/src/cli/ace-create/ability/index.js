@@ -113,32 +113,37 @@ function replaceResourceJson(abilityName) {
         value: 'label',
       }
     );
+    fs.writeFileSync(resourceStringPath, JSON.stringify(resourceStringJson, '', '  '));
     const resourceEnStringPath = path.join(currentDir, 'src/main/resources/en_US/element/string.json');
-    const resourceEnStringJson = JSON.parse(fs.readFileSync(resourceEnStringPath));
-    resourceEnStringJson.string.push(
-      {
-        name: abilityName + '_desc',
-        value: 'description',
-      },
-      {
-        name: abilityName + '_label',
-        value: 'label',
-      }
-    );
-    fs.writeFileSync(resourceEnStringPath, JSON.stringify(resourceEnStringJson, '', '  '));
+    if (fs.existsSync(resourceEnStringPath)) {
+      const resourceEnStringJson = JSON.parse(fs.readFileSync(resourceEnStringPath));
+      resourceEnStringJson.string.push(
+        {
+          name: abilityName + '_desc',
+          value: 'description'
+        },
+        {
+          name: abilityName + '_label',
+          value: 'label'
+        }
+      );
+      fs.writeFileSync(resourceEnStringPath, JSON.stringify(resourceEnStringJson, '', '  '));
+    }
     const resourceZhStringPath = path.join(currentDir, 'src/main/resources/zh_CN/element/string.json');
-    const resourceZhStringJson = JSON.parse(fs.readFileSync(resourceZhStringPath));
-    resourceZhStringJson.string.push(
-      {
-        name: abilityName + '_desc',
-        value: 'description',
-      },
-      {
-        name: abilityName + '_label',
-        value: 'label',
-      }
-    );
-    fs.writeFileSync(resourceZhStringPath, JSON.stringify(resourceZhStringJson, '', '  '));
+    if (fs.existsSync(resourceZhStringPath)) {
+      const resourceZhStringJson = JSON.parse(fs.readFileSync(resourceZhStringPath));
+      resourceZhStringJson.string.push(
+        {
+          name: abilityName + '_desc',
+          value: 'description'
+        },
+        {
+          name: abilityName + '_label',
+          value: 'label'
+        }
+      );
+      fs.writeFileSync(resourceZhStringPath, JSON.stringify(resourceZhStringJson, '', '  '));
+    }
     return true;
   } catch (error) {
     console.error('\x1B[31m%s\x1B[0m', 'Replace ability info error.');
@@ -159,15 +164,20 @@ function updateManifest(abilityName) {
     }
     const moduleJsonPath = path.join(currentDir, 'src/main/module.json5');
     const moduleJson = JSON5.parse(fs.readFileSync(moduleJsonPath));
+    let iconName = '$media:icon';
+    const nowIconPath = path.join(currentDir, 'src/main/resources/base/media/icon.png');
+    if (!fs.existsSync(nowIconPath)) {
+      iconName = '$media:startIcon';
+    }
     moduleJson.module.abilities.push(
       {
         name: abilityName,
         srcEntry: './ets/' + abilityName + '/' + abilityName + '.ets',
         description: '$string:' + abilityName + '_desc',
-        icon: '$media:icon',
+        icon: iconName,
         label: '$string:' + abilityName + '_label',
-        startWindowIcon: '$media:icon',
-        startWindowBackground: '$color:start_window_background',
+        startWindowIcon: iconName,
+        startWindowBackground: '$color:start_window_background'
       }
     );
     fs.writeFileSync(moduleJsonPath, JSON.stringify(moduleJson, '', '  '));

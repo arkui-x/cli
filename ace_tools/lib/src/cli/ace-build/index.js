@@ -17,7 +17,7 @@ const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
 const { commandLineToolsDir, devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
-const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfo } = require('../util/index');
+const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfo, getIsArkuixProject } = require('../util/index');
 const { Platform, platform } = require('../ace-check/platform');
 const inquirer = require('inquirer');
 const fs = require('fs');
@@ -80,16 +80,6 @@ function checkDevEcoVersion() {
     return false;
   }
   return (parseInt(versionArray[0]) >= 6) ? true : false;
-}
-
-function getIsArkuixProject() {
-  const projectDir = process.cwd();
-  const arkuixPath = path.join(projectDir, '.arkui-x');
-  if (fs.existsSync(arkuixPath)) {
-    return true;
-  } else {
-    return false;
-  }
 }
 
 function upgradProjectConfig(apiVersion, devVersion) {
