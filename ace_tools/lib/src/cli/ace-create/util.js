@@ -248,6 +248,28 @@ function addCrossPlatform(projectPath, module) {
   }
 }
 
+function updateCrossPlatformConfig(projectPath, platforms) {
+  try {
+    // const configFile = path.join(projectPath, '.arkui-x/arkui-x-config.json5');
+    const configFile = path.join(projectPath, '.projectInfo');
+    let arkuiXConfig = {};
+    if (fs.existsSync(configFile)) {
+      arkuiXConfig = JSON5.parse(fs.readFileSync(configFile));
+      arkuiXConfig = { ...arkuiXConfig, 'platforms': platforms === 'both' ? ['android', 'ios'] : [platforms] };
+    } else {
+      arkuiXConfig = {
+        'projectTemplate': 'app',
+        'moduleInfo': [],
+        'abilityInfo': [],
+        'platforms': platforms === 'both' ? ['android', 'ios'] : [platforms],
+      };
+    }
+    fs.writeFileSync(configFile, JSON.stringify(arkuiXConfig, '', '  '), 'utf8');
+  } catch (err) {
+    console.error('add cross platform failed\n', err);
+  }
+}
+
 function signIOS(configFile) {
   if (platform !== Platform.MacOS) {
     return true;
@@ -415,14 +437,27 @@ function createAndroidTaskInBuildGradle(projectPath) {
   fs.writeFileSync(buildGradle, updateBuildGradleInfo);
 }
 
-function createAndroidAndIosBuildArkTSShell(projectPath, ohpmPath, arkuiXSdkPath) {
+function createAndroidAndIosBuildArkTSShell(projectPath, ohpmPath, arkuiXSdkPath, targetPlatforms) {
+  const platforms = (targetPlatforms || 'both').toString().toLowerCase();
   const moduleList = getCrossPlatformModules(projectPath).join(',');
-  const taskIncommandLine = getAndroidAndIosBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
-  const batIncommandLine = getWindowsBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath);
+  let hasAndroid = false;
+  let hasIos = false;
+  if (platforms === 'both' || platforms.includes('android')) {
+    hasAndroid = true;
+  }
+  if (platforms === 'both' || platforms.includes('ios')) {
+    hasIos = true;
+  }
+  const taskIncommandLine = getAndroidAndIosBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath, hasAndroid, hasIos);
+  const batIncommandLine = getWindowsBuildArkTSShell(projectPath, moduleList, arkuiXSdkPath, ohpmPath, hasAndroid, hasIos);
   try {
-    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS.bat'), batIncommandLine, 'utf8');
-    fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS'), taskIncommandLine, 'utf8');
-    fs.writeFileSync(path.join(projectPath, '.arkui-x/ios/buildArkTS.sh'), taskIncommandLine, 'utf8');
+    if (platforms === 'both' || platforms.includes('android')) {
+      fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS.bat'), batIncommandLine, 'utf8');
+      fs.writeFileSync(path.join(projectPath, '.arkui-x/android/buildArkTS'), taskIncommandLine, 'utf8');
+    }
+    if (platforms === 'both' || platforms.includes('ios')) {
+      fs.writeFileSync(path.join(projectPath, '.arkui-x/ios/buildArkTS.sh'), taskIncommandLine, 'utf8');
+    }
   } catch (err) {
     console.log(err);
   }
@@ -468,7 +503,7 @@ function createIosScriptInPbxproj(projectPath) {
   fs.writeFileSync(pbxProjInfoPath, updatePbxProjInfo);
 }
 
-function getWindowsBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
+function getWindowsBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath, android, ios) {
   return `@echo off
 setlocal enabledelayedexpansion
 
@@ -490,16 +525,16 @@ set arkuiXSdkPath=${arkuiXSdkPath}
 set moduleLists=${moduleList}
 
 @REM You can change the android arkuix path to the specified path.
-set android_arkuix_path=%project_path%\\.arkui-x\\android\\app\\src\\main\\assets\\arkui-x
+${android ? '' : '@REM '}set android_arkuix_path=%project_path%\\.arkui-x\\android\\app\\src\\main\\assets\\arkui-x
 
 @REM You can change the android systemRes path to the specified path.
-set android_systemRes_path=%project_path%\\.arkui-x\\android\\app\\src\\main\\assets\\arkui-x\\systemres
+${android ? '' : '@REM '}set android_systemRes_path=%project_path%\\.arkui-x\\android\\app\\src\\main\\assets\\arkui-x\\systemres
 
 @REM You can change the ios arkuix path to the specified path.
-set ios_arkuix_path=%project_path%\\.arkui-x\\ios\\arkui-x
+${ios ? '' : '@REM '}set ios_arkuix_path=%project_path%\\.arkui-x\\ios\\arkui-x
 
 @REM You can change the ios systemRes path to the specified path.
-set ios_systemRes_path=%project_path%\\.arkui-x\\ios\\arkui-x\\systemres
+${ios ? '' : '@REM '}set ios_systemRes_path=%project_path%\\.arkui-x\\ios\\arkui-x\\systemres
 
 cd /d %project_path%
 call %ohpm_path% update
@@ -507,12 +542,12 @@ call %ohpm_path% update
 call ./hvigorw default@CompileArkTS -p module=%moduleLists%
 
 :copyStageBundleToAndroidAndIOS
-    call :deleteFile %ios_arkuix_path%
-    call :deleteFile %android_arkuix_path%
+    ${ios ? '' : '@REM '}call :deleteFile %ios_arkuix_path%
+    ${android ? '' : '@REM '}call :deleteFile %android_arkuix_path%
     call :copyStageBundleToAndroidAndIOSByTarget default
     set "systemResPath=%arkuiXSdkPath%\\engine\\systemres"
-    xcopy "!systemResPath!" "%ios_systemRes_path%" /s /e /i /y >nul
-    xcopy "!systemResPath!" "%android_systemRes_path%" /s /e /i /y >nul
+    ${ios ? '' : '@REM '}xcopy "!systemResPath!" "%ios_systemRes_path%" /s /e /i /y >nul
+    ${android ? '' : '@REM '}xcopy "!systemResPath!" "%android_systemRes_path%" /s /e /i /y >nul
 exit /b
 
 :deleteFile
@@ -536,29 +571,29 @@ for %%i in (%folders%) do (
     set "resPath=%project_path%\\%%i\\build\\default\\intermediates\\res\\%~1\\resources"
     set "moduleJsonPath=%project_path%\\%%i\\build\\default\\intermediates\\res\\%~1\\module.json"
     set "destClassName=%%i%~2"
-    set "distAndroid=%android_arkuix_path%\\!destClassName!\\ets"
-    set "distIOS=%ios_arkuix_path%\\!destClassName!\\ets"
-    set "resindexAndroid=%android_arkuix_path%\\!destClassName!\\resources.index"
-    set "resPathAndroid=%android_arkuix_path%\\!destClassName!\\resources"
-    set "moduleJsonPathAndroid=%android_arkuix_path%\\!destClassName!\\module.json"
-    set "resindexIOS=%ios_arkuix_path%\\!destClassName!\\resources.index"
-    set "resPathIOS=%ios_arkuix_path%\\!destClassName!\\resources"
-    set "moduleJsonPathIOS=%ios_arkuix_path%\\!destClassName!\\module.json"
-    md "!distAndroid!" 2>nul
-    xcopy "!src!" "!distAndroid!" /s /e /i /y >nul
-    xcopy "!resPath!" "!resPathAndroid!" /s /e /i /y >nul
-    copy "!resindex!" "!resindexAndroid!" >nul
-    copy "!moduleJsonPath!" "!moduleJsonPathAndroid!" >nul
-    md "!distIOS!" 2>nul
-    xcopy "!src!" "!distIOS!" /s /e /i /y >nul
-    xcopy "!resPath!" "!resPathIOS!" /s /e /i /y >nul
-    copy "!resindex!" "!resindexIOS!" >nul
-    copy "!moduleJsonPath!" "!moduleJsonPathIOS!" >nul
+    ${android ? '' : '@REM '}set "distAndroid=%android_arkuix_path%\\!destClassName!\\ets"
+    ${ios ? '' : '@REM '}set "distIOS=%ios_arkuix_path%\\!destClassName!\\ets"
+    ${android ? '' : '@REM '}set "resindexAndroid=%android_arkuix_path%\\!destClassName!\\resources.index"
+    ${android ? '' : '@REM '}set "resPathAndroid=%android_arkuix_path%\\!destClassName!\\resources"
+    ${android ? '' : '@REM '}set "moduleJsonPathAndroid=%android_arkuix_path%\\!destClassName!\\module.json"
+    ${ios ? '' : '@REM '}set "resindexIOS=%ios_arkuix_path%\\!destClassName!\\resources.index"
+    ${ios ? '' : '@REM '}set "resPathIOS=%ios_arkuix_path%\\!destClassName!\\resources"
+    ${ios ? '' : '@REM '}set "moduleJsonPathIOS=%ios_arkuix_path%\\!destClassName!\\module.json"
+    ${android ? '' : '@REM '}md "!distAndroid!" 2>nul
+    ${android ? '' : '@REM '}xcopy "!src!" "!distAndroid!" /s /e /i /y >nul
+    ${android ? '' : '@REM '}xcopy "!resPath!" "!resPathAndroid!" /s /e /i /y >nul
+    ${android ? '' : '@REM '}copy "!resindex!" "!resindexAndroid!" >nul
+    ${android ? '' : '@REM '}copy "!moduleJsonPath!" "!moduleJsonPathAndroid!" >nul
+    ${ios ? '' : '@REM '}md "!distIOS!" 2>nul
+    ${ios ? '' : '@REM '}xcopy "!src!" "!distIOS!" /s /e /i /y >nul
+    ${ios ? '' : '@REM '}xcopy "!resPath!" "!resPathIOS!" /s /e /i /y >nul
+    ${ios ? '' : '@REM '}copy "!resindex!" "!resindexIOS!" >nul
+    ${ios ? '' : '@REM '}copy "!moduleJsonPath!" "!moduleJsonPathIOS!" >nul
 )
 exit /b`;
 }
 
-function getAndroidAndIosBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath) {
+function getAndroidAndIosBuildArkTSShell(projectDir, moduleList, arkuiXSdkPath, ohpmPath, android, ios) {
   return `#!/bin/bash
 # It is an ACE compilation flag that cannot be manually modified.
 isAceBuildFlag="$ACEBUILDFLAG"
@@ -580,16 +615,16 @@ arkuiXSdkPath="${arkuiXSdkPath}"
 moduleLists=${moduleList}
 
 # You can change the android arkuix path to the specified path.
-android_arkuix_path="$project_path/.arkui-x/android/app/src/main/assets/arkui-x"
+${android ? '' : '# '}android_arkuix_path="$project_path/.arkui-x/android/app/src/main/assets/arkui-x"
 
 # You can change the android systemRes path to the specified path.
-android_systemRes_path="$project_path/.arkui-x/android/app/src/main/assets/arkui-x/systemres"
+${android ? '' : '# '}android_systemRes_path="$project_path/.arkui-x/android/app/src/main/assets/arkui-x/systemres"
 
 # You can change the ios arkuix path to the specified path.
-ios_arkuix_path="$project_path/.arkui-x/ios/arkui-x"
+${ios ? '' : '# '}ios_arkuix_path="$project_path/.arkui-x/ios/arkui-x"
 
 # You can change the ios systemRes path to the specified path.
-ios_systemRes_path="$project_path/.arkui-x/ios/arkui-x/systemres"
+${ios ? '' : '# '}ios_systemRes_path="$project_path/.arkui-x/ios/arkui-x/systemres"
 
 cd $project_path
 $ohpm_path update
@@ -598,12 +633,12 @@ ${platform !== Platform.Windows ? `chmod 755 hvigorw` : ''}
 IFS=',' read -ra folders <<< "$moduleLists"
 
 copyStageBundleToAndroidAndIOS() {
-    deleteFile "$ios_arkuix_path"
-    deleteFile "$android_arkuix_path"
+    ${ios ? '' : '# '}deleteFile "$ios_arkuix_path"
+    ${android ? '' : '# '}deleteFile "$android_arkuix_path"
     copyStageBundleToAndroidAndIOSByTarget "default" ""
     systemResPath="$arkuiXSdkPath/engine/systemres"
-    copy "$systemResPath" "$ios_systemRes_path" 
-    copy "$systemResPath" "$android_systemRes_path"
+    ${ios ? '' : '# '}copy "$systemResPath" "$ios_systemRes_path" 
+    ${android ? '' : '# '}copy "$systemResPath" "$android_systemRes_path"
 }
 
 deleteFile() {
@@ -624,24 +659,24 @@ copyStageBundleToAndroidAndIOSByTarget() {
         local resPath="$project_path/$folder/build/default/intermediates/res/$1/resources"
         local moduleJsonPath="$project_path/$folder/build/default/intermediates/res/$1/module.json"
         local destClassName="$folder$2"
-        local distAndroid="$android_arkuix_path/$destClassName/ets"
-        local distIOS="$ios_arkuix_path/$destClassName/ets"
-        local resindexAndroid="$android_arkuix_path/$destClassName/resources.index"
-        local resPathAndroid="$android_arkuix_path/$destClassName/resources"
-        local moduleJsonPathAndroid="$android_arkuix_path/$destClassName/module.json"
-        local resindexIOS="$ios_arkuix_path/$destClassName/resources.index"
-        local resPathIOS="$ios_arkuix_path/$destClassName/resources"
-        local moduleJsonPathIOS="$ios_arkuix_path/$destClassName/module.json"
-        mkdir -p "$distAndroid"
-        copy "$src" "$distAndroid"
-        copy "$resPath" "$resPathAndroid"
-        cp "$resindex" "$resindexAndroid"
-        cp "$moduleJsonPath" "$moduleJsonPathAndroid"
-        mkdir -p "$distIOS"
-        copy "$src" "$distIOS"
-        copy "$resPath" "$resPathIOS"
-        cp "$resindex" "$resindexIOS"
-        cp "$moduleJsonPath" "$moduleJsonPathIOS"
+        ${android ? '' : '# '}local distAndroid="$android_arkuix_path/$destClassName/ets"
+        ${ios ? '' : '# '}local distIOS="$ios_arkuix_path/$destClassName/ets"
+        ${android ? '' : '# '}local resindexAndroid="$android_arkuix_path/$destClassName/resources.index"
+        ${android ? '' : '# '}local resPathAndroid="$android_arkuix_path/$destClassName/resources"
+        ${android ? '' : '# '}local moduleJsonPathAndroid="$android_arkuix_path/$destClassName/module.json"
+        ${ios ? '' : '# '}local resindexIOS="$ios_arkuix_path/$destClassName/resources.index"
+        ${ios ? '' : '# '}local resPathIOS="$ios_arkuix_path/$destClassName/resources"
+        ${ios ? '' : '# '}local moduleJsonPathIOS="$ios_arkuix_path/$destClassName/module.json"
+        ${android ? '' : '# '}mkdir -p "$distAndroid"
+        ${android ? '' : '# '}copy "$src" "$distAndroid"
+        ${android ? '' : '# '}copy "$resPath" "$resPathAndroid"
+        ${android ? '' : '# '}cp "$resindex" "$resindexAndroid"
+        ${android ? '' : '# '}cp "$moduleJsonPath" "$moduleJsonPathAndroid"
+        ${ios ? '' : '# '}mkdir -p "$distIOS"
+        ${ios ? '' : '# '}copy "$src" "$distIOS"
+        ${ios ? '' : '# '}copy "$resPath" "$resPathIOS"
+        ${ios ? '' : '# '}cp "$resindex" "$resindexIOS"
+        ${ios ? '' : '# '}cp "$moduleJsonPath" "$moduleJsonPathIOS"
     done
 }
 
@@ -688,4 +723,5 @@ module.exports = {
   createAndroidTaskInBuildGradle,
   createAndroidAndIosBuildArkTSShell,
   createIosScriptInPbxproj,
+  updateCrossPlatformConfig,
 };

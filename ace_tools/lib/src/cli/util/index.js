@@ -23,13 +23,34 @@ const { devEcoStudioVersion } = require('../ace-check/configs');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
+function isIOSRootDir(iosDir) {
+  const iosFiles = fs.readdirSync(iosDir);
+  for (let i = 0; i < iosFiles.length; i++) {
+    if (iosFiles[i].endsWith('.xcodeproj')) {
+      fs.accessSync(path.join(iosDir, iosFiles[i]));
+      return true;
+    }
+  }
+  return false;
+}
+
 function isProjectRootDir(currentDir) {
   const ohosBuildProfilePath = path.join(currentDir, 'build-profile.json5');
   const androidGradlePath = path.join(currentDir, '.arkui-x/android/settings.gradle');
+  const iosDir = path.join(currentDir, '.arkui-x/ios');
   try {
     fs.accessSync(ohosBuildProfilePath);
-    fs.accessSync(androidGradlePath);
-    return true;
+    if (fs.existsSync(androidGradlePath)) {
+      fs.accessSync(androidGradlePath);
+      return true;
+    }
+    if (fs.existsSync(iosDir)) {
+      if (isIOSRootDir(iosDir)) {
+        return true;
+      }
+    }
+    console.error(`Operation failed. Go to your project directory and try again.`);
+    return false;
   } catch (error) {
     console.error(`Operation failed. Go to your project directory and try again.`);
     return false;
@@ -207,7 +228,11 @@ function getAarName(projectDir) {
 
 function getFrameworkName(projectDir) {
   const frameworkName = [];
-  const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
+  const iosPath = path.join(projectDir, '.arkui-x/ios');
+  if (!fs.existsSync(iosPath)) {
+    return frameworkName;
+  }
+  const iosDir = fs.readdirSync(iosPath);
   iosDir.forEach(dir => {
     if (dir.includes('.xcodeproj') && dir !== 'app.xcodeproj') {
       frameworkName.push(dir.split('.')[0]);
@@ -337,7 +362,14 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
 
 function isAppProject(projectDir) {
   const settingsGradle = path.join(projectDir, '.arkui-x/android/settings.gradle');
-  return fs.readFileSync(settingsGradle).toString().includes(`include ':app'`);
+  if (!fs.existsSync(settingsGradle)) {
+    return false;
+  }
+  try {
+    return fs.readFileSync(settingsGradle).toString().includes(`include ':app'`);
+  } catch (err) {
+    return false;
+  }
 }
 
 function getAbsolutePath(str) {
@@ -602,7 +634,11 @@ function getAndroidModule(projectDir) {
 
 function getIosProjectName(projectDir) {
   let iosName = '';
-  const iosDir = fs.readdirSync(path.join(projectDir, '.arkui-x/ios'));
+  const iosPath = path.join(projectDir, '.arkui-x/ios');
+  if (!fs.existsSync(iosPath)) {
+    return 'app';
+  }
+  const iosDir = fs.readdirSync(iosPath);
   for (let i = 0; i < iosDir.length; i++) {
     if (iosDir[i].includes('.xcodeproj')) {
       iosName = iosDir[i].split('.')[0];
@@ -762,6 +798,66 @@ function getIsArkuixProject() {
   }
 }
 
+function getCreatePlatformsByFile(projectDir, platforms, filePath) {
+  try {
+    const arkuixConfigInfo = path.join(projectDir, filePath);
+    if (fs.existsSync(arkuixConfigInfo)) {
+      const info = JSON5.parse(fs.readFileSync(arkuixConfigInfo, 'utf8'));
+      if (info && Array.isArray(info.platforms) && info.platforms.length > 0) {
+        info.platforms.forEach(targetPlatform => platforms.push(targetPlatform.toString().toLowerCase()));
+      }
+    }
+  } catch (err) {
+    console.warn(`Failed to read created platforms from ${filePath}:`, err);
+  }
+}
+
+function getCreatedPlatforms(projectDir) {
+  const platforms = [];
+  getCreatePlatformsByFile(projectDir, platforms, '.arkui-x/arkui-x-config.json5');
+  if (platforms.length > 0) {
+    return platforms;
+  }
+  getCreatePlatformsByFile(projectDir, platforms, '.projectInfo');
+  if (platforms.length > 0) {
+    return platforms;
+  }
+  try {
+    if (fs.existsSync(path.join(projectDir, '.arkui-x/android'))) {
+      platforms.push('android');
+    }
+    if (fs.existsSync(path.join(projectDir, '.arkui-x/ios'))) {
+      platforms.push('ios');
+    }
+  } catch (err) {
+    console.warn('Failed to read platforms from .arkui-x:', err);
+  }
+  if (platforms.length === 0) {
+    return ['android', 'ios'];
+  }
+  return platforms;
+}
+
+function isSupportedOperatorType(platforms, type) {
+  if (type === 'ios' || type === 'ios-framework' || type === 'ios-xcframework') {
+    if (!platforms.includes('ios')) {
+      console.error('\x1B[31m%s\x1B[0m', `There is no iOS project in the current workspace; please check whether the command is correct.`);
+      return false;
+    }
+  } else if (type === 'aab' || type === 'apk' || type === 'aar') {
+    if (!platforms.includes('android')) {
+      console.error('\x1B[31m%s\x1B[0m', `There is no Android project in the current workspace; please check whether the command is correct.`);
+      return false;
+    }
+  } else if (type === 'hap' || type === 'hsp' || type === 'bundle' || type === 'haphsp' || type === undefined) {
+    return true;
+  } else {
+    console.error('\x1B[31m%s\x1B[0m', `The command is not supported for the current project.`);
+    return false;
+  }
+  return true;
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -799,5 +895,7 @@ module.exports = {
   getSdkVersionWithModelVersion,
   replaceInfo,
   getArkuixPluginWithModelVersion,
+  getCreatedPlatforms,
+  isSupportedOperatorType,
   getIsArkuixProject,
 };

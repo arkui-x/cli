@@ -34,7 +34,8 @@ const launch = require('./src/cli/ace-launch');
 const run = require('./src/cli/ace-run');
 const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
-const { getAbsolutePath, validOptions, checkProjectType } = require('./src/cli/util');
+const { getAbsolutePath, validOptions, checkProjectType,
+  getCreatedPlatforms, isSupportedOperatorType } = require('./src/cli/util');
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
@@ -43,6 +44,7 @@ const { analysisProject } = require('./src/cli/ace-analysis/index');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
+const createdPlatforms = getCreatedPlatforms(process.cwd());
 const commandsSort = {
   'Application': [],
   'Device': [],
@@ -187,8 +189,16 @@ function parseCreate() {
               const projectInfo = getProjectInfo(absolutePath);
               const projectTempPath = getTempPath(outputDir);
               const isRepair = true;
+              let targetPlatforms = 'both';
+              if (createdPlatforms.includes('android') && createdPlatforms.includes('ios')) {
+                targetPlatforms = 'both';
+              } else if (createdPlatforms.includes('android')) {
+                targetPlatforms = 'android';
+              } else if (createdPlatforms.includes('ios')) {
+                targetPlatforms = 'ios';
+              }
               createProject(absolutePath, projectTempPath, projectInfo.bundleName, projectName, projectInfo.runtimeOS,
-                initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion, isRepair);
+                initInfo.template, initInfo.currentProjectPath, projectInfo.compileSdkVersion, targetPlatforms, isRepair);
               repairModule(globalThis.templatePath, absolutePath, projectTempPath);
               repairAbility(globalThis.templatePath, absolutePath, projectTempPath);
               repairProject(absolutePath, outputDir);
@@ -233,7 +243,7 @@ function parseCreate() {
             }
             if (!isBundleNameValid(val)) {
               return 'The bundle name must contain 7 to 128 characters,start with a letter,and include ' +
-              'only lowercase letters, digits,underscores(_) and at least one separator(.).';
+                'only lowercase letters, digits,underscores(_) and at least one separator(.).';
             }
             return true;
           },
@@ -243,7 +253,7 @@ function parseCreate() {
           inquirer.prompt([{
             name: 'runtimeOS',
             type: 'input',
-            message: 'Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS):',
+            message: 'Enter the runtimeOS (1: OpenHarmony; 2: HarmonyOS):',
             validate(val) {
               if (val === '1' || val === '2') {
                 return true;
@@ -257,7 +267,7 @@ function parseCreate() {
             let sdkChooseStr = '';
             sdkVersionShowMap.forEach((value, key) => {
               if (sdkChooseStr !== '') {
-                sdkChooseStr = sdkChooseStr + ', ';
+                sdkChooseStr = sdkChooseStr + '; ';
               }
               sdkChooseStr = sdkChooseStr + key + ': ' + value;
             });
@@ -275,25 +285,53 @@ function parseCreate() {
               },
             }]).then(answers => {
               initInfo.sdkVersion = sdkVersionShowMap.get(answers['Complie SDk']);
-              if (platform === Platform.MacOS) {
-                inquirer.prompt([{
-                  name: 'integrationApproach',
-                  type: 'input',
-                  message: 'Please select the Framework integration approach (1: Native Manual, 2: CocoaPods):',
-                  validate(val) {
-                    if (val === '1' || val === '2') {
-                      return true;
-                    } else {
-                      return 'input must be an integer: 1 or 2.';
-                    }
-                  },
-                }]).then(answers => {
-                  initInfo.integrationApproach = answers.integrationApproach;
+
+              inquirer.prompt([{
+                name: 'platform',
+                type: 'input',
+                message: 'Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS):',
+                validate(val) {
+                  if (val === '' || val === undefined) {
+                    return true;
+                  }
+                  const trimmed = val.toString().trim();
+                  if (['1', '2', '3'].includes(trimmed)) {
+                    return true;
+                  }
+                  return 'input must be 1, 2, 3 or empty for default.';
+                },
+              }]).then(answersPlatform => {
+                const choice = (answersPlatform.platform || '').toString().trim();
+                if (choice === '' || choice === '1') {
+                  initInfo.platform = 'both';
+                } else if (choice === '2') {
+                  initInfo.platform = 'android';
+                } else if (choice === '3') {
+                  initInfo.platform = 'ios';
+                } else {
+                  initInfo.platform = 'both';
+                }
+
+                if (platform === Platform.MacOS && (initInfo.platform === 'ios' || initInfo.platform === 'both')) {
+                  inquirer.prompt([{
+                    name: 'integrationApproach',
+                    type: 'input',
+                    message: 'Please select the Framework integration approach (1: Native Manual; 2: CocoaPods):',
+                    validate(val) {
+                      if (val === '1' || val === '2') {
+                        return true;
+                      } else {
+                        return 'input must be an integer: 1 or 2.';
+                      }
+                    },
+                  }]).then(answers => {
+                    initInfo.integrationApproach = answers.integrationApproach;
+                    create(initInfo);
+                  });
+                } else {
                   create(initInfo);
-                });
-              } else {
-                create(initInfo);
-              }
+                }
+              });
             });
           });
         });
@@ -513,6 +551,9 @@ Available subcommands:
           compiler(subcommand, cmd);
         } else if (subcommand === 'apk' || subcommand === 'ios' || subcommand === 'aar' ||
           subcommand === 'ios-framework' || subcommand === 'ios-xcframework' || subcommand === 'aab') {
+          if (!isSupportedOperatorType(createdPlatforms, subcommand)) {
+            return false;
+          }
           build(subcommand, cmd);
         }
       });
@@ -666,49 +707,38 @@ function parseModify() {
     .option('--project', 'modify current project all modules.')
     .option('--modules', 'modify specified modules')
     .action((modifyType) => {
-      if (modifyType.project) {
-        modifyProject();
-      } else if (modifyType.modules) {
+      let platforms = 'both';
+      if (fs.existsSync(path.join(process.cwd(), './.arkui-x/arkui-x-config.json5'))) {
+        platforms = createdPlatforms.length === 2 ? 'both' : createdPlatforms[0];
+        parseModifyByPlatform(modifyType, platforms);
+      } else {
         inquirer.prompt([{
-          name: 'repair',
+          name: 'platform',
           type: 'input',
-          message: `Enter the number of modules to be modified:`,
+          message: 'Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS):',
           validate(val) {
-            const number = parseInt(val, 10);
-            if (val === '' || isNaN(number) || number <= 0 || number > 10) {
-              return 'Please enter a number 1 - 10！';
-            } else {
+            if (val === '' || val === undefined) {
               return true;
             }
-          },
-        }]).then(answers => {
-          const modifyNumber = parseInt(answers.repair, 10);
-          inquirer.prompt([{
-            name: 'repair',
-            type: 'input',
-            message: `Enter the modify module name(Multiple modules can be entered and separated by ","):`,
-            validate(val) {
-              if (val === '') {
-                return 'Input is empty,Please enter modify module name!';
-              }
-              const modules = val.split(',');
-              if (modifyNumber !== modules.length) {
-                return 'Incorrect number of mudules to be modified';
-              } else {
-                return true;
-              }
-            },
-          }]).then(answersModules => {
-            const modules = answersModules.repair.split(',');
-            let modifyModulesArray = [];
-            for (let i = 0; i < modules.length; i++) {
-              modifyModulesArray.push(modules[i].trim());
+            const trimmed = val.toString().trim();
+            if (['1', '2', '3'].includes(trimmed)) {
+              return true;
             }
-            modifyModules(modifyModulesArray);
-          });
+            return 'input must be 1, 2, 3 or empty for default.';
+          },
+        }]).then(answersPlatform => {
+          const choice = (answersPlatform.platform || '').toString().trim();
+          if (choice === '' || choice === '1') {
+            platforms = 'both';
+          } else if (choice === '2') {
+            platforms = 'android';
+          } else if (choice === '3') {
+            platforms = 'ios';
+          } else {
+            platforms = 'both';
+          }
+          parseModifyByPlatform(modifyType, platforms);
         });
-      } else {
-        console.log('Please input modify type with --project or --modules.` ');
       }
     });
   if (process.argv[2] === 'help' && process.argv[3] === 'modify') {
@@ -716,6 +746,57 @@ function parseModify() {
   }
   ModifyCmd.unknownOption = () => unknownOptions();
   commandsSort['Project'].push(program.commands[program.commands.length - 1]);
+}
+
+function inquirerModify(answers, platforms) {
+  const modifyNumber = parseInt(answers.repair, 10);
+  inquirer.prompt([{
+    name: 'repair',
+    type: 'input',
+    message: `Enter the modify module name(Multiple modules can be entered and separated by ","):`,
+    validate(val) {
+      if (val === '') {
+        return 'Input is empty,Please enter modify module name!';
+      }
+      const modules = val.split(',');
+      if (modifyNumber !== modules.length) {
+        return 'Incorrect number of mudules to be modified';
+      } else {
+        return true;
+      }
+    },
+  }]).then(answersModules => {
+    const modules = answersModules.repair.split(',');
+    let modifyModulesArray = [];
+    for (let i = 0; i < modules.length; i++) {
+      modifyModulesArray.push(modules[i].trim());
+    }
+    modifyModules(modifyModulesArray, platforms);
+  });
+}
+
+function parseModifyByPlatform(modifyType, platforms) {
+  if (modifyType.project) {
+    modifyProject(platforms);
+  } else if (modifyType.modules) {
+    inquirer.prompt([{
+      name: 'repair',
+      type: 'input',
+      message: `Enter the number of modules to be modified:`,
+      validate(val) {
+        const number = parseInt(val, 10);
+        if (val === '' || isNaN(number) || number <= 0 || number > 10) {
+          return 'Please enter a number 1 - 10!';
+        } else {
+          return true;
+        }
+      },
+    }]).then(answers => {
+      inquirerModify(answers, platforms);
+    });
+  } else {
+    console.log('Please input modify type with --project or --modules.` ');
+  }
 }
 
 function parseAnalysis() {
@@ -809,6 +890,9 @@ function execCmd(fileType, options, cmd, func) {
   if (fileType && !fileTypeList.includes(fileType)) {
     console.error('\x1B[31m%s\x1B[0m', `Could not find a command named "${process.argv.slice(3)}".\n\n`);
     console.error('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ACE Tools commands and options.`);
+    return false;
+  }
+  if (!isSupportedOperatorType(createdPlatforms, fileType)) {
     return false;
   }
 

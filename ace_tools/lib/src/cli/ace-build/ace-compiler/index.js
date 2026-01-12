@@ -37,6 +37,7 @@ const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject')
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
+const { getCreatedPlatforms } = require('../../util');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -94,9 +95,12 @@ function readConfigProcess() {
 }
 
 function writeLocalProperties() {
+  const createdPlatforms = getCreatedPlatforms(projectDir);
+  if (createdPlatforms && createdPlatforms.includes('android')) {
+    const androidFilePath = path.join(projectDir, '.arkui-x/android/local.properties');
+    fs.rmSync(androidFilePath, { recursive: true, force: true });
+  }
   const filePath = path.join(projectDir, 'local.properties');
-  const androidFilePath = path.join(projectDir, '.arkui-x/android/local.properties');
-  fs.rmSync(androidFilePath, { recursive: true, force: true });
   let content = `nodejs.dir=${nodejsDir}\narkui-x.dir=${arkuiXSdkDir}`;
   if (currentSystem === 'HarmonyOS') {
     content += `\nhwsdk.dir=${harmonyOsSdkDir}`;
@@ -109,17 +113,26 @@ function writeLocalProperties() {
 function copyStageBundleToAndroidAndIOS(moduleList) {
   let isContinue = true;
   const androidDir = isAppProject(projectDir) ? 'app' : 'library';
-  deleteOldFile(path.join(projectDir, '.arkui-x/ios/arkui-x'));
-  deleteOldFile(path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x`));
-  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '');
+  const createdPlatforms = getCreatedPlatforms(projectDir);
+  if (createdPlatforms.includes('ios')) {
+    deleteOldFile(path.join(projectDir, '.arkui-x/ios/arkui-x'));
+  }
+  if (createdPlatforms.includes('android')) {
+    deleteOldFile(path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x`));
+  }
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '', createdPlatforms);
   const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
-  const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
-  const androidSystemResPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`);
-  isContinue = isContinue && copy(systemResPath, iosSystemResPath);
-  isContinue = isContinue && copy(systemResPath, androidSystemResPath);
-  const arkJsonPath = path.join(arkuiXSdkPath, 'arkui-x.json');
-  const androidJsonPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/arkui-x.json`);
-  fs.writeFileSync(androidJsonPath, fs.readFileSync(arkJsonPath));
+  if (createdPlatforms.includes('ios')) {
+    const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
+    isContinue = isContinue && copy(systemResPath, iosSystemResPath);
+  }
+  if (createdPlatforms.includes('android')) {
+    const androidSystemResPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`);
+    isContinue = isContinue && copy(systemResPath, androidSystemResPath);
+    const arkJsonPath = path.join(arkuiXSdkPath, 'arkui-x.json');
+    const androidJsonPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/arkui-x.json`);
+    fs.writeFileSync(androidJsonPath, fs.readFileSync(arkJsonPath));
+  }
   return isContinue;
 }
 
@@ -128,11 +141,12 @@ function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
   if (!cmd.debug || fileType === 'hap' || fileType === 'hsp' || fileType === 'haphsp') {
     return isContinue;
   }
-  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', '_test');
+  const createdPlatforms = getCreatedPlatforms(projectDir);
+  isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'ohosTest', '_test', createdPlatforms);
   return isContinue;
 }
 
-function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOption) {
+function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOption, createdPlatforms) {
   let isContinue = true;
   moduleList.forEach(module => {
     // Now only consider one ability
@@ -155,14 +169,18 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
     const resindexIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/resources.index');
     const resPathIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/resources');
     const moduleJsonPathIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/module.json');
-    fs.mkdirSync(distAndroid, { recursive: true });
-    isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
-    fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
-    fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
-    fs.mkdirSync(distIOS, { recursive: true });
-    isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
-    fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
-    fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
+    if (createdPlatforms && createdPlatforms.includes('android')) {
+      fs.mkdirSync(distAndroid, { recursive: true });
+      isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
+      fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
+      fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
+    }
+    if (createdPlatforms && createdPlatforms.includes('ios')) {
+      fs.mkdirSync(distIOS, { recursive: true });
+      isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
+      fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
+      fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
+    }
   });
   return isContinue;
 }
@@ -202,6 +220,7 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
   try {
     modifyAndroidAbi(projectDir, cmd);
     deleteOldFile(buildPath);
+    const createdPlatforms = getCreatedPlatforms(projectDir);
     moduleListSpecified.forEach(module => {
       // Now only consider one ability
       const src = path.join(projectDir, modulePathList[module], 'build/default/intermediates/loader_out/default/ets');
@@ -220,14 +239,18 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
       const resPathIOS = path.join(buildPath, 'ios/', destClassName + '/resources');
       const moduleJsonPathIOS = path.join(buildPath, 'ios/', destClassName + '/module.json');
 
-      fs.mkdirSync(distAndroid, { recursive: true });
-      isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
-      fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
-      fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
-      fs.mkdirSync(distIOS, { recursive: true });
-      isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
-      fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
-      fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
+      if (createdPlatforms && createdPlatforms.includes('android')) {
+        fs.mkdirSync(distAndroid, { recursive: true });
+        isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
+        fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
+        fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
+      }
+      if (createdPlatforms && createdPlatforms.includes('ios')) {
+        fs.mkdirSync(distIOS, { recursive: true });
+        isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
+        fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
+        fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
+      }
     });
     const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
     const bundleSystemResPath = path.join(buildPath, 'systemres');
@@ -241,12 +264,33 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
   return isContinue;
 }
 
+function copyLibsToBuildByAndroid(cmd, moduleListSpecified, androidLib, buildPath, isContinue) {
+  copyLibraryToProject('apk', cmd, projectDir, 'android');
+  moduleListSpecified.forEach(module => {
+    newContinue = isContinue && copy(androidLib,
+      path.join(buildPath, `android/${module}/libs`), 'libarkui_android.so');
+  });
+  ['arm64-v8a', 'armeabi-v7a', 'x86_64'].forEach(item => {
+    if (fs.existsSync(path.join(androidLib, item, 'libarkui_android.so'))) {
+      fs.mkdirSync(path.join(buildPath, 'android/library', item), { recursive: true });
+      fs.copyFileSync(path.join(androidLib, item, 'libarkui_android.so'),
+        path.join(buildPath, 'android/library', item, 'libarkui_android.so'));
+    }
+  });
+  return newContinue;
+}
+
 function copyLibsToBuild(moduleListSpecified, buildPath, cmd) {
   let isContinue = true;
   try {
-    fs.mkdirSync(path.join(buildPath, 'android/library'), { recursive: true });
-    fs.mkdirSync(path.join(buildPath, 'ios/library'), { recursive: true });
-    if (platform === Platform.MacOS) {
+    const createdPlatforms = getCreatedPlatforms(projectDir);
+    if (createdPlatforms.includes('android')) {
+      fs.mkdirSync(path.join(buildPath, 'android/library'), { recursive: true });
+    }
+    if (createdPlatforms.includes('ios')) {
+      fs.mkdirSync(path.join(buildPath, 'ios/library'), { recursive: true });
+    }
+    if (platform === Platform.MacOS && createdPlatforms.includes('ios')) {
       const iosFramework = path.join(projectDir, '.arkui-x/ios/frameworks');
       copyLibraryToProject('ios', cmd, projectDir, 'ios');
       moduleListSpecified.forEach(module => {
@@ -257,18 +301,9 @@ function copyLibsToBuild(moduleListSpecified, buildPath, cmd) {
         path.join(buildPath, 'ios/library/libarkui_ios.xcframework'));
     }
     const androidLib = path.join(projectDir, '.arkui-x/android/app/libs');
-    copyLibraryToProject('apk', cmd, projectDir, 'android');
-    moduleListSpecified.forEach(module => {
-      isContinue = isContinue && copy(androidLib,
-        path.join(buildPath, `android/${module}/libs`), 'libarkui_android.so');
-    });
-    ['arm64-v8a', 'armeabi-v7a', 'x86_64'].forEach(item => {
-      if (fs.existsSync(path.join(androidLib, item, 'libarkui_android.so'))) {
-        fs.mkdirSync(path.join(buildPath, 'android/library', item), { recursive: true });
-        fs.copyFileSync(path.join(androidLib, item, 'libarkui_android.so'),
-          path.join(buildPath, 'android/library', item, 'libarkui_android.so'));
-      }
-    });
+    if (createdPlatforms.includes('android')) {
+      isContinue = copyLibsToBuildByAndroid(cmd, moduleListSpecified, androidLib, buildPath, isContinue);
+    }
     return isContinue;
   } catch (err) {
     console.log(`copy library to build directory failed\n`, err);
@@ -395,7 +430,8 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
       console.log(`Build bundle successfully.`);
       return copyBundletoBuild(moduleListSpecified, cmd);
     } else if (fileType === 'apk' || fileType === 'aab' || fileType === 'ios') {
-      createAndroidAndIosBuildArkTSShell(projectDir, getOhpmTools(), arkuiXSdkPath);
+      const createdPlatforms = getCreatedPlatforms(projectDir);
+      createAndroidAndIosBuildArkTSShell(projectDir, getOhpmTools(), arkuiXSdkPath, createdPlatforms);
       return true;
     } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aar') {
       return true;
@@ -481,7 +517,8 @@ function compiler(fileType, cmd) {
       return false;
     }
   } else {
-    if (fileType === 'ios' || fileType === 'apk' || fileType === 'aab' || fileType === 'bundle') {
+    const createdPlatforms = getCreatedPlatforms(projectDir);
+    if ((fileType === 'ios' && createdPlatforms && !createdPlatforms.includes('ios')) || fileType === 'apk' || fileType === 'aab' || fileType === 'bundle') {
       console.error('\x1B[31m%s\x1B[0m', `Failed to build the ${fileTypeDict[fileType]}, because this project is not an application project.`);
       return false;
     }

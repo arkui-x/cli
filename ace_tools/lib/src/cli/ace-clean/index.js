@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const { isProjectRootDir, getAarName, getSdkVersion, setDevEcoSdkInEnv } = require('../util');
+const { isProjectRootDir, getAarName, getSdkVersion, setDevEcoSdkInEnv, getCreatedPlatforms } = require('../util');
 const { Platform, platform } = require('../ace-check/platform');
 const { devEcoStudioDir } = require('../ace-check/configs');
 const exec = require('child_process').execSync;
@@ -48,9 +48,12 @@ function clean() {
     successFlag = false;
   }
   if (platform === Platform.MacOS) {
-    if (!cleanIOS()) {
-      failedMsg += '\tcleanIOS';
-      successFlag = false;
+    const createdPlatforms = getCreatedPlatforms(projectDir);
+    if (createdPlatforms.includes('ios')) {
+      if (!cleanIOS()) {
+        failedMsg += '\tcleanIOS';
+        successFlag = false;
+      }
     }
   }
   if (!cleanOutputPath()) {

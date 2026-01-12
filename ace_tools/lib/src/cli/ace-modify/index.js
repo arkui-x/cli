@@ -19,6 +19,7 @@ const plist = require('plist');
 const inquirer = require('inquirer');
 const { replaceInfo, getArkuixPluginWithModelVersion } = require('../util/index');
 const { createStageInIOS, createStageInAndroid } = require('../ace-create/module/index');
+const { updateCrossPlatformConfig } = require('../ace-create/util');
 
 function modifyCopyFileSync(source, destination) {
   fs.copyFileSync(source, destination);
@@ -156,46 +157,54 @@ function getModuleAbility(moduleName) {
   return abilityName;
 }
 
-function modifyCrossModule(moduleName, appName) {
+function modifyCrossModule(moduleName, appName, platforms) {
   const files = [];
   const replaceInfos = [];
   const strs = [];
 
   const abilityName = getModuleAbility(moduleName);
-  files.push('./.arkui-x/android/app/src/main/java/MainActivity.java');
-  replaceInfos.push('ArkUIInstanceName');
-  strs.push(`${appName}:${moduleName}:${abilityName}:`);
-  files.push('./.arkui-x/android/app/src/main/java/MainActivity.java');
-  replaceInfos.push('MainActivity');
   const newModuleName = moduleName[0].toUpperCase() + moduleName.slice(1);
   const activityName = `${newModuleName}${abilityName}Activity`;
-  strs.push(activityName);
-  files.push('./.arkui-x/android/app/src/main/AndroidManifest.xml');
-  replaceInfos.push('MainActivity');
-  strs.push(activityName);
+  if (platforms === 'android' || platforms === 'both') {
+    files.push('./.arkui-x/android/app/src/main/java/MainActivity.java');
+    replaceInfos.push('ArkUIInstanceName');
+    strs.push(`${appName}:${moduleName}:${abilityName}:`);
+    files.push('./.arkui-x/android/app/src/main/java/MainActivity.java');
+    replaceInfos.push('MainActivity');
+    strs.push(activityName);
+    files.push('./.arkui-x/android/app/src/main/AndroidManifest.xml');
+    replaceInfos.push('MainActivity');
+    strs.push(activityName);
+  }
   const nowName = newModuleName + abilityName;
-  files.push('./.arkui-x/ios/app/EntryEntryAbilityViewController.m');
-  replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(`${nowName}ViewController`);
-  files.push('./.arkui-x/ios/app/EntryEntryAbilityViewController.h');
-  replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(`${nowName}ViewController`);
-  files.push('./.arkui-x/ios/app/AppDelegate.m');
-  replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(`${nowName}ViewController`);
-  files.push('./.arkui-x/ios/app.xcodeproj/project.pbxproj');
-  replaceInfos.push('EntryEntryAbilityViewController');
-  strs.push(`${nowName}ViewController`);
-  files.push('./.arkui-x/ios/app/AppDelegate.m');
-  replaceInfos.push('"entry"');
-  strs.push(`"${moduleName}"`);
-  files.push('./.arkui-x/ios/app/AppDelegate.m');
-  replaceInfos.push('"EntryAbility"');
-  strs.push(`"${abilityName}"`);
+  if (platforms === 'ios' || platforms === 'both') {
+    files.push('./.arkui-x/ios/app/EntryEntryAbilityViewController.m');
+    replaceInfos.push('EntryEntryAbilityViewController');
+    strs.push(`${nowName}ViewController`);
+    files.push('./.arkui-x/ios/app/EntryEntryAbilityViewController.h');
+    replaceInfos.push('EntryEntryAbilityViewController');
+    strs.push(`${nowName}ViewController`);
+    files.push('./.arkui-x/ios/app/AppDelegate.m');
+    replaceInfos.push('EntryEntryAbilityViewController');
+    strs.push(`${nowName}ViewController`);
+    files.push('./.arkui-x/ios/app.xcodeproj/project.pbxproj');
+    replaceInfos.push('EntryEntryAbilityViewController');
+    strs.push(`${nowName}ViewController`);
+    files.push('./.arkui-x/ios/app/AppDelegate.m');
+    replaceInfos.push('"entry"');
+    strs.push(`"${moduleName}"`);
+    files.push('./.arkui-x/ios/app/AppDelegate.m');
+    replaceInfos.push('"EntryAbility"');
+    strs.push(`"${abilityName}"`);
+  }
   replaceInfo(files, replaceInfos, strs);
-  fs.renameSync('./.arkui-x/android/app/src/main/java/MainActivity.java', `./.arkui-x/android/app/src/main/java/${activityName}.java`);
-  fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.m', `./.arkui-x/ios/app/${nowName}ViewController.m`);
-  fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.h', `./.arkui-x/ios/app/${nowName}ViewController.h`);
+  if (platforms === 'android' || platforms === 'both') {
+    fs.renameSync('./.arkui-x/android/app/src/main/java/MainActivity.java', `./.arkui-x/android/app/src/main/java/${activityName}.java`);
+  }
+  if (platforms === 'ios' || platforms === 'both') {
+    fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.m', `./.arkui-x/ios/app/${nowName}ViewController.m`);
+    fs.renameSync('./.arkui-x/ios/app/EntryEntryAbilityViewController.h', `./.arkui-x/ios/app/${nowName}ViewController.h`);
+  }
 }
 
 function modifyModuleHvigorInfo(moduleName, moduleType) {
@@ -334,43 +343,53 @@ function addUrlInIosPlist() {
   fs.writeFileSync(infoPlistPath, updatedInfoPlistContent, 'utf8');
 }
 
-function modifyEntryModule(moduleName) {
+function modifyEntryModule(moduleName, platforms) {
   fs.mkdirSync('.arkui-x');
   modifyCopyFileSync(`${globalThis.templatePath}/arkui-x-config.json5`, './.arkui-x/arkui-x-config.json5');
   const jsonData = JSON5.parse(fs.readFileSync('./.arkui-x/arkui-x-config.json5', 'utf8'));
   jsonData.modules = [];
   fs.writeFileSync('./.arkui-x/arkui-x-config.json5', JSON5.stringify(jsonData, null));
-  modifyCopyFolderSync(`${globalThis.templatePath}/android`, './.arkui-x/android');
-  modifyCopyFolderSync(`${globalThis.templatePath}/ios`, './.arkui-x/ios');
   const appName = getAppName();
   const packageName = getPackageName();
-  replaceAndroidProjectInfo(appName, packageName);
-  replaceiOSProjectInfo(appName);
-  modifyCrossModule(moduleName, appName);
+  if (platforms === 'android' || platforms === 'both') {
+    modifyCopyFolderSync(`${globalThis.templatePath}/android`, './.arkui-x/android');
+    replaceAndroidProjectInfo(appName, packageName);
+  }
+  if (platforms === 'ios' || platforms === 'both') {
+    modifyCopyFolderSync(`${globalThis.templatePath}/ios`, './.arkui-x/ios');
+    replaceiOSProjectInfo(appName);
+  }
+  modifyCrossModule(moduleName, appName, platforms);
   modifyProjectHvigorInfo();
   modifyModuleHvigorInfo(moduleName, 'entry');
-  modifyDirStructure(appName);
+  if (platforms === 'android' || platforms === 'both') {
+    modifyDirStructure(appName);
+  }
 }
 
-function modifyFeatureModule(moduleName) {
+function modifyFeatureModule(moduleName, platforms) {
   let templateDir = path.join(__dirname, 'template');
   if (!fs.existsSync(templateDir)) {
     templateDir = globalThis.templatePath;
   }
-  createStageInIOS(moduleName, templateDir, 'feature');
-  addUrlInIosPlist();
-  createStageInAndroid(moduleName, templateDir, 'feature');
+  if (platforms === 'ios' || platforms === 'both') {
+    createStageInIOS(moduleName, templateDir, 'feature');
+    addUrlInIosPlist();
+  }
+  if (platforms === 'android' || platforms === 'both') {
+    createStageInAndroid(moduleName, templateDir, 'feature');
+  }
   modifyModuleHvigorInfo(moduleName, 'feature');
 }
 
-function copyAndroidiOSTemplate(moduleName, type) {
+function copyAndroidiOSTemplate(moduleName, type, platforms) {
   if (type === 'entry') {
-    modifyEntryModule(moduleName);
+    modifyEntryModule(moduleName, platforms);
   } else if (type === 'feature') {
     if (fs.existsSync('./.arkui-x')) {
-      modifyFeatureModule(moduleName);
+      modifyFeatureModule(moduleName, platforms);
     } else {
-      modifyEntryModule(moduleName);
+      modifyEntryModule(moduleName, platforms);
     }
   } else if (type === 'shared') {
     modifyModuleHvigorInfo(moduleName, 'shared');
@@ -382,7 +401,7 @@ function copyAndroidiOSTemplate(moduleName, type) {
   return true;
 }
 
-function modifyProject() {
+function modifyProject(platforms) {
   if (fs.existsSync('./.arkui-x')) {
     console.log('\x1B[31m%s\x1B[0m', `Error: The current project is a cross-platform project. If you need to modify the new module, run the ace modify --modules command.`);
     return;
@@ -409,16 +428,16 @@ function modifyProject() {
   if (entryTypeArray.length < 1) {
     console.log('\x1B[31m%s\x1B[0m', `Error: The project does not have an entry module，cannot be modify!`);
   } else if (entryTypeArray.length === 1) {
-    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryTypeArray[0], modifyType.modifyTypeProject);
+    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryTypeArray[0], modifyType.modifyTypeProject, platforms);
   } else {
-    modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, modifyType.modifyTypeProject);
+    modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, modifyType.modifyTypeProject, platforms);
   }
 }
 
-function modifyProjectModules(modulesArray, modulesTypeArray) {
+function modifyProjectModules(modulesArray, modulesTypeArray, platforms) {
   const arkuixModuleArray = [];
   for (let i = 0; i < modulesArray.length; i++) {
-    copyAndroidiOSTemplate(modulesArray[i], modulesTypeArray[i]);
+    copyAndroidiOSTemplate(modulesArray[i], modulesTypeArray[i], platforms);
     if (modulesTypeArray[i] === 'entry' || modulesTypeArray[i] === 'feature' || modulesTypeArray[i] === 'shared') {
       arkuixModuleArray.push(modulesArray[i]);
     }
@@ -428,6 +447,7 @@ function modifyProjectModules(modulesArray, modulesTypeArray) {
   }
   initProjectInfo();
   checkProblem();
+  updateCrossPlatformConfig(process.cwd(), platforms);
   console.log('modify HarmonyOS project to ArkUI-X project success!');
 }
 
@@ -440,7 +460,7 @@ function initProjectInfo() {
   }`, 'utf8');
 }
 
-function modifyModules(modules) {
+function modifyModules(modules, platforms) {
   const filePath = './build-profile.json5';
   if (!fs.existsSync(filePath)) {
     console.log('\x1B[31m%s\x1B[0m', `Error: Operation failed. Go to your project directory and try again.`);
@@ -480,11 +500,11 @@ function modifyModules(modules) {
       console.log('\x1B[31m%s\x1B[0m', `Error: The entered module does not contains an entry or feature type module. cannot be modified`);
       return;
     }
-    modifyDesignatedModules(modulesArray, modulesTypeArray);
+    modifyDesignatedModules(modulesArray, modulesTypeArray, platforms);
   } else if (entryTypeArray.length === 1) {
-    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryTypeArray[0], modifyType.modifyTypeModules);
+    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryTypeArray[0], modifyType.modifyTypeModules, platforms);
   } else {
-    modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, modifyType.modifyTypeModules);
+    modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, modifyType.modifyTypeModules, platforms);
   }
 }
 
@@ -504,7 +524,7 @@ function initModifyType() {
   return { modifyTypeProject: 0, modifyTypeModules: 1 };
 }
 
-function modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, nowModifyType) {
+function modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeArray, nowModifyType, platforms) {
   let entryModuleString = `(`;
   for (const entryModuleNow of entryTypeArray) {
     entryModuleString = (entryModuleNow !== entryTypeArray[entryTypeArray.length - 1]) ? `${entryModuleString}${entryModuleNow} ` : `${entryModuleString}${entryModuleNow}`;
@@ -527,11 +547,11 @@ function modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeAr
       }
     }
   }]).then(answersModules => {
-    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, answersModules.repair, nowModifyType);
+    modifyModulesWithOneEntry(modulesArray, modulesTypeArray, answersModules.repair, nowModifyType, platforms);
   });
 }
 
-function modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryModule, nowModifyType) {
+function modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryModule, nowModifyType, platforms) {
   const modifyModulesArray = [];
   const modifyModulesTypeArray = [];
   modifyModulesArray.push(entryModule);
@@ -544,20 +564,20 @@ function modifyModulesWithOneEntry(modulesArray, modulesTypeArray, entryModule, 
   }
   const modifyType = initModifyType();
   if (nowModifyType === modifyType.modifyTypeProject) {
-    modifyProjectModules(modifyModulesArray, modifyModulesTypeArray);
+    modifyProjectModules(modifyModulesArray, modifyModulesTypeArray, platforms);
   } else {
-    modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray);
+    modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray, platforms);
   }
 }
 
-function modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray) {
+function modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray, platforms) {
   let successModuleStr = '';
   let failedModuleStr = '';
   let isHaveSuccess = false;
   let isHaveFailed = false;
   const arkuixModuleArray = [];
   for (let i = 0; i < modifyModulesArray.length; i++) {
-    if (copyAndroidiOSTemplate(modifyModulesArray[i], modifyModulesTypeArray[i])) {
+    if (copyAndroidiOSTemplate(modifyModulesArray[i], modifyModulesTypeArray[i], platforms)) {
       successModuleStr = `${successModuleStr},${modifyModulesArray[i]}`;
       isHaveSuccess = true;
       if (modifyModulesTypeArray[i] === 'entry' || modifyModulesTypeArray[i] === 'feature' || modifyModulesTypeArray[i] === 'shared') {
@@ -572,6 +592,7 @@ function modifyDesignatedModules(modifyModulesArray, modifyModulesTypeArray) {
     addModuleInArkuixConfig(arkuixModuleArray);
   }
   initProjectInfo();
+  updateCrossPlatformConfig(process.cwd(), platforms);
   checkProblem();
   if (isHaveFailed) {
     console.log('\x1B[31m%s\x1B[0m', `Error: modify HarmonyOS modules {${cleanStr(failedModuleStr, ',')}} to ArkUI-X modules failed!`);
