@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
-const { getModuleList, getIosProjectName } = require('../../util');
+const { getModuleList, getIosProjectName, getCreatedPlatforms } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../../ace-create/ability');
 let projectDir;
 
@@ -168,10 +168,21 @@ function createTestTem(fileType) {
   projectDir = process.cwd();
   const moduleList = getModuleList(projectDir);
   const templateDir = globalThis.templatePath;
-  const curManifestXmlInfo =
-    fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
-  const curAppDelegateInfo =
-    fs.readFileSync(path.join(projectDir, `.arkui-x/ios/${getIosProjectName(projectDir)}/AppDelegate.m`)).toString();
+  const testType = fileType === 'apk' ? 'android' : 'ios';
+  const createdPlatforms = getCreatedPlatforms(projectDir);
+  if (!createdPlatforms.includes(testType)) {
+    throw new Error('Please create ' + testType + ' project first.');
+  }
+  let curManifestXmlInfo = '';
+  if (fileType === 'apk') {
+    curManifestXmlInfo =
+      fs.readFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml')).toString();
+  }
+  let curAppDelegateInfo = '';
+  if (fileType === 'ios') {
+    curAppDelegateInfo =
+      fs.readFileSync(path.join(projectDir, `.arkui-x/ios/${getIosProjectName(projectDir)}/AppDelegate.m`)).toString();
+  }
   moduleList.forEach(module => {
     const testModule = module + '_test';
     const abilityName = 'TestAbility';

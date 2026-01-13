@@ -29,11 +29,12 @@ const {
 const { androidSdkDir, arkuiXSdkDir, javaSdkDirAndroid } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi, getAndroidModule,
-  getIosProjectName } = require('../../util');
+  getIosProjectName, getCreatedPlatforms } = require('../../util');
 const { copyLibraryToProject, installPodfiles } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 const analyze = require('../ace-analyze/index');
 const projectDir = process.cwd();
+const createdPlatforms = getCreatedPlatforms(projectDir);
 
 function isAndroidSdkValid() {
   if (androidSdkDir) {
@@ -45,6 +46,9 @@ function isAndroidSdkValid() {
 }
 
 function writeLocalProperties() {
+  if (!createdPlatforms || !createdPlatforms.includes('android')) {
+    return true;
+  }
   const filePath = path.join(projectDir, '.arkui-x/android/local.properties');
   const content = `sdk.dir=${androidSdkDir}`;
   return createLocalProperties(filePath, content);

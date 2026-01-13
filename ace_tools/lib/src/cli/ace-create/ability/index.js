@@ -19,7 +19,7 @@ const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { copy } = require('../util');
 const { getModuleAbilityList, addFileToPbxproj, isAppProject,
-  getCrossPlatformModules, getIosProjectName } = require('../../util');
+  getCrossPlatformModules, getIosProjectName, getCreatedPlatforms } = require('../../util');
 
 let currentDir;
 
@@ -256,10 +256,7 @@ function getCurrentModuleName(currentDir) {
   return JSON5.parse(fs.readFileSync(ohPackage)).name;
 }
 
-function createAbility() {
-  currentDir = process.cwd(); // it should be module directory
-  const abilityCreateInfo = {};
-  const buildFilePath = path.join(currentDir, 'obfuscation-rules.txt');
+function checkCreateAbilityInfo(buildFilePath, currentDir) { 
   if (!fs.existsSync(buildFilePath)) {
     console.error('\x1B[31m%s\x1B[0m', `Operation failed. Go to your module directory and try again.`);
     return false;
@@ -267,6 +264,16 @@ function createAbility() {
 
   if (fs.readFileSync(path.join(currentDir, 'hvigorfile.ts')).toString().includes('hspTasks')) {
     console.error('\x1B[31m%s\x1B[0m', `Share Library not support to create ability.`);
+    return false;
+  }
+  return true;
+}
+
+function createAbility() {
+  currentDir = process.cwd(); // it should be module directory
+  const abilityCreateInfo = {};
+  const buildFilePath = path.join(currentDir, 'obfuscation-rules.txt');
+  if (!checkCreateAbilityInfo(buildFilePath, currentDir)) {
     return false;
   }
 
@@ -296,14 +303,29 @@ function createAbility() {
       abilityCreateInfo.abilityModuleCrossPlatform = 'n';
       if (crossPlatformModules.includes(moduleName)) {
         abilityCreateInfo.abilityModuleCrossPlatform = 'y';
-        createStageAbilityInAndroid(moduleName, answers.abilityName + 'Ability', templateDir, currentDir) &&
+        const createdPlatforms = getCreatedPlatforms(path.dirname(currentDir));
+        if (createdPlatforms.includes('android')) {
+          createStageAbilityInAndroid(moduleName, answers.abilityName + 'Ability', templateDir, currentDir);
+        }
+        if (createdPlatforms.includes('ios')) {
           createStageAbilityInIOS(moduleName, answers.abilityName + 'Ability', templateDir, currentDir);
+        }
       }
       infoJson.abilityInfo.push(abilityCreateInfo);
       fs.writeFileSync(path.join(path.dirname(currentDir), '.projectInfo'), JSON.stringify(infoJson, '', '  '), 'utf8');
       return true;
     }
   });
+}
+
+function createStageAbilityFromRepairAbility(absolutePath, ability, templateDir, currentDir) {
+  const createdPlatforms = getCreatedPlatforms(path.join(absolutePath, '..'));
+  if (createdPlatforms.includes('android')) {
+    createStageAbilityInAndroid(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir);
+  }
+  if (createdPlatforms.includes('ios')) {
+    createStageAbilityInIOS(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir);
+  }
 }
 
 function repairAbility(templateDir, absolutePath, projectTempPath) {
@@ -313,8 +335,7 @@ function repairAbility(templateDir, absolutePath, projectTempPath) {
     if (createInSource(ability.abilityName + 'Ability', templateDir) &&
       updateManifest(ability.abilityName + 'Ability')) {
       if (ability.abilityModuleCrossPlatform === 'y') {
-        createStageAbilityInAndroid(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir) &&
-          createStageAbilityInIOS(ability.abilityModuleName, ability.abilityName + 'Ability', templateDir, currentDir);
+        createStageAbilityFromRepairAbility(absolutePath, ability, templateDir, currentDir);
       }
     }
   });

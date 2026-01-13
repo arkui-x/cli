@@ -22,7 +22,7 @@ const { copy, modifyHarmonyOSConfig, addCrossPlatform, modifyOpenHarmonyOSConfig
 const { getSdkVersion } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability');
 const { getModuleList, getCurrentProjectSystem, getModuleType, addFileToPbxproj,
-  isAppProject, getIosProjectName } = require('../../util');
+  isAppProject, getIosProjectName, getCreatedPlatforms } = require('../../util');
 const searchOffset = 24; // 'AbilityViewController.h"' string length is 24
 
 let projectDir = process.cwd();
@@ -442,11 +442,19 @@ function createStageModule(moduleList, templateDir, absolutePath) {
         }]).then(answers => {
           setModuleCreateInfo(absolutePath, moduleName, answers.cross, moduleType);
           if (answers.cross === 'y') {
-            if (createStageModuleInSource(moduleName, templateDir, moduleType) &&
-              createStageInAndroid(moduleName, templateDir, moduleType) &&
-              createStageInIOS(moduleName, templateDir, moduleType)) {
-              addCrossPlatform(projectDir, moduleName);
-              return replaceStageProjectInfo(moduleName, moduleType);
+            if (createStageModuleInSource(moduleName, templateDir, moduleType)) {
+              const createdPlatforms = getCreatedPlatforms(projectDir);
+              let ok = true;
+              if (createdPlatforms.includes('android')) {
+                ok = ok && createStageInAndroid(moduleName, templateDir, moduleType);
+              }
+              if (createdPlatforms.includes('ios')) {
+                ok = ok && createStageInIOS(moduleName, templateDir, moduleType);
+              }
+              if (ok) {
+                addCrossPlatform(projectDir, moduleName);
+                return replaceStageProjectInfo(moduleName, moduleType);
+              }
             }
           } else {
             if (createStageModuleInSource(moduleName, templateDir, moduleType)) {
@@ -686,9 +694,14 @@ function updateCrossPlatformModules(currentSystem) {
         addCrossPlatform(projectDir, module);
         const moduleJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, modulePath, 'src/main/module.json5')));
         const currentDir = path.join(projectDir, modulePath);
+        const createdPlatforms = getCreatedPlatforms(projectDir);
         moduleJsonInfo.module.abilities.forEach(component => {
-          createStageAbilityInIOS(module, component['name'], templateDir, currentDir);
-          createStageAbilityInAndroid(module, component['name'], templateDir, currentDir);
+          if (createdPlatforms.includes('ios')) {
+            createStageAbilityInIOS(module, component['name'], templateDir, currentDir);
+          }
+          if (createdPlatforms.includes('android')) {
+            createStageAbilityInAndroid(module, component['name'], templateDir, currentDir);
+          }
         });
       }
     });
@@ -749,11 +762,19 @@ function repairModule(templateDir, absolutePath, projectTempPath) {
       }
     } else {
       if (module.moduleCrossPlatform === 'y') {
-        if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType) &&
-          createStageInAndroid(module.moduleName, templateDir, module.moduleType) &&
-          createStageInIOS(module.moduleName, templateDir, module.moduleType)) {
-          addCrossPlatform(projectTempPath, module.moduleName);
-          replaceStageProjectInfo(module.moduleName, module.moduleType);
+        if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType)) {
+          const createdPlatforms = getCreatedPlatforms(projectTempPath);
+          let ok = true;
+          if (createdPlatforms.includes('android')) {
+            ok = ok && createStageInAndroid(module.moduleName, templateDir, module.moduleType);
+          }
+          if (createdPlatforms.includes('ios')) {
+            ok = ok && createStageInIOS(module.moduleName, templateDir, module.moduleType);
+          }
+          if (ok) {
+            addCrossPlatform(projectTempPath, module.moduleName);
+            replaceStageProjectInfo(module.moduleName, module.moduleType);
+          }
         }
       } else {
         if (createStageModuleInSource(module.moduleName, templateDir, module.moduleType)) {

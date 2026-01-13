@@ -22,7 +22,8 @@ const { getConfig } = require('../../ace-config');
 const { copy, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
   modifyOpenHarmonyOSConfig, modifyNativeCppConfig, signIOS, copyTemp,
   getFileList, getTempPath, createAndroidAndIosBuildArkTSShell,
-  createAndroidTaskInBuildGradle, createIosScriptInPbxproj } = require('../util');
+  createAndroidTaskInBuildGradle, createIosScriptInPbxproj,
+  updateCrossPlatformConfig } = require('../util');
 const aceHarmonyOS = '2';
 const acePluginNapiProType = 'plugin_napi';
 const aceLibraryProType = 'library';
@@ -30,33 +31,37 @@ const exec = require('child_process').execSync;
 let useCocoapods = false;
 
 function create(args) {
-  const { projectAbsolutePath, outputDir, project, bundleName, runtimeOS, template, currentProjectPath, sdkVersion, integrationApproach } = args;
+  const { projectAbsolutePath, outputDir, project, bundleName, runtimeOS, template,
+    currentProjectPath, sdkVersion, integrationApproach, platform: targetPlatform } = args;
   useCocoapods = (integrationApproach === '2');
+  const platforms = (targetPlatform || 'both').toLowerCase();
   const projectTempPath = getTempPath(outputDir);
-  if (useCocoapods) {
+  if (useCocoapods && (platforms === 'ios' || platforms === 'both')) {
     if (!checkCocoaPodsInstalled()) {
       console.info('\x1B[31m%s\x1B[0m', 'Project created failed!');
       console.info('\x1B[33m%s\x1B[0m', 'CocoaPods is not installed. Please install CocoaPods(brew install cocoapods) and try again.');
       return;
     }
-    createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
+    createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion, platforms);
     if (!createPodfile(projectTempPath)) {
       console.info('\x1B[31m%s\x1B[0m', 'create Podfile failed.');
       return;
     }
   } else {
-    createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion);
+    createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion, platforms);
   }
   if (template !== aceLibraryProType) {
-    createAndroidAndIosShell(projectTempPath);
+    createAndroidAndIosShell(projectTempPath, platforms);
   }
   copyTemp(projectTempPath, projectAbsolutePath);
-  fs.writeFileSync(path.join(projectAbsolutePath, '.projectInfo'),
-    `{
-    "projectTemplate":"${template}",
-    "moduleInfo":[],
-    "abilityInfo":[]
-}`, 'utf8');
+  const projectInfo = {
+    projectTemplate: template,
+    moduleInfo: [],
+    abilityInfo: [],
+    platforms: platforms === 'both' ? ['android', 'ios'] : [platforms],
+  };
+  fs.writeFileSync(path.join(projectAbsolutePath, '.projectInfo'), JSON.stringify(projectInfo, '', '  '), 'utf8');
+  updateCrossPlatformConfig(projectAbsolutePath, platforms);
 }
 
 function createPodfile(projectTempPath) {
@@ -80,9 +85,14 @@ function checkCocoaPodsInstalled() {
   }
 }
 
-function createAndroidAndIosShell(projectTempPath) {
-  createAndroidTaskInBuildGradle(projectTempPath);
-  createIosScriptInPbxproj(projectTempPath);
+function createAndroidAndIosShell(projectTempPath, targetPlatforms) {
+  const platforms = (targetPlatforms || 'both').toString().toLowerCase();
+  if (platforms === 'both' || platforms === 'android') {
+    createAndroidTaskInBuildGradle(projectTempPath);
+  }
+  if (platforms === 'both' || platforms === 'ios') {
+    createIosScriptInPbxproj(projectTempPath);
+  }
   const version = getSdkVersion(projectTempPath);
   const configContent = getConfig();
   let ohpmPath = '';
@@ -93,7 +103,7 @@ function createAndroidAndIosShell(projectTempPath) {
   if (configContent['arkui-x-sdk']) {
     arkuixPath = path.join(configContent['arkui-x-sdk'], String(version), 'arkui-x');
   }
-  createAndroidAndIosBuildArkTSShell(projectTempPath, ohpmPath, arkuixPath);
+  createAndroidAndIosBuildArkTSShell(projectTempPath, ohpmPath, arkuixPath, platforms);
 }
 
 function repairProject(projectAbsolutePath, outputDir) {
@@ -106,20 +116,29 @@ function repairProject(projectAbsolutePath, outputDir) {
   diffFile.forEach(val => copyTemp(path.join(projectTempPath, val), path.join(projectAbsolutePath, val)));
 }
 
-function createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion, isRepairProject) {
+function createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template,
+  currentProjectPath, sdkVersion, targetPlatforms, isRepairProject) {
   fs.rmSync(projectTempPath, { recursive: true, force: true });
   try {
     fs.mkdirSync(projectTempPath, { recursive: true });
-    findStageTemplate(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion);
+    findStageTemplate(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms);
+    const platforms = (targetPlatforms || 'both').toString().toLowerCase();
     if (template === aceLibraryProType) {
-      if (!(createAar(projectTempPath, bundleName) && createFramework(projectTempPath, bundleName))) {
-        return false;
+      let ok = true;
+      if (platforms === 'both' || platforms === 'android') {
+        ok = ok && createAar(projectTempPath, bundleName);
+      }
+      if (platforms === 'both' || platforms === 'ios') {
+        ok = ok && createFramework(projectTempPath, bundleName);
+      }
+      if (!ok) {
+        return;
       }
     }
     let createFlag = 'created';
     if (isRepairProject) {
       if (template !== aceLibraryProType) {
-        createAndroidAndIosShell(projectTempPath);
+        createAndroidAndIosShell(projectTempPath, platforms);
       }
       createFlag = 'repaired';
     }
@@ -148,16 +167,16 @@ Your library code is in ${path.join(currentProjectPath, 'entry')}.`);
   }
 }
 
-function findStageTemplate(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion) {
+function findStageTemplate(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms) {
   let pathTemplate = path.join(__dirname, 'template');
   if (fs.existsSync(pathTemplate)) {
-    copyStageTemplate(pathTemplate, projectTempPath, template, sdkVersion);
-    replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion);
+    copyStageTemplate(pathTemplate, projectTempPath, template, sdkVersion, targetPlatforms);
+    replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms);
   } else {
     pathTemplate = globalThis.templatePath;
     if (fs.existsSync(pathTemplate)) {
-      copyStageTemplate(pathTemplate, projectTempPath, template, sdkVersion);
-      replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion);
+      copyStageTemplate(pathTemplate, projectTempPath, template, sdkVersion, targetPlatforms);
+      replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms);
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Template is not exist!');
     }
@@ -238,7 +257,7 @@ function replaceiOSProjectInfo(projectTempPath, bundleName) {
   signIOS(configFile);
 }
 
-function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion) {
+function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms) {
   if (!bundleName) {
     bundleName = 'com.example.arkuicross';
   }
@@ -290,9 +309,14 @@ function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS
     strs.push(project);
   }
   replaceInfo(files, replaceInfos, strs);
+  const platforms = (targetPlatforms || 'both').toString().toLowerCase();
   if (template !== aceLibraryProType) {
-    replaceAndroidProjectInfo(projectTempPath, bundleName, project, template);
-    replaceiOSProjectInfo(projectTempPath, bundleName);
+    if (platforms === 'both' || platforms === 'android') {
+      replaceAndroidProjectInfo(projectTempPath, bundleName, project, template);
+    }
+    if (platforms === 'both' || platforms === 'ios') {
+      replaceiOSProjectInfo(projectTempPath, bundleName);
+    }
   }
   if (runtimeOS !== aceHarmonyOS && sdkVersion !== '10') {
     modifyOpenHarmonyOSConfig(projectTempPath, sdkVersion);
@@ -302,36 +326,48 @@ function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS
   }
 }
 
-function copyAndroidiOSTemplate(templatePath, projectTempPath, template, sdkVersion) {
-  if (!copy(path.join(templatePath, '/android'), path.join(projectTempPath, '.arkui-x/android'))) {
-    return false;
+function copyAndroidiOSTemplate(templatePath, projectTempPath, template, sdkVersion, targetPlatforms) {
+  const platforms = (targetPlatforms || 'both').toString().toLowerCase();
+  if (platforms === 'both' || platforms === 'android') {
+    if (!copy(path.join(templatePath, '/android'), path.join(projectTempPath, '.arkui-x/android'))) {
+      return false;
+    }
   }
-  if (!copy(path.join((useCocoapods ? path.join(templatePath, 'cocoapods') : templatePath), '/ios'),
-    path.join(projectTempPath, '.arkui-x/ios'))) {
-    return false;
+  if (platforms === 'both' || platforms === 'ios') {
+    if (!copy(path.join((useCocoapods ? path.join(templatePath, 'cocoapods') : templatePath), '/ios'),
+      path.join(projectTempPath, '.arkui-x/ios'))) {
+      return false;
+    }
   }
   if (template === acePluginNapiProType) {
-    if (!copy(path.join(templatePath, '/cpp/cpp_android'), path.join(projectTempPath, '.arkui-x/android/app/src/main/cpp'))) {
-      return false;
+    if (platforms === 'both' || platforms === 'android') {
+      if (!copy(path.join(templatePath, '/cpp/cpp_android'), path.join(projectTempPath, '.arkui-x/android/app/src/main/cpp'))) {
+        return false;
+      }
     }
-    if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectTempPath, '.arkui-x/ios/app.xcodeproj'))) {
-      return false;
+    if (platforms === 'both' || platforms === 'ios') {
+      if (!copy(path.join(templatePath, '/cpp/cpp_ios'), path.join(projectTempPath, '.arkui-x/ios/app.xcodeproj'))) {
+        return false;
+      }
     }
     if (sdkVersion !== '10') {
-      let data = fs.readFileSync(path.join(projectTempPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'), 'utf8');
-      data = data.replace(`$ENV{ARKUIX_SDK_HOME}/10`, `$ENV{ARKUIX_SDK_HOME}/${sdkVersion}`);
-      fs.writeFileSync(path.join(projectTempPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'), data);
+      if (platforms === 'both' || platforms === 'android') {
+        let data = fs.readFileSync(path.join(projectTempPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'), 'utf8');
+        data = data.replace(`$ENV{ARKUIX_SDK_HOME}/10`, `$ENV{ARKUIX_SDK_HOME}/${sdkVersion}`);
+        fs.writeFileSync(path.join(projectTempPath, '.arkui-x/android/app/src/main/cpp/CMakeLists.txt'), data);
+      }
     }
   }
-
-  fs.renameSync(path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate_stage.m'),
-    path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate.m'));
-  fs.renameSync(path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate_stage.h'),
-    path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate.h'));
+  if (platforms === 'both' || platforms === 'ios') {
+    fs.renameSync(path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate_stage.m'),
+      path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate.m'));
+    fs.renameSync(path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate_stage.h'),
+      path.join(projectTempPath, '.arkui-x/ios/app/AppDelegate.h'));
+  }
   return true;
 }
 
-function copyStageTemplate(templatePath, projectTempPath, template, sdkVersion) {
+function copyStageTemplate(templatePath, projectTempPath, template, sdkVersion, targetPlatforms) {
   if (!copy(path.join(templatePath, '/ohos_stage'), projectTempPath)) {
     return false;
   }
@@ -353,7 +389,7 @@ function copyStageTemplate(templatePath, projectTempPath, template, sdkVersion) 
   fs.mkdirSync(path.join(projectTempPath, '.arkui-x'), { recursive: true });
   fs.writeFileSync(path.join(projectTempPath, '.arkui-x/arkui-x-config.json5'), fs.readFileSync(path.join(templatePath, 'arkui-x-config.json5').toString()));
   if (template !== aceLibraryProType) {
-    if (!copyAndroidiOSTemplate(templatePath, projectTempPath, template, sdkVersion)) {
+    if (!copyAndroidiOSTemplate(templatePath, projectTempPath, template, sdkVersion, targetPlatforms)) {
       return false;
     }
   }
