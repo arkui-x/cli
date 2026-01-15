@@ -132,7 +132,7 @@ function cleanOHOS() {
     console.log('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
     return false;
   }
-  cmds.push(`${ohpmPath} install`);
+  cmds.push(`"${ohpmPath}" install`);
   if (platform !== Platform.Windows && Number(getSdkVersion(projectDir)) < 12) {
     cmds.push(`chmod 755 hvigorw`);
   }
