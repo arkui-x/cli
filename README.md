@@ -288,6 +288,7 @@ ace create <output directory>
 | plugin_napi | 创建native工程。          |
 
 在当前目录创建test工程：
+> 当前`Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS)`选项2、3构建出的项目只能使用本工具链环境编译，暂不支持在DevEco Studio环境编译，会报`no such file or directory`的错误。
 
 ```shell
 ohos@user:~/cli-project$ ace create test
@@ -295,6 +296,7 @@ ohos@user:~/cli-project$ ace create test
 ? Enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
 ? Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
 ? Please select the Complie SDk (1: 10, 2: 11, 3: 12): 2 # 输入编译SDK版本
+? Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS): 1 # 输入需要创建的平台
 ? Please select the Framework integration approach (1: Native Manual, 2: CocoaPods): 2 # 输入Framework集成方式
 
 Project created. Target directory:  /home/ohos/cli-project/test.
