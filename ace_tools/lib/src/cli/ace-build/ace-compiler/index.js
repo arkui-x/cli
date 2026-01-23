@@ -181,6 +181,14 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
       fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
       fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
     }
+    const pkgContextInfoPath = path.join(projectDir, modulePathList[module], `build/default/intermediates/loader/${fileName}/pkgContextInfo.json`);
+    if (fs.existsSync(pkgContextInfoPath)) {
+      const pkgContextInfoAndroid = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/`,
+      destClassName + '/pkgContextInfo.json');
+      const pkgContextInfoIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/pkgContextInfo.json');
+      fs.writeFileSync(pkgContextInfoAndroid, fs.readFileSync(pkgContextInfoPath));
+      fs.writeFileSync(pkgContextInfoIOS, fs.readFileSync(pkgContextInfoPath));
+    }
   });
   return isContinue;
 }
