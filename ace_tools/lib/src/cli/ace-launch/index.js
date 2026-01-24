@@ -15,7 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const xml2js = require('xml2js');
+const { xml2js } = require('xml-js');
 const exec = require('child_process').execSync;
 const JSON5 = require('json5');
 const { log } = require('../ace-log');
@@ -127,24 +127,27 @@ function parseAndroidManifest(xmlContent) {
     packageName: '',
     activities: []
   };
-  const parser = new xml2js.Parser();
-  parser.parseString(xmlContent, (err, parsed) => {
-    if (err) {
-      console.error('Parsing the AndroidManifest.xml file failed!');
-      return;
-    }
-    if (parsed?.manifest?.$?.package) {
-      result.packageName = parsed.manifest.$.package;
-    }
-    const activityList = parsed?.manifest?.application?.[0]?.activity;
-    if (!activityList) {
-      return result;
-    }
-    activityList.forEach(activity => {
-      if (activity.$ && activity.$['android:name']) {
-        result.activities.push(activity.$['android:name']);
-      }
+  const parsed = xml2js(xmlContent, { 
+      compact: true,
+      nativeType: true,
+      ignoreDeclaration: true
     });
+  if (!parsed) {
+    console.error('Parsing the AndroidManifest.xml file failed!');
+    return result;
+  }
+  if (parsed?.manifest?._attributes?.package) {
+    result.packageName = parsed.manifest._attributes.package;
+  }
+  const activity = parsed?.manifest?.application?.activity;
+  if (!activity) {
+    return result;
+  }
+  const activityList = Array.isArray(activity) ? activity : [activity];
+  activityList.forEach(activity => {
+    if (activity._attributes && activity._attributes?.['android:name']) {
+      result.activities.push(activity._attributes['android:name']);
+    }
   });
   return result;
 }
