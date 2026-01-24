@@ -133,21 +133,18 @@ function parseAndroidManifest(xmlContent) {
       console.error('Parsing the AndroidManifest.xml file failed!');
       return;
     }
-    if (parsed.manifest && parsed.manifest.$ && parsed.manifest.$.package) {
+    if (parsed?.manifest?.$?.package) {
       result.packageName = parsed.manifest.$.package;
     }
-    if (parsed.manifest && 
-        parsed.manifest.application && 
-        Array.isArray(parsed.manifest.application) &&
-        parsed.manifest.application[0] &&
-        parsed.manifest.application[0].activity) {
-          const activities = parsed.manifest.application[0].activity;
-          activities.forEach(activity => {
-            if (activity.$ && activity.$['android:name']) {
-              result.activities.push(activity.$['android:name']);
-            }
-          });
+    const activityList = parsed?.manifest?.application?.[0]?.activity;
+    if (!activityList) {
+      return result;
     }
+    activityList.forEach(activity => {
+      if (activity.$ && activity.$['android:name']) {
+        result.activities.push(activity.$['android:name']);
+      }
+    });
   });
   return result;
 }
