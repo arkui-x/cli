@@ -15,12 +15,13 @@
 
 const fs = require('fs');
 const path = require('path');
+const xml2js = require('xml2js');
 const exec = require('child_process').execSync;
 const JSON5 = require('json5');
 const { log } = require('../ace-log');
 const { getToolByType, getAapt } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getIosProjectName,
-  getModulePathList, getEntryModule } = require('../util');
+  getModulePathList, getEntryModule, getModuleAbilityList } = require('../util');
 const { isSimulator, getIosVersion } = require('../ace-devices/index');
 const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 let bundleName;
@@ -87,24 +88,21 @@ function getNamesApk(projectDir, moduleName) {
       path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml');
     const manifestPath = path.join(projectDir, 'AppScope/app.json5');
     if (fs.existsSync(androidXmlPath) && fs.existsSync(manifestPath)) {
-      const activityList = [];
+      let activityList = [];
       let xmldata = fs.readFileSync(androidXmlPath, 'utf-8');
-      xmldata = xmldata.trim().split('\n');
-      for (let i = 0; i < xmldata.length; i++) {
-        if (xmldata[i].indexOf(`package="`) !== -1) {
-          packageName = xmldata[i].split('"')[1];
-        }
-        if (xmldata[i].search(/<activity .*android:name=/) !== -1 ||
-          xmldata[i].search(/android:name=/) !== -1 && xmldata[i - 1].trim() === '<activity') {
-          activityList.push(xmldata[i].split('android:name="')[1].split('"')[0]);
-        }
-      }
-
+      const parsed = parseAndroidManifest(xmldata);
+      packageName = parsed.packageName;
+      activityList = parsed.activities;
       const moduleUpper = moduleName.replace(/\b\w/g, function(l) {
         return l.toUpperCase();
       });
-      if (activityList.includes(`.${moduleUpper}${moduleUpper}AbilityActivity`)) {
-        androidclassName = `.${moduleUpper}${moduleUpper}AbilityActivity`;
+      const abilityList = getModuleAbilityList(projectDir, moduleName);
+      let launchAbility = "";
+      if (abilityList.length > 0) {
+        launchAbility = abilityList[0].split('_')[1];
+      }
+      if (activityList.includes(`.${moduleUpper}${launchAbility}Activity`)) {
+        androidclassName = `.${moduleUpper}${launchAbility}Activity`;
       }
       bundleName = JSON5.parse(fs.readFileSync(manifestPath)).app.bundleName;
       packageName = packageName || bundleName;
@@ -122,6 +120,36 @@ function getNamesApk(projectDir, moduleName) {
     console.error('Read androidManifest.xml failed.\n' + err);
     return false;
   }
+}
+
+function parseAndroidManifest(xmlContent) {
+  const result = {
+    packageName: '',
+    activities: []
+  };
+  const parser = new xml2js.Parser();
+  parser.parseString(xmlContent, (err, parsed) => {
+    if (err) {
+      console.error('Parsing the AndroidManifest.xml file failed!');
+      return;
+    }
+    if (parsed.manifest && parsed.manifest.$ && parsed.manifest.$.package) {
+      result.packageName = parsed.manifest.$.package;
+    }
+    if (parsed.manifest && 
+        parsed.manifest.application && 
+        Array.isArray(parsed.manifest.application) &&
+        parsed.manifest.application[0] &&
+        parsed.manifest.application[0].activity) {
+          const activities = parsed.manifest.application[0].activity;
+          activities.forEach(activity => {
+            if (activity.$ && activity.$['android:name']) {
+              result.activities.push(activity.$['android:name']);
+            }
+          });
+    }
+  });
+  return result;
 }
 
 function getNamesAppByInstallFile(installFilePath) {
