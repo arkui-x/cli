@@ -357,7 +357,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (commonModule) {
       moduleStr = ' -p module=' + commonModule.join(',');
     }
-    const buildtarget = 'default@CompileArkTS --no-parallel' + moduleStr;
+    const buildtarget = 'default@CompileArkTS --no-parallel' + moduleStr + ' -p buildMode=release';
     let testbBuildtarget = '';
     if (cmd.debug && testModule) {
       const moduleTestStr = '-p module=' + testModule.join('@ohosTest,') + '@ohosTest';
