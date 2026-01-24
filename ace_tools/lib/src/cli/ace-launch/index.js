@@ -97,7 +97,7 @@ function getNamesApk(projectDir, moduleName) {
         return l.toUpperCase();
       });
       const abilityList = getModuleAbilityList(projectDir, moduleName);
-      let launchAbility = "";
+      let launchAbility = '';
       if (abilityList.length > 0) {
         launchAbility = abilityList[0].split('_')[1];
       }
