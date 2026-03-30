@@ -322,7 +322,12 @@ function copyLibsToBuild(moduleListSpecified, buildPath, cmd) {
 function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let cmds = [`cd ${projectDir}`];
   let buildCmd = `./hvigorw`;
-  if (Number(getSdkVersion(projectDir)) >= 12) {
+  let projectSdkVersion = getSdkVersion(projectDir);
+  let sdkVersionResult = Number(projectSdkVersion);
+  if (Number.isNaN(sdkVersionResult)) {
+    sdkVersionResult = Number(projectSdkVersion.split('.')[0]);
+  }
+  if (sdkVersionResult >= 12) {
     if (getIntergrateHvigorw()) {
       buildCmd = `"${getIntergrateHvigorw()}"`;
     } else {
@@ -389,7 +394,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (cmd.debug) {
       buildModeStr = '';
     }
-    const buildtarget = 'default@CompileArkTS --no-parallel' + moduleStr + buildModeStr;
+    const buildtarget = 'default@CompileArkTS --no-parallel' + moduleStr + buildModeStr + ' --no-daemon';
     let testbBuildtarget = '';
     if (cmd.debug && testModule) {
       const moduleTestStr = '-p module=' + testModule.join('@ohosTest,') + '@ohosTest';
