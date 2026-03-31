@@ -861,6 +861,14 @@ function isSupportedOperatorType(platforms, type) {
   return true;
 }
 
+function changeVersion(nowVersion) {
+  let versionResult = Number(nowVersion);
+  if (Number.isNaN(versionResult)) {
+    versionResult = Number(nowVersion.split('.')[0]);
+  }
+  return versionResult;
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -901,4 +909,5 @@ module.exports = {
   getCreatedPlatforms,
   isSupportedOperatorType,
   getIsArkuixProject,
+  changeVersion,
 };

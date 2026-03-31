@@ -22,7 +22,7 @@ const {
   Platform,
   platform,
 } = require('../ace-check/platform');
-const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion, getArkuixPluginWithModelVersion} = require('../util');
+const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion, getArkuixPluginWithModelVersion, changeVersion } = require('../util');
 
 function replaceInfo(files, replaceInfos, strs) {
   files.forEach((filePath, index) => {
@@ -120,10 +120,7 @@ function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
   if (openharmonyosVersion === '10') {
     return;
   }
-  let sdkVersionResult = Number(openharmonyosVersion);
-  if (Number.isNaN(sdkVersionResult)) {
-    sdkVersionResult = Number(openharmonyosVersion.split('.')[0]);
-  }
+  let sdkVersionResult = changeVersion(openharmonyosVersion);
   if (sdkVersionResult >= 12) {
     modifyOhPackageJson(projectPath, openharmonyosVersion);
     modifyHvigorJson(projectPath, openharmonyosVersion);
@@ -150,10 +147,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
     path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
   const deviceTypeName = 'deviceTypes';
 
-  let sdkVersionResult = Number(sdkVersion);
-  if (Number.isNaN(sdkVersionResult)) {
-    sdkVersionResult = Number(sdkVersion.split('.')[0]);
-  } 
+  let sdkVersionResult = changeVersion(sdkVersion);
   if (sdkVersionResult >= 12) {
     modifyOhPackageJson(projectPath, sdkVersion);
     modifyHvigorJson(projectPath, sdkVersion);

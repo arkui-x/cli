@@ -37,7 +37,7 @@ const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject')
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
-const { getCreatedPlatforms } = require('../../util');
+const { getCreatedPlatforms, changeVersion } = require('../../util');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -323,10 +323,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let cmds = [`cd ${projectDir}`];
   let buildCmd = `./hvigorw`;
   let projectSdkVersion = getSdkVersion(projectDir);
-  let sdkVersionResult = Number(projectSdkVersion);
-  if (Number.isNaN(sdkVersionResult)) {
-    sdkVersionResult = Number(projectSdkVersion.split('.')[0]);
-  }
+  let sdkVersionResult = changeVersion(projectSdkVersion);
   if (sdkVersionResult >= 12) {
     if (getIntergrateHvigorw()) {
       buildCmd = `"${getIntergrateHvigorw()}"`;
@@ -342,7 +339,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     return false;
   }
   cmds.push(`"${ohpmPath}" install`);
-  if (platform !== Platform.Windows && Number(getSdkVersion(projectDir)) < 12) {
+  if (platform !== Platform.Windows && sdkVersionResult < 12) {
     cmds.push(`chmod 755 hvigorw`);
   }
   let gradleMessage;
