@@ -287,7 +287,6 @@ function getArkuiXSdkVersion(sdkDir) {
         versionList.push(arkuiXSdkVersion);
       }
     }
-    return true 
   });
   if (versionList.length !== 0) {
     return maxVersion(versionList);
