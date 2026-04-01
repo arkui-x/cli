@@ -253,7 +253,7 @@ function getOpenHarmonySdkVersion(sdkDir) {
   }
   fs.readdirSync(sdkDir).forEach(dir => {
     if (dir === 'licenses' || !fs.statSync(path.join(sdkDir, dir)).isDirectory()) {
-      return false;
+      return;
     }
     if (/^\d+$/.test(dir) || /^\d+(\.\d+){1,2}$/.test(dir)) {
       openHarmonySdkPath = path.join(sdkDir, dir, 'ets', 'oh-uni-package.json');
@@ -278,7 +278,7 @@ function getArkuiXSdkVersion(sdkDir) {
   }
   fs.readdirSync(sdkDir).forEach(dir => {
     if (dir === 'licenses' || !fs.statSync(path.join(sdkDir, dir)).isDirectory()) {
-      return false;
+      return;
     }
     if (/^\d+$/.test(dir) || /^\d+(\.\d+){1,2}$/.test(dir)) {
       arkuiXSdkPath = path.join(sdkDir, dir, 'arkui-x', 'arkui-x.json');
@@ -287,6 +287,7 @@ function getArkuiXSdkVersion(sdkDir) {
         versionList.push(arkuiXSdkVersion);
       }
     }
+    return true 
   });
   if (versionList.length !== 0) {
     return maxVersion(versionList);

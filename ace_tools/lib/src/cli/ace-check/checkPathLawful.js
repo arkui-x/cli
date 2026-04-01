@@ -170,18 +170,9 @@ function oldValidHarmonyOsSdk(harmonyosSdkDir, sdkType, info) {
 }
 
 function validSdkDir(typeSdkDir, sdkType, info) {
-  const dirs = [];
   let candidatePath;
   let dirExist = false;
-  dirs.push(...fs.readdirSync(typeSdkDir).filter((file) => {
-    if (file === 'licenses' || !fs.statSync(path.join(typeSdkDir, file)).isDirectory()) {
-      return false;
-    }
-    if (/^\d+$/.test(file) || /^\d+(\.\d+){1,2}$/.test(file)) {
-      return true;
-    }
-    return false;
-  }));
+  const dirs = searchSdkDir(typeSdkDir);
   if (dirs.length !== 0) {
     dirs.sort(function(prev, next) {
       return compareVersion(next, prev);
@@ -204,13 +195,12 @@ function validSdkDir(typeSdkDir, sdkType, info) {
     }
   });
   if (!dirExist) {
-    if (!info) {
-      return false;
-    }
-    if (sdkType === 'ArkUI-X') {
-      info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect, please refer to https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
-    } else {
-      info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
+    if (info) {
+      if (sdkType === 'ArkUI-X') {
+        info.push(`The ArkUI-X SDK path you configured "${typeSdkDir}" is incorrect, please refer to https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-arkui-x-sdk.md`);
+      } else {
+        info.push(`The ${sdkType} SDK path you configured "${typeSdkDir}" is wrong`);
+      }
     }
     return false;
   }
@@ -225,6 +215,20 @@ function validSdkDir(typeSdkDir, sdkType, info) {
     return false;
   }
   return true;
+}
+
+function searchSdkDir(typeSdkDir) {
+  let dirs = [];
+  dirs.push(...fs.readdirSync(typeSdkDir).filter((file) => {
+    if (file === 'licenses' || !fs.statSync(path.join(typeSdkDir, file)).isDirectory()) {
+      return false;
+    }
+    if (/^\d+$/.test(file) || /^\d+(\.\d+){1,2}$/.test(file)) {
+      return true;
+    }
+    return false;
+  }));
+  return dirs;
 }
 
 function typeCommandLineToolsPathCheck(typestudioDir, info) {
