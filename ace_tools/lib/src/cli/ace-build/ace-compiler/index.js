@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -34,10 +34,12 @@ const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, ja
   devEcoStudioDir } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
 const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject');
+const { loadCollectionJson } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
 const { getCreatedPlatforms, changeVersion } = require('../../util');
+const VALIDATION_MODULES = new Set(['TimePickerDialog', 'DatePickerDialog', 'UIPickerComponent', 'TextPickerDialog', 'DatePicker', 'TextPicker', 'TimePicker']);
 
 let projectDir;
 let arkuiXSdkPath;
@@ -125,6 +127,13 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
   if (createdPlatforms.includes('ios')) {
     const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
     isContinue = isContinue && copy(systemResPath, iosSystemResPath);
+    if (checkValidationModulesDeps()) {
+      const validationResFile = path.join(arkuiXSdkPath, 'engine/dynamic_resources/media', 'timepicker.wav');
+      const iosTargetPath = path.join(projectDir, `.arkui-x/ios/arkui-x/systemres/resources/base/media/timepicker.wav`);
+      if (fs.existsSync(validationResFile)) {
+        fs.writeFileSync(iosTargetPath, fs.readFileSync(validationResFile));
+      }
+    }
   }
   if (createdPlatforms.includes('android')) {
     const androidSystemResPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`);
@@ -132,8 +141,25 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     const arkJsonPath = path.join(arkuiXSdkPath, 'arkui-x.json');
     const androidJsonPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/arkui-x.json`);
     fs.writeFileSync(androidJsonPath, fs.readFileSync(arkJsonPath));
+    if (checkValidationModulesDeps()) {
+      const validationResFile = path.join(arkuiXSdkPath, 'engine/dynamic_resources/media', 'timepicker.wav');
+      const androidTargetPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres/resources/base/media/timepicker.wav`);
+      if (fs.existsSync(validationResFile)) {
+        fs.writeFileSync(androidTargetPath, fs.readFileSync(validationResFile));
+      }
+    }
   }
   return isContinue;
+}
+
+function checkValidationModulesDeps() {
+  const collectionSet = loadCollectionJson(projectDir);
+  for (const moduleName of collectionSet) {
+    if (VALIDATION_MODULES.has(moduleName)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function copyTestStageBundleToAndroidAndIOS(moduleList, fileType, cmd) {
