@@ -665,7 +665,7 @@ function getModuleType(projectDir, modulePath) {
       } else {
         moduleType = 'EmptyAbility';
       }
-    } else if (hvigorInfo.includes('hspTasks')) {
+    } else if (hvigorInfo.includes('HspTasks')) {
       if (checkInfo.includes('CMakeLists.txt')) {
         moduleType = 'ShareC++';
       } else {

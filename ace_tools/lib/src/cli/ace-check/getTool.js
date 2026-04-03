@@ -168,7 +168,7 @@ function getIdeToolPath(ideToolPath) {
     const fileArr = fs.readdirSync(ideToolPath);
     if (fileArr && fileArr.length > 0) {
       fileArr.forEach(item => {
-        if (!isNaN(item) && parseInt(item) >= 10) {
+        if (/^\d+$/.test(item) || /^\d+(\.\d+){1,2}$/.test(item)) {
           versionList.push(item);
         }
       });
