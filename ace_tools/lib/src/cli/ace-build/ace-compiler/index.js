@@ -128,7 +128,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
     isContinue = isContinue && copy(systemResPath, iosSystemResPath);
     if (checkValidationModulesDeps()) {
-      const validationResFile = path.join(arkuiXSdkPath, 'engine/dynamic_resources/media', 'timepicker.wav');
+      const validationResFile = path.join(arkuiXSdkPath, 'engine/extras/media', 'timepicker.wav');
       const iosTargetPath = path.join(projectDir, `.arkui-x/ios/arkui-x/systemres/resources/base/media/timepicker.wav`);
       if (fs.existsSync(validationResFile)) {
         fs.writeFileSync(iosTargetPath, fs.readFileSync(validationResFile));
@@ -142,7 +142,7 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     const androidJsonPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/arkui-x.json`);
     fs.writeFileSync(androidJsonPath, fs.readFileSync(arkJsonPath));
     if (checkValidationModulesDeps()) {
-      const validationResFile = path.join(arkuiXSdkPath, 'engine/dynamic_resources/media', 'timepicker.wav');
+      const validationResFile = path.join(arkuiXSdkPath, 'engine/extras/media', 'timepicker.wav');
       const androidTargetPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres/resources/base/media/timepicker.wav`);
       if (fs.existsSync(validationResFile)) {
         fs.writeFileSync(androidTargetPath, fs.readFileSync(validationResFile));
