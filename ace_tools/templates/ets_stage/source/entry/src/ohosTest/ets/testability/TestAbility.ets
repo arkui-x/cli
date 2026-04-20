@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,12 @@ export default class TestAbility extends UIAbility {
         abilityDelegator = AbilityDelegatorRegistry.getAbilityDelegator();
         let abilityDelegatorArguments: AbilityDelegatorRegistry.AbilityDelegatorArgs;
         abilityDelegatorArguments = AbilityDelegatorRegistry.getArguments();
+        let parameters = abilityDelegatorArguments.parameters;
+        // If the parameters contain a 'socket' field, it means running in socket debug mode; skip XTS test cases.
+        if (parameters && parameters.socket) {
+            hilog.info(0x0000, 'testTag', '%{public}s', 'socket mode enabled, skip run testcase');
+            return;
+        }
         hilog.info(0x0000, 'testTag', '%{public}s', 'start run testcase!!!');
         Hypium.hypiumTest(abilityDelegator, abilityDelegatorArguments, testsuite);
     }

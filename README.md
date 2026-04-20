@@ -623,6 +623,7 @@ ace test [arguments]
 | --unittest [testRunner] | 指定测试应用的testRunner。 |
 | --path [path] | 指定app/apk包路径用于直接安装测试。 |
 | -d --device \<deviceId\> | 指定运行应用的设备Id。 |
+| --socket [port] | 指定Hypium服务的端口号并拉起服务端。（端口号非必传参数，默认端口8017） |
 | -h --help | 显示帮助信息。 |
 
 

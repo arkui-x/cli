@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -78,7 +78,7 @@ function logCmd(toolObj, device, pid, currentSystem) {
       }
     } else if ('adb' in toolObj) {
       if (test) {
-        execSync(`${toolObj['adb']} shell logcat -c`);
+        execSync(`${toolObj['adb']} -s ${device} shell logcat -c`);
         hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat']);
       } else {
         hilog = spawn(toolObj['adb'], ['-s', device, 'shell', 'logcat', `--pid=${pid}`]);
