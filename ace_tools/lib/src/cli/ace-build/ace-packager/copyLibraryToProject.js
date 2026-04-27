@@ -26,6 +26,7 @@ const { getSourceArkuixPath } = require('../../ace-check/checkSource');
 const { copyDat } = require('./pkgICUData');
 
 const arkUIXSdkName = 'arkui-x';
+const UITestName = 'ohos.UiTest';
 let arkuiXSdkPath = '';
 let arkUIXSdkRootLen = 0;
 let projectRootLen = 0;
@@ -315,6 +316,9 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
   arkuiXSdkPath = getSourceArkuixPath() || (arkuiXSdkDir + `/${version}/arkui-x`);
   const apiConfigMap = loadApiConfigJson(arkuiXSdkPath);
   const collectionSet = loadCollectionJson(projectDir);
+  if (cmd && cmd.socket !== undefined) {
+    collectionSet.add(UITestName);
+  }
   arkUIXSdkRootLen = arkuiXSdkPath.length;
   projectRootLen = projectDir.length;
   let moduleNameList;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -344,9 +344,16 @@ function getTestOption(options, esOption, toolType = undefined) {
   if (!options.timeout) {
     options.timeout = 5000;
   }
+  if (!options.socket) {
+    options.socket = -1;
+  } else if (options.socket === true) {
+    options.socket = 8017;
+  }
   const timeout = options.timeout ? `${esOption}timeout ${options.timeout}` : '';
+  const socket = options.socket ? `${esOption}socket ${options.socket}` : '';
   const testOption =
-    `${esOption}${cmdPrefix} ${testBundleName} ${testModuleName} ${unittest} ${testClass} ${timeout}${cmdSuffix}`;
+    `${esOption}${cmdPrefix} ${testBundleName} ${testModuleName} ${socket} ` + 
+    `${unittest} ${testClass} ${timeout}${cmdSuffix}`;
   return testOption;
 }
 

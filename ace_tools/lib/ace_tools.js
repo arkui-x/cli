@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -354,6 +354,21 @@ function getChooseSdkVersionTip(sdkVersionShowMap) {
     }
   });
   return 'input must be an integer: ' + sdkChooseStr + '.';
+}
+
+function isValidSocketPort(port) {
+  if (port === undefined || port === null || port === '') {
+    return false;
+  }
+  if (port === true) {
+    return true;
+  }
+  const portStr = String(port).trim();
+  if (!/^\d+$/.test(portStr)) {
+    return false;
+  }
+  const portNumber = Number(portStr);
+  return Number.isInteger(portNumber) && portNumber >= 1 && portNumber <= 65535;
 }
 
 function parseNew() {
@@ -838,6 +853,7 @@ function parseTest() {
     .option('--path [path]', 'Specifies the path of the package to install and test.')
     .option('--skipInstall', 'Specifies the name of the app you want to skip installation. Works only when the app has been installed.')
     .option('--target [moduleName]', 'Specifies the name of the module to install.')
+    .option('--socket [port]', 'Specifies the socket port, default is 8017.')
     .option('--timeout [timeout]', 'Specifies the timeout time.')
     .option('--unittest [testRunner]', 'Specifies the name of the test runner.')
     .description(`Run ArkUI cross-platform unit tests for the current project.`)
@@ -864,6 +880,11 @@ Available subcommands:
       }
       if (options.path !== undefined && options.path.length == 0) {
         console.log('please input the correct path of install file');
+        return false;
+      }
+      if (options.socket !== undefined && !isValidSocketPort(options.socket)) {
+        console.log("Invalid socket port. If you use '--socket', provide an integer between 1 and 65535," +
+          ' or use the default 8017.');
         return false;
       }
       if (fileType === 'apk' || fileType === 'ios') {
