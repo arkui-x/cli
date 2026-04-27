@@ -263,7 +263,11 @@ Tools info :[√] OpenHarmony hdc installed
 
 创建跨平台应用工程。
 
-调用ace create命令时需要传入参数project directory，在当前目录下新建project directory文件夹，作为新建工程的根目录文件夹。创建过程中，需要开发者依次填写工程名称和包名称，如果开发者不输入工程名则使用传入的project directory默认作为工程名称。如果开发者不输入包名称则使用“com.example.工程名”默认作为包名称。
+执行 ace create 命令时，需传入 project directory 参数指定目录。通过 project directory 参数确定工程根路径。系统会在当前目录下自动创建该文件夹。
+
+创建过程中，系统将依次提示开发者输入“工程名称”和“包名称”:
+* 工程名称： 若未输入，默认使用 project directory 的名称作为工程名。
+* 包名称： 若未输入，默认格式为 com.example.<工程名>。
 
 
 语法：
