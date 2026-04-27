@@ -259,17 +259,17 @@ Tools info :[√] OpenHarmony hdc installed
   •  iPhone 14 Pro Max (1058643C-A725-4E19-AA62-781588C94A7F) [iOS Simulator]
 ```
 
-### ace create project
+### ace create
 
 创建跨平台应用工程。
 
-创建过程中，需要开发者依次填写工程名称和包名称，如果开发者不输入包名称，默认为com.example.工程名。
+调用ace create命令时需要传入参数project directory，在当前目录下新建project directory文件夹，作为新建工程的根目录文件夹。创建过程中，需要开发者依次填写工程名称和包名称，如果开发者不输入工程名则使用传入的project directory默认作为工程名称。如果开发者不输入包名称则使用“com.example.工程名”默认作为包名称。
 
 
 语法：
 
 ```shell
-ace create <output directory>
+ace create <project directory>
 ```
 
 - options
