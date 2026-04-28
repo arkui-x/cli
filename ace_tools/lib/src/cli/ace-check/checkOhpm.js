@@ -19,7 +19,7 @@ const { Platform, platform, homeDir } = require('./platform');
 const Process = require('child_process');
 const { getConfig, modifyConfigPath } = require('../ace-config');
 const { ohpmDirPathCheck } = require('./checkPathLawful');
-const { readIdeXmlPath } = require('./Ide');
+const { devEcoStudio, readIdeXmlPath } = require('./Ide');
 
 function checkOhpm() {
   let ohpmDir;
@@ -35,6 +35,8 @@ function checkOhpm() {
     ohpmDir = globalohpm;
   } else if (getDefaultOhpm()) {
     ohpmDir = getDefaultOhpm();
+  } else if (getDevEcoOhpm()) {
+    ohpmDir = getDevEcoOhpm();
   } else {
     getIdePath = readIdeXmlPath('ace.ohpm.path', 'DevEcoStudio');
     if (getIdePath && ohpmDirPathCheck(getIdePath)) {
@@ -45,6 +47,21 @@ function checkOhpm() {
   if (ohpmDir) {
     return ohpmDir;
   }
+}
+
+function getDevEcoOhpm() {
+  const devEcoDirPath = devEcoStudio.locateIde();
+  if (!devEcoDirPath) {
+    return undefined;
+  }
+  let ohpmPaths = path.join(devEcoDirPath, 'tools/ohpm');
+  if (platform === Platform.MacOS) {
+    ohpmPaths = path.join(devEcoDirPath, 'Contents/tools/ohpm')
+  }
+  if (!fs.existsSync(ohpmPaths)) {
+    return undefined;
+  }
+  return ohpmPaths;
 }
 
 function getDefaultOhpm() {

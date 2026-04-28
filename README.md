@@ -83,10 +83,26 @@ ohos@user ~ % ace config --openharmony-sdk /Users/ohos/Library/OpenHarmony/Sdk
 Set "openharmony-sdk" value to "/Users/ohos/Library/OpenHarmony/Sdk" succeeded.
 ```
 
-注意：如果配置路径中有空格，路径需要添加双引号，比如：
+注意1：如果配置路径中有空格，路径需要添加双引号，比如：
 ```shell
 ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk"
 Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
+```
+
+注意2：设置`--ohpm-dir`参数时，需指向DevEco Studio内置的ohpm工具路径。DevEco Studio默认内置ohpm工具，不同平台路径示例如下：
+- macOS平台：`/Applications/DevEco-Studio.app/Contents/tools/ohpm`
+- Windows平台：`C:\Program Files\DevEco Studio\tools\ohpm`
+
+配置示例：
+macOS平台：
+```shell
+ohos@user ~ % ace config --ohpm-dir "/Applications/DevEco-Studio.app/Contents/tools/ohpm"
+Set "ohpm-dir" value to "/Applications/DevEco-Studio.app/Contents/tools/ohpm" succeeded.
+```
+Windows平台：
+```shell
+C:\Users\ohos> ace config --ohpm-dir "C:\Program Files\DevEco Studio\tools\ohpm"
+Set "ohpm-dir" value to "C:\Program Files\DevEco Studio\tools\ohpm" succeeded.
 ```
 
 配置ACE工具链相关环境时，参见[路径合法性判断说明](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-ace-config.md)。
