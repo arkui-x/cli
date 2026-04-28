@@ -138,9 +138,6 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
   if (createdPlatforms.includes('android')) {
     const androidSystemResPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres`);
     isContinue = isContinue && copy(systemResPath, androidSystemResPath);
-    const arkJsonPath = path.join(arkuiXSdkPath, 'arkui-x.json');
-    const androidJsonPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/arkui-x.json`);
-    fs.writeFileSync(androidJsonPath, fs.readFileSync(arkJsonPath));
     if (checkValidationModulesDeps()) {
       const validationResFile = path.join(arkuiXSdkPath, 'engine/extras/media', 'timepicker.wav');
       const androidTargetPath = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/systemres/resources/base/media/timepicker.wav`);
