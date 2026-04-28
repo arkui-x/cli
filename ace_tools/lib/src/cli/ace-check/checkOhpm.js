@@ -56,7 +56,7 @@ function getDevEcoOhpm() {
   }
   let ohpmPaths = path.join(devEcoDirPath, 'tools/ohpm');
   if (platform === Platform.MacOS) {
-    ohpmPaths = path.join(devEcoDirPath, 'Contents/tools/ohpm')
+    ohpmPaths = path.join(devEcoDirPath, 'Contents/tools/ohpm');
   }
   if (!fs.existsSync(ohpmPaths)) {
     return undefined;
