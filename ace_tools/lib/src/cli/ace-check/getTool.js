@@ -220,6 +220,13 @@ function getOhpmTools() {
   return path.join(ohpmDir, 'bin', 'ohpm');
 }
 
+function getOhpmToolsVersion() {
+  if (!ohpmDir) {
+    return '';
+  }
+  return JSON5.parse(fs.readFileSync(path.join(ohpmDir, 'package.json'))).version;
+}
+
 // get android decompilation tool aapt
 function getAapt() {
   const androidSdkBuildToolsPath = path.join(androidSdkDir, 'build-tools');
@@ -269,6 +276,7 @@ module.exports = {
   getTools,
   getToolByType,
   getOhpmTools,
+  getOhpmToolsVersion,
   getAapt,
   getIntergrateHvigorw,
 };
