@@ -39,6 +39,7 @@ const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
 const { getCreatedPlatforms, changeVersion } = require('../../util');
+const { runFontSubsetForTarget } = require('../ace-packager/pkgHwSymbol');
 const VALIDATION_MODULES = new Set(['TimePickerDialog', 'DatePickerDialog', 'UIPickerComponent', 'TextPickerDialog', 'DatePicker', 'TextPicker', 'TimePicker']);
 
 let projectDir;
@@ -290,6 +291,7 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
     const bundleSystemResPath = path.join(buildPath, 'systemres');
     isContinue = isContinue && copy(systemResPath, bundleSystemResPath);
     isContinue = isContinue && copyLibsToBuild(moduleListSpecified, buildPath, cmd);
+    runFontSubsetForTarget(projectDir, 'bundle', 'bundle');
   } catch (err) {
     console.log(`Generate build directory failed\n`, err);
     return false;
