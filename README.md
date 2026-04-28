@@ -89,7 +89,9 @@ ohos@user ~ % ace config --openharmony-sdk "/Users/ohos/Library/Open Harmony/Sdk
 Set "openharmony-sdk" value to "/Users/ohos/Library/Open Harmony/Sdk" succeeded.
 ```
 
-注意2：设置`--ohpm-dir`参数时，需指向DevEco Studio内置的ohpm工具路径。DevEco Studio默认内置ohpm工具，不同平台路径示例如下：
+注意2：设置`--ohpm-dir`参数时，需指向DevEco Studio内置的ohpm工具路径，建议设置为6.0版本以上DevEco下的ohpm工具。
+
+DevEco Studio内置ohpm工具，不同平台路径示例如下：
 - macOS平台：`/Applications/DevEco-Studio.app/Contents/tools/ohpm`
 - Windows平台：`C:\Program Files\DevEco Studio\tools\ohpm`
 
