@@ -16,6 +16,9 @@
         "commander": "^11.0.0",
         "ejs": "^3.1.9",
         "express": "^4.18.2",
+        "fonteditor-core": "^2.1.11",
+        "fontkit": "^2.0.4",
+        "fs-extra": "^11.2.0",
         "inquirer": "^8.2.6",
         "plist": "^3.0.4",
         "xml-js": "^1.6.11"

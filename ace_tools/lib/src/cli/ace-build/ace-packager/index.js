@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -32,9 +32,29 @@ const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi, getAnd
   getIosProjectName, getCreatedPlatforms } = require('../../util');
 const { copyLibraryToProject, installPodfiles } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
+const { runFontSubsetForTarget } = require('./pkgHwSymbol');
 const analyze = require('../ace-analyze/index');
 const projectDir = process.cwd();
 const createdPlatforms = getCreatedPlatforms(projectDir);
+
+function runFontSubsetByTarget(target) {
+  const androidTargets = ['apk', 'aab', 'aar'];
+  const iosTargets = ['ios', 'ios-framework', 'ios-xcframework'];
+
+  if (androidTargets.includes(target)) {
+    if (!runFontSubsetForTarget(projectDir, 'android', 'android')) {
+      return false;
+    }
+  }
+
+  if (iosTargets.includes(target)) {
+    if (!runFontSubsetForTarget(projectDir, 'ios', 'ios')) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 function isAndroidSdkValid() {
   if (androidSdkDir) {
@@ -326,6 +346,7 @@ function packager(target, cmd) {
   if (!isProjectRootDir(projectDir)) {
     return false;
   }
+  runFontSubsetByTarget(target);
   if (target === 'apk') {
     if (isAndroidSdkValid() && writeLocalProperties()) {
       if (buildAPK(target, cmd)) {

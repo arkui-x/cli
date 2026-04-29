@@ -692,5 +692,172 @@ function loadApiConfig(RootPath, ApiConfig, apiConfigMap) {
   return apiConfigMap;
 }
 
-module.exports = { copyLibraryToProject, installPodfiles, loadCollectionJson };
+function getUsedModuleSet(projectDir, system) {
+  const version = getSdkVersion(projectDir);
+  const currentArkuiXSdkPath = getSourceArkuixPath() || (arkuiXSdkDir + `/${version}/arkui-x`);
+  const apiConfigMap = loadApiConfigJson(currentArkuiXSdkPath);
+  const collectionSet = loadCollectionJson(projectDir);
+  const depMap = finddeps(collectionSet, new Map(), apiConfigMap, system);
+  const normalizedSystem = system.replace('-simulator', '');
+  const archTypes = collectArchTypes(projectDir, normalizedSystem, system);
+  const usedModuleSet = collectUsedModulesByArchTypes(depMap, normalizedSystem, archTypes);
+  const projectLibraryModuleSet = collectUsedModulesFromProjectLibraries(projectDir, apiConfigMap, normalizedSystem, archTypes);
+
+  if (usedModuleSet.size === 0) {
+    if (projectLibraryModuleSet.size > 0) {
+      projectLibraryModuleSet.add(baseModule);
+      return projectLibraryModuleSet;
+    }
+    return new Set(depMap.keys());
+  }
+
+  depMap.forEach((value, moduleName) => {
+    usedModuleSet.add(moduleName);
+  });
+
+  projectLibraryModuleSet.forEach((moduleName) => {
+    usedModuleSet.add(moduleName);
+  });
+
+  return usedModuleSet;
+}
+
+function collectArchTypes(projectDir, normalizedSystem, system) {
+  const lookupSystem = appCpu2SdkLibMap[system] ? system : normalizedSystem;
+  const cmd = {};
+  const fileType = normalizedSystem === 'ios' ? 'ios' : 'apk';
+  const subProjectNameList = getSubProjectDir(fileType, projectDir) || [];
+  const compileType = 'release';
+  const archTypes = new Set();
+
+  subProjectNameList.forEach((buildProject) => {
+    const cpuList = getCpuList(buildProject, projectDir, normalizedSystem, cmd) || [];
+    cpuList.forEach((cpu) => {
+      const archType = appCpu2SdkLibMap[lookupSystem]?.[cpu]?.[compileType]?.[0];
+      if (archType) {
+        archTypes.add(archType);
+      }
+    });
+  });
+
+  return Array.from(archTypes);
+}
+
+function hasValidLibraryPath(paths, archType) {
+  for (let libraryPath of paths) {
+    libraryPath = libraryPath.replace('arch_type', archType);
+    libraryPath = libraryPath.replace('build_modes', archType);
+    if (checkLibraryPath(libraryPath)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function collectProjectLibraryNames(projectDir, normalizedSystem) {
+  const libraryNames = new Set();
+  const rootDir = normalizedSystem === 'ios'
+    ? path.join(projectDir, '.arkui-x/ios')
+    : path.join(projectDir, '.arkui-x/android');
+
+  if (!fs.existsSync(rootDir)) {
+    return libraryNames;
+  }
+
+  const stack = [rootDir];
+  while (stack.length > 0) {
+    const currentDir = stack.pop();
+    let entries = [];
+    try {
+      entries = fs.readdirSync(currentDir, { withFileTypes: true });
+    } catch (error) {
+      continue;
+    }
+
+    entries.forEach((entry) => {
+      const fullPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+        return;
+      }
+
+      const lowerName = entry.name.toLowerCase();
+      if (normalizedSystem === 'android' && lowerName.endsWith('.so')) {
+        libraryNames.add(entry.name);
+      } else if (normalizedSystem === 'ios' &&
+        (lowerName.endsWith('.framework') || lowerName.endsWith('.xcframework') || lowerName.endsWith('.a') || lowerName.endsWith('.dylib'))) {
+        libraryNames.add(entry.name);
+      }
+    });
+  }
+
+  return libraryNames;
+}
+
+function collectUsedModulesFromProjectLibraries(projectDir, apiConfigMap, normalizedSystem, archTypes) {
+  const projectLibraryNames = collectProjectLibraryNames(projectDir, normalizedSystem);
+  const usedModuleSet = new Set();
+  const libraryOwnerCount = new Map();
+
+  if (projectLibraryNames.size === 0) {
+    return usedModuleSet;
+  }
+
+  apiConfigMap.forEach((value) => {
+    const paths = value?.library?.[normalizedSystem] || [];
+    if (!Array.isArray(paths) || paths.length === 0) {
+      return;
+    }
+
+    const localBasenames = new Set();
+    archTypes.forEach((archType) => {
+      paths.forEach((libraryPathTemplate) => {
+        let libraryPath = libraryPathTemplate.replace('arch_type', archType);
+        libraryPath = libraryPath.replace('build_modes', archType);
+        localBasenames.add(path.basename(libraryPath));
+      });
+    });
+
+    localBasenames.forEach((basename) => {
+      libraryOwnerCount.set(basename, (libraryOwnerCount.get(basename) || 0) + 1);
+    });
+  });
+
+  apiConfigMap.forEach((value, moduleName) => {
+    const paths = value?.library?.[normalizedSystem] || [];
+    if (!Array.isArray(paths) || paths.length === 0) {
+      return;
+    }
+
+    const matchedUniqueLibrary = archTypes.some((archType) => paths.some((libraryPathTemplate) => {
+      let libraryPath = libraryPathTemplate.replace('arch_type', archType);
+      libraryPath = libraryPath.replace('build_modes', archType);
+      const basename = path.basename(libraryPath);
+      if (!projectLibraryNames.has(basename)) {
+        return false;
+      }
+      return (libraryOwnerCount.get(basename) || 0) === 1;
+    }));
+
+    if (matchedUniqueLibrary) {
+      usedModuleSet.add(moduleName);
+    }
+  });
+
+  return usedModuleSet;
+}
+
+function collectUsedModulesByArchTypes(depMap, normalizedSystem, archTypes) {
+  const usedModuleSet = new Set();
+  depMap.forEach((value, moduleName) => {
+    const paths = value?.library?.[normalizedSystem] || [];
+    const matched = archTypes.some((archType) => hasValidLibraryPath(paths, archType));
+    if (matched) {
+      usedModuleSet.add(moduleName);
+    }
+  });
+  return usedModuleSet;
+}
+
+module.exports = { copyLibraryToProject, installPodfiles, loadCollectionJson, getUsedModuleSet };
 
