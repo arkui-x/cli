@@ -29,7 +29,7 @@ const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, isAppProject, getCrossPlatformModules,
   modifyAndroidAbi, getModulePathList, getHspModuleList, validInputModule, getSdkVersion, setDevEcoSdkInEnv } = require('../../util');
-const { getOhpmTools, getIntergrateHvigorw } = require('../../ace-check/getTool');
+const { getOhpmTools, getOhpmToolsVersion, getIntergrateHvigorw } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco,
   devEcoStudioDir } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
@@ -336,6 +336,10 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     console.log('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
     return false;
   }
+  const ohpmVersion = getOhpmToolsVersion();
+  if (ohpmVersion !== '' && parseInt(ohpmVersion.split('.')[0], 10) < 6) {
+    console.log('\x1b[33m%s\x1b[0m', 'WARN: The ohpm version is too low, which may cause the download failure of the ohos third-party library. Please set the ohpm version to a value greater than or equal to 6.0.1');
+  } 
   cmds.push(`"${ohpmPath}" install`);
   if (platform !== Platform.Windows && Number(getSdkVersion(projectDir)) < 12) {
     cmds.push(`chmod 755 hvigorw`);
