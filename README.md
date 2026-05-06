@@ -53,7 +53,7 @@ ArkUI-X项目的源代码结构参见 [代码工程结构及构建说明](https:
 
 ### ace config
 
-设置ACE工具链相关配置，包括OpenHarmony SDK路径，HarmonyOS SDK路径、ArkUI-X SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 
+设置ACE工具链相关配置，包括OpenHarmony SDK路径，HarmonyOS SDK路径、ArkUI-X SDK路径、Android SDK路径、Node.js路径、编译输出路径等。
 
 语法：
 
@@ -422,10 +422,13 @@ ace build <subCommand> [arguments]
 | --profile                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为profile。                |
 | --nosign                       | ios、ios-framework、ios-xcframework                          | 构建出未签名的应用程序。                     |
 | --target [moduleName]          | hap、hsp                                                    | 指定目标模块名进行构建。                     |
-| --target-platform \<platform\> | apk、aab、aar、bundle                                        | 编译apk的目标平台[arm, arm64, x86_64]        |
+| --target-platform \<platform\> | apk、aab、aar、bundle                                        | Android 产物的目标平台[arm, arm64, x86_64]。默认会打包 stub.an，但仅 arm64 和 x86_64 目标会包含 stub.an，arm 目标不会包含。        |
+| --shrink                       | apk、aab、aar、bundle                                        | 关闭 Android 构建时 stub.an 的拷贝与打包流程。该参数仅对 Android 构建生效；默认会打包 stub.an，但仅 arm64、x86_64 目标会包含 stub.an。 |
 | -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
 | --analyze                 	     | hap、apk、ios                          						| 通过rom size工具对打出的包进行包体积解析；[rom size工具使用方法](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-rom-size.md)。             |
 | -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
+
+说明：对于 apk、aab、aar、bundle 构建，如果未显式指定 --target-platform，则默认按 arm64 目标处理；只有 arm64 和 x86_64 会打包 stub.an，arm 不会打包。
 
 构建完成，提示包生成路径:
 

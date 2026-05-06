@@ -27,6 +27,9 @@ const { copyDat } = require('./pkgICUData');
 
 const arkUIXSdkName = 'arkui-x';
 const UITestName = 'ohos.UiTest';
+const stubAnBuildTypes = ['apk', 'aab', 'aar', 'bundle'];
+const stubAnSupportedAndroidAbis = ['arm64-v8a', 'x86_64'];
+const defaultAndroidAnDestDir = '.arkui-x/android/{subdir}/src/main/assets/arkui-x/stub';
 let arkuiXSdkPath = '';
 let arkUIXSdkRootLen = 0;
 let projectRootLen = 0;
@@ -143,6 +146,77 @@ function deleteOldFile(deleteFilePath) {
   }
 }
 
+function getLibraryFileType(libraryPath) {
+  return path.extname(libraryPath).replace('.', '');
+}
+
+function getLibraryName(libraryPath) {
+  return path.basename(libraryPath);
+}
+
+function isStubAnLibrary(libraryPath) {
+  return getLibraryName(libraryPath) === 'stub.an';
+}
+
+function isStubAnEnabled(cmd) {
+  return !cmd || cmd.shrink !== true;
+}
+
+function shouldPackageStubAn(buildType, system, cmd, cpuList) {
+  return system === 'android' && stubAnBuildTypes.includes(buildType) &&
+    isStubAnEnabled(cmd) && cpuList.some(cpuAbi => stubAnSupportedAndroidAbis.includes(cpuAbi));
+}
+
+function removeStubAnFromProject(projectDir, buildProject) {
+  const stubAnDir = path.join(projectDir, defaultAndroidAnDestDir.replace('{subdir}', buildProject));
+  if (!fs.existsSync(stubAnDir) || !fs.statSync(stubAnDir).isDirectory()) {
+    return;
+  }
+  const abiDirs = fs.readdirSync(stubAnDir);
+  abiDirs.forEach((abiDir) => {
+    const abiDirPath = path.join(stubAnDir, abiDir);
+    if (!fs.existsSync(abiDirPath) || !fs.statSync(abiDirPath).isDirectory()) {
+      return;
+    }
+    const stubAnPath = path.join(abiDirPath, 'stub.an');
+    if (fs.existsSync(stubAnPath) && fs.statSync(stubAnPath).isFile()) {
+      fs.unlinkSync(stubAnPath);
+    }
+    if (fs.readdirSync(abiDirPath).length === 0) {
+      fs.rmdirSync(abiDirPath);
+    }
+  });
+  if (fs.readdirSync(stubAnDir).length === 0) {
+    fs.rmdirSync(stubAnDir);
+  }
+}
+
+function shouldSkipStubAn(buildType, system, cmd, libraryPath, currentCpuAbi) {
+  if (system !== 'android' || !stubAnBuildTypes.includes(buildType) || !isStubAnLibrary(libraryPath)) {
+    return false;
+  }
+  if (!isStubAnEnabled(cmd)) {
+    return true;
+  }
+  return !stubAnSupportedAndroidAbis.includes(currentCpuAbi);
+}
+
+function getDestLibDirMap(system, destLibDirMap) {
+  if (system === 'android' && destLibDirMap && !destLibDirMap.an) {
+    return Object.assign({ an: defaultAndroidAnDestDir }, destLibDirMap);
+  }
+  return destLibDirMap;
+}
+
+function getLibraryDestDir(projectDir, destLibDirMap, buildProject, fileType, libraryPath, currentCpuAbi) {
+  let filePath = path.join(projectDir, destLibDirMap[fileType]);
+  filePath = filePath.replace('{subdir}', buildProject);
+  if (fileType === 'an' && getLibraryName(libraryPath) === 'stub.an' && currentCpuAbi) {
+    filePath = path.join(filePath, currentCpuAbi);
+  }
+  return filePath;
+}
+
 function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap) {
   let compileType = 'release';
   if (cmd.debug) {
@@ -155,14 +229,17 @@ function loaderArchType(fileType, cmd, projectDir, system, depMap, apiConfigMap)
   let depCheckMap = new Map();
   subProjectNameList.forEach(buildProject => {
     const cpuList = getCpuList(buildProject, projectDir, system, cmd);
+    if (!shouldPackageStubAn(fileType, system, cmd, cpuList)) {
+      removeStubAnFromProject(projectDir, buildProject);
+    }
     printLog('\nbuildSubProject : ', buildProject, '  Cpu List : ', cpuList);
     for (const cpuIndex in cpuList) {
       const archType = appCpu2SdkLibMap[system][cpuList[cpuIndex]][compileType][0];
-      const destLibDirMap = appCpu2DestLibDir[system][cpuList[cpuIndex]];
+      const destLibDirMap = getDestLibDirMap(system, appCpu2DestLibDir[system][cpuList[cpuIndex]]);
       depCheckMap = copyLibrary(projectDir, archType, depMap, depCheckMap, system,
-        destLibDirMap, buildProject);
+        destLibDirMap, buildProject, fileType, cmd, cpuList[cpuIndex]);
       allCheckMap = makeAllLibraryCheckMap(projectDir, archType, apiConfigMap, system,
-        destLibDirMap, allCheckMap, buildProject);
+        destLibDirMap, allCheckMap, buildProject, fileType, cmd, cpuList[cpuIndex]);
     }
   });
   return {allCheckMap: allCheckMap, depCheckMap: depCheckMap};
@@ -180,7 +257,8 @@ function autoMakeDir(projectDir, destLibDirMap, buildProject) {
   });
 }
 
-function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDirMap, buildProject) {
+function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDirMap,
+  buildProject, buildType, cmd, currentCpuAbi) {
   system = system.replace('-simulator', '');
   autoMakeDir(projectDir, destLibDirMap, buildProject);
   depMap.forEach(function(value, key) {
@@ -188,7 +266,10 @@ function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDi
     for (let libraryPath in paths) {
       libraryPath = paths[libraryPath].replace('arch_type', archType);
       libraryPath = libraryPath.replace('build_modes', archType);
-      const fileType = libraryPath.split('.').pop();
+      const fileType = getLibraryFileType(libraryPath);
+      if (shouldSkipStubAn(buildType, system, cmd, libraryPath, currentCpuAbi)) {
+        continue;
+      }
       const checkResult = checkLibraryPath(libraryPath);
       if (!checkResult) {
         let guestOption = 1;
@@ -201,25 +282,22 @@ function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDi
         } else if (guestOption === 2) {
           ignoreAll = true;
         }
+        if (isStubAnLibrary(libraryPath)) {
+          continue;
+        }
       }
       if (!destLibDirMap[fileType]) {
         throw new Error('Unkown Target Path in Project for File Type:' + fileType +
         ',check appCpu2DestLibDir in configuration file :globalConfig.js ,Please!');
       }
-      let filePath = path.join(projectDir, destLibDirMap[fileType]);
-      filePath = filePath.replace('{subdir}', buildProject);
+      const filePath = getLibraryDestDir(
+        projectDir, destLibDirMap, buildProject, fileType, libraryPath, currentCpuAbi);
       let usedSet = depFileMap.get(filePath);
       if (!usedSet) {
         usedSet = new Set();
         depFileMap.set(filePath, usedSet);
       }
-      filePath = filePath.replace('{subdir}', buildProject);
-      let libraryName;
-      if (platform === Platform.Windows) {
-        libraryName = libraryPath.split('\\').pop();
-      } else {
-        libraryName = libraryPath.split('/').pop();
-      }
+      const libraryName = getLibraryName(libraryPath);
       usedSet.add(libraryName);
       if (checkResult) {
         copyOneLibrary(key, libraryPath, filePath);
@@ -229,7 +307,8 @@ function copyLibrary(projectDir, archType, depMap, depFileMap, system, destLibDi
   return depFileMap;
 }
 
-function makeAllLibraryCheckMap(projectDir, archType, srcMap, system, destLibDirMap, outMap, buildProject) {
+function makeAllLibraryCheckMap(projectDir, archType, srcMap, system, destLibDirMap, outMap, buildProject,
+  buildType, cmd, currentCpuAbi) {
   system = system.replace('-simulator', '');
   if (!outMap) {
     outMap = new Map();
@@ -239,17 +318,15 @@ function makeAllLibraryCheckMap(projectDir, archType, srcMap, system, destLibDir
     for (let libraryPath in paths) {
       libraryPath = paths[libraryPath].replace('arch_type', archType);
       libraryPath = libraryPath.replace('build_modes', archType);
-      const fileType = libraryPath.split('.').pop();
+      const fileType = getLibraryFileType(libraryPath);
+      if (shouldSkipStubAn(buildType, system, cmd, libraryPath, currentCpuAbi)) {
+        continue;
+      }
       if (checkLibraryPath(libraryPath)) {
-        let libraryName;
-        if (platform === Platform.Windows) {
-          libraryName = libraryPath.split('\\').pop();
-        } else {
-          libraryName = libraryPath.split('/').pop();
-        }
+        const libraryName = getLibraryName(libraryPath);
         if (destLibDirMap[fileType]) {
-          let filePath = path.join(projectDir, destLibDirMap[fileType]);
-          filePath = filePath.replace('{subdir}', buildProject);
+          const filePath = getLibraryDestDir(
+            projectDir, destLibDirMap, buildProject, fileType, libraryPath, currentCpuAbi);
           let outset = outMap.get(filePath);
           if (!outset) {
             outMap.set(filePath, new Set());
@@ -277,6 +354,7 @@ function copyOneLibrary(moduleName, src, dest) {
   } else {
     dest = path.join(dest, src.split('/').pop());
   }
+  fs.mkdirSync(path.dirname(dest), { recursive: true });
   const src0 = src.substr(arkUIXSdkRootLen);
   const tar0 = dest.substr(projectRootLen);
   if (fs.statSync(src).isFile()) {
@@ -495,7 +573,7 @@ function checkAndQueue(fileName, filePath, targetName, baseDir, queue) {
 function createFileWithContent(filePath, content) {
   const fullPath = path.resolve(filePath);
   try {
-      fs.writeFileSync(fullPath, content, { 
+      fs.writeFileSync(fullPath, content, {
           encoding: 'utf-8',
           flag: 'w'
       });
