@@ -35,7 +35,7 @@ const run = require('./src/cli/ace-run');
 const clean = require('./src/cli/ace-clean');
 const test = require('./src/cli/ace-test');
 const { getAbsolutePath, validOptions, checkProjectType,
-  getCreatedPlatforms, isSupportedOperatorType } = require('./src/cli/util');
+  isSupportedOperatorType, getCreatedPlatforms } = require('./src/cli/util');
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
 const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
@@ -44,7 +44,7 @@ const { analysisProject } = require('./src/cli/ace-analysis/index');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
-const createdPlatforms = getCreatedPlatforms(process.cwd());
+let createdPlatformsCache;
 const commandsSort = {
   'Application': [],
   'Device': [],
@@ -56,6 +56,14 @@ const installCommands = ['apk', 'hap', 'hsp', 'ios'];
 const aceCommands = ['build', 'check', 'clean', 'config', 'create', 'devices', 'help',
   'install', 'launch', 'log', 'new', 'run', 'test', 'uninstall', 'modify', 'analysis'];
 parseCommander();
+
+function getCreatedPlatformsCached(projectDir = process.cwd()) {
+  if (!createdPlatformsCache) {
+    createdPlatformsCache = getCreatedPlatforms(projectDir);
+  }
+  return createdPlatformsCache;
+}
+
 function parseCommander() {
   program.configureHelp({
     showGlobalOptions: true,
@@ -189,6 +197,7 @@ function parseCreate() {
               const projectInfo = getProjectInfo(absolutePath);
               const projectTempPath = getTempPath(outputDir);
               const isRepair = true;
+              const createdPlatforms = getCreatedPlatformsCached();
               let targetPlatforms = 'both';
               if (createdPlatforms.includes('android') && createdPlatforms.includes('ios')) {
                 targetPlatforms = 'both';
@@ -530,10 +539,15 @@ Available subcommands:
       buildSubcommand
         .option('-s, --simulator', 'Build for iOS Simulator.');
     }
-    if (subcommand === 'apk' || subcommand === 'aab' || subcommand === 'aar' || subcommand === 'bundle') {
+    if (['apk', 'aab', 'aar', 'bundle'].includes(subcommand)) {
       buildSubcommand
-        .option('--target-platform <platform>', 'The target platform for which the apk is compiled ' +
-          '[arm, arm64, x86_64]');
+        .option('--target-platform <platform>', 'The target platform for which the package is compiled ' +
+          '[arm, arm64, x86_64]. stub.an is packaged by default and only for arm64 or x86_64 targets.')
+        .option(
+          '--shrink',
+          'Disable copying and packaging stub.an into Android assets. ' +
+          'By default stub.an is packaged only for arm64 and x86_64 targets.'
+        );
     }
     if (subcommand === 'apk') {
       buildSubcommand
@@ -566,6 +580,7 @@ Available subcommands:
           compiler(subcommand, cmd);
         } else if (subcommand === 'apk' || subcommand === 'ios' || subcommand === 'aar' ||
           subcommand === 'ios-framework' || subcommand === 'ios-xcframework' || subcommand === 'aab') {
+          const createdPlatforms = getCreatedPlatformsCached();
           if (!isSupportedOperatorType(createdPlatforms, subcommand)) {
             return false;
           }
@@ -724,6 +739,7 @@ function parseModify() {
     .action((modifyType) => {
       let platforms = 'both';
       if (fs.existsSync(path.join(process.cwd(), './.arkui-x/arkui-x-config.json5'))) {
+        const createdPlatforms = getCreatedPlatformsCached();
         platforms = createdPlatforms.length === 2 ? 'both' : createdPlatforms[0];
         parseModifyByPlatform(modifyType, platforms);
       } else {
@@ -913,6 +929,7 @@ function execCmd(fileType, options, cmd, func) {
     console.error('\x1B[31m%s\x1B[0m', `Run 'ace help <command>' for available ACE Tools commands and options.`);
     return false;
   }
+  const createdPlatforms = getCreatedPlatformsCached();
   if (!isSupportedOperatorType(createdPlatforms, fileType)) {
     return false;
   }
