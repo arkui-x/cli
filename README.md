@@ -422,8 +422,8 @@ ace build <subCommand> [arguments]
 | --profile                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 构建应用程序的类型为profile。                |
 | --nosign                       | ios、ios-framework、ios-xcframework                          | 构建出未签名的应用程序。                     |
 | --target [moduleName]          | hap、hsp                                                    | 指定目标模块名进行构建。                     |
-| --target-platform \<platform\> | apk、aab、aar、bundle                                        | Android 产物的目标平台[arm, arm64, x86_64]。默认会打包 stub.an，但仅 arm64 和 x86_64 目标会包含 stub.an，arm 目标不会包含。        |
-| --shrink                       | apk、aab、aar、bundle                                        | 关闭 Android 构建时 stub.an 的拷贝与打包流程。该参数仅对 Android 构建生效；默认会打包 stub.an，但仅 arm64、x86_64 目标会包含 stub.an。 |
+| --target-platform \<platform\> | apk、aab、aar、bundle                                        | 指定 Android 产物的目标平台，支持 arm、arm64、x86_64，可同时指定多个，以逗号分隔。示例：ace build apk --target-platform arm,arm64,x86_64 |
+| --shrink                       | apk、aab、aar、bundle                                        | 控制 Android 构建是否拷贝并打包 stub.an。默认开启，仅对 arm64、x86_64 目标平台生效。关闭后，所有平台均不打包 stub.an。此参数仅对 Android 构建生效。 |
 | -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
 | --analyze                 	     | hap、apk、ios                          						| 通过rom size工具对打出的包进行包体积解析；[rom size工具使用方法](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-rom-size.md)。             |
 | -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
@@ -465,7 +465,7 @@ ace install [arguments]
 | --------------------- | ------------------------ |
 | --target [moduleName] | 指定目标模块名进行安装。 |
 | -d --device \<deviceId\> | 指定运行应用的设备Id。|
-| --path <path\> | 指定要安装的包的路径。 |
+| --path \<path\> | 指定要安装的包的路径。 |
 | -h --help             | 显示帮助信息。           |
 
 
