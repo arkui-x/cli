@@ -36,7 +36,7 @@ const {
 function checkNotInProjectModules(modules, projectModules) {
   const notFound = modules.filter(m => !projectModules.includes(m));
   if (notFound.length > 0) {
-    logError(`Error: You entered {${notFound.join(',')}} module is not found in the project. Please confirm!`);
+    logError(`Error: Module(s) '${notFound.join("', '")}' not found in the project. Please check and try again.`);
   }
   return notFound;
 }
@@ -75,7 +75,7 @@ function modifyModulesWithMultiEntry(modulesArray, modulesTypeArray, entryTypeAr
     message = `You designated modules has more than two entry modules (${entryList}). Please enter a module as the cross-platform entry:`;
   }
 
-  inquirer.prompt([{
+  return inquirer.prompt([{
     name: 'repair',
     type: 'input',
     message,
@@ -117,7 +117,7 @@ function modifyProject(platforms) {
   const { modules, moduleTypes, entryModules } = collected;
 
   if (entryModules.length < 1) {
-    logError(`Error: The project does not have an entry module，cannot be modify!`);
+    logError(`Error: The project does not have an entry module, cannot be modified!`);
     return;
   }
 
@@ -140,17 +140,20 @@ function modifyModules(modules, platforms) {
   }
 
   const { modulesArray, modulesTypeArray, entryTypeArray, hasFeatureModule } = collected;
-  checkNotInProjectModules(modules, modulesArray);
+  const notFound = checkNotInProjectModules(modules, modulesArray);
+  if (notFound.length > 0) {
+    return;
+  }
 
   const hasArkuiX = fileExists(ARKUIX_DIR);
   if (hasArkuiX && entryTypeArray.length > 0) {
-    logError(`Error: The entered modules contains entry type module. The project is a cross-platform project and cannot be modified`);
+    logError(`Error: The entered modules contain an entry type module. The project is a cross-platform project and cannot be modified.`);
     return;
   }
 
   if (entryTypeArray.length < 1) {
     if (!hasFeatureModule && !hasArkuiX) {
-      logError(`Error: The entered module does not contains an entry or feature type module. cannot be modified`);
+      logError(`Error: The entered module does not contain an entry or feature type module, cannot be modified.`);
       return;
     }
     processDesignatedModules(modulesArray, modulesTypeArray, platforms);

@@ -35,6 +35,8 @@ const {
   REPLACE_PLACEHOLDER_ENTRY_VC,
   REPLACE_PLACEHOLDER_ENTRY_MODULE,
   REPLACE_PLACEHOLDER_ENTRY_ABILITY,
+  isAndroid,
+  isIOS,
 } = require('./constants');
 const { buildReplaceTask, executeReplaceTasks, safeRenameSync } = require('./utils');
 const { getModuleAbility } = require('./moduleInfo');
@@ -95,7 +97,6 @@ function modifyCrossModule(moduleName, appName, platforms) {
   const activityName = buildActivityName(moduleName, abilityName);
   const viewControllerName = buildViewControllerName(moduleName, abilityName);
 
-  const { isAndroid, isIOS } = require('./constants');
   const tasks = [];
 
   if (isAndroid(platforms)) {

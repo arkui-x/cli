@@ -44,7 +44,10 @@ const { createStageInIOS, createStageInAndroid } = require('../ace-create/module
 
 function initArkuixConfig() {
   ensureDir('.arkui-x');
-  copyFileSync(`${globalThis.templatePath}/arkui-x-config.json5`, ARKUIX_CONFIG_PATH);
+  const templateConfig = globalThis.templatePath
+    ? `${globalThis.templatePath}/arkui-x-config.json5`
+    : path.join(__dirname, 'template', 'arkui-x-config.json5');
+  copyFileSync(templateConfig, ARKUIX_CONFIG_PATH);
   const jsonData = readJson5(ARKUIX_CONFIG_PATH);
   jsonData.modules = [];
   writeJson5(ARKUIX_CONFIG_PATH, jsonData);
@@ -147,7 +150,7 @@ function processAllModules(modulesArray, modulesTypeArray, platforms) {
   initProjectInfo();
   checkProblem();
 
-  const { updateCrossPlatformConfig } = require('../ace-create/util');
+  const { updateCrossPlatformConfig } = require('../ace-create/util'); // lazy require to avoid circular dependency
   updateCrossPlatformConfig(process.cwd(), platforms);
 
   logInfo('modify HarmonyOS project to ArkUI-X project success!');
@@ -175,7 +178,7 @@ function processDesignatedModules(modulesArray, modulesTypeArray, platforms) {
 
   initProjectInfo();
 
-  const { updateCrossPlatformConfig } = require('../ace-create/util');
+  const { updateCrossPlatformConfig } = require('../ace-create/util'); // lazy require to avoid circular dependency
   updateCrossPlatformConfig(process.cwd(), platforms);
   checkProblem();
 
