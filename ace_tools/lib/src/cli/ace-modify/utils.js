@@ -77,6 +77,7 @@ function executeReplaceTasks(tasks) {
   const replacements = [];
   for (const task of tasks) {
     if (!task.file || !task.search) {
+      logWarn(`Warning: skipping invalid replace task (missing file or search pattern)`);
       continue;
     }
     files.push(task.file);
@@ -89,8 +90,15 @@ function executeReplaceTasks(tasks) {
 }
 
 function safeRenameSync(oldPath, newPath) {
-  if (fs.existsSync(oldPath)) {
+  if (!fs.existsSync(oldPath)) {
+    return false;
+  }
+  try {
     fs.renameSync(oldPath, newPath);
+    return true;
+  } catch (error) {
+    logError(`Error: Failed to rename ${oldPath} to ${newPath}: ${error.message}`);
+    return false;
   }
 }
 

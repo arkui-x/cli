@@ -14,7 +14,7 @@
  */
 
 const fs = require('fs');
-const { logInfo } = require('./utils');
+const { logInfo, logError } = require('./utils');
 const { validateAndSetSdkPath } = require('./sdkResolver');
 const { captureLogs, analysisBuildLog } = require('./buildRunner');
 
@@ -28,7 +28,6 @@ function searchApi(sdkPath, buildlog) {
       logInfo('the log path is valid, start analysis log ...');
       analysisBuildLog(buildlog, false);
     } else {
-      const { logError } = require('./utils');
       logError('Error: the log path does not exist. Please enter the correct path');
     }
     return;
