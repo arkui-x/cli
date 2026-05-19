@@ -12,10 +12,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const { searchApi} = require('./searchApi');
 
-function analysisProject(sdkPath, buildlog) {
-    searchApi(sdkPath, buildlog);
+const fs = require('fs');
+const { logInfo } = require('./utils');
+const { validateAndSetSdkPath } = require('./sdkResolver');
+const { captureLogs, analysisBuildLog } = require('./buildRunner');
+
+function searchApi(sdkPath, buildlog) {
+  if (!validateAndSetSdkPath(sdkPath)) {
+    return;
+  }
+
+  if (buildlog && buildlog !== '') {
+    if (fs.existsSync(buildlog)) {
+      logInfo('the log path is valid, start analysis log ...');
+      analysisBuildLog(buildlog, false);
+    } else {
+      const { logError } = require('./utils');
+      logError('Error: the log path does not exist. Please enter the correct path');
+    }
+    return;
+  }
+
+  captureLogs();
 }
 
-module.exports = { analysisProject };
+function analysisProject(sdkPath, buildlog) {
+  searchApi(sdkPath, buildlog);
+}
+
+module.exports = { analysisProject, searchApi };
