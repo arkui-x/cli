@@ -16,7 +16,6 @@
 const fs = require('fs');
 const path = require('path');
 const { FILE_NAME_MAP } = require('./constants');
-const { buildReplaceTask, executeReplaceTasks } = require('./utils');
 
 function copyFileSync(source, destination) {
   fs.copyFileSync(source, destination);
@@ -37,6 +36,9 @@ function copyFolderSync(source, destination) {
 }
 
 function createPackageFile(packagePaths, packageArray) {
+  if (!packageArray || packageArray.length === 0) {
+    return;
+  }
   for (const packagePath of packagePaths) {
     if (!fs.existsSync(packagePath)) {
       continue;
@@ -44,12 +46,17 @@ function createPackageFile(packagePaths, packageArray) {
     const entries = fs.readdirSync(packagePath, { withFileTypes: true });
     let newPath = packagePath;
     for (const packageInfo of packageArray) {
-      newPath = `${newPath}/${packageInfo}`;
+      newPath = path.join(newPath, packageInfo);
       fs.mkdirSync(newPath, { recursive: true });
     }
     for (const entry of entries) {
-      copyFileSync(`${packagePath}/${entry.name}`, `${newPath}/${entry.name}`);
-      fs.unlinkSync(`${packagePath}/${entry.name}`);
+      if (!entry.isFile()) {
+        continue;
+      }
+      const srcPath = path.join(packagePath, entry.name);
+      const destPath = path.join(newPath, entry.name);
+      copyFileSync(srcPath, destPath);
+      fs.unlinkSync(srcPath);
     }
   }
 }

@@ -105,6 +105,10 @@ function collectModulesFromBuildProfile() {
     }
     const moduleType = getModuleType(mod.name, mod.srcPath);
     modules.push(mod.name);
+    if (!moduleType) {
+      moduleTypes.push('');
+      continue;
+    }
     moduleTypes.push(moduleType);
     if (moduleType === 'entry') {
       entryModules.push(mod.name);
@@ -130,6 +134,9 @@ function collectDesignatedModulesFromBuildProfile(designatedModules) {
 
   for (const mod of jsonObj.modules) {
     if (!designatedModules.includes(mod.name)) {
+      continue;
+    }
+    if (!mod.name || !mod.srcPath) {
       continue;
     }
     const moduleType = getModuleType(mod.name, mod.srcPath);

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+const path = require('path');
 const { getArkuixPluginWithModelVersion } = require('../util/index');
 const {
   HVIGORFILE_PATH,
@@ -30,6 +31,7 @@ const {
   writeJson5,
   fileExists,
   logWarn,
+  logError,
 } = require('./utils');
 const { getModulePath } = require('./moduleInfo');
 
@@ -39,9 +41,14 @@ function modifyModuleHvigorInfo(moduleName, moduleType) {
     return;
   }
 
+  const hvigorFile = path.join(modulePath, 'hvigorfile.ts');
+  if (!fileExists(hvigorFile)) {
+    return;
+  }
+
   const tasks = [
     buildReplaceTask(
-      `${modulePath}/hvigorfile.ts`,
+      hvigorFile,
       HVIGOR_PLUGIN_OHOS,
       HVIGOR_PLUGIN_ARKUIX
     ),
@@ -75,7 +82,13 @@ function updateHvigorConfig() {
     return;
   }
 
-  const jsonObj = readJson5(HVIGOR_CONFIG_PATH);
+  let jsonObj;
+  try {
+    jsonObj = readJson5(HVIGOR_CONFIG_PATH);
+  } catch (error) {
+    logError(`Error: Failed to parse ${HVIGOR_CONFIG_PATH}: ${error.message}`);
+    return;
+  }
   if (!jsonObj.dependencies) {
     jsonObj.dependencies = {};
   }
@@ -83,6 +96,8 @@ function updateHvigorConfig() {
   if (!(HVIGOR_PLUGIN_ARKUIX in jsonObj.dependencies)) {
     if (jsonObj.modelVersion) {
       jsonObj.dependencies[HVIGOR_PLUGIN_ARKUIX] = getArkuixPluginWithModelVersion(jsonObj.modelVersion);
+    } else {
+      logWarn(`Warning: modelVersion not found in ${HVIGOR_CONFIG_PATH}, skip arkui-x plugin dependency`);
     }
   }
 
