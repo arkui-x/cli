@@ -17,13 +17,9 @@ const fs = require('fs');
 const path = require('path');
 const {
   getGlobalSdkPath,
-  PATH_KIT_HMS,
-  PATH_KIT_OH,
   PATH_TRAVERSAL_COMPONENT,
   PATH_TRAVERSAL_API,
   PATH_TRAVERSAL_HMS_API,
-  FROM_KEYWORD_LENGTH,
-  FROM_SUFFIX_LENGTH,
   SEARCH_RESULT_NOT_FOUND,
   KIT_PREFIX,
   DTS_SUFFIX,
@@ -41,11 +37,9 @@ const {
   containsApiReference,
   createApiData,
   createFileData,
-  createSearchData,
   readFileLines,
-  readFileContent,
   resolveKitFilePath,
-  toCamelCaseToSnakeCase,
+  camelToSnakeCase,
 } = require('./utils');
 const { getModuleNameFromBuildLog, getFileDataFromBuildLog, getNotSupportApi } = require('./buildRunner');
 const { getComponentName } = require('./componentAnalyzer');
@@ -90,7 +84,9 @@ function resolveMultiLineImport(lines, importIndex, notSupportApi) {
   const importNames = [];
   for (let i = 1; i < fromOffset; i++) {
     const name = lines[importIndex + i].trim().replace(/,/g, '');
-    importNames.push(name);
+    if (name) {
+      importNames.push(name);
+    }
   }
 
   if (!importNames.includes(notSupportApi)) {
@@ -163,7 +159,7 @@ function getPointStartName(fileData) {
 }
 
 function getDtsFileFromComponent(componentName, notSupportApi) {
-  const snakeName = toCamelCaseToSnakeCase(componentName);
+  const snakeName = camelToSnakeCase(componentName);
   const candidateFiles = [
     `${snakeName}${DTS_SUFFIX}`,
     `${snakeName}${DETS_SUFFIX}`,
@@ -229,13 +225,17 @@ function getImportFileList(fileData) {
 
 function getOneLineImportFileList(searchLine) {
   const fromFile = extractFromPath(searchLine);
-  if (!fromFile || fromFile.includes('../') || fromFile.includes('/')) {
+  if (!fromFile) {
     return [];
   }
 
   if (fromFile.includes(KIT_PREFIX)) {
     const importList = extractImportNames(searchLine);
     return getKitFileImportFileList(fromFile, importList);
+  }
+
+  if (fromFile.startsWith('./') || fromFile.startsWith('../')) {
+    return [];
   }
 
   return [fromFile];
@@ -391,7 +391,7 @@ function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
   const fileData = getFileDataFromBuildLog(line);
   const notSupportApi = getNotSupportApi(nextLine);
 
-  if (!fileData || !fileData.path || !fileData.line || !fileData.column || !notSupportApi) {
+  if (!fileData || !fileData.path || !fileData.line || !fileData.column || !notSupportApi || !moduleName) {
     return;
   }
 
@@ -418,6 +418,10 @@ function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
     dtsFileName = getApiFileTraversalAll(notSupportApi);
+  }
+
+  if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
+    return;
   }
 
   if (!allDtsList.has(dtsFileName)) {
