@@ -52,7 +52,7 @@ const SEARCH_RESULT_NOT_FOUND = ' ';
 const CHART_OUTPUT_FILENAME = 'chart.html';
 
 const DEFAULT_SDK_PATH_MACOS = '/Applications/DevEco-Studio.app/Contents/sdk';
-const DEFAULT_SDK_PATH_WINDOWS = '/Applications/DevEco-Studio.app\\sdk';
+const DEFAULT_SDK_PATH_WINDOWS = 'C:\\Program Files\\Huawei\\DevEco Studio\\sdk';
 
 const PATH_KIT_HMS = (platform === Platform.MacOS)
   ? '/default/hms/ets/kits/'
@@ -149,7 +149,6 @@ module.exports = {
   ECHARTS_CDN_URL,
   SEARCH_COMPONENT_TYPE,
   SDK_PKG_FILES,
-  globalSdkPath,
   setGlobalSdkPath,
   getGlobalSdkPath,
 };

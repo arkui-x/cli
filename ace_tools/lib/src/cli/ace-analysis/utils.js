@@ -24,6 +24,9 @@ const {
   DETS_SUFFIX,
   SEARCH_RESULT_NOT_FOUND,
   ANSI_ESCAPE_REGEX,
+  getGlobalSdkPath,
+  PATH_KIT_HMS,
+  PATH_KIT_OH,
 } = require('./constants');
 
 function logError(message) {
@@ -69,7 +72,7 @@ function isImportLine(line) {
 function extractImportNames(importLine) {
   const startIndex = importLine.indexOf('{');
   const endIndex = importLine.indexOf('}');
-  if (startIndex === -1 || endIndex === -1) {
+  if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
     return [];
   }
   const inner = importLine.slice(startIndex + 1, endIndex);
@@ -77,7 +80,7 @@ function extractImportNames(importLine) {
 }
 
 function isRelativePath(filePath) {
-  return filePath.includes('../') || filePath.includes('/');
+  return filePath.startsWith('./') || filePath.startsWith('../');
 }
 
 function containsApiReference(line, apiName) {
@@ -131,7 +134,6 @@ function fileExists(filePath) {
 }
 
 function resolveKitFilePath(kitFileName) {
-  const { getGlobalSdkPath, PATH_KIT_HMS, PATH_KIT_OH } = require('./constants');
   const hmsPath = `${getGlobalSdkPath()}${PATH_KIT_HMS}${kitFileName}.d.ts`;
   if (fs.existsSync(hmsPath)) {
     return hmsPath;
@@ -157,7 +159,7 @@ function safeDeleteFileAsync(filePath, callback) {
   });
 }
 
-function toCamelCaseToSnakeCase(str) {
+function camelToSnakeCase(str) {
   let result = str.charAt(0).toLowerCase();
   for (let i = 1; i < str.length; i++) {
     if (isUpperCase(str.charAt(i))) {
@@ -192,6 +194,7 @@ module.exports = {
   resolveKitFilePath,
   safeDeleteFile,
   safeDeleteFileAsync,
-  toCamelCaseToSnakeCase,
+  camelToSnakeCase,
+  toCamelCaseToSnakeCase: camelToSnakeCase,
   safeModuleName,
 };
