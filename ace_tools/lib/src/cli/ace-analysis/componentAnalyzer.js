@@ -127,7 +127,7 @@ function resolvePointTypeBranch(searchData, line, lineLength) {
 }
 
 function resolveClosureTypeBranch(searchData, line) {
-  if (line.includes('=> {' && line.trim().charAt(0) === '.') {
+  if (line.includes('=> {') && line.trim().charAt(0) === '.') {
     searchData.whileFindType = SEARCH_COMPONENT_TYPE.POINT_TYPE;
     searchData.nowIndex++;
   } else if (line.includes('({')) {

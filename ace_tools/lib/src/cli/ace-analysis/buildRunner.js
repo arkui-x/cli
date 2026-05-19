@@ -52,9 +52,8 @@ function spawnBuildProcess() {
   const options = {
     maxBuffer: MAX_BUFFER_SIZE,
     shell: true,
-    env: { ...process.env, CUSTOM_VAR: 'value' },
+    env: { ...process.env },
     cwd: process.cwd(),
-    encoding: 'utf-8',
   };
   return spawn(BUILD_COMMAND, [], options);
 }
@@ -111,10 +110,10 @@ function captureLogs() {
   });
 
   child.on('close', (code) => {
+    clearTimeout(timer);
     if (closeCode !== BUILD_CLOSE_CODE_FAIL) {
       child.kill();
       logFileStream.end();
-      clearTimeout(timer);
       logInfo('project build finish, start analysis log ...');
       analysisBuildLog(BUILD_LOG_FILENAME, true);
     }
@@ -122,6 +121,7 @@ function captureLogs() {
 
   child.on('error', (error) => {
     closeCode = BUILD_CLOSE_CODE_FAIL;
+    clearTimeout(timer);
     child.kill();
     logFileStream.end();
   });
@@ -155,7 +155,8 @@ function preAnalysisBuildLog(buildLogPath) {
     return true;
   }
   if (!isBuildSuccess && !hasSupportLog) {
-    logError('Error: The project build fail, please run "ace build apk" and resolve the problem');
+  logError('Error: The project build failed, please run "ace build apk" and resolve the problem');
+
     return false;
   }
   return true;
@@ -172,10 +173,10 @@ function analysisBuildLog(buildLogPath, shouldDeleteLog) {
 
   if (preAnalysisBuildLog(buildLogPath)) {
     const lines = readFileLines(buildLogPath);
+    const { analysisBuildLogLine } = require('./apiSearcher');
     for (let i = 0; i < lines.length; i++) {
       const nextIndex = i + 1;
       if (lines[i].includes(LOG_MARKER_ETS_ERROR) || lines[i].includes(LOG_MARKER_ETS_WARN)) {
-        const { analysisBuildLogLine } = require('./apiSearcher');
         analysisBuildLogLine(lines[i], lines[nextIndex], allDtsList, moduleApiList);
       }
     }
@@ -206,12 +207,12 @@ function getFileDataFromBuildLog(line) {
 
   if (platform === Platform.MacOS) {
     fileData.path = fileDataArray[0];
-    fileData.line = fileDataArray[1];
-    fileData.column = fileDataArray[2].trim();
+    fileData.line = Number(fileDataArray[1]);
+    fileData.column = Number(fileDataArray[2].trim());
   } else {
     fileData.path = `${fileDataArray[0]}:${fileDataArray[1]}`;
-    fileData.line = fileDataArray[2];
-    fileData.column = fileDataArray[3];
+    fileData.line = Number(fileDataArray[2]);
+    fileData.column = Number(fileDataArray[3]);
   }
 
   const pathArray = fileData.path.split('/');
