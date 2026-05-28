@@ -878,7 +878,7 @@ function getDevEcoNodePath() {
   if (fs.existsSync(devEcoNodePath)) {
     return (platform === Platform.MacOS) ? `${devEcoNodePath}` : `"${devEcoNodePath}"`;
   }
-  return "";
+  return '';
 }
 
 module.exports = {

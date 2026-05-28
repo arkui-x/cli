@@ -442,7 +442,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
-      env: (getDevEcoNodePath() === "") ? process.env : {
+      env: (getDevEcoNodePath() === '') ? process.env : {
         ...process.env,
         NODE_HOME: getDevEcoNodePath(),
         PATH: `${getDevEcoNodePath()};${process.env.PATH}`
@@ -592,7 +592,7 @@ function compiler(fileType, cmd) {
         exec(cmds, {
           encoding: 'utf-8',
           stdio: 'inherit',
-          env: (getDevEcoNodePath() === "") ? process.env : {
+          env: (getDevEcoNodePath() === '') ? process.env : {
             ...process.env,
             NODE_HOME: getDevEcoNodePath(),
             PATH: `${getDevEcoNodePath()};${process.env.PATH}`
