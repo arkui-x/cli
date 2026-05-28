@@ -426,9 +426,9 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
       const moduleTestStr = '-p module=' + testModule.join('@ohosTest,') + '@ohosTest';
       testbBuildtarget = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS --no-parallel`;
     }
-    cmds.push(`${getDevEcoNodePath()}${buildCmd} ${buildtarget}`);
+    cmds.push(`${buildCmd} ${buildtarget}`);
     if (cmd.debug) {
-      cmds.push(`${getDevEcoNodePath()}${buildCmd} ${testbBuildtarget}`);
+      cmds.push(`${buildCmd} ${testbBuildtarget}`);
     }
     gradleMessage = 'Start compiling jsBundle...';
   }
@@ -442,7 +442,11 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
-      env: process.env,
+      env: (getDevEcoNodePath() === "") ? process.env : {
+        ...process.env,
+        NODE_HOME: getDevEcoNodePath(),
+        PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+      }
     });
     return true;
   } catch (error) {
@@ -579,7 +583,7 @@ function compiler(fileType, cmd) {
     }
     if (!fs.existsSync(path.join(projectDir, '.hvigor/cache/meta.json'))) {
       let cmds = [`cd ${projectDir}`];
-      cmds.push(`${getDevEcoNodePath()}"${getIntergrateHvigorw()}" --sync`);
+      cmds.push(`"${getIntergrateHvigorw()}" --sync`);
       cmds = cmds.join(' && ');
       if (platform === Platform.Windows) {
         cmds = cmds.replace(/\//g, '\\');
@@ -588,7 +592,11 @@ function compiler(fileType, cmd) {
         exec(cmds, {
           encoding: 'utf-8',
           stdio: 'inherit',
-          env: process.env,
+          env: (getDevEcoNodePath() === "") ? process.env : {
+            ...process.env,
+            NODE_HOME: getDevEcoNodePath(),
+            PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+          }
         });
       } catch (error) {
         console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);

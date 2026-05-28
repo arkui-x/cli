@@ -876,7 +876,7 @@ function getDevEcoNodePath() {
     devEcoNodePath = `${devEcoStudioDir}/Contents/tools/node`;
   }
   if (fs.existsSync(devEcoNodePath)) {
-    return `NODE_HOME="${devEcoNodePath}" `
+    return (platform === Platform.MacOS) ? `${devEcoNodePath}` : `"${devEcoNodePath}"`;
   }
   return "";
 }

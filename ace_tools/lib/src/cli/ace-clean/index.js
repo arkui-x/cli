@@ -146,7 +146,7 @@ function cleanOHOS() {
   setDevEcoSdkInEnv(devEcoStudioDir);
   if (sdkVersionResult >= 12) {
     if (`"${getIntergrateHvigorw()}"`) {
-      buildCmd = `${getDevEcoNodePath()}"${getIntergrateHvigorw()}"`;
+      buildCmd = `"${getIntergrateHvigorw()}"`;
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
       'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
@@ -165,6 +165,11 @@ function cleanOHOS() {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
+      env: (getDevEcoNodePath() === "") ? process.env : {
+        ...process.env,
+        NODE_HOME: getDevEcoNodePath(),
+        PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+      }
     });
   } catch (error) {
     console.log(error);
