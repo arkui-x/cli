@@ -19,7 +19,7 @@ const { devEcoStudioDir } = require('../ace-check/configs');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
 const { getOhpmTools, getIntergrateHvigorw } = require('../ace-check/getTool');
-const { changeVersion } = require('../util');
+const { changeVersion, getDevEcoNodePath } = require('../util');
 const config = getConfig();
 const fs = require('fs');
 const path = require('path');
@@ -146,7 +146,7 @@ function cleanOHOS() {
   setDevEcoSdkInEnv(devEcoStudioDir);
   if (sdkVersionResult >= 12) {
     if (`"${getIntergrateHvigorw()}"`) {
-      buildCmd = `"${getIntergrateHvigorw()}"`;
+      buildCmd = `${getDevEcoNodePath()}"${getIntergrateHvigorw()}"`;
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
       'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');

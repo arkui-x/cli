@@ -38,7 +38,7 @@ const { loadCollectionJson } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
-const { getCreatedPlatforms, changeVersion } = require('../../util');
+const { getCreatedPlatforms, changeVersion, getDevEcoNodePath } = require('../../util');
 const { runFontSubsetForTarget } = require('../ace-packager/pkgHwSymbol');
 const VALIDATION_MODULES = new Set(['TimePickerDialog', 'DatePickerDialog', 'UIPickerComponent', 'TextPickerDialog', 'DatePicker', 'TextPicker', 'TimePicker']);
 
@@ -426,9 +426,9 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
       const moduleTestStr = '-p module=' + testModule.join('@ohosTest,') + '@ohosTest';
       testbBuildtarget = `--mode module ${moduleTestStr} ohosTest@OhosTestCompileArkTS --no-parallel`;
     }
-    cmds.push(`${buildCmd} ${buildtarget}`);
+    cmds.push(`${getDevEcoNodePath()}${buildCmd} ${buildtarget}`);
     if (cmd.debug) {
-      cmds.push(`${buildCmd} ${testbBuildtarget}`);
+      cmds.push(`${getDevEcoNodePath()}${buildCmd} ${testbBuildtarget}`);
     }
     gradleMessage = 'Start compiling jsBundle...';
   }
@@ -579,7 +579,7 @@ function compiler(fileType, cmd) {
     }
     if (!fs.existsSync(path.join(projectDir, '.hvigor/cache/meta.json'))) {
       let cmds = [`cd ${projectDir}`];
-      cmds.push(`"${getIntergrateHvigorw()}" --sync`);
+      cmds.push(`${getDevEcoNodePath()}"${getIntergrateHvigorw()}" --sync`);
       cmds = cmds.join(' && ');
       if (platform === Platform.Windows) {
         cmds = cmds.replace(/\//g, '\\');
