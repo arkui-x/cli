@@ -38,7 +38,7 @@ const { loadCollectionJson } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
-const { getCreatedPlatforms, changeVersion } = require('../../util');
+const { getCreatedPlatforms, changeVersion, getDevEcoNodePath } = require('../../util');
 const { runFontSubsetForTarget } = require('../ace-packager/pkgHwSymbol');
 const VALIDATION_MODULES = new Set(['TimePickerDialog', 'DatePickerDialog', 'UIPickerComponent', 'TextPickerDialog', 'DatePicker', 'TextPicker', 'TimePicker']);
 
@@ -442,7 +442,11 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
-      env: process.env,
+      env: (getDevEcoNodePath() === '') ? process.env : {
+        ...process.env,
+        NODE_HOME: getDevEcoNodePath(),
+        PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+      }
     });
     return true;
   } catch (error) {
@@ -588,7 +592,11 @@ function compiler(fileType, cmd) {
         exec(cmds, {
           encoding: 'utf-8',
           stdio: 'inherit',
-          env: process.env,
+          env: (getDevEcoNodePath() === '') ? process.env : {
+            ...process.env,
+            NODE_HOME: getDevEcoNodePath(),
+            PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+          }
         });
       } catch (error) {
         console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);

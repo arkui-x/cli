@@ -280,8 +280,7 @@ function typeStudioPathCheck(typestudioDir, typestudio, info) {
   } else if (platform === Platform.MacOS) {
     devecostudioPlatformDir = path.join(typestudioDir, 'Contents/MacOS');
   }
-  const validIdePath = validIdeBin(typestudioDir, typestudio) ||
-  validIdeBin(devecostudioPlatformDir, typestudio);
+  const validIdePath = validIdeBin(devecostudioPlatformDir, typestudio);
   if (!validIdePath) {
     if (info) {
       info.push(`The ${typestudio} path you configured "${typestudioDir}" is wrong`);

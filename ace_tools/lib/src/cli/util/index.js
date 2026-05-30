@@ -19,7 +19,7 @@ const JSON5 = require('json5');
 const crypto = require('crypto');
 const { getDeviceID, devicesList } = require('../ace-devices');
 const { Platform, platform } = require('../ace-check/platform');
-const { devEcoStudioVersion } = require('../ace-check/configs');
+const { devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -870,6 +870,17 @@ function changeVersion(nowVersion) {
   return versionResult;
 }
 
+function getDevEcoNodePath() {
+  let devEcoNodePath = `${devEcoStudioDir}\\tools\\node`;
+  if (platform === Platform.MacOS) {
+    devEcoNodePath = `${devEcoStudioDir}/Contents/tools/node`;
+  }
+  if (fs.existsSync(devEcoNodePath)) {
+    return (platform === Platform.MacOS) ? `${devEcoNodePath}` : `"${devEcoNodePath}"`;
+  }
+  return '';
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -911,4 +922,5 @@ module.exports = {
   isSupportedOperatorType,
   getIsArkuixProject,
   changeVersion,
+  getDevEcoNodePath,
 };

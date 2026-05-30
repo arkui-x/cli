@@ -19,7 +19,7 @@ const { devEcoStudioDir } = require('../ace-check/configs');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
 const { getOhpmTools, getIntergrateHvigorw } = require('../ace-check/getTool');
-const { changeVersion } = require('../util');
+const { changeVersion, getDevEcoNodePath } = require('../util');
 const config = getConfig();
 const fs = require('fs');
 const path = require('path');
@@ -165,6 +165,11 @@ function cleanOHOS() {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
+      env: (getDevEcoNodePath() === '') ? process.env : {
+        ...process.env,
+        NODE_HOME: getDevEcoNodePath(),
+        PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+      }
     });
   } catch (error) {
     console.log(error);

@@ -107,6 +107,33 @@ C:\Users\ohos> ace config --ohpm-dir "C:\Program Files\DevEco Studio\tools\ohpm"
 Set "ohpm-dir" value to "C:\Program Files\DevEco Studio\tools\ohpm" succeeded.
 ```
 
+注意3：设置`--deveco-studio-path`和`--android-studio-path`时，无论macOS还是Windows平台，路径均只需设置到工具的根目录，禁止在路径后面追加Contents或者bin等子目录。
+
+DevEco Studio不同平台路径示例如下：
+- macOS平台：`/Applications/DevEco-Studio.app`
+- Windows平台：`C:\Program Files\Huawei\DevEco Studio`
+
+Android Studio不同平台路径示例如下：
+- macOS平台：`/Applications/Android Studio.app`
+- Windows平台：`C:\Program Files\Android\Android Studio`
+
+macOS平台配置示例：
+```shell
+ohos@user ~ % ace config --deveco-studio-path '/Applications/DevEco-Studio.app'
+Set "deveco-studio-path" value to "/Applications/DevEco-Studio.app" succeeded.
+
+ohos@user ~ % ace config --android-studio-path '/Applications/Android Studio.app'
+Set "android-studio-path" value to "/Applications/Android Studio.app" succeeded.
+```
+Windows平台配置示例：
+```shell
+C:\Users\ohos> ace config --deveco-studio-path "C:\Program Files\Huawei\DevEco Studio"
+Set "deveco-studio-path" value to "C:\Program Files\Huawei\DevEco Studio" succeeded.
+
+C:\Users\ohos> ace config --android-studio-path "C:\Program Files\Android\Android Studio"
+Set "android-studio-path" value to "C:\Program Files\Android\Android Studio" succeeded.
+```
+
 配置ACE工具链相关环境时，参见[路径合法性判断说明](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/tools/how-to-use-ace-config.md)。
 
 ### ace check
