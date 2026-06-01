@@ -37,7 +37,7 @@ const { copyLibraryToProject } = require('../ace-packager/copyLibraryToProject')
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
-const { getCreatedPlatforms } = require('../../util');
+const { getCreatedPlatforms, changeVersion, getDevEcoNodePath } = require('../../util');
 
 let projectDir;
 let arkuiXSdkPath;
@@ -322,7 +322,9 @@ function copyLibsToBuild(moduleListSpecified, buildPath, cmd) {
 function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let cmds = [`cd ${projectDir}`];
   let buildCmd = `./hvigorw`;
-  if (Number(getSdkVersion(projectDir)) >= 12) {
+  let projectSdkVersion = getSdkVersion(projectDir);
+  let sdkVersionResult = changeVersion(projectSdkVersion);
+  if (sdkVersionResult >= 12) {
     if (getIntergrateHvigorw()) {
       buildCmd = `"${getIntergrateHvigorw()}"`;
     } else {
@@ -341,7 +343,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     console.log('\x1b[33m%s\x1b[0m', 'WARN: The ohpm version is too low, which may cause the download failure of the ohos third-party library. Please set the ohpm version to a value greater than or equal to 6.0.1');
   } 
   cmds.push(`"${ohpmPath}" install`);
-  if (platform !== Platform.Windows && Number(getSdkVersion(projectDir)) < 12) {
+  if (platform !== Platform.Windows && sdkVersionResult < 12) {
     cmds.push(`chmod 755 hvigorw`);
   }
   let gradleMessage;
@@ -393,7 +395,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (cmd.debug) {
       buildModeStr = '';
     }
-    const buildtarget = 'default@CompileArkTS --no-parallel' + moduleStr + buildModeStr;
+    const buildtarget = 'default@CompileArkTS --no-parallel' + moduleStr + buildModeStr + ' --no-daemon';
     let testbBuildtarget = '';
     if (cmd.debug && testModule) {
       const moduleTestStr = '-p module=' + testModule.join('@ohosTest,') + '@ohosTest';
@@ -415,7 +417,11 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     exec(cmds, {
       encoding: 'utf-8',
       stdio: 'inherit',
-      env: process.env,
+      env: (getDevEcoNodePath() === '') ? process.env : {
+        ...process.env,
+        NODE_HOME: getDevEcoNodePath(),
+        PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+      }
     });
     return true;
   } catch (error) {
@@ -561,7 +567,11 @@ function compiler(fileType, cmd) {
         exec(cmds, {
           encoding: 'utf-8',
           stdio: 'inherit',
-          env: process.env,
+          env: (getDevEcoNodePath() === '') ? process.env : {
+            ...process.env,
+            NODE_HOME: getDevEcoNodePath(),
+            PATH: `${getDevEcoNodePath()};${process.env.PATH}`
+          }
         });
       } catch (error) {
         console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);

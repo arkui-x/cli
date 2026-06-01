@@ -19,7 +19,7 @@ const JSON5 = require('json5');
 const crypto = require('crypto');
 const { getDeviceID, devicesList } = require('../ace-devices');
 const { Platform, platform } = require('../ace-check/platform');
-const { devEcoStudioVersion } = require('../ace-check/configs');
+const { devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
 global.HarmonyOS = 'HarmonyOS';
 global.OpenHarmony = 'OpenHarmony';
 
@@ -473,7 +473,8 @@ function getSdkVersionMap() {
     ['21', new Map([['devEcoVersion', '6.0.1'], ['compileSdkVersion', '6.0.1(21)'], ['compatibleSdkVersion', '6.0.1(21)'], ['modelVersion', '6.0.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.21.0']])],
     ['22', new Map([['devEcoVersion', '6.0.2'], ['compileSdkVersion', '6.0.2(22)'], ['compatibleSdkVersion', '6.0.2(22)'], ['modelVersion', '6.0.2'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.22.3']])],
     ['23', new Map([['devEcoVersion', '6.1.0'], ['compileSdkVersion', '6.1.0(23)'], ['compatibleSdkVersion', '6.1.0(23)'], ['modelVersion', '6.1.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.23.6']])],
-    ['24', new Map([['devEcoVersion', '6.1.1'], ['compileSdkVersion', '6.1.1(24)'], ['compatibleSdkVersion', '6.1.1(24)'], ['modelVersion', '6.1.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.24.2']])],
+    ['24', new Map([['devEcoVersion', '6.1.1'], ['compileSdkVersion', '6.1.1(24)'], ['compatibleSdkVersion', '6.1.1(24)'], ['modelVersion', '6.1.1'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.24.1']])],
+    ['26.0.0', new Map([['devEcoVersion', '26.0.0'], ['compileSdkVersion', '26.0.0'], ['compatibleSdkVersion', '26.0.0'], ['modelVersion', '26.0.0'], ['runtimeOS', 'HarmonyOS'], ['hvigor-ohos-arkui-x-plugin', '4.24.1']])],
   ]);
   return sdkVersionMap;
 }
@@ -665,7 +666,7 @@ function getModuleType(projectDir, modulePath) {
       } else {
         moduleType = 'EmptyAbility';
       }
-    } else if (hvigorInfo.includes('hspTasks')) {
+    } else if (hvigorInfo.includes('HspTasks')) {
       if (checkInfo.includes('CMakeLists.txt')) {
         moduleType = 'ShareC++';
       } else {
@@ -861,6 +862,25 @@ function isSupportedOperatorType(platforms, type) {
   return true;
 }
 
+function changeVersion(nowVersion) {
+  let versionResult = Number(nowVersion);
+  if (Number.isNaN(versionResult)) {
+    versionResult = Number(nowVersion.split('.')[0]);
+  }
+  return versionResult;
+}
+
+function getDevEcoNodePath() {
+  let devEcoNodePath = `${devEcoStudioDir}\\tools\\node`;
+  if (platform === Platform.MacOS) {
+    devEcoNodePath = `${devEcoStudioDir}/Contents/tools/node`;
+  }
+  if (fs.existsSync(devEcoNodePath)) {
+    return (platform === Platform.MacOS) ? `${devEcoNodePath}` : `"${devEcoNodePath}"`;
+  }
+  return '';
+}
+
 module.exports = {
   isProjectRootDir,
   getModuleList,
@@ -901,4 +921,6 @@ module.exports = {
   getCreatedPlatforms,
   isSupportedOperatorType,
   getIsArkuixProject,
+  changeVersion,
+  getDevEcoNodePath,
 };
