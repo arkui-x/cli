@@ -19,7 +19,7 @@ const { devEcoStudioDir } = require('../ace-check/configs');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
 const { getOhpmTools, getIntergrateHvigorw } = require('../ace-check/getTool');
-const { getDevEcoNodePath } = require('../util');
+const { changeVersion, getDevEcoNodePath } = require('../util');
 const config = getConfig();
 const fs = require('fs');
 const path = require('path');
@@ -137,12 +137,14 @@ function cleanOHOS() {
     return false;
   }
   cmds.push(`"${ohpmPath}" install`);
-  if (platform !== Platform.Windows && Number(getSdkVersion(projectDir)) < 12) {
+  let projectSdkVersion = getSdkVersion(projectDir);
+  let sdkVersionResult = changeVersion(projectSdkVersion);
+  if (platform !== Platform.Windows && sdkVersionResult < 12) {
     cmds.push(`chmod 755 hvigorw`);
   }
   let buildCmd = `./hvigorw`;
   setDevEcoSdkInEnv(devEcoStudioDir);
-  if (Number(getSdkVersion(projectDir)) >= 12) {
+  if (sdkVersionResult >= 12) {
     if (`"${getIntergrateHvigorw()}"`) {
       buildCmd = `"${getIntergrateHvigorw()}"`;
     } else {
