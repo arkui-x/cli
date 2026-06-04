@@ -672,7 +672,7 @@ function updateCrossPlatformModules(currentSystem) {
         return;
       }
       if (isExternalModuleDir(dir, moduleListAll)) {
-        const module = JSON5.parse(fs.readFileSync(path.join(projectDir, dir, 'oh-package.json5'))).name;
+        const module = JSON5.parse(fs.readFileSync(path.join(projectDir, dir, 'src', 'main', 'module.json5'))).module.name;
         updateModuleDir.set(module, dir);
       }
     });
@@ -742,8 +742,8 @@ function isExternalModuleDir(dir, moduleListAll) {
   });
 
   if (isContinue) {
-    const packageInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, dir, 'oh-package.json5')));
-    isContinue = isContinue && !moduleListAll.includes(packageInfo.name);
+    const packageInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, dir, 'src', 'main', 'module.json5')));
+    isContinue = isContinue && !moduleListAll.includes(packageInfo.module.name);
   }
   return isContinue;
 }
