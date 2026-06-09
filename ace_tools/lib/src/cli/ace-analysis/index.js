@@ -36,8 +36,4 @@ function searchApi(sdkPath, buildlog) {
   captureLogs();
 }
 
-function analysisProject(sdkPath, buildlog) {
-  searchApi(sdkPath, buildlog);
-}
-
-module.exports = { analysisProject, searchApi };
+module.exports = { analysisProject: searchApi, searchApi };

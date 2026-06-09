@@ -57,7 +57,7 @@ function getSdkPathFromConfig() {
 }
 
 function checkSdkPathExists(sdkPath) {
-  if (!sdkPath || sdkPath === undefined || sdkPath === '') {
+  if (!sdkPath) {
     return false;
   }
   for (const pkgFile of SDK_PKG_FILES) {
@@ -69,7 +69,7 @@ function checkSdkPathExists(sdkPath) {
 }
 
 function validateAndSetSdkPath(sdkPath) {
-  if (sdkPath && sdkPath !== undefined) {
+  if (sdkPath) {
     if (!checkSdkPathExists(sdkPath)) {
       logError('Error: please input the correct HarmonyOS sdk path');
       return false;

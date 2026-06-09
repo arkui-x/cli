@@ -195,6 +195,5 @@ module.exports = {
   safeDeleteFile,
   safeDeleteFileAsync,
   camelToSnakeCase,
-  toCamelCaseToSnakeCase: camelToSnakeCase,
   safeModuleName,
 };
