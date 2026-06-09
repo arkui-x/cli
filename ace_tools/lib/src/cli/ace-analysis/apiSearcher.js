@@ -273,41 +273,23 @@ function isItemInList(item, list) {
   return list.some(entry => item.includes(entry));
 }
 
-function traversalFolder(folderPath, notSupportApi, importFileList) {
+function traversalFolder(folderPath, notSupportApi, importFileList = null) {
   const searchList = [];
-  if (!importFileList || importFileList.length === 0) {
-    return searchList;
-  }
-
   if (!fs.existsSync(folderPath)) {
     return searchList;
   }
 
   const files = fs.readdirSync(folderPath);
   for (const item of files) {
-    if (isDeclarationFile(item) && isItemInList(item, importFileList)) {
-      const filePath = path.join(folderPath, item);
-      if (fs.statSync(filePath).isFile() && isHaveNotSupportApiInFile(notSupportApi, filePath)) {
-        searchList.push(item);
-      }
+    if (!isDeclarationFile(item)) {
+      continue;
     }
-  }
-  return searchList;
-}
-
-function traversalFolderAll(folderPath, notSupportApi) {
-  const searchList = [];
-  if (!fs.existsSync(folderPath)) {
-    return searchList;
-  }
-
-  const files = fs.readdirSync(folderPath);
-  for (const item of files) {
-    if (isDeclarationFile(item)) {
-      const filePath = path.join(folderPath, item);
-      if (fs.statSync(filePath).isFile() && isHaveNotSupportApiInFile(notSupportApi, filePath)) {
-        searchList.push(item);
-      }
+    if (importFileList && importFileList.length > 0 && !isItemInList(item, importFileList)) {
+      continue;
+    }
+    const filePath = path.join(folderPath, item);
+    if (fs.statSync(filePath).isFile() && isHaveNotSupportApiInFile(notSupportApi, filePath)) {
+      searchList.push(item);
     }
   }
   return searchList;
@@ -356,7 +338,7 @@ function getApiFileTraversalAll(notSupportApi) {
 
   let results = [];
   for (const dir of searchDirs) {
-    results = results.concat(traversalFolderAll(dir, notSupportApi));
+    results = results.concat(traversalFolder(dir, notSupportApi));
   }
 
   const apiFolderPath = `${sdkPath}${PATH_TRAVERSAL_API}`;
@@ -365,7 +347,7 @@ function getApiFileTraversalAll(notSupportApi) {
     for (const item of subDirs) {
       const subDirPath = path.join(apiFolderPath, item);
       if (fs.statSync(subDirPath).isDirectory()) {
-        results = results.concat(traversalFolderAll(subDirPath, notSupportApi));
+        results = results.concat(traversalFolder(subDirPath, notSupportApi));
       }
     }
   }
@@ -454,7 +436,6 @@ module.exports = {
   getApiFileTraversalAll,
   isHaveNotSupportApiInFile,
   traversalFolder,
-  traversalFolderAll,
   searchApiInKitFile,
   isItemInList,
 };
