@@ -147,56 +147,38 @@ function getModuleSelfMap(moduleApiArray) {
   return groupApiByField(moduleApiArray, 'selfFile');
 }
 
-function createOneModuleDtsHtml(moduleDtsMap, moduleName) {
-  const dtsFileArray = [];
-  const dtsApiNumberArray = [];
-
-  for (const key of moduleDtsMap.keys()) {
-    dtsFileArray.push(key);
-    dtsApiNumberArray.push(moduleDtsMap.get(key).length);
+function createBarChartHtml(dataMap, chartId, title, subtext, horizontal = true) {
+  const keyArray = [];
+  const valueArray = [];
+  for (const key of dataMap.keys()) {
+    keyArray.push(key);
+    valueArray.push(dataMap.get(key).length);
   }
 
-  const option = buildBarOption(
-    `模块${moduleName}不支持Api文件分布`,
-    '分布在如下arkui-x接口文件中',
-    dtsFileArray,
-    dtsApiNumberArray,
-    true
-  );
-
+  const option = buildBarOption(title, subtext, keyArray, valueArray, horizontal);
   const optionStr = sanitizeOption(option);
-  const htmlId = `${moduleName}dtsChart`;
-  const jsStr = buildChartJsInitScript(htmlId, optionStr);
-  const height = CHART_HEIGHT_BASE + CHART_HEIGHT_PER_ITEM * dtsFileArray.length;
-  const htmlStr = `<div id="${htmlId}" style="width: ${CHART_WIDTH_DTS}px; height: ${height}px;"></div>`;
-
+  const jsStr = buildChartJsInitScript(chartId, optionStr);
+  const height = CHART_HEIGHT_BASE + CHART_HEIGHT_PER_ITEM * keyArray.length;
+  const htmlStr = `<div id="${chartId}" style="width: ${CHART_WIDTH_DTS}px; height: ${height}px;"></div>`;
   return createHtmlData(htmlStr, jsStr);
 }
 
-function createOneModuleSelfHtml(moduleSelfMap, moduleName) {
-  const selfFileArray = [];
-  const selfApiNumberArray = [];
-
-  for (const key of moduleSelfMap.keys()) {
-    selfFileArray.push(key);
-    selfApiNumberArray.push(moduleSelfMap.get(key).length);
-  }
-
-  const option = buildBarOption(
-    '',
-    '分布在如下自研开发文件中',
-    selfFileArray,
-    selfApiNumberArray,
-    true
+function createOneModuleDtsHtml(moduleDtsMap, moduleName) {
+  return createBarChartHtml(
+    moduleDtsMap,
+    `${moduleName}dtsChart`,
+    `模块${moduleName}不支持Api文件分布`,
+    '分布在如下arkui-x接口文件中'
   );
+}
 
-  const optionStr = sanitizeOption(option);
-  const htmlId = `${moduleName}selfChart`;
-  const jsStr = buildChartJsInitScript(htmlId, optionStr);
-  const height = CHART_HEIGHT_BASE + CHART_HEIGHT_PER_ITEM * selfFileArray.length;
-  const htmlStr = `<div id="${htmlId}" style="width: ${CHART_WIDTH_DTS}px; height: ${height}px;"></div>`;
-
-  return createHtmlData(htmlStr, jsStr);
+function createOneModuleSelfHtml(moduleSelfMap, moduleName) {
+  return createBarChartHtml(
+    moduleSelfMap,
+    `${moduleName}selfChart`,
+    '',
+    '分布在如下自研开发文件中'
+  );
 }
 
 function createOneModuleTableHtml(moduleApiArray, moduleName) {
