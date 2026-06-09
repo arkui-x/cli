@@ -382,19 +382,7 @@ function getApiFileTraversalAll(notSupportApi) {
   return SEARCH_RESULT_NOT_FOUND;
 }
 
-function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
-  if (!line || line.length === 0 || !nextLine || nextLine.length === 0) {
-    return;
-  }
-
-  const moduleName = getModuleNameFromBuildLog(line);
-  const fileData = getFileDataFromBuildLog(line);
-  const notSupportApi = getNotSupportApi(nextLine);
-
-  if (!fileData || !fileData.path || !fileData.line || !fileData.column || !notSupportApi || !moduleName) {
-    return;
-  }
-
+function resolveDtsFileName(fileData, notSupportApi) {
   let dtsFileName = getDtsFileFromImport(fileData.path, notSupportApi);
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
@@ -420,6 +408,23 @@ function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
     dtsFileName = getApiFileTraversalAll(notSupportApi);
   }
 
+  return dtsFileName;
+}
+
+function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
+  if (!line || line.length === 0 || !nextLine || nextLine.length === 0) {
+    return;
+  }
+
+  const moduleName = getModuleNameFromBuildLog(line);
+  const fileData = getFileDataFromBuildLog(line);
+  const notSupportApi = getNotSupportApi(nextLine);
+
+  if (!fileData || !fileData.path || !fileData.line || !fileData.column || !notSupportApi || !moduleName) {
+    return;
+  }
+
+  const dtsFileName = resolveDtsFileName(fileData, notSupportApi);
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
     return;
   }
@@ -432,14 +437,13 @@ function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
   if (!moduleApiList.has(moduleName)) {
     moduleApiList.set(moduleName, []);
   }
-  const moduleApiArray = moduleApiList.get(moduleName);
   const apiData = createApiData(
-    `${moduleApiArray.length + 1}`,
+    `${moduleApiList.get(moduleName).length + 1}`,
     notSupportApi,
     dtsFileName,
     fileData.name
   );
-  moduleApiArray.push(apiData);
+  moduleApiList.get(moduleName).push(apiData);
 }
 
 module.exports = {
