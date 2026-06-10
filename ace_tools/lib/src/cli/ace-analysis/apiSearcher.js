@@ -41,7 +41,7 @@ const {
   resolveKitFilePath,
   camelToSnakeCase,
 } = require('./utils');
-const { getModuleNameFromBuildLog, getFileDataFromBuildLog, getNotSupportApi } = require('./buildRunner');
+const { getModuleNameFromBuildLog, getFileDataFromBuildLog, getNotSupportApi } = require('./logParser');
 const { getComponentName } = require('./componentAnalyzer');
 
 function getDtsFileFromImport(filePath, notSupportApi) {

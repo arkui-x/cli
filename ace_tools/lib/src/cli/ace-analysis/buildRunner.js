@@ -31,9 +31,6 @@ const {
   LOG_MARKER_ETS_WARN,
   LOG_MARKER_SDK_NOT_FOUND,
   LOG_MARKER_UPGRADE_PROMPT,
-  FILE_MARKER,
-  SRC_MAIN_ETS,
-  SRC_MAIN_TS,
   SEARCH_RESULT_NOT_FOUND,
 } = require('./constants');
 const {
@@ -41,11 +38,11 @@ const {
   logInfo,
   stripAnsiEscapes,
   safeDeleteFileAsync,
-  createFileData,
   readFileLines,
   readFileContent,
 } = require('./utils');
 const { createHtml } = require('./createHtml');
+const { analysisBuildLogLine } = require('./apiSearcher');
 
 function spawnBuildProcess() {
   const { spawn } = require('child_process');
@@ -173,7 +170,6 @@ function analysisBuildLog(buildLogPath, shouldDeleteLog) {
 
   if (preAnalysisBuildLog(buildLogPath)) {
     const lines = readFileLines(buildLogPath);
-    const { analysisBuildLogLine } = require('./apiSearcher');
     for (let i = 0; i < lines.length; i++) {
       const nextIndex = i + 1;
       if (lines[i].includes(LOG_MARKER_ETS_ERROR) || lines[i].includes(LOG_MARKER_ETS_WARN)) {
@@ -188,52 +184,9 @@ function analysisBuildLog(buildLogPath, shouldDeleteLog) {
   }
 }
 
-function getModuleNameFromBuildLog(line) {
-  let index = line.indexOf(SRC_MAIN_ETS);
-  if (index === -1) {
-    index = line.indexOf(SRC_MAIN_TS);
-  }
-  if (index === -1) {
-    return '';
-  }
-  const parts = line.slice(0, index).split('/');
-  return parts[parts.length - 1];
-}
-
-function getFileDataFromBuildLog(line) {
-  const index = line.indexOf(FILE_MARKER);
-  const fileDataArray = line.slice(index + FILE_MARKER.length, line.length).split(':');
-  const fileData = createFileData();
-
-  if (platform === Platform.MacOS) {
-    fileData.path = fileDataArray[0];
-    fileData.line = Number(fileDataArray[1]);
-    fileData.column = Number(fileDataArray[2].trim());
-  } else {
-    fileData.path = `${fileDataArray[0]}:${fileDataArray[1]}`;
-    fileData.line = Number(fileDataArray[2]);
-    fileData.column = Number(fileDataArray[3]);
-  }
-
-  const pathArray = fileData.path.split('/');
-  fileData.name = pathArray[pathArray.length - 1];
-  return fileData;
-}
-
-function getNotSupportApi(nextLine) {
-  if (!nextLine.includes(LOG_MARKER_NOT_SUPPORT)) {
-    return '';
-  }
-  const index = nextLine.indexOf(LOG_MARKER_NOT_SUPPORT);
-  return nextLine.slice(0, index).trim().replace(/'/g, '');
-}
-
 module.exports = {
   captureLogs,
   analysisBuildLog,
   preAnalysisBuildLog,
   checkBuildResult,
-  getModuleNameFromBuildLog,
-  getFileDataFromBuildLog,
-  getNotSupportApi,
 };
