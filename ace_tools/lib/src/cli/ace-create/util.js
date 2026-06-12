@@ -22,7 +22,7 @@ const {
   Platform,
   platform,
 } = require('../ace-check/platform');
-const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion, getArkuixPluginWithModelVersion, changeVersion } = require('../util');
+const { getIosProjectName, getCrossPlatformModules, getUUID, isHaveSdkVersion, getCompileSdkVersionWithSdkVersion, getCompatibleSdkVersionWithSdkVersion, getModelVersionWithSdkVersion, getArkuixPluginWithModelVersion} = require('../util');
 
 function replaceInfo(files, replaceInfos, strs) {
   files.forEach((filePath, index) => {
@@ -120,8 +120,7 @@ function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
   if (openharmonyosVersion === '10') {
     return;
   }
-  let sdkVersionResult = changeVersion(openharmonyosVersion);
-  if (sdkVersionResult >= 12) {
+  if (Number(openharmonyosVersion) >= 12) {
     modifyOhPackageJson(projectPath, openharmonyosVersion);
     modifyHvigorJson(projectPath, openharmonyosVersion);
   }
@@ -129,13 +128,9 @@ function modifyOpenHarmonyOSConfig(projectPath, openharmonyosVersion) {
   if (fs.existsSync(buildProfile)) {
     const buildProfileInfo = JSON5.parse(fs.readFileSync(buildProfile));
     const productsInfo = buildProfileInfo.app.products;
-    let productSdkVersion = sdkVersionResult;
-    if (sdkVersionResult >= 26) {
-      productSdkVersion = openharmonyosVersion;
-    }
     for (let index = 0; index < productsInfo.length; index++) {
-      productsInfo[index].compileSdkVersion = productSdkVersion;
-      productsInfo[index].compatibleSdkVersion = productSdkVersion;
+      productsInfo[index].compileSdkVersion = Number(openharmonyosVersion);
+      productsInfo[index].compatibleSdkVersion = Number(openharmonyosVersion);
     }
     fs.writeFileSync(buildProfile, JSON.stringify(buildProfileInfo, '', '  '));
   }
@@ -147,8 +142,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
     path.join(projectPath, moduleName, 'src/ohosTest/module.json5')];
   const deviceTypeName = 'deviceTypes';
 
-  let sdkVersionResult = changeVersion(sdkVersion);
-  if (sdkVersionResult >= 12) {
+  if (Number(sdkVersion) >= 12) {
     modifyOhPackageJson(projectPath, sdkVersion);
     modifyHvigorJson(projectPath, sdkVersion);
     const hvigorWrapperFile = path.join(projectPath, 'hvigor/hvigor-wrapper.js');
@@ -172,7 +166,7 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
       if (productsInfo[index].name === 'default' && productsInfo[index].runtimeOS !== 'HarmonyOS') {
         productsInfo[index].runtimeOS = 'HarmonyOS';
         productsInfo[index].compatibleSdkVersion = isHaveSdkVersion(sdkVersion) ? getCompatibleSdkVersionWithSdkVersion(sdkVersion) : '4.0.0(10)';
-        if (sdkVersionResult >= 12) {
+        if (Number(sdkVersion) >= 12) {
           delete productsInfo[index].compileSdkVersion;
         } else {
           productsInfo[index].compileSdkVersion = isHaveSdkVersion(sdkVersion) ? getCompileSdkVersionWithSdkVersion(sdkVersion) : '4.0.0(10)';
