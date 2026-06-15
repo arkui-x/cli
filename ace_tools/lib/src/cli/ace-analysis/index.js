@@ -18,8 +18,8 @@ const { logInfo, logError } = require('./utils');
 const { resolveSdkPath } = require('./sdkResolver');
 const { captureLogs, analysisBuildLog } = require('./buildRunner');
 
-function searchApi(sdkPath, buildlog) {
-  const resolvedSdkPath = resolveSdkPath(sdkPath);
+function searchApi(rawSdkPath, buildlog) {
+  const resolvedSdkPath = resolveSdkPath(rawSdkPath);
   if (!resolvedSdkPath) {
     return;
   }
@@ -27,7 +27,7 @@ function searchApi(sdkPath, buildlog) {
   if (buildlog && buildlog !== '') {
     if (fs.existsSync(buildlog)) {
       logInfo('the log path is valid, start analysis log ...');
-      analysisBuildLog(buildlog, false, resolvedSdkPath);
+      analysisBuildLog(resolvedSdkPath, buildlog, false);
     } else {
       logError('Error: the log path does not exist. Please enter the correct path');
     }

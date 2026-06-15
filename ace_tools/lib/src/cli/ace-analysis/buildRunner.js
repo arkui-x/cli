@@ -88,6 +88,8 @@ function handleBuildTimeout(child, logFileStream) {
 }
 
 function captureLogs(sdkPath) {
+  // sdkPath is an immutable string parameter captured by the async close callback;
+  // this is safe because no global mutable state remains after refactoring.
   const logFileStream = createLogStream();
   const child = spawnBuildProcess();
   logInfo('start build project ...');
@@ -112,7 +114,7 @@ function captureLogs(sdkPath) {
       child.kill();
       logFileStream.end();
       logInfo('project build finish, start analysis log ...');
-      analysisBuildLog(BUILD_LOG_FILENAME, true, sdkPath);
+      analysisBuildLog(sdkPath, BUILD_LOG_FILENAME, true);
     }
   });
 
@@ -159,7 +161,7 @@ function preAnalysisBuildLog(buildLogPath) {
   return true;
 }
 
-function analysisBuildLog(buildLogPath, shouldDeleteLog, sdkPath) {
+function analysisBuildLog(sdkPath, buildLogPath, shouldDeleteLog) {
   if (!fs.existsSync(buildLogPath)) {
     logError('Error: No compilation log file found');
     return;

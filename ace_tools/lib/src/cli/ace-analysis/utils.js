@@ -133,6 +133,9 @@ function fileExists(filePath) {
 }
 
 function resolveKitFilePath(kitFileName, sdkPath) {
+  if (!sdkPath) {
+    return null;
+  }
   const hmsPath = `${sdkPath}${PATH_KIT_HMS}${kitFileName}.d.ts`;
   if (fs.existsSync(hmsPath)) {
     return hmsPath;

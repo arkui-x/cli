@@ -67,15 +67,19 @@ function checkSdkPathExists(sdkPath) {
 }
 
 function resolveSdkPath(sdkPath) {
-  if (sdkPath && checkSdkPathExists(sdkPath)) {
+  if (sdkPath) {
+    if (!checkSdkPathExists(sdkPath)) {
+      logError('Error: please input the correct HarmonyOS sdk path');
+      return null;
+    }
     return sdkPath;
   }
   const localSdkPath = getSdkPathFromConfig();
-  if (checkSdkPathExists(localSdkPath)) {
-    return localSdkPath;
+  if (!checkSdkPathExists(localSdkPath)) {
+    logError('Error: get sdk path fail, please check ace config or input the HarmonyOS sdk path');
+    return null;
   }
-  logError('Error: sdk path invalid');
-  return null;
+  return localSdkPath;
 }
 
 module.exports = {
@@ -83,4 +87,5 @@ module.exports = {
   getSdkPathFromConfig,
   checkSdkPathExists,
   resolveSdkPath,
+  validateAndSetSdkPath: resolveSdkPath,
 };
