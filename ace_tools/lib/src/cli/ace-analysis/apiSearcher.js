@@ -295,7 +295,7 @@ function traversalFolder(folderPath, notSupportApi, importFileList = null) {
   return searchList;
 }
 
-function getApiFileTraversal(notSupportApi, allImportFileList) {
+function getApiFileByTraversal(notSupportApi, allImportFileList = []) {
   const sdkPath = getGlobalSdkPath();
   const searchDirs = [
     `${sdkPath}${PATH_TRAVERSAL_API}`,
@@ -319,38 +319,7 @@ function getApiFileTraversal(notSupportApi, allImportFileList) {
     }
   }
 
-  if (results.length === 0) {
-    return SEARCH_RESULT_NOT_FOUND;
-  }
-  if (results.length === 1) {
-    return results[0];
-  }
-  return SEARCH_RESULT_NOT_FOUND;
-}
-
-function getApiFileTraversalAll(notSupportApi) {
-  const sdkPath = getGlobalSdkPath();
-  const searchDirs = [
-    `${sdkPath}${PATH_TRAVERSAL_API}`,
-    `${sdkPath}${PATH_TRAVERSAL_COMPONENT}`,
-    `${sdkPath}${PATH_TRAVERSAL_HMS_API}`,
-  ];
-
-  let results = [];
-  for (const dir of searchDirs) {
-    results = results.concat(traversalFolder(dir, notSupportApi));
-  }
-
-  const apiFolderPath = `${sdkPath}${PATH_TRAVERSAL_API}`;
-  if (fs.existsSync(apiFolderPath)) {
-    const subDirs = fs.readdirSync(apiFolderPath);
-    for (const item of subDirs) {
-      const subDirPath = path.join(apiFolderPath, item);
-      if (fs.statSync(subDirPath).isDirectory()) {
-        results = results.concat(traversalFolder(subDirPath, notSupportApi));
-      }
-    }
-  }
+  results = [...new Set(results)];
 
   if (results.length === 0) {
     return SEARCH_RESULT_NOT_FOUND;
@@ -359,9 +328,17 @@ function getApiFileTraversalAll(notSupportApi) {
     return results[0];
   }
   if (results.length > 1) {
-    return getDtsFileFromComponent(notSupportApi, notSupportApi);
+    return results[0];
   }
   return SEARCH_RESULT_NOT_FOUND;
+}
+
+function getApiFileTraversal(notSupportApi, allImportFileList) {
+  return getApiFileByTraversal(notSupportApi, allImportFileList);
+}
+
+function getApiFileTraversalAll(notSupportApi) {
+  return getApiFileByTraversal(notSupportApi);
 }
 
 function resolveDtsFileName(fileData, notSupportApi) {
@@ -383,11 +360,11 @@ function resolveDtsFileName(fileData, notSupportApi) {
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
     const allImportFileList = getImportFileList(fileData);
-    dtsFileName = getApiFileTraversal(notSupportApi, allImportFileList);
+    dtsFileName = getApiFileByTraversal(notSupportApi, allImportFileList);
   }
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
-    dtsFileName = getApiFileTraversalAll(notSupportApi);
+    dtsFileName = getApiFileByTraversal(notSupportApi);
   }
 
   return dtsFileName;
