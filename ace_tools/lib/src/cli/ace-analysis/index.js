@@ -15,25 +15,26 @@
 
 const fs = require('fs');
 const { logInfo, logError } = require('./utils');
-const { validateAndSetSdkPath } = require('./sdkResolver');
+const { resolveSdkPath } = require('./sdkResolver');
 const { captureLogs, analysisBuildLog } = require('./buildRunner');
 
-function searchApi(sdkPath, buildlog) {
-  if (!validateAndSetSdkPath(sdkPath)) {
+function searchApi(rawSdkPath, buildlog) {
+  const resolvedSdkPath = resolveSdkPath(rawSdkPath);
+  if (!resolvedSdkPath) {
     return;
   }
 
   if (buildlog && buildlog !== '') {
     if (fs.existsSync(buildlog)) {
       logInfo('the log path is valid, start analysis log ...');
-      analysisBuildLog(buildlog, false);
+      analysisBuildLog(resolvedSdkPath, buildlog, false);
     } else {
       logError('Error: the log path does not exist. Please enter the correct path');
     }
     return;
   }
 
-  captureLogs();
+  captureLogs(resolvedSdkPath);
 }
 
 module.exports = { analysisProject: searchApi, searchApi };

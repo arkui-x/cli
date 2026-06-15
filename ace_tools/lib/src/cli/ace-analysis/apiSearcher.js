@@ -16,7 +16,6 @@
 const fs = require('fs');
 const path = require('path');
 const {
-  getGlobalSdkPath,
   PATH_TRAVERSAL_COMPONENT,
   PATH_TRAVERSAL_API,
   PATH_TRAVERSAL_HMS_API,
@@ -44,28 +43,28 @@ const {
 const { getModuleNameFromBuildLog, getFileDataFromBuildLog, getNotSupportApi } = require('./logParser');
 const { getComponentName } = require('./componentAnalyzer');
 
-function getDtsFileFromImport(filePath, notSupportApi) {
+function getDtsFileFromImport(filePath, notSupportApi, sdkPath) {
   const lines = readFileLines(filePath);
   for (let i = 0; i < lines.length; i++) {
     if (containsApiReference(lines[i], notSupportApi) && isImportLine(lines[i])) {
-      return resolveApiImportLine(lines[i], notSupportApi);
+      return resolveApiImportLine(lines[i], notSupportApi, sdkPath);
     }
     if (lines[i].includes('import {') && !lines[i].includes('from')) {
-      return resolveMultiLineImport(lines, i, notSupportApi);
+      return resolveMultiLineImport(lines, i, notSupportApi, sdkPath);
     }
   }
   return SEARCH_RESULT_NOT_FOUND;
 }
 
-function resolveApiImportLine(importLine, notSupportApi) {
+function resolveApiImportLine(importLine, notSupportApi, sdkPath) {
   const importFileName = extractFromPath(importLine);
   if (importFileName.includes(KIT_PREFIX)) {
-    return searchApiInKitFile(importFileName, notSupportApi);
+    return searchApiInKitFile(importFileName, notSupportApi, sdkPath);
   }
   return `${importFileName}${DTS_SUFFIX}`;
 }
 
-function resolveMultiLineImport(lines, importIndex, notSupportApi) {
+function resolveMultiLineImport(lines, importIndex, notSupportApi, sdkPath) {
   let fromOffset = 1;
   while (importIndex + fromOffset < lines.length && !lines[importIndex + fromOffset].includes(' from ')) {
     fromOffset++;
@@ -94,13 +93,13 @@ function resolveMultiLineImport(lines, importIndex, notSupportApi) {
   }
 
   if (fromFile.includes(KIT_PREFIX)) {
-    return searchApiInKitFile(fromFile, notSupportApi);
+    return searchApiInKitFile(fromFile, notSupportApi, sdkPath);
   }
   return `${fromFile}${DTS_SUFFIX}`;
 }
 
-function searchApiInKitFile(kitFileName, notSupportApi) {
-  const kitFilePath = resolveKitFilePath(kitFileName);
+function searchApiInKitFile(kitFileName, notSupportApi, sdkPath) {
+  const kitFilePath = resolveKitFilePath(kitFileName, sdkPath);
   if (!kitFilePath) {
     return SEARCH_RESULT_NOT_FOUND;
   }
@@ -158,7 +157,7 @@ function getPointStartName(fileData) {
   return lineString.slice(nowIndex + 1, endIndex);
 }
 
-function getDtsFileFromComponent(componentName, notSupportApi) {
+function getDtsFileFromComponent(componentName, notSupportApi, sdkPath) {
   const snakeName = camelToSnakeCase(componentName);
   const candidateFiles = [
     `${snakeName}${DTS_SUFFIX}`,
@@ -168,7 +167,7 @@ function getDtsFileFromComponent(componentName, notSupportApi) {
   ];
 
   for (const fileName of candidateFiles) {
-    const filePath = `${getGlobalSdkPath()}${PATH_TRAVERSAL_COMPONENT}${fileName}`;
+    const filePath = `${sdkPath}${PATH_TRAVERSAL_COMPONENT}${fileName}`;
     if (fs.existsSync(filePath) && isHaveNotSupportApiInFile(notSupportApi, filePath)) {
       return fileName;
     }
@@ -211,19 +210,19 @@ function isHaveNotSupportApiInFile(notSupportApi, filePath) {
   return false;
 }
 
-function getImportFileList(fileData) {
+function getImportFileList(fileData, sdkPath) {
   const lines = readFileLines(fileData.path);
   const allImportFileList = [];
 
   for (const line of lines) {
     if (line.includes('import') && line.includes('{') && line.includes('}') && line.includes('from')) {
-      allImportFileList.push(...getOneLineImportFileList(line));
+      allImportFileList.push(...getOneLineImportFileList(line, sdkPath));
     }
   }
   return allImportFileList;
 }
 
-function getOneLineImportFileList(searchLine) {
+function getOneLineImportFileList(searchLine, sdkPath) {
   const fromFile = extractFromPath(searchLine);
   if (!fromFile) {
     return [];
@@ -231,7 +230,7 @@ function getOneLineImportFileList(searchLine) {
 
   if (fromFile.includes(KIT_PREFIX)) {
     const importList = extractImportNames(searchLine);
-    return getKitFileImportFileList(fromFile, importList);
+    return getKitFileImportFileList(fromFile, importList, sdkPath);
   }
 
   if (fromFile.startsWith('./') || fromFile.startsWith('../')) {
@@ -241,8 +240,8 @@ function getOneLineImportFileList(searchLine) {
   return [fromFile];
 }
 
-function getKitFileImportFileList(fromKitFile, importList) {
-  const kitFilePath = resolveKitFilePath(fromKitFile);
+function getKitFileImportFileList(fromKitFile, importList, sdkPath) {
+  const kitFilePath = resolveKitFilePath(fromKitFile, sdkPath);
   if (!kitFilePath) {
     return [];
   }
@@ -295,8 +294,7 @@ function traversalFolder(folderPath, notSupportApi, importFileList = null) {
   return searchList;
 }
 
-function getApiFileByTraversal(notSupportApi, allImportFileList = []) {
-  const sdkPath = getGlobalSdkPath();
+function getApiFileTraversal(notSupportApi, allImportFileList, sdkPath) {
   const searchDirs = [
     `${sdkPath}${PATH_TRAVERSAL_API}`,
     `${sdkPath}${PATH_TRAVERSAL_COMPONENT}`,
@@ -319,7 +317,37 @@ function getApiFileByTraversal(notSupportApi, allImportFileList = []) {
     }
   }
 
-  results = [...new Set(results)];
+  if (results.length === 0) {
+    return SEARCH_RESULT_NOT_FOUND;
+  }
+  if (results.length === 1) {
+    return results[0];
+  }
+  return SEARCH_RESULT_NOT_FOUND;
+}
+
+function getApiFileTraversalAll(notSupportApi, sdkPath) {
+  const searchDirs = [
+    `${sdkPath}${PATH_TRAVERSAL_API}`,
+    `${sdkPath}${PATH_TRAVERSAL_COMPONENT}`,
+    `${sdkPath}${PATH_TRAVERSAL_HMS_API}`,
+  ];
+
+  let results = [];
+  for (const dir of searchDirs) {
+    results = results.concat(traversalFolder(dir, notSupportApi));
+  }
+
+  const apiFolderPath = `${sdkPath}${PATH_TRAVERSAL_API}`;
+  if (fs.existsSync(apiFolderPath)) {
+    const subDirs = fs.readdirSync(apiFolderPath);
+    for (const item of subDirs) {
+      const subDirPath = path.join(apiFolderPath, item);
+      if (fs.statSync(subDirPath).isDirectory()) {
+        results = results.concat(traversalFolder(subDirPath, notSupportApi));
+      }
+    }
+  }
 
   if (results.length === 0) {
     return SEARCH_RESULT_NOT_FOUND;
@@ -333,45 +361,40 @@ function getApiFileByTraversal(notSupportApi, allImportFileList = []) {
   return SEARCH_RESULT_NOT_FOUND;
 }
 
-function getApiFileTraversal(notSupportApi, allImportFileList) {
-  return getApiFileByTraversal(notSupportApi, allImportFileList);
-}
-
-function getApiFileTraversalAll(notSupportApi) {
-  return getApiFileByTraversal(notSupportApi);
-}
-
-function resolveDtsFileName(fileData, notSupportApi) {
-  let dtsFileName = getDtsFileFromImport(fileData.path, notSupportApi);
+function resolveDtsFileName(fileData, notSupportApi, sdkPath) {
+  let dtsFileName = getDtsFileFromImport(fileData.path, notSupportApi, sdkPath);
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
     const pointString = getPointStartName(fileData);
     if (pointString && pointString !== SEARCH_RESULT_NOT_FOUND) {
-      dtsFileName = getDtsFileFromImport(fileData.path, pointString);
+      dtsFileName = getDtsFileFromImport(fileData.path, pointString, sdkPath);
     }
   }
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
     const componentName = getComponentName(fileData, notSupportApi);
     if (componentName && componentName !== '') {
-      dtsFileName = getDtsFileFromComponent(componentName, notSupportApi);
+      dtsFileName = getDtsFileFromComponent(componentName, notSupportApi, sdkPath);
     }
   }
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
-    const allImportFileList = getImportFileList(fileData);
-    dtsFileName = getApiFileByTraversal(notSupportApi, allImportFileList);
+    const allImportFileList = getImportFileList(fileData, sdkPath);
+    dtsFileName = getApiFileTraversal(notSupportApi, allImportFileList, sdkPath);
   }
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
-    dtsFileName = getApiFileByTraversal(notSupportApi);
+    dtsFileName = getApiFileTraversalAll(notSupportApi, sdkPath);
   }
 
   return dtsFileName;
 }
 
-function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
+function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList, sdkPath) {
   if (!line || line.length === 0 || !nextLine || nextLine.length === 0) {
+    return;
+  }
+  if (!sdkPath) {
     return;
   }
 
@@ -383,7 +406,7 @@ function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList) {
     return;
   }
 
-  const dtsFileName = resolveDtsFileName(fileData, notSupportApi);
+  const dtsFileName = resolveDtsFileName(fileData, notSupportApi, sdkPath);
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
     return;
   }

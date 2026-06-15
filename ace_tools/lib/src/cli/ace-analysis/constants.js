@@ -92,16 +92,6 @@ const SEARCH_COMPONENT_TYPE = Object.freeze({
 
 const SDK_PKG_FILES = Object.freeze(['default/sdk-pkg.json', 'sdk-pkg.json']);
 
-let globalSdkPath = DEFAULT_SDK_PATH_MACOS;
-
-function setGlobalSdkPath(sdkPath) {
-  globalSdkPath = sdkPath;
-}
-
-function getGlobalSdkPath() {
-  return globalSdkPath;
-}
-
 module.exports = {
   BUILD_LOG_FILENAME,
   BUILD_COMMAND,
@@ -149,6 +139,4 @@ module.exports = {
   ECHARTS_CDN_URL,
   SEARCH_COMPONENT_TYPE,
   SDK_PKG_FILES,
-  setGlobalSdkPath,
-  getGlobalSdkPath,
 };

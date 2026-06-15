@@ -87,7 +87,9 @@ function handleBuildTimeout(child, logFileStream) {
   return BUILD_CLOSE_CODE_FAIL;
 }
 
-function captureLogs() {
+function captureLogs(sdkPath) {
+  // sdkPath is an immutable string parameter captured by the async close callback;
+  // this is safe because no global mutable state remains after refactoring.
   const logFileStream = createLogStream();
   const child = spawnBuildProcess();
   logInfo('start build project ...');
@@ -112,7 +114,7 @@ function captureLogs() {
       child.kill();
       logFileStream.end();
       logInfo('project build finish, start analysis log ...');
-      analysisBuildLog(BUILD_LOG_FILENAME, true);
+      analysisBuildLog(sdkPath, BUILD_LOG_FILENAME, true);
     }
   });
 
@@ -159,7 +161,7 @@ function preAnalysisBuildLog(buildLogPath) {
   return true;
 }
 
-function analysisBuildLog(buildLogPath, shouldDeleteLog) {
+function analysisBuildLog(sdkPath, buildLogPath, shouldDeleteLog) {
   if (!fs.existsSync(buildLogPath)) {
     logError('Error: No compilation log file found');
     return;
@@ -173,7 +175,7 @@ function analysisBuildLog(buildLogPath, shouldDeleteLog) {
     for (let i = 0; i < lines.length; i++) {
       const nextIndex = i + 1;
       if (lines[i].includes(LOG_MARKER_ETS_ERROR) || lines[i].includes(LOG_MARKER_ETS_WARN)) {
-        analysisBuildLogLine(lines[i], lines[nextIndex], allDtsList, moduleApiList);
+        analysisBuildLogLine(lines[i], lines[nextIndex], allDtsList, moduleApiList, sdkPath);
       }
     }
     createHtml(allDtsList, moduleApiList);
