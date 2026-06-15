@@ -356,7 +356,7 @@ function getApiFileTraversalAll(notSupportApi, sdkPath) {
     return results[0];
   }
   if (results.length > 1) {
-    return getDtsFileFromComponent(notSupportApi, notSupportApi);
+    return results[0];
   }
   return SEARCH_RESULT_NOT_FOUND;
 }
