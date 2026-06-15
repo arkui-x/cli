@@ -20,8 +20,6 @@ const { Platform, platform } = require('../ace-check/platform');
 const { getDevVersion } = require('../ace-build');
 const { openHarmonySdkDir, devEcoStudioDir } = require('../ace-check/configs');
 const {
-  setGlobalSdkPath,
-  getGlobalSdkPath,
   SDK_PKG_FILES,
 } = require('./constants');
 const { logError } = require('./utils');
@@ -68,28 +66,21 @@ function checkSdkPathExists(sdkPath) {
   return false;
 }
 
-function validateAndSetSdkPath(sdkPath) {
-  if (sdkPath) {
-    if (!checkSdkPathExists(sdkPath)) {
-      logError('Error: please input the correct HarmonyOS sdk path');
-      return false;
-    }
-    setGlobalSdkPath(sdkPath);
-    return true;
+function resolveSdkPath(sdkPath) {
+  if (sdkPath && checkSdkPathExists(sdkPath)) {
+    return sdkPath;
   }
-
   const localSdkPath = getSdkPathFromConfig();
-  if (!checkSdkPathExists(localSdkPath)) {
-    logError('Error: get sdk path fail, please check ace config or input the HarmonyOS sdk path');
-    return false;
+  if (checkSdkPathExists(localSdkPath)) {
+    return localSdkPath;
   }
-  setGlobalSdkPath(localSdkPath);
-  return true;
+  logError('Error: sdk path invalid');
+  return null;
 }
 
 module.exports = {
   readBuildProfile,
   getSdkPathFromConfig,
   checkSdkPathExists,
-  validateAndSetSdkPath,
+  resolveSdkPath,
 };

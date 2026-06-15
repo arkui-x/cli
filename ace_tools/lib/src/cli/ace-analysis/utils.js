@@ -24,7 +24,6 @@ const {
   DETS_SUFFIX,
   SEARCH_RESULT_NOT_FOUND,
   ANSI_ESCAPE_REGEX,
-  getGlobalSdkPath,
   PATH_KIT_HMS,
   PATH_KIT_OH,
 } = require('./constants');
@@ -133,12 +132,12 @@ function fileExists(filePath) {
   return fs.existsSync(filePath);
 }
 
-function resolveKitFilePath(kitFileName) {
-  const hmsPath = `${getGlobalSdkPath()}${PATH_KIT_HMS}${kitFileName}.d.ts`;
+function resolveKitFilePath(kitFileName, sdkPath) {
+  const hmsPath = `${sdkPath}${PATH_KIT_HMS}${kitFileName}.d.ts`;
   if (fs.existsSync(hmsPath)) {
     return hmsPath;
   }
-  const ohPath = `${getGlobalSdkPath()}${PATH_KIT_OH}${kitFileName}.d.ts`;
+  const ohPath = `${sdkPath}${PATH_KIT_OH}${kitFileName}.d.ts`;
   if (fs.existsSync(ohPath)) {
     return ohPath;
   }
