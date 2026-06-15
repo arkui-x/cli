@@ -295,7 +295,7 @@ function traversalFolder(folderPath, notSupportApi, importFileList = null) {
   return searchList;
 }
 
-function getApiFileByTraversal(notSupportApi, importFileList, useAllTraversal) {
+function getApiFileByTraversal(notSupportApi, allImportFileList = []) {
   const sdkPath = getGlobalSdkPath();
   const searchDirs = [
     `${sdkPath}${PATH_TRAVERSAL_API}`,
@@ -305,7 +305,7 @@ function getApiFileByTraversal(notSupportApi, importFileList, useAllTraversal) {
 
   let results = [];
   for (const dir of searchDirs) {
-    results = results.concat(traversalFolder(dir, notSupportApi, importFileList));
+    results = results.concat(traversalFolder(dir, notSupportApi, allImportFileList));
   }
 
   const apiFolderPath = `${sdkPath}${PATH_TRAVERSAL_API}`;
@@ -314,10 +314,12 @@ function getApiFileByTraversal(notSupportApi, importFileList, useAllTraversal) {
     for (const item of subDirs) {
       const subDirPath = path.join(apiFolderPath, item);
       if (fs.statSync(subDirPath).isDirectory()) {
-        results = results.concat(traversalFolder(subDirPath, notSupportApi, importFileList));
+        results = results.concat(traversalFolder(subDirPath, notSupportApi, allImportFileList));
       }
     }
   }
+
+  results = [...new Set(results)];
 
   if (results.length === 0) {
     return SEARCH_RESULT_NOT_FOUND;
@@ -325,8 +327,8 @@ function getApiFileByTraversal(notSupportApi, importFileList, useAllTraversal) {
   if (results.length === 1) {
     return results[0];
   }
-  if (useAllTraversal) {
-    return getDtsFileFromComponent(notSupportApi, notSupportApi);
+  if (results.length > 1) {
+    return results[0];
   }
   return SEARCH_RESULT_NOT_FOUND;
 }
@@ -336,7 +338,7 @@ function getApiFileTraversal(notSupportApi, allImportFileList) {
 }
 
 function getApiFileTraversalAll(notSupportApi) {
-  return getApiFileByTraversal(notSupportApi, null, true);
+  return getApiFileByTraversal(notSupportApi);
 }
 
 function resolveDtsFileName(fileData, notSupportApi) {
@@ -358,11 +360,11 @@ function resolveDtsFileName(fileData, notSupportApi) {
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
     const allImportFileList = getImportFileList(fileData);
-    dtsFileName = getApiFileTraversal(notSupportApi, allImportFileList);
+    dtsFileName = getApiFileByTraversal(notSupportApi, allImportFileList);
   }
 
   if (dtsFileName === SEARCH_RESULT_NOT_FOUND) {
-    dtsFileName = getApiFileTraversalAll(notSupportApi);
+    dtsFileName = getApiFileByTraversal(notSupportApi);
   }
 
   return dtsFileName;
