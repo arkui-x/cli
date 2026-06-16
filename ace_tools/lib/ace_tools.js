@@ -64,6 +64,38 @@ function getCreatedPlatformsCached(projectDir = process.cwd()) {
   return createdPlatformsCache;
 }
 
+function normalizePlatformChoice(choice) {
+  const trimmed = (choice || '').toString().trim();
+  if (trimmed === '' || trimmed === '1') {
+    return 'both';
+  }
+  if (trimmed === '2') {
+    return 'android';
+  }
+  if (trimmed === '3') {
+    return 'ios';
+  }
+  return 'both';
+}
+
+function promptTargetPlatforms() {
+  return inquirer.prompt([{
+    name: 'platform',
+    type: 'input',
+    message: 'Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS):',
+    validate(val) {
+      if (val === '' || val === undefined) {
+        return true;
+      }
+      const trimmed = val.toString().trim();
+      if (['1', '2', '3'].includes(trimmed)) {
+        return true;
+      }
+      return 'input must be 1, 2, 3 or empty for default.';
+    },
+  }]).then(answers => normalizePlatformChoice(answers.platform));
+}
+
 function parseCommander() {
   program.configureHelp({
     showGlobalOptions: true,
@@ -295,32 +327,8 @@ function parseCreate() {
             }]).then(answers => {
               initInfo.sdkVersion = sdkVersionShowMap.get(answers['Complie SDk']);
 
-              inquirer.prompt([{
-                name: 'platform',
-                type: 'input',
-                message: 'Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS):',
-                validate(val) {
-                  if (val === '' || val === undefined) {
-                    return true;
-                  }
-                  const trimmed = val.toString().trim();
-                  if (['1', '2', '3'].includes(trimmed)) {
-                    return true;
-                  }
-                  return 'input must be 1, 2, 3 or empty for default.';
-                },
-              }]).then(answersPlatform => {
-                const choice = (answersPlatform.platform || '').toString().trim();
-                if (choice === '' || choice === '1') {
-                  initInfo.platform = 'both';
-                } else if (choice === '2') {
-                  initInfo.platform = 'android';
-                } else if (choice === '3') {
-                  initInfo.platform = 'ios';
-                } else {
-                  initInfo.platform = 'both';
-                }
-
+              promptTargetPlatforms().then(targetPlatforms => {
+                initInfo.platform = targetPlatforms;
                 if (platform === Platform.MacOS && (initInfo.platform === 'ios' || initInfo.platform === 'both')) {
                   inquirer.prompt([{
                     name: 'integrationApproach',
@@ -743,31 +751,8 @@ function parseModify() {
         platforms = createdPlatforms.length === 2 ? 'both' : createdPlatforms[0];
         parseModifyByPlatform(modifyType, platforms);
       } else {
-        inquirer.prompt([{
-          name: 'platform',
-          type: 'input',
-          message: 'Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS):',
-          validate(val) {
-            if (val === '' || val === undefined) {
-              return true;
-            }
-            const trimmed = val.toString().trim();
-            if (['1', '2', '3'].includes(trimmed)) {
-              return true;
-            }
-            return 'input must be 1, 2, 3 or empty for default.';
-          },
-        }]).then(answersPlatform => {
-          const choice = (answersPlatform.platform || '').toString().trim();
-          if (choice === '' || choice === '1') {
-            platforms = 'both';
-          } else if (choice === '2') {
-            platforms = 'android';
-          } else if (choice === '3') {
-            platforms = 'ios';
-          } else {
-            platforms = 'both';
-          }
+        promptTargetPlatforms().then(targetPlatforms => {
+          platforms = targetPlatforms;
           parseModifyByPlatform(modifyType, platforms);
         });
       }
