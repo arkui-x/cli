@@ -41,6 +41,7 @@ const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
 const { modifyModules, modifyProject } = require('./src/cli/ace-modify');
 const { analysisProject } = require('./src/cli/ace-analysis/index');
+const { installPlugin } = require('./src/cli/ace-install/plugin-installer');
 
 process.env.toolsPath = process.env.toolsPath || path.join(__dirname, '../');
 globalThis.templatePath = path.join(__dirname, '..', 'templates');
@@ -179,7 +180,7 @@ function parseHelp() {
 function parseCreate() {
   const createCmd = program.command('create [outputDir]', { hidden: true })
     .usage('<output directory>')
-    .option('-t, --template [type]', '[app (default), library, plugin_napi]')
+    .option('-t, --template [type]', '[app (default), library, plugin_napi, ffi, plugin, package]')
     .description(`Create a new ArkUI cross-platform project.`)
     .action((outputDir, cmd) => {
       if (outputDir === undefined) {
@@ -193,11 +194,11 @@ function parseCreate() {
 
       if (!cmd.template) {
         initInfo.template = 'app';
-      } else if (cmd.template === 'app' || cmd.template === 'library' || cmd.template === 'plugin_napi') {
+      } else if (['app', 'library', 'plugin_napi', 'ffi', 'plugin', 'package'].includes(cmd.template)) {
         initInfo.template = cmd.template;
       } else {
         console.error('\x1B[31m%s\x1B[0m', `Failed to create the project.` +
-          `Invalid template type ${cmd.template}, choose from the app, library or plugin_napi options.`);
+          `Invalid template type ${cmd.template}, choose from the app, library, plugin_napi, ffi, plugin or package options.`);
         return false;
       }
 
@@ -523,10 +524,12 @@ Available subcommands:
   hsp                    Build a HarmonyOS/Openharmony HSP file from your app.
   ios                    Build an iOS APP file from your app.
   ios-framework          Build an iOS framework.
-  ios-xcframework        Build an iOS XCFramework.`);
+  ios-xcframework        Build an iOS XCFramework.
+  plugin                  Build a cross-platform plugin/package/ffi HAR.`);
       }
     });
-  const buildArgs = ['aab', 'aar', 'apk', 'bundle', 'hap', 'hsp', 'ios', 'ios-framework', 'ios-xcframework'];
+  const buildArgs = ['aab', 'aar', 'apk', 'bundle', 'hap', 'hsp', 'ios', 'ios-framework', 'ios-xcframework',
+    'plugin'];
   buildArgs.forEach(subcommand => {
     const buildSubcommand = buildCmd.command(subcommand, { hidden: true }).usage('[arguments]');
     if (subcommand !== 'hsp') {
@@ -566,6 +569,9 @@ Available subcommands:
         .option('--analyze', 'analyze/diff package size')
         .option('--target [moduleName]', 'name of module to be built');
     }
+    if (subcommand === 'plugin') {
+      buildSubcommand.option('--target [moduleName]', 'name of module to be built');
+    }
     if (process.argv[2] === 'help' && process.argv[3] === 'build') {
       subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand);
     }
@@ -593,6 +599,8 @@ Available subcommands:
             return false;
           }
           build(subcommand, cmd);
+        } else if (subcommand === 'plugin') {
+          build(subcommand, cmd);
         }
       });
     buildSubcommand.unknownOption = () => unknownOptions();
@@ -615,13 +623,24 @@ Available subcommands:
   apk                    Install an Android APK on an attached device.
   hap                    Install a HarmonyOS/OpenHarmony HAP on an attached device.
   hsp                    Install a HarmonyOS/OpenHarmony HSP on an attached device.
-  ios                    Install an iOS APP on an attached device.`);
+  ios                    Install an iOS APP on an attached device.
+
+Install cross-platform plugin:
+  ace install <name>.har    Install a cross-platform plugin HAR into the current project.`);
       }
     })
     .action((fileType, options, cmd) => {
       if (options.path && options.target) {
         console.error('\x1B[31m%s\x1B[0m', 'The option "path" and "target" do not support to exist at the same time.');
         return false;
+      }
+      if (fileType && typeof fileType === 'string' && fileType.endsWith('.har')) {
+        installPlugin(fileType);
+        return;
+      }
+      if (options.path && typeof options.path === 'string' && options.path.endsWith('.har')) {
+        installPlugin(options.path);
+        return;
       }
       execCmd(fileType, options, cmd, install);
     });

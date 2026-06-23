@@ -1,0 +1,10 @@
+export const add: (a: number, b: number) => number;
+export const multiply: (a: number, b: number) => number;
+export const greet: (name: string) => string;
+export const stringLength: (str: string) => number;
+export const concatStrings: (a: string, b: string) => string;
+export const reverseString: (str: string) => string;
+export const sumArray: (arr: number[]) => number;
+export const createIntArray: (start: number, count: number) => number[];
+export const callCallback: (cb: (msg: string) => void) => void;
+export const delayedResult: (ms: number) => Promise<string>;

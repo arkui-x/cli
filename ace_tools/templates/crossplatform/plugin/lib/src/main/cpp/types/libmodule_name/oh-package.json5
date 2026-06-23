@@ -1,0 +1,6 @@
+{
+  "types": "./index.d.ts",
+  "name": "libmodule_name.so",
+  "description": "",
+  "version": ""
+}

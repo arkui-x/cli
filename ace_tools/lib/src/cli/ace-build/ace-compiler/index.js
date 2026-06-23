@@ -124,6 +124,51 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     deleteOldFile(path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x`));
   }
   isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '', createdPlatforms);
+  // Copy installed plugin modules' module.json to assets for NAPI module discovery
+  const pluginDir = path.join(projectDir, '.arkui-x', 'plugins');
+  if (fs.existsSync(pluginDir)) {
+    fs.readdirSync(pluginDir).forEach(function(pluginName) {
+      const pluginPath = path.join(pluginDir, pluginName);
+      if (!fs.statSync(pluginPath).isDirectory()) return;
+      const pluginModuleJson = path.join(pluginPath, 'module.json');
+      if (!fs.existsSync(pluginModuleJson)) return;
+      if (createdPlatforms.includes('android')) {
+        const androidDest = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/`, pluginName);
+        fs.mkdirSync(androidDest, { recursive: true });
+        fs.writeFileSync(path.join(androidDest, 'module.json'), fs.readFileSync(pluginModuleJson));
+        // Copy ets and resources if available
+        const etsSrc = path.join(pluginPath, 'ets');
+        if (fs.existsSync(etsSrc)) {
+          copy(etsSrc, path.join(androidDest, 'ets'));
+        }
+        const resSrc = path.join(pluginPath, 'resources');
+        if (fs.existsSync(resSrc)) {
+          copy(resSrc, path.join(androidDest, 'resources'));
+        }
+        const resIndexSrc = path.join(pluginPath, 'resources.index');
+        if (fs.existsSync(resIndexSrc)) {
+          fs.copyFileSync(resIndexSrc, path.join(androidDest, 'resources.index'));
+        }
+      }
+      if (createdPlatforms.includes('ios')) {
+        const iosDest = path.join(projectDir, '.arkui-x/ios/arkui-x/', pluginName);
+        fs.mkdirSync(iosDest, { recursive: true });
+        fs.writeFileSync(path.join(iosDest, 'module.json'), fs.readFileSync(pluginModuleJson));
+        const etsSrc = path.join(pluginPath, 'ets');
+        if (fs.existsSync(etsSrc)) {
+          copy(etsSrc, path.join(iosDest, 'ets'));
+        }
+        const resSrc = path.join(pluginPath, 'resources');
+        if (fs.existsSync(resSrc)) {
+          copy(resSrc, path.join(iosDest, 'resources'));
+        }
+        const resIndexSrc = path.join(pluginPath, 'resources.index');
+        if (fs.existsSync(resIndexSrc)) {
+          fs.copyFileSync(resIndexSrc, path.join(iosDest, 'resources.index'));
+        }
+      }
+    });
+  }
   const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
   if (createdPlatforms.includes('ios')) {
     const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
@@ -195,13 +240,19 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
     const moduleJsonPathIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/module.json');
     if (createdPlatforms && createdPlatforms.includes('android')) {
       fs.mkdirSync(distAndroid, { recursive: true });
-      isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
+      isContinue = isContinue && copy(src, distAndroid);
+      if (fs.existsSync(resPath)) {
+        isContinue = isContinue && copy(resPath, resPathAndroid);
+      }
       fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
       fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
     }
     if (createdPlatforms && createdPlatforms.includes('ios')) {
       fs.mkdirSync(distIOS, { recursive: true });
-      isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
+      isContinue = isContinue && copy(src, distIOS);
+      if (fs.existsSync(resPath)) {
+        isContinue = isContinue && copy(resPath, resPathIOS);
+      }
       fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
       fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
     }
@@ -368,6 +419,30 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     console.log('\x1b[33m%s\x1b[0m', 'WARN: The ohpm version is too low, which may cause the download failure of the ohos third-party library. Please set the ohpm version to a value greater than or equal to 6.0.1');
   } 
   cmds.push(`"${ohpmPath}" install`);
+  const fixSymlinksScript = path.join(projectDir, 'build', '_fix_symlinks.js');
+  const scriptDir = path.dirname(fixSymlinksScript);
+  if (!fs.existsSync(scriptDir)) {
+    fs.mkdirSync(scriptDir, { recursive: true });
+  }
+  fs.writeFileSync(fixSymlinksScript, [
+    'const fs = require("fs"), path = require("path");',
+    'const d = path.join("' + projectDir.replace(/\\/g, '\\\\') + '", "entry", "oh_modules");',
+    'if (!fs.existsSync(d)) process.exit(0);',
+    'fs.readdirSync(d).forEach(function(e) {',
+    '  const m = path.join(d, e);',
+    '  try { if (!fs.lstatSync(m).isSymbolicLink()) return; } catch(ex) { return; }',
+    '  const t = fs.readlinkSync(m);',
+    '  const s = t.startsWith(".") ? path.resolve(path.dirname(m), t) : t;',
+    '  fs.rmSync(m, { recursive: true, force: true });',
+    '  fs.mkdirSync(m, { recursive: true });',
+    '  fs.readdirSync(s).forEach(function(f) {',
+    '    if (f === "crossplatform") return;',
+    '    const sp = path.join(s, f), dp = path.join(m, f);',
+    '    fs.statSync(sp).isDirectory() ? fs.cpSync(sp, dp, { recursive: true }) : fs.copyFileSync(sp, dp);',
+    '  });',
+    '});',
+  ].join('\n'));
+  cmds.push(`node "${fixSymlinksScript}"`);
   if (platform !== Platform.Windows && sdkVersionResult < 12) {
     cmds.push(`chmod 755 hvigorw`);
   }
@@ -410,6 +485,13 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     }
     cmds.push(`${buildCmd} -p product=default --mode module ${moduleStr} assembleHsp --no-daemon --no-parallel`);
     gradleMessage = 'Building a HSP file...';
+  } else if (fileType === 'plugin') {
+    let moduleStr = '';
+    if (commonModule) {
+      moduleStr = '-p module=' + commonModule.join(',');
+    }
+    cmds.push(`${buildCmd} --mode module ${moduleStr} -p product=default assembleHar --no-daemon --no-parallel`);
+    gradleMessage = 'Building a HAR file...';
   } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework' ||
     fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
     let moduleStr = '';
@@ -455,7 +537,46 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   }
 }
 
+function fixPluginSymlinks() {
+  const ohModulesDir = path.join(projectDir, 'entry', 'oh_modules');
+  if (!fs.existsSync(ohModulesDir)) {
+    return;
+  }
+  fs.readdirSync(ohModulesDir).forEach(function(entry) {
+    const modulePath = path.join(ohModulesDir, entry);
+    if (!fs.lstatSync(modulePath).isSymbolicLink()) {
+      return;
+    }
+    const linkTarget = fs.readlinkSync(modulePath);
+    const resolvedTarget = linkTarget.startsWith('.')
+      ? path.resolve(path.dirname(modulePath), linkTarget)
+      : linkTarget;
+    fs.rmSync(modulePath, { recursive: true, force: true });
+    fs.mkdirSync(modulePath, { recursive: true });
+    fs.readdirSync(resolvedTarget).forEach(function(file) {
+      if (file === 'crossplatform') {
+        return;
+      }
+      const srcPath = path.join(resolvedTarget, file);
+      const dstPath = path.join(modulePath, file);
+      if (fs.statSync(srcPath).isDirectory()) {
+        fs.cpSync(srcPath, dstPath, { recursive: true });
+      } else {
+        fs.copyFileSync(srcPath, dstPath);
+      }
+    });
+  });
+}
+
 function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testModule) {
+  if (fileType === 'plugin') {
+    if (readConfig() && writeLocalProperties() && runGradle(fileType, cmd, moduleListSpecified, commonModule, testModule)) {
+      console.log('HAR file built successfully.');
+      return true;
+    }
+    console.error('\x1B[31m%s\x1B[0m', `Compile failed.`);
+    return false;
+  }
   if (readConfig() &&
     writeLocalProperties() &&
     runGradle(fileType, cmd, moduleListSpecified, commonModule, testModule) &&
@@ -480,7 +601,7 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
       const createdPlatforms = getCreatedPlatforms(projectDir);
       createAndroidAndIosBuildArkTSShell(projectDir, getOhpmTools(), arkuiXSdkPath, createdPlatforms);
       return true;
-    } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aar') {
+    } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aar' || fileType === 'plugin') {
       return true;
     }
   }
@@ -557,6 +678,7 @@ function compiler(fileType, cmd) {
     'apk': 'Android APK file',
     'bundle': 'bundle file',
     'ios': 'iOS APP file',
+    'plugin': 'HAR file',
   };
   if (isAppProject(projectDir)) {
     if (fileType === 'aar' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
@@ -636,6 +758,8 @@ function compiler(fileType, cmd) {
       moduleListSpecified = moduleListAll;
     } else if (fileType === 'hsp') {
       moduleListSpecified = hspModuleList;
+    } else if (fileType === 'plugin') {
+      moduleListSpecified = moduleListAll.filter(element => element !== 'entry');
     } else {
       moduleListSpecified = crossPlatformModules;
     }
@@ -645,7 +769,9 @@ function compiler(fileType, cmd) {
     return false;
   }
 
-  const commonModule = moduleListSpecified.filter(element => crossPlatformModules.includes(element));
+  const commonModule = fileType === 'plugin'
+    ? moduleListSpecified
+    : moduleListSpecified.filter(element => crossPlatformModules.includes(element));
   const testModule = commonModule.filter(element => !hspModuleList.includes(element));
   return compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testModule);
 }

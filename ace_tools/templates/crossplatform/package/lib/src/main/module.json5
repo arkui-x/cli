@@ -1,0 +1,7 @@
+{
+  "module": {
+    "name": "module_name",
+    "type": "har",
+    "deviceTypes": ["default", "tablet"]
+  }
+}
