@@ -106,6 +106,8 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/package/entry/src/main/ets/pages/Index.ets" desc="跨平台模板示例展示，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="跨平台模板示例展示，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/android/library/src/main/AndroidManifest.xml" desc="跨平台模板示例展示，无需添加版权头"/>
+                <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加版权头"/>
+                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="iOS工程固定配置文件，无需添加版权头"/>
             </filefilter>
             <filefilter name="defaultPolicyFilter" desc="License文件头校验策略的过滤条件" >
                 <filteritem type="filename" name="oh-package.json5" desc="OpenHarmony工程编译入口脚本，无需添加License头"/>
@@ -149,6 +151,8 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/package/entry/src/main/ets/pages/Index.ets" desc="跨平台模板示例展示，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="跨平台模板示例展示，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/android/library/src/main/AndroidManifest.xml" desc="跨平台模板示例展示，无需添加License头"/>
+                <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加License头"/>
+                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="iOS工程固定配置文件，无需添加License头"/>
             </filefilter>
         </filefilterlist>
 
