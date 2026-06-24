@@ -91,8 +91,12 @@ function extractHAR(harPath, destDir) {
 function createHAR(sourceDir, outputPath) {
   try {
     const tmpTar = outputPath + '.tar';
-    // COPYFILE_DISABLE=1 prevents macOS ._ AppleDouble files from being included
-    exec(`COPYFILE_DISABLE=1 tar -cf "${tmpTar}" --no-xattrs --no-acls -C "${sourceDir}" .`, { encoding: 'utf-8' });
+    const entries = fs.readdirSync(sourceDir).join(' ');
+    if (!entries) {
+      console.error(`No entries found in ${sourceDir} to archive`);
+      return false;
+    }
+    exec(`COPYFILE_DISABLE=1 tar -cf "${tmpTar}" --no-xattrs --no-acls -C "${sourceDir}" ${entries}`, { encoding: 'utf-8' });
     const tarData = fs.readFileSync(tmpTar);
     const compressed = zlib.gzipSync(tarData);
     fs.writeFileSync(outputPath, compressed);

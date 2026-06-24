@@ -58,6 +58,24 @@ function installPlugin(harPath) {
     return false;
   }
 
+  // Flatten package/ subdirectory to root (ohpm installs expect flat structure).
+  // Cross-platform HAR: {package/, android/, ios/, crossplatform-config.json5}
+  // After flatten: {oh-package.json5, Index.ets, src/, android/, ios/, ...}
+  const pkgSubDir = path.join(tmpDir, 'package');
+  if (fs.existsSync(pkgSubDir) && fs.statSync(pkgSubDir).isDirectory()) {
+    const pkgEntries = fs.readdirSync(pkgSubDir);
+    pkgEntries.forEach(entry => {
+      const src = path.join(pkgSubDir, entry);
+      const dst = path.join(tmpDir, entry);
+      if (fs.existsSync(dst)) {
+        fs.rmSync(dst, { recursive: true, force: true });
+      }
+      fs.renameSync(src, dst);
+    });
+    fs.rmSync(pkgSubDir, { recursive: true, force: true });
+    console.log('  Flattened package/ to root level');
+  }
+
   const config = readCrossPlatformConfig(
     path.join(tmpDir, 'crossplatform-config.json5'));
   if (!config) {
@@ -80,9 +98,9 @@ function installPlugin(harPath) {
   // compatibleSdkVersion check: warn (but continue) if project SDK < declared minimum (spec 9.3).
   checkCompatibleSdkVersion(config);
 
-  const ohPkgPath = path.join(tmpDir, 'package', 'oh-package.json5');
+  const ohPkgPath = path.join(tmpDir, 'oh-package.json5');
   if (!fs.existsSync(ohPkgPath)) {
-    console.error('\x1B[31m%s\x1B[0m', 'package/oh-package.json5 not found in HAR');
+    console.error('\x1B[31m%s\x1B[0m', 'oh-package.json5 not found in HAR');
     removeDirRecursive(tmpDir);
     return false;
   }
@@ -93,13 +111,6 @@ function installPlugin(harPath) {
   fs.mkdirSync(pluginDir, { recursive: true });
   copyDirRecursive(tmpDir, pluginDir);
   removeDirRecursive(tmpDir);
-
-  // Write oh-package.json5 at pluginDir root for ohpm resolution
-  // (HAR structure has it inside package/, but ohpm file: dependency resolves from root)
-  const packageOhPkg = path.join(pluginDir, 'package', 'oh-package.json5');
-  if (fs.existsSync(packageOhPkg)) {
-    fs.copyFileSync(packageOhPkg, path.join(pluginDir, 'oh-package.json5'));
-  }
 
   // Per spec 5.3: ohpm install resolves the file: dependency into entry/oh_modules/.
   updateOhPackageJson5(config, pluginDir);

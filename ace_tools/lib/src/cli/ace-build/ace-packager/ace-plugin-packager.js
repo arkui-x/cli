@@ -165,23 +165,19 @@ function buildPluginHAR(cmd) {
   }
 
   // Create staging directory
-  // Structure per design spec:
+  // HAR structure (ohpm compatible, keeps package/ subdirectory):
   //   stagingDir/
-  //   ├── package/                        # ohpm standard content
+  //   ├── package/                    # ohpm standard content (preserved from HarmonyOS HAR)
+  //   │   ├── oh-package.json5        # main: 'Index.ets' (HarmonyOS original, not overwritten)
   //   │   ├── Index.ets
-  //   │   ├── oh-package.json5
-  //   │   ├── src/main/ets/
-  //   │   └── META-INF/MANIFEST.MF
-  //   ├── crossplatform-config.json5      # plugin metadata (root level)
-  //   ├── android/                        # Android artifact (FFI/Plugin, root level)
-  //   │   └── <module>-release.aar
-  //   └── ios/                            # iOS artifact (FFI/Plugin, root level)
-  //       └── <Module>.xcframework/
+  //   │   └── src/main/ets/
+  //   ├── crossplatform-config.json5
+  //   ├── android/
+  //   └── ios/
   const stagingDir = path.join(projectDir, 'build', '_plugin_staging');
   removeDirRecursive(stagingDir);
   fs.mkdirSync(stagingDir, { recursive: true });
 
-  // Extract HarmonyOS HAR content into package/ subdirectory
   const packageDir = path.join(stagingDir, 'package');
   fs.mkdirSync(packageDir, { recursive: true });
   if (!extractHAR(harFile, packageDir)) {
@@ -189,19 +185,6 @@ function buildPluginHAR(cmd) {
     return false;
   }
 
-  // Write oh-package.json5 in package/ (ohpm standard location)
-  const ohPkg = {
-    name: config.name || moduleName,
-    version: config.version || '1.0.0',
-    main: 'ets/Index.js',
-    types: 'ets/Index.d.ets',
-  };
-  fs.writeFileSync(
-    path.join(packageDir, 'oh-package.json5'),
-    JSON5.stringify(ohPkg, null, 2) + '\n'
-  );
-
-  // Write META-INF/MANIFEST.MF in package/
   const metaDir = path.join(packageDir, 'META-INF');
   if (!fs.existsSync(metaDir)) {
     fs.mkdirSync(metaDir, { recursive: true });
@@ -224,6 +207,10 @@ function buildPluginHAR(cmd) {
   if (type === 'ffi' || type === 'plugin') {
     if (platform === Platform.MacOS) {
       buildIOSXcFramework(moduleName, stagingDir, config, projectDir);
+      // Re-write crossplatform-config.json5 after iOS build, since
+      // buildIOSXcFramework updates config.ios.frameworks with the xcframework names
+      writeCrossPlatformConfig(
+        path.join(stagingDir, 'crossplatform-config.json5'), config);
     } else {
       console.log('\x1B[33m%s\x1B[0m',
         'iOS xcframework requires macOS. Skipping iOS build.');
