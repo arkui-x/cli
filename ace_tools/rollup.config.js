@@ -55,7 +55,6 @@ function copy(src, dst) {
 
 export default {
   input: 'lib/ace_tools.js',
-  external: ['tar'],
   output: {
     file: path.join(distPath, 'lib', 'ace_tools.js'),
     format: 'umd',

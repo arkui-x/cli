@@ -22,7 +22,7 @@
         "fs-extra": "^11.2.0",
         "inquirer": "^8.2.6",
         "plist": "^3.0.4",
-        "tar": "^7.5.16",
+        "tar": "^6.2.1",
         "xml-js": "^1.6.11"
     },
     "devDependencies": {
