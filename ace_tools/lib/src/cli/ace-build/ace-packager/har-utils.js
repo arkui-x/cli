@@ -15,8 +15,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const zlib = require('zlib');
-const exec = require('child_process').execSync;
+const tar = require('tar');
 const JSON5 = require('json5');
 
 /**
@@ -58,12 +57,7 @@ function extractHAR(harPath, destDir) {
     if (!fs.existsSync(destDir)) {
       fs.mkdirSync(destDir, { recursive: true });
     }
-    const gunzipped = harPath + '.tar';
-    const compressed = fs.readFileSync(harPath);
-    const decompressed = zlib.gunzipSync(compressed);
-    fs.writeFileSync(gunzipped, decompressed);
-    exec(`tar -xf "${gunzipped}" -C "${destDir}"`, { encoding: 'utf-8' });
-    fs.unlinkSync(gunzipped);
+    tar.x({ file: harPath, cwd: destDir, gzip: true, sync: true });
     // Flatten if single top-level directory
     const entries = fs.readdirSync(destDir).filter(e => !e.endsWith('.tar'));
     if (entries.length === 1 && fs.statSync(path.join(destDir, entries[0])).isDirectory()) {
@@ -90,24 +84,12 @@ function extractHAR(harPath, destDir) {
  */
 function createHAR(sourceDir, outputPath) {
   try {
-    const tmpTar = outputPath + '.tar';
-    const entries = fs.readdirSync(sourceDir).join(' ');
-    if (!entries) {
+    const entries = fs.readdirSync(sourceDir);
+    if (entries.length === 0) {
       console.error(`No entries found in ${sourceDir} to archive`);
       return false;
     }
-    const osModule = require('os');
-    let tarCmd;
-    if (osModule.platform() === 'win32') {
-      tarCmd = `tar -cf "${tmpTar}" -C "${sourceDir}" ${entries}`;
-    } else {
-      tarCmd = `COPYFILE_DISABLE=1 tar -cf "${tmpTar}" --no-xattrs --no-acls -C "${sourceDir}" ${entries}`;
-    }
-    exec(tarCmd, { encoding: 'utf-8' });
-    const tarData = fs.readFileSync(tmpTar);
-    const compressed = zlib.gzipSync(tarData);
-    fs.writeFileSync(outputPath, compressed);
-    fs.unlinkSync(tmpTar);
+    tar.c({ file: outputPath, cwd: sourceDir, gzip: true, sync: true }, entries);
     return true;
   } catch (e) {
     console.error(`Failed to create HAR: ${e.message}`);
