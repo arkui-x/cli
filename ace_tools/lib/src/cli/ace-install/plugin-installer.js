@@ -203,7 +203,7 @@ function updateOhPackageJson5(config, pluginDir) {
   try {
     let content = fs.readFileSync(ohPackagePath, 'utf-8');
     const entryDir = path.join(projectDir, 'entry');
-    const relPath = path.relative(entryDir, pluginDir);
+    const relPath = path.relative(entryDir, pluginDir).replace(/\\/g, '/');
     const depRef = 'file:' + relPath;
     const depKey = config.name;
 
