@@ -26,7 +26,7 @@ namespace {
     };
 
     const char METHOD_ADD[] = "add";
-    const char SIGNATURE_ADD[] = "(II)I";
+    const char SIGNATURE_ADD[] = "(DD)D";
 
     const char METHOD_LOG[] = "log";
     const char SIGNATURE_LOG[] = "(Ljava/lang/String;)V";
@@ -82,13 +82,13 @@ double PluginJni::Add(double a, double b)
         return a + b; // Fallback to pure C++ implementation
     }
     auto env = ARKUI_X_Plugin_GetJniEnv();
-    jint result = env->CallIntMethod(g_pluginClass.globalRef, g_pluginClass.add, (jint)a, (jint)b);
+    jdouble result = env->CallDoubleMethod(g_pluginClass.globalRef, g_pluginClass.add, (jdouble)a, (jdouble)b);
 
     if (env->ExceptionCheck()) {
         env->ExceptionDescribe();
         env->ExceptionClear();
     }
-    return (double)result;
+    return result;
 }
 
 void PluginJni::Log(std::string msg)

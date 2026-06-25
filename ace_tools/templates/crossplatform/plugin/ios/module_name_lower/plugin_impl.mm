@@ -18,7 +18,7 @@
 
 double PluginImpl::Add(double a, double b)
 {
-    return (double)[Module_namePlugin addWithA:(int)a b:(int)b];
+    return [Module_namePlugin addWithA:a b:b];
 }
 
 void PluginImpl::Log(std::string msg)

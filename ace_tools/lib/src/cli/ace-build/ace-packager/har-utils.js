@@ -96,7 +96,14 @@ function createHAR(sourceDir, outputPath) {
       console.error(`No entries found in ${sourceDir} to archive`);
       return false;
     }
-    exec(`COPYFILE_DISABLE=1 tar -cf "${tmpTar}" --no-xattrs --no-acls -C "${sourceDir}" ${entries}`, { encoding: 'utf-8' });
+    const osModule = require('os');
+    let tarCmd;
+    if (osModule.platform() === 'win32') {
+      tarCmd = `tar -cf "${tmpTar}" -C "${sourceDir}" ${entries}`;
+    } else {
+      tarCmd = `COPYFILE_DISABLE=1 tar -cf "${tmpTar}" --no-xattrs --no-acls -C "${sourceDir}" ${entries}`;
+    }
+    exec(tarCmd, { encoding: 'utf-8' });
     const tarData = fs.readFileSync(tmpTar);
     const compressed = zlib.gzipSync(tarData);
     fs.writeFileSync(outputPath, compressed);

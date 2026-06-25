@@ -19,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface Module_namePlugin : NSObject
 
-+ (int)addWithA:(int)a b:(int)b;
++ (double)addWithA:(double)a b:(double)b;
 + (void)logWithMsg:(NSString *)msg;
 + (NSString *)getSystemVersion;
 + (NSString *)getFullOSName;

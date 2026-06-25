@@ -101,16 +101,9 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="ace_tools/lib/src/cli/ace-build/ace-analyze/json/echarts.min.js" desc="import third-party ECharts file"/>
                 <filteritem type="filepath" name="ace_tools/lib/src/cli/ace-build/ace-analyze/json/jszip.min.js" desc="import third-party JSzip file"/>
                 <filteritem type="filepath" name="ace_tools/templates/cocoapods/ios/.*.plist" desc="iOS工程固定配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/lib/src/main/cpp/types/libmodule_name/index.d.ts" desc="跨平台模板示例展示，无需添加版权头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/ios/module_name_lower/module_name_lower.h" desc="跨平台模板示例展示，无需添加版权头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/package/entry/src/main/ets/pages/Index.ets" desc="跨平台模板示例展示，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="跨平台模板示例展示，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/android/library/src/main/AndroidManifest.xml" desc="跨平台模板示例展示，无需添加版权头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="iOS工程固定配置文件，无需添加版权头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/package/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加版权头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加版权头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/entry/src/main/ets/pages/Index.ets" desc="跨平台模板示例展示，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/android/library/build.gradle" desc="Android工程构建配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/android/library/build.gradle" desc="Android工程构建配置文件，无需添加版权头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/.*.pbxproj" desc="iOS工程固定配置文件，无需添加版权头"/>
@@ -157,16 +150,9 @@ Note:If the text contains special characters, please escape them according to th
                 <filteritem type="filepath" name="ace_tools/lib/src/cli/ace-build/ace-analyze/json/echarts.min.js" desc="import third-party ECharts file"/>
                 <filteritem type="filepath" name="ace_tools/lib/src/cli/ace-build/ace-analyze/json/jszip.min.js" desc="import third-party JSzip file"/>
                 <filteritem type="filepath" name="ace_tools/templates/cocoapods/ios/.*.plist" desc="iOS工程固定配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/lib/src/main/cpp/types/libmodule_name/index.d.ts" desc="跨平台模板示例展示，无需添加License头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/ios/module_name_lower/module_name_lower.h" desc="跨平台模板示例展示，无需添加License头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/package/entry/src/main/ets/pages/Index.ets" desc="跨平台模板示例展示，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="跨平台模板示例展示，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/android/library/src/main/AndroidManifest.xml" desc="跨平台模板示例展示，无需添加License头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/ios/module_name_lower.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist" desc="iOS工程固定配置文件，无需添加License头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/package/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加License头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/lib/src/main/ets/Index.ets" desc="跨平台模板示例展示，无需添加License头"/>
-                <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/entry/src/main/ets/pages/Index.ets" desc="跨平台模板示例展示，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/plugin/android/library/build.gradle" desc="Android工程构建配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/ffi/android/library/build.gradle" desc="Android工程构建配置文件，无需添加License头"/>
                 <filteritem type="filepath" name="ace_tools/templates/crossplatform/.*.pbxproj" desc="iOS工程固定配置文件，无需添加License头"/>

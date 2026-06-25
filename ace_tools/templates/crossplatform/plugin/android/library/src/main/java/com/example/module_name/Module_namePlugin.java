@@ -28,7 +28,7 @@ public class Module_namePlugin {
 
     protected native void nativeInit();
 
-    public int add(int a, int b) {
+    public double add(double a, double b) {
         return a + b;
     }
 

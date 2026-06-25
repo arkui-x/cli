@@ -194,27 +194,36 @@ function buildPluginHAR(cmd) {
     'Manifest-Version: 1.0\n'
   );
 
-  // Write crossplatform-config.json5 at root level (package/ sibling)
-  writeCrossPlatformConfig(
-    path.join(stagingDir, 'crossplatform-config.json5'), config);
-
-  // Phase 2: Android AAR (FFI/Plugin, unified) → stagingDir/android/
+  let androidOk = true;
   if (type === 'ffi' || type === 'plugin') {
-    buildAndroidAAR(moduleName, stagingDir, config, projectDir);
+    androidOk = buildAndroidAAR(moduleName, stagingDir, config, projectDir);
   }
 
   // Phase 3: iOS xcframework (FFI/Plugin, macOS only) → stagingDir/ios/
+  let iosOk = true;
   if (type === 'ffi' || type === 'plugin') {
     if (platform === Platform.MacOS) {
-      buildIOSXcFramework(moduleName, stagingDir, config, projectDir);
-      // Re-write crossplatform-config.json5 after iOS build, since
-      // buildIOSXcFramework updates config.ios.frameworks with the xcframework names
-      writeCrossPlatformConfig(
-        path.join(stagingDir, 'crossplatform-config.json5'), config);
+      iosOk = buildIOSXcFramework(moduleName, stagingDir, config, projectDir);
+      if (iosOk) {
+        // Re-write crossplatform-config.json5 after iOS build, since
+        // buildIOSXcFramework updates config.ios.frameworks with the xcframework names
+        writeCrossPlatformConfig(
+          path.join(stagingDir, 'crossplatform-config.json5'), config);
+      }
     } else {
       console.log('\x1B[33m%s\x1B[0m',
         'iOS xcframework requires macOS. Skipping iOS build.');
     }
+  }
+
+  writeCrossPlatformConfig(
+    path.join(stagingDir, 'crossplatform-config.json5'), config);
+
+  if (!androidOk && !iosOk) {
+    console.error('\x1B[31m%s\x1B[0m',
+      'All platform builds failed. Cannot create cross-platform HAR.');
+    removeDirRecursive(stagingDir);
+    return false;
   }
 
   // Phase 4: Create final cross-platform HAR
@@ -347,29 +356,24 @@ function buildAndroidAAR(moduleName, stagingDir, config, projectDir) {
  * Preserves classes.jar, AndroidManifest.xml, and all other .so files.
  */
 function stripLibarkuiFromAAR(aarPath) {
-  const os = require('os');
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aar-strip-'));
   try {
-    exec(`unzip -o "${aarPath}" -d "${tmpDir}"`, { encoding: 'utf-8' });
-    const jniDir = path.join(tmpDir, 'jni');
+    const AdmZip = require('adm-zip');
+    const zip = new AdmZip(aarPath);
     let stripped = 0;
-    if (fs.existsSync(jniDir)) {
-      fs.readdirSync(jniDir).forEach(abi => {
-        const abiDir = path.join(jniDir, abi);
-        if (!fs.statSync(abiDir).isDirectory()) {
-          return;
-        }
-        const engineSo = path.join(abiDir, 'libarkui_android.so');
-        if (fs.existsSync(engineSo)) {
-          fs.rmSync(engineSo, { force: true });
-          stripped++;
-        }
-      });
+    const entries = zip.getEntries();
+    const toRemove = [];
+    for (const entry of entries) {
+      if (entry.entryName.match(/^jni\/[^/]+\/libarkui_android\.so$/)) {
+        toRemove.push(entry.entryName);
+        stripped++;
+      }
     }
     if (stripped > 0) {
       const beforeSize = fs.statSync(aarPath).size;
-      fs.rmSync(aarPath, { force: true });
-      exec(`cd "${tmpDir}" && zip -r -X "${aarPath}" .`, { encoding: 'utf-8' });
+      for (const name of toRemove) {
+        zip.deleteEntry(name);
+      }
+      zip.writeZip(aarPath);
       const afterSize = fs.statSync(aarPath).size;
       console.log(`  AAR stripped libarkui_android.so (x${stripped}): ` +
         `${(beforeSize / 1024 / 1024).toFixed(1)}MB -> ${(afterSize / 1024 / 1024).toFixed(1)}MB`);
@@ -378,8 +382,6 @@ function stripLibarkuiFromAAR(aarPath) {
     }
   } catch (e) {
     console.warn(`  AAR strip skipped: ${e.message}`);
-  } finally {
-    removeDirRecursive(tmpDir);
   }
 }
 

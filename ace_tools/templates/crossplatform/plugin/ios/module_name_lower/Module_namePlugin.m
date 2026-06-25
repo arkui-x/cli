@@ -19,7 +19,7 @@
 
 @implementation Module_namePlugin
 
-+ (int)addWithA:(int)a b:(int)b {
++ (double)addWithA:(double)a b:(double)b {
     return a + b;
 }
 
