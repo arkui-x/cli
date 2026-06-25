@@ -207,15 +207,26 @@ function updateOhPackageJson5(config, pluginDir) {
     const depRef = 'file:' + relPath;
     const depKey = config.name;
 
-    if (content.includes(depKey)) {
+    if (content.includes(`"${depKey}"`)) {
       console.log(`  oh-package.json5: '${config.name}' already registered`);
       return;
     }
 
-    content = content.replace(
-      /"dependencies"\s*:\s*\{/,
-      `"dependencies": {\n    "${depKey}": "${depRef}",`
-    );
+    // Handle empty {} vs non-empty { ... } dependencies to avoid trailing comma
+    const emptyDepsRegex = /"dependencies"\s*:\s*\{\s*\}/;
+    if (emptyDepsRegex.test(content)) {
+      // Empty dependencies: {} → add entry without trailing comma
+      content = content.replace(
+        emptyDepsRegex,
+        `"dependencies": {\n    "${depKey}": "${depRef}"\n  }`
+      );
+    } else {
+      // Non-empty dependencies: add entry with trailing comma before existing entries
+      content = content.replace(
+        /"dependencies"\s*:\s*\{/,
+        `"dependencies": {\n    "${depKey}": "${depRef}",`
+      );
+    }
     fs.writeFileSync(ohPackagePath, content);
     console.log(`  oh-package.json5: added '${config.name}': '${depRef}'`);
   } catch (e) {

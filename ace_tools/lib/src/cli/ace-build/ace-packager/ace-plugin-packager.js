@@ -31,6 +31,7 @@ const {
   Platform,
   platform,
 } = require('../../ace-check/platform');
+const { getSdkVersion } = require('../../util');
 
 /**
  * Auto-discover the HAR module name.
@@ -58,7 +59,7 @@ function discoverHarModule() {
     }
     if (localDeps.length > 1) {
       console.error('\x1B[31m%s\x1B[0m',
-        `Multiple local dependencies found: ${localDeps.join(', ')}. Use --target <moduleName>.`);
+        `Multiple local dependencies found: ${localDeps.join(', ')}. Please specify only one local dependency in oh-package.json5.`);
       return null;
     }
   }
@@ -74,7 +75,7 @@ function discoverHarModule() {
     }
     if (harModules.length > 1) {
       console.error('\x1B[31m%s\x1B[0m',
-        `Multiple HAR modules found: ${harModules.map(m=>m.name).join(', ')}. Use --target <moduleName>.`);
+        `Multiple HAR modules found: ${harModules.map(m=>m.name).join(', ')}. Please specify only one HAR module in build-profile.json5.`);
       return null;
     }
   }
@@ -102,22 +103,18 @@ function detectPluginType(moduleName) {
 
 /**
  * Build cross-platform plugin HAR
- * @param {object} cmd - Commander options (--target optional, auto-discovered if missing)
+ * @param {object} cmd - Commander options
  * @returns {boolean} Success
  */
 function buildPluginHAR(cmd) {
   const projectDir = process.cwd();
-  // Auto-discover module name if --target not provided
-  let moduleName = cmd.target;
+  const moduleName = discoverHarModule();
   if (!moduleName) {
-    moduleName = discoverHarModule();
-    if (!moduleName) {
-      console.error('\x1B[31m%s\x1B[0m',
-        'Cannot find HAR module. Use --target <moduleName> or add a local dependency in oh-package.json5.');
-      return false;
-    }
-    console.log(`Auto-discovered HAR module: ${moduleName}`);
+    console.error('\x1B[31m%s\x1B[0m',
+      'Cannot find HAR module. Add a local dependency in oh-package.json5 or register in build-profile.json5.');
+    return false;
   }
+  console.log(`Auto-discovered HAR module: ${moduleName}`);
 
   // Auto-detect type
   const type = detectPluginType(moduleName);
@@ -276,9 +273,8 @@ function buildAndroidAAR(moduleName, stagingDir, config, projectDir) {
   process.env.ARKUIX_SDK_HOME = arkuiXSdkDir;
   setJavaSdkDirInEnv(javaSdkDirAndroid);
 
-  // Copy engine .so files from SDK to app/libs/ for all ABIs needed by the library module.
-  // The CMakeLists.txt references app/libs/${CMAKE_ANDROID_ARCH_ABI}/libarkui_android.so.
-  const sdkEngineDir = path.join(arkuiXSdkDir, '22', 'arkui-x', 'engine', 'lib', 'arkui');
+  const sdkVersion = getSdkVersion(projectDir);
+  const sdkEngineDir = path.join(arkuiXSdkDir, String(sdkVersion), 'arkui-x', 'engine', 'lib', 'arkui');
   const appLibsDir = path.join(androidDir, 'app', 'libs');
   const abiMap = {
     'arm64-v8a': 'android-arm64-release',

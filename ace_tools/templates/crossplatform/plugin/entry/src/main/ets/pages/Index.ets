@@ -15,69 +15,271 @@
 
 import { add, log, getSystemVersion, getFullOSName, getDeviceType } from 'module_name'
 
+enum TestStatus {
+  PENDING = 0,
+  RUNNING = 1,
+  PASSED = 2,
+  FAILED = 3
+}
+
+interface TestItem {
+  name: string;
+  status: TestStatus;
+  detail: string;
+}
+
+interface TestRunResult {
+  passed: boolean;
+  detail: string;
+}
+
+interface TestCase {
+  name: string;
+  fn: () => TestRunResult;
+}
+
 @Entry
 @Component
 struct Index {
-  @State testResults: string[] = []
-  @State logOutput: string = ''
+  @State testItems: TestItem[] = [];
+  @State isRunning: boolean = false;
+  @State passCount: number = 0;
+  @State totalCount: number = 0;
 
-  aboutToAppear() {
-    this.runTests()
+  aboutToAppear(): void {
+    this.startTests();
   }
 
-  private check(name: string, actual: string, expected: string) {
-    const pass = actual === expected
-    this.testResults.push(`[${pass ? 'PASS' : 'FAIL'}] ${name}: ${actual} ${pass ? '==' : '!='} ${expected}`)
+  private buildTestCases(): TestCase[] {
+    let cases: TestCase[] = [];
+
+    cases.push({
+      name: 'add(10, 20)',
+      fn: (): TestRunResult => {
+        let r = add(10, 20);
+        return { passed: r === 30, detail: `result=${r}, expected=30` };
+      }
+    });
+    cases.push({
+      name: 'add(-5, 15)',
+      fn: (): TestRunResult => {
+        let r = add(-5, 15);
+        return { passed: r === 10, detail: `result=${r}, expected=10` };
+      }
+    });
+    cases.push({
+      name: 'add(1.5, 2.5)',
+      fn: (): TestRunResult => {
+        let r = add(1.5, 2.5);
+        return { passed: r === 4, detail: `result=${r}, expected=4` };
+      }
+    });
+    cases.push({
+      name: 'add(0.1, 0.2)',
+      fn: (): TestRunResult => {
+        let r = add(0.1, 0.2);
+        return { passed: Math.abs(r - 0.3) < 0.0001, detail: `result=${r}, expected=0.3` };
+      }
+    });
+    cases.push({
+      name: 'log("Hello from Plugin!")',
+      fn: (): TestRunResult => {
+        try {
+          log('Hello from Plugin!');
+          return { passed: true, detail: 'log() called, no crash' };
+        } catch (e) {
+          return { passed: false, detail: `Exception: ${e}` };
+        }
+      }
+    });
+    cases.push({
+      name: 'getSystemVersion()',
+      fn: (): TestRunResult => {
+        let r = getSystemVersion();
+        return { passed: r.length > 0, detail: `result="${r}"` };
+      }
+    });
+    cases.push({
+      name: 'getFullOSName()',
+      fn: (): TestRunResult => {
+        let r = getFullOSName();
+        return { passed: r.length > 0, detail: `result="${r}"` };
+      }
+    });
+    cases.push({
+      name: 'getDeviceType()',
+      fn: (): TestRunResult => {
+        let r = getDeviceType();
+        return { passed: r.length > 0, detail: `result="${r}"` };
+      }
+    });
+
+    return cases;
   }
 
-  private runTests() {
-    this.testResults = []
-    // Test add
-    this.check('add(10, 20)', String(add(10, 20)), '30')
-    this.check('add(-5, 15)', String(add(-5, 15)), '10')
-    
-    // Test log (check no crash)
-    log('Hello from Plugin!')
-    this.testResults.push('[INFO] log() called successfully')
-    
-    // Test getSystemVersion — check it returns non-empty string
-    const version = getSystemVersion()
-    this.testResults.push(`[INFO] getSystemVersion(): "${version}"`)
-    
-    // Test getFullOSName — check it returns non-empty string
-    const osName = getFullOSName()
-    this.testResults.push(`[INFO] getFullOSName(): "${osName}"`)
-    
-    // Test getDeviceType — check it returns non-empty string
-    const deviceType = getDeviceType()
-    this.testResults.push(`[INFO] getDeviceType(): "${deviceType}"`)
+  private startTests(): void {
+    if (this.isRunning) {
+      return;
+    }
+    this.isRunning = true;
+
+    let cases = this.buildTestCases();
+    this.totalCount = cases.length;
+
+    let items: TestItem[] = [];
+    for (let tc of cases) {
+      let item: TestItem = { name: tc.name, status: TestStatus.PENDING, detail: '' };
+      items.push(item);
+    }
+    this.testItems = items;
+    this.passCount = 0;
+
+    this.runTestAtIndex(0, cases);
+  }
+
+  private runTestAtIndex(index: number, cases: TestCase[]): void {
+    if (index >= cases.length) {
+      this.isRunning = false;
+      return;
+    }
+
+    this.updateItemStatus(index, TestStatus.RUNNING, '');
+
+    setTimeout(() => {
+      let tc = cases[index];
+      let result: TestRunResult;
+      try {
+        result = tc.fn();
+      } catch (e) {
+        result = { passed: false, detail: `Exception: ${e}` };
+      }
+
+      let newStatus = result.passed ? TestStatus.PASSED : TestStatus.FAILED;
+      this.updateItemStatus(index, newStatus, result.detail);
+      if (result.passed) {
+        this.passCount = this.passCount + 1;
+      }
+
+      this.runTestAtIndex(index + 1, cases);
+    }, 200);
+  }
+
+  private updateItemStatus(index: number, status: TestStatus, detail: string): void {
+    let updated: TestItem[] = [];
+    for (let i = 0; i < this.testItems.length; i++) {
+      if (i === index) {
+        let item: TestItem = {
+          name: this.testItems[i].name,
+          status: status,
+          detail: detail
+        };
+        updated.push(item);
+      } else {
+        updated.push(this.testItems[i]);
+      }
+    }
+    this.testItems = updated;
+  }
+
+  private statusEmoji(status: TestStatus): string {
+    if (status === TestStatus.PASSED) {
+      return '\u2705';
+    } else if (status === TestStatus.FAILED) {
+      return '\u274C';
+    } else {
+      return '\u23F3';
+    }
   }
 
   build() {
-    Scroll() {
-      Column() {
-        Text('Plugin Interface Verification')
-          .fontSize(24)
+    Column() {
+      Text('Plugin Interface Verification')
+        .fontSize(22)
+        .fontWeight(FontWeight.Bold)
+        .margin({ bottom: 4 })
+
+      Text('Cross-platform Plugin native module tests')
+        .fontSize(13)
+        .fontColor('#888')
+        .margin({ bottom: 8 })
+
+      Row() {
+        Text(this.isRunning ? '\u23F3 Running...' : `${this.passCount}/${this.totalCount} Passed`)
+          .fontSize(18)
           .fontWeight(FontWeight.Bold)
-          .margin({ bottom: 20 })
+          .fontColor(
+            this.isRunning ? '#2196F3' :
+              (this.passCount === this.totalCount && this.totalCount > 0 ? '#4CAF50' : '#F44336')
+          )
 
-        ForEach(this.testResults, (result: string, index: number) => {
-          Text(result)
-            .fontSize(14)
-            .fontColor(result.includes('[PASS]') ? Color.Green : 
-                       result.includes('[FAIL]') ? Color.Red : Color.Blue)
-            .width('100%')
-            .padding(4)
-        }, (result: string, index: number) => `${index}`)
-
-        Button('Re-run Tests')
-          .margin({ top: 20 })
-          .onClick(() => this.runTests())
+        if (this.isRunning) {
+          LoadingProgress()
+            .width(20)
+            .height(20)
+            .margin({ left: 8 })
+            .color('#2196F3')
+        }
       }
+      .margin({ bottom: 8 })
+
+      Scroll() {
+        Column() {
+          ForEach(this.testItems, (item: TestItem, index: number) => {
+            Row() {
+              Text(this.statusEmoji(item.status))
+                .fontSize(18)
+                .width(36)
+                .textAlign(TextAlign.Center)
+
+              Column() {
+                Text(item.name)
+                  .fontSize(13)
+                  .fontWeight(FontWeight.Medium)
+                  .fontColor(item.status === TestStatus.PENDING ? '#bbb' : '#222')
+
+                if (item.detail.length > 0) {
+                  Text(item.detail)
+                    .fontSize(11)
+                    .fontColor(item.status === TestStatus.PASSED ? '#4CAF50' : '#888')
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                }
+
+                if (item.status === TestStatus.RUNNING) {
+                  Text('running...')
+                    .fontSize(11)
+                    .fontColor('#2196F3')
+                }
+              }
+              .alignItems(HorizontalAlign.Start)
+              .layoutWeight(1)
+            }
+            .width('100%')
+            .padding({ left: 16, right: 16, top: 6, bottom: 6 })
+            .alignItems(VerticalAlign.Center)
+            .opacity(item.status === TestStatus.PENDING ? 0.5 : 1.0)
+          })
+        }
+        .width('100%')
+      }
+      .layoutWeight(1)
       .width('100%')
-      .padding(20)
+
+      Row() {
+        Button(this.isRunning ? 'Running...' : 'Re-run')
+          .width('35%')
+          .height(42)
+          .margin({ right: 10 })
+          .enabled(!this.isRunning)
+          .backgroundColor(this.isRunning ? '#ccc' : '#2196F3')
+          .onClick(() => {
+            this.startTests();
+          })
+      }
+      .margin({ top: 8, bottom: 20 })
     }
     .width('100%')
     .height('100%')
+    .backgroundColor('#fafafa')
   }
 }

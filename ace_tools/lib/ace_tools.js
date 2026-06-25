@@ -569,9 +569,6 @@ Available subcommands:
         .option('--analyze', 'analyze/diff package size')
         .option('--target [moduleName]', 'name of module to be built');
     }
-    if (subcommand === 'plugin') {
-      buildSubcommand.option('--target [moduleName]', 'name of module to be built');
-    }
     if (process.argv[2] === 'help' && process.argv[3] === 'build') {
       subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand);
     }
