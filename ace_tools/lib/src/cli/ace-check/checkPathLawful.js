@@ -137,7 +137,7 @@ function newValidHarmonyOsSdk(harmonyosSdkDir, harmonyOsDirs, sdkType, info) {
     if (harmonyOsDirs.length === 1) {
       const harmonyOsPath = path.join(harmonyosSdkDir, harmonyOsDirs[0], 'sdk-pkg.json');
       let sdkVersion = JSON.parse(fs.readFileSync(harmonyOsPath))['data']['platformVersion'];
-      if (compareVersion('5.0.0', sdkVersion) > 0) {
+      if (sdkVersion >= '5.0.0') {
         return true;
       }
     }
@@ -170,12 +170,15 @@ function oldValidHarmonyOsSdk(harmonyosSdkDir, sdkType, info) {
 }
 
 function validSdkDir(typeSdkDir, sdkType, info) {
+  const dirs = [];
   let candidatePath;
   let dirExist = false;
-  const dirs = searchSdkDir(typeSdkDir);
+  dirs.push(...fs.readdirSync(typeSdkDir).filter((file) => {
+    return !isNaN(file) && fs.statSync(path.join(typeSdkDir, file)).isDirectory() && file !== 'licenses';
+  }));
   if (dirs.length !== 0) {
     dirs.sort(function(prev, next) {
-      return compareVersion(next, prev);
+      return next - prev;
     });
   } else {
     if (info) {
@@ -215,20 +218,6 @@ function validSdkDir(typeSdkDir, sdkType, info) {
     return false;
   }
   return true;
-}
-
-function searchSdkDir(typeSdkDir) {
-  let dirs = [];
-  dirs.push(...fs.readdirSync(typeSdkDir).filter((file) => {
-    if (file === 'licenses' || !fs.statSync(path.join(typeSdkDir, file)).isDirectory()) {
-      return false;
-    }
-    if (/^\d+$/.test(file) || /^\d+(\.\d+){1,2}$/.test(file)) {
-      return true;
-    }
-    return false;
-  }));
-  return dirs;
 }
 
 function typeCommandLineToolsPathCheck(typestudioDir, info) {
@@ -445,20 +434,6 @@ function sourceDirPathCheck(sourceDir, info) {
     return false;
   }
   return true;
-}
-
-function compareVersion(prev, next) {
-  const prevParts = prev.split('.');
-  const nextParts = next.split('.');
-  const maxLen = Math.max(prevParts.length, nextParts.length);
-  for (let i = 0; i < maxLen; i++) {
-    const prevNum = i < prevParts.length ? parseInt(prevParts[i]) : 0;
-    const nextNum = i < nextParts.length ? parseInt(nextParts[i]) : 0;
-    if (nextNum !== prevNum) {
-      return nextNum - prevNum;
-    }
-  }
-  return 0;
 }
 
 module.exports = {

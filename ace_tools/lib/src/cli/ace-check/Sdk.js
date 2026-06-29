@@ -252,10 +252,7 @@ function getOpenHarmonySdkVersion(sdkDir) {
     return 'unknown';
   }
   fs.readdirSync(sdkDir).forEach(dir => {
-    if (dir === 'licenses' || !fs.statSync(path.join(sdkDir, dir)).isDirectory()) {
-      return;
-    }
-    if (/^\d+$/.test(dir) || /^\d+(\.\d+){1,2}$/.test(dir)) {
+    if (!isNaN(dir) && fs.statSync(path.join(sdkDir, dir)).isDirectory() && dir !== 'licenses') {
       openHarmonySdkPath = path.join(sdkDir, dir, 'ets', 'oh-uni-package.json');
       if (fs.existsSync(openHarmonySdkPath)) {
         const ophenHarmonySdkVersion = JSON5.parse(fs.readFileSync(openHarmonySdkPath))['version'];
@@ -277,10 +274,7 @@ function getArkuiXSdkVersion(sdkDir) {
     return 'unknown';
   }
   fs.readdirSync(sdkDir).forEach(dir => {
-    if (dir === 'licenses' || !fs.statSync(path.join(sdkDir, dir)).isDirectory()) {
-      return;
-    }
-    if (/^\d+$/.test(dir) || /^\d+(\.\d+){1,2}$/.test(dir)) {
+    if (!isNaN(dir) && fs.statSync(path.join(sdkDir, dir)).isDirectory() && dir !== 'licenses') {
       arkuiXSdkPath = path.join(sdkDir, dir, 'arkui-x', 'arkui-x.json');
       if (fs.existsSync(arkuiXSdkPath)) {
         const arkuiXSdkVersion = JSON5.parse(fs.readFileSync(arkuiXSdkPath))['version'];
