@@ -425,6 +425,7 @@ function buildiOS(target, cmd) {
       exec(cmd, {
         encoding: 'utf-8',
         stdio: 'pipe',
+        maxBuffer: 50 * 1024 * 1024, 
       });
     } catch (error) {
       if (error.stdout !== null) {
