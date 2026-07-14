@@ -55,7 +55,8 @@ function readConfig() {
     return false;
   }
 }
-function readConfigProcess() {
+
+function checkSdkEnvironment() {
   let lackDir = arkuiXSdkDir ? '' : 'ArkUI-X SDK, ';
   lackDir += nodejsDir ? '' : 'nodejs, ';
   lackDir += ohpmDir ? '' : 'ohpm, ';
@@ -76,6 +77,10 @@ function readConfigProcess() {
       return false;
     }
   }
+  return true;
+}
+
+function resolveArkuiXSdk() {
   const version = getSdkVersion(projectDir);
   let arkuiXSdkVersion;
   let useArkuixMsg;
@@ -87,14 +92,32 @@ function readConfigProcess() {
     arkuiXSdkPath = path.join(arkuiXSdkDir, String(version), 'arkui-x');
     let arkuiXMessagePath = path.join(arkuiXSdkPath, 'arkui-x.json');
     if (!fs.existsSync(arkuiXSdkPath) || !fs.existsSync(arkuiXMessagePath)) {
+      if (!version) {
+        console.log('\x1B[31m%s\x1B[0m',
+          `Error: Failed to resolve the ArkUI-X SDK API version from the project configuration.\n` +
+          `\x1B[0m\x1B[33m` +
+          `  Cause: The installed ace tools version does not support the API version declared in the project configuration.\n` +
+          `  Solution:\n` +
+          `    1. Update the ArkUI-X SDK to the latest version.\n` +
+          `    2. Update the PATH environment variable for ace tools to point to the ace tools directory included in the latest ArkUI-X SDK (e.g., .../Sdk/<version>/arkui-x/toolchains/bin).\n` +
+          `    3. Reopen the DevEco Studio / terminal and verify with: where ace (Windows) / which ace (Linux/macOS).`);
+      } else {
         console.log('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
-        return false;
+      }
+      return false;
     }
-    arkuiXSdkVersion = JSON.parse(fs.readFileSync(arkuiXMessagePath))['version'];
+    arkuiXSdkVersion = JSON.parse(fs.readFileSync(arkuiXMessagePath)).version;
     useArkuixMsg = `Use ArkUI-X SDK, Version ${arkuiXSdkVersion}`;
   }
   console.log(useArkuixMsg);
   return true;
+}
+
+function readConfigProcess() {
+  if (!checkSdkEnvironment()) {
+    return false;
+  }
+  return resolveArkuiXSdk();
 }
 
 function writeLocalProperties() {
