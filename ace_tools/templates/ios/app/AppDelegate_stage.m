@@ -16,6 +16,7 @@
 #import "AppDelegate.h"
 #import "EntryEntryAbilityViewController.h"
 #import <libarkui_ios/StageApplication.h>
+#import <libarkui_ios/UINavigationController+StatusBar.h>
 
 #define BUNDLE_DIRECTORY @"arkui-x"
 #define BUNDLE_NAME @"packageName"
