@@ -25,6 +25,12 @@ const path = require('path');
 const JSON5 = require('json5');
 
 function build(target, cmd) {
+  if (target === 'plugin') {
+    if (checkVersion(target, cmd) && compiler(target, cmd)) {
+      packager(target, cmd);
+    }
+    return;
+  }
   if (checkVersion(target, cmd) && compiler(target, cmd)) {
     packager(target, cmd);
   }

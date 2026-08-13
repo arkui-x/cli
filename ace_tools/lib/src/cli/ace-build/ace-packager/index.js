@@ -33,6 +33,7 @@ const { isProjectRootDir, getAarName, getFrameworkName, modifyAndroidAbi, getAnd
 const { copyLibraryToProject, installPodfiles } = require('./copyLibraryToProject');
 const { createTestTem, recoverTestTem } = require('./createTestTemFile');
 const { runFontSubsetForTarget } = require('./pkgHwSymbol');
+const { buildPluginHAR } = require('./ace-plugin-packager');
 const analyze = require('../ace-analyze/index');
 const projectDir = process.cwd();
 const createdPlatforms = getCreatedPlatforms(projectDir);
@@ -105,6 +106,38 @@ function buildAPK(target, cmd) {
   copyLibraryToProject('apk', cmd, projectDir, 'android');
   const cmds = [];
   const androidDir = path.join(projectDir, '.arkui-x/android');
+  // For FFI/Plugin projects, use settings-plugin.gradle which includes the library
+  // module with CMake, so the .so gets compiled and included in the APK
+  const settingsPluginGradle = path.join(androidDir, 'settings-plugin.gradle');
+  const settingsGradle = path.join(androidDir, 'settings.gradle');
+  if (fs.existsSync(settingsPluginGradle) && fs.existsSync(settingsGradle)) {
+    const pluginContent = fs.readFileSync(settingsPluginGradle, 'utf-8');
+    const includes = pluginContent.match(/include\s+'([^']+)'/g) || [];
+    const existingModules = includes
+      .map(i => i.match(/'([^']+)'/)[1])
+      .filter(m => m === ':app' || fs.existsSync(path.join(androidDir, m.replace(':', ''))));
+    if (existingModules.length > includes.length - 1) {
+      const rootName = (pluginContent.match(/rootProject\.name\s*=\s*"([^"]+)"/) || [])[1] || '';
+      const newContent = existingModules.map(m => `include '${m}'`).join('\n') +
+        (rootName ? `\nrootProject.name = "${rootName}"` : '') + '\n';
+      fs.writeFileSync(settingsGradle, newContent, 'utf-8');
+    }
+    const appGradlePath = path.join(androidDir, 'app', 'build.gradle');
+    if (fs.existsSync(appGradlePath)) {
+      const libModules = existingModules.filter(m => m !== ':app');
+      let appGradle = fs.readFileSync(appGradlePath, 'utf-8');
+      for (const mod of libModules) {
+        const depLine = `implementation project('${mod}')`;
+        if (!appGradle.includes(depLine)) {
+          appGradle = appGradle.replace(
+            /implementation fileTree\(dir: 'libs'/,
+            `${depLine}\n    implementation fileTree(dir: 'libs'`
+          );
+        }
+      }
+      fs.writeFileSync(appGradlePath, appGradle, 'utf-8');
+    }
+  }
   if (platform !== Platform.Windows) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
@@ -383,6 +416,10 @@ function packager(target, cmd) {
       copyLibraryToOutput(target);
       return true;
     }
+  } else if (target === 'plugin') {
+    if (buildPluginHAR(cmd)) {
+      return true;
+    }
   }
   return false;
 }
@@ -471,6 +508,8 @@ function generateBuildCommand(useCocoapods, cmd, mode, iosProjectName) {
   let signCmd = '';
   if (cmd.nosign) {
     signCmd = "CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGNING_IDENTITY=''";
+  } else {
+    signCmd = '-allowProvisioningUpdates -allowProvisioningDeviceRegistration';
   }
   if (useCocoapods) {
     const workspacePath = path.join(projectDir, '.arkui-x/ios', `${iosProjectName}.xcworkspace`);

@@ -12,6 +12,7 @@
     },
     "license": "Apache 2.0",
     "dependencies": {
+        "adm-zip": "^0.5.17",
         "archiver": "^5.3.1",
         "commander": "^11.0.0",
         "ejs": "^3.1.9",
@@ -21,6 +22,7 @@
         "fs-extra": "^11.2.0",
         "inquirer": "^8.2.6",
         "plist": "^3.0.4",
+        "tar": "^6.2.1",
         "xml-js": "^1.6.11"
     },
     "devDependencies": {

@@ -703,6 +703,8 @@ function validInputModule(projectDir, inputModules, fileType) {
     moduleListSpecified = moduleListAll;
   } else if (fileType === 'hsp') {
     moduleListSpecified = hspModuleList;
+  } else if (fileType === 'plugin') {
+    moduleListSpecified = moduleListAll.filter(element => element !== 'entry');
   } else {
     moduleListSpecified = crossPlatformModules;
   }
