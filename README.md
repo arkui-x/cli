@@ -450,7 +450,7 @@ ace build <subCommand> [arguments]
 | --nosign                       | ios、ios-framework、ios-xcframework                          | 构建出未签名的应用程序。                     |
 | --target [moduleName]          | hap、hsp                                                    | 指定目标模块名进行构建。                     |
 | --target-platform \<platform\> | apk、aab、aar、bundle                                        | 指定 Android 产物的目标平台，支持 arm、arm64、x86_64，可同时指定多个，以逗号分隔。示例：ace build apk --target-platform arm,arm64,x86_64 |
-| --shrink                       | apk、aab、aar、bundle                                        | 控制 Android 构建是否拷贝并打包 stub.an。默认开启，仅对 arm64、x86_64 目标平台生效。关闭后，所有平台均不打包 stub.an。此参数仅对 Android 构建生效。 |
+| --shrink                       | apk、aab、aar、bundle                                        | 构建应用程序时，支持剔除 stub.an 文件以缩减最终产物体积。参数仅针对 arm64 和 x86_64 架构的 Android 平台生效。(注：剔除时使用C解释器，打包时使用汇编解释器) |
 | -s --simulator                 | ios、ios-framework、ios-xcframework                          | 构建ios模拟器对应包。                        |
 | --analyze                 	     | hap、apk、ios                          						| 通过rom size工具对打出的包进行包体积解析；[rom size工具使用方法](https://gitcode.com/arkui-x/docs/blob/master/zh-cn/application-dev/quick-start/start-with-rom-size.md)。             |
 | -h --help                      | aab、aar、apk、bundle、hap、ios、ios-framework、ios-xcframework | 显示帮助信息。                               |
