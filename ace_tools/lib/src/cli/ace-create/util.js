@@ -272,7 +272,7 @@ function updateCrossPlatformConfig(projectPath, platforms) {
     }
     fs.writeFileSync(configFile, JSON.stringify(arkuiXConfig, '', '  '), 'utf8');
   } catch (err) {
-    console.error('add cross platform failed\n', err);
+    console.error('\x1B[31m%s\x1B[0m', 'add cross platform failed\n', err);
   }
 }
 

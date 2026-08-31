@@ -51,7 +51,7 @@ function recoverStageAbilityInAndroid(moduleName, abilityName) {
     fs.writeFileSync(path.join(projectDir, '.arkui-x/android/app/src/main/AndroidManifest.xml'), updateManifestXmlInfo);
     return true;
   } catch (error) {
-    console.error('Error occurs when recover in android');
+    console.error('\x1B[31m%s\x1B[0m', 'Error occurs when recover in android');
     return false;
   }
 }
@@ -99,7 +99,7 @@ function recoverStageAbilityInIOS(moduleName, abilityName) {
     }
     return true;
   } catch (error) {
-    console.error('Error occurs when recover in ios');
+    console.error('\x1B[31m%s\x1B[0m', 'Error occurs when recover in ios');
     return false;
   }
 }
@@ -147,7 +147,7 @@ function recoverFileToPbxproj(pbxprojFilePath, fileName, fileType) {
       pbxprojFileInfo.slice(addPBXSourcesBuildPhaseIndex + addPBXSourcesBuildPhaseLength);
     fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
   } else {
-    console.log('filetype error');
+    console.error('\x1B[31m%s\x1B[0m', 'filetype error');
     return false;
   }
   return true;

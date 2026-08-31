@@ -70,7 +70,7 @@ function readJsonFile(packSrc, fileType) {
                 renderHtmlPage();
             })
             .catch(function (error) {
-                console.error('Decompression failed:', error);
+                console.error('\x1B[31m%s\x1B[0m', 'Decompression failed:', error);
             });
     });
 }

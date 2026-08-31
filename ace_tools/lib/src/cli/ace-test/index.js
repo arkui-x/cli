@@ -29,7 +29,7 @@ function test(fileType, device, cmd) {
     return false;
   }
   if (isSimulator(device) && fileType === 'ios') {
-    console.error('Simulator does not support testing ios');
+    console.error('\x1B[31m%s\x1B[0m', 'Simulator does not support testing ios');
     return false;
   }
   if (cmd.skipInstall) {
@@ -37,7 +37,7 @@ function test(fileType, device, cmd) {
     if (launch(fileType, device, cmd)) {
       return true;
     }
-    console.error('Skip install and test failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'Skip install and test failed.');
     return false;
   }
   if (cmd.path) {
@@ -50,7 +50,7 @@ function test(fileType, device, cmd) {
     if (installFlag && launch(fileType, device, cmd)) {
       return true;
     }
-    console.error('Test failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'Test failed.');
     return false;
   }
   if (fileType === 'hap') {
@@ -66,7 +66,7 @@ function test(fileType, device, cmd) {
   if (installFlag && launch(fileType, device, cmd)) {
     return true;
   }
-  console.error('Test failed.');
+  console.error('\x1B[31m%s\x1B[0m', 'Test failed.');
   return false;
 }
 

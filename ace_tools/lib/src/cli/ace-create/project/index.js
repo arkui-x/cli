@@ -44,13 +44,13 @@ function create(args) {
   const projectTempPath = getTempPath(outputDir);
   if (useCocoapods && (platforms === 'ios' || platforms === 'both')) {
     if (!checkCocoaPodsInstalled()) {
-      console.info('\x1B[31m%s\x1B[0m', 'Project created failed!');
+      console.error('\x1B[31m%s\x1B[0m', 'Project created failed!');
       console.info('\x1B[33m%s\x1B[0m', 'CocoaPods is not installed. Please install CocoaPods(brew install cocoapods) and try again.');
       return;
     }
     createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion, platforms);
     if (!createPodfile(projectTempPath)) {
-      console.info('\x1B[31m%s\x1B[0m', 'create Podfile failed.');
+      console.error('\x1B[31m%s\x1B[0m', 'create Podfile failed.');
       return;
     }
   } else {

@@ -49,17 +49,17 @@ function isProjectRootDir(currentDir) {
         return true;
       }
     }
-    console.error(`Operation failed. Go to your project directory and try again.`);
+    console.error('\x1B[31m%s\x1B[0m', `Operation failed. Go to your project directory and try again.`);
     return false;
   } catch (error) {
-    console.error(`Operation failed. Go to your project directory and try again.`);
+    console.error('\x1B[31m%s\x1B[0m', `Operation failed. Go to your project directory and try again.`);
     return false;
   }
 }
 
 function getUUID(pbxprojFilePath) {
   if (!fs.existsSync(pbxprojFilePath)) {
-    console.log('pbxproj file path not exit');
+    console.error('\x1B[31m%s\x1B[0m', 'pbxproj file path not exit');
     return;
   }
   try {
@@ -72,7 +72,7 @@ function getUUID(pbxprojFilePath) {
       return newUUID;
     }
   } catch (error) {
-    console.log('read pbxproj file error');
+    console.error('\x1B[31m%s\x1B[0m', 'read pbxproj file error');
   }
 }
 
@@ -113,11 +113,11 @@ function getModuleList(projectDir) {
       }
       return moduleList;
     } else {
-      console.error(`Please check ${settingPath}.`);
+      console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
       return null;
     }
   } catch (error) {
-    console.error(`Please check ${settingPath}.`);
+    console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
     return null;
   }
 }
@@ -133,11 +133,11 @@ function getModulePathList(projDir) {
       }
       return modulePathList;
     } else {
-      console.error(`Please check ${settingPath}.`);
+      console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
       return null;
     }
   } catch (error) {
-    console.error(`Please check ${settingPath}.`);
+    console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
     return null;
   }
 }
@@ -154,7 +154,7 @@ function getModuleAbilityList(projDir, moduleName) {
     });
     return moduleAbilityList;
   } catch (error) {
-    console.error(`Please check ${projDir}.`);
+    console.error('\x1B[31m%s\x1B[0m', `Please check ${projDir}.`);
     return null;
   }
 }
@@ -165,10 +165,10 @@ function validInputDevice(device) {
     if (devicesArr.available.length === 1) {
       return true;
     } else if (devicesArr.available.length > 1) {
-      console.error(`Error: more than one devices/emulators found, please use '--device <deviceId>'.`);
+      console.error('\x1B[31m%s\x1B[0m', `Error: more than one devices/emulators found, please use '--device <deviceId>'.`);
       return false;
     } else {
-      console.error(`Error: Device not found.`);
+      console.error('\x1B[31m%s\x1B[0m', `Error: Device not found.`);
       return false;
     }
   } else {
@@ -177,7 +177,7 @@ function validInputDevice(device) {
         return true;
       }
     }
-    console.error(`Error: Device not found.`);
+    console.error('\x1B[31m%s\x1B[0m', `Error: Device not found.`);
     return false;
   }
 }
@@ -186,7 +186,7 @@ function getCurrentProjectSystem(projDir) {
   let currentSystem = '';
   const configFile = path.join(projDir, 'build-profile.json5');
   if (!fs.existsSync(configFile)) {
-    console.error(`Please check build-profile.json5 existing.`);
+    console.error('\x1B[31m%s\x1B[0m', `Please check build-profile.json5 existing.`);
     return null;
   }
   const buildProfileInfo = JSON5.parse(fs.readFileSync(configFile).toString()).app.products;
@@ -245,7 +245,7 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
   if (fileType === 'headfile') {
     const headFileUUID = getUUID(pbxprojFilePath);
     if (headFileUUID === undefined) {
-      console.log('get UUID Failed');
+      console.error('\x1B[31m%s\x1B[0m', 'get UUID Failed');
       return false;
     }
     const addPBXBuildInfo = '\n		' + headFileUUID + ' /* ' + fileName +
@@ -265,7 +265,7 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const sourceFileFirstUUID = getUUID(pbxprojFilePath);
     const sourceFileSecondUUID = getUUID(pbxprojFilePath);
     if (sourceFileFirstUUID === undefined || sourceFileSecondUUID === undefined) {
-      console.log('get UUID Failed');
+      console.error('\x1B[31m%s\x1B[0m', 'get UUID Failed');
       return false;
     }
     const addPBXBuildInfo = '\n		' + sourceFileFirstUUID + ' /* ' + fileName +
@@ -292,7 +292,7 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const cBuildFileUUID = getUUID(pbxprojFilePath);
     const cFileReferenceUUID = getUUID(pbxprojFilePath);
     if (cBuildFileUUID === undefined || cFileReferenceUUID === undefined) {
-      console.log('get UUID Failed');
+      console.error('\x1B[31m%s\x1B[0m', 'get UUID Failed');
       return false;
     }
     const addBuildFile = '\n		' + cBuildFileUUID + ' /* ' + fileName +
@@ -324,7 +324,7 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
     const resourceBuildFileUUID = getUUID(pbxprojFilePath);
     const resourceFileReferenceUUID = getUUID(pbxprojFilePath);
     if (resourceBuildFileUUID === undefined || resourceFileReferenceUUID === undefined) {
-      console.log('get UUID Failed');
+      console.error('\x1B[31m%s\x1B[0m', 'get UUID Failed');
       return false;
     }
     const addBuildFile = '\n		' + resourceBuildFileUUID + ' /* ' + fileName +
@@ -354,7 +354,7 @@ function addFileToPbxproj(pbxprojFilePath, fileName, fileType, moduleName) {
       fs.writeFileSync(pbxprojFilePath, updatepbxprojFileInfo);
     }
   } else {
-    console.log('filetype error');
+    console.error('\x1B[31m%s\x1B[0m', 'filetype error');
     return false;
   }
   return true;
@@ -612,7 +612,7 @@ function getSdkVersion(projectDir) {
 }
 
 function checkProjectType(projectDir) {
-  if (fs.existsSync(projectDir, '.projectInfo')) {
+  if (fs.existsSync(path.join(projectDir, '.projectInfo'))) {
     const filePath = path.join(projectDir, '.projectInfo');
     const content = fs.readFileSync(filePath, 'utf8').toString();
     const template = JSON5.parse(content).projectTemplate;
@@ -769,14 +769,14 @@ function setDevEcoSdkInEnv(DevEcoDir) {
       environment['DEVECO_SDK_HOME'] = DevEcoDir + '/Contents/sdk';
       environment['PATH'] = DevEcoDir + '/Contents/sdk:' + environment['PATH'];
     } else {
-      console.log('DevEcoDir is not IntergrateIDE, setDevEcoSdkInEnv failed.');
+      console.error('\x1B[31m%s\x1B[0m', 'DevEcoDir is not IntegrateIDE, setDevEcoSdkInEnv failed.');
     }
   } else {
-    console.log('DevEcoDir is required, DevEcoDir is null.');
+    console.error('\x1B[31m%s\x1B[0m', 'DevEcoDir is required, DevEcoDir is null.');
   }
 }
 
-function replaceInfo(files, replaceInfos, strs) {
+function replaceInfoByLine(files, replaceInfos, strs) {
   for (let i = 0; i < files.length; i++) {
     const data = fs.readFileSync(files[i], 'utf8');
     if (data === undefined) {
@@ -918,7 +918,7 @@ module.exports = {
   getRuntimeOSWithSdkVersion,
   getModelVersionWithSdkVersion,
   getSdkVersionWithModelVersion,
-  replaceInfo,
+  replaceInfoByLine,
   getArkuixPluginWithModelVersion,
   getCreatedPlatforms,
   isSupportedOperatorType,

@@ -46,7 +46,7 @@ create_project() {
     expect \"project name\" { send \"\r\" }
     expect \"bundleName\" { send \"\r\" }
     expect \"runtimeOS\" { send \"2\r\" }
-    expect \"Complie\" { send \"4\r\" }
+    expect \"Compile\" { send \"4\r\" }
     expect \"platform\" { send \"\r\" }
     expect \"Native Manual\" { send \"1\r\" }
     expect eof
@@ -448,12 +448,12 @@ echo "============================================="
 for type in ffi plugin package; do
   name="${type}Test${N}"
   rm -rf "${WORK_DIR}/${name}"
-  expect -c "set timeout 30; spawn ace create ${WORK_DIR}/${name} -t ${type}; expect \"project name\" { send \"\r\" }; expect \"bundleName\" { send \"\r\" }; expect \"runtimeOS\" { send \"2\r\" }; expect \"Complie\" { send \"4\r\" }; expect \"platform\" { send \"\r\" }; expect \"Native Manual\" { send \"1\r\" }; expect eof" 2>&1 | strings | grep -q "created" && echo "  ✅ ${name} 创建成功" || echo "  ❌ ${name} 创建失败"
+  expect -c "set timeout 30; spawn ace create ${WORK_DIR}/${name} -t ${type}; expect \"project name\" { send \"\r\" }; expect \"bundleName\" { send \"\r\" }; expect \"runtimeOS\" { send \"2\r\" }; expect \"Compile\" { send \"4\r\" }; expect \"platform\" { send \"\r\" }; expect \"Native Manual\" { send \"1\r\" }; expect eof" 2>&1 | strings | grep -q "created" && echo "  ✅ ${name} 创建成功" || echo "  ❌ ${name} 创建失败"
 done
 
 # 创建应用工程
 rm -rf "${WORK_DIR}/MyApp${N}"
-expect -c "set timeout 30; spawn ace create ${WORK_DIR}/MyApp${N}; expect \"project name\" { send \"\r\" }; expect \"bundleName\" { send \"\r\" }; expect \"runtimeOS\" { send \"2\r\" }; expect \"Complie\" { send \"4\r\" }; expect \"platform\" { send \"\r\" }; expect \"Native Manual\" { send \"1\r\" }; expect eof" 2>&1 | strings | grep -q "created" && echo "  ✅ MyApp${N} 创建成功" || echo "  ❌ MyApp${N} 创建失败"
+expect -c "set timeout 30; spawn ace create ${WORK_DIR}/MyApp${N}; expect \"project name\" { send \"\r\" }; expect \"bundleName\" { send \"\r\" }; expect \"runtimeOS\" { send \"2\r\" }; expect \"Compile\" { send \"4\r\" }; expect \"platform\" { send \"\r\" }; expect \"Native Manual\" { send \"1\r\" }; expect eof" 2>&1 | strings | grep -q "created" && echo "  ✅ MyApp${N} 创建成功" || echo "  ❌ MyApp${N} 创建失败"
 
 echo ""
 echo "============================================="

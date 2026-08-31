@@ -245,7 +245,7 @@ function getAapt() {
   }
 }
 
-function getIntergrateHvigorw() {
+function getIntegrateHvigorw() {
   if (platform === Platform.Linux) {
     if (fs.existsSync(path.join(commandLineToolsDir, 'bin/hvigorw'))) {
       return path.join(commandLineToolsDir, 'bin/hvigorw');
@@ -278,5 +278,5 @@ module.exports = {
   getOhpmTools,
   getOhpmToolsVersion,
   getAapt,
-  getIntergrateHvigorw,
+  getIntegrateHvigorw,
 };

@@ -22,7 +22,7 @@ const { log } = require('../ace-log');
 const { getToolByType, getAapt } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getIosProjectName,
   getModulePathList, getEntryModule, getModuleAbilityList } = require('../util');
-const { isSimulator, getIosVersion } = require('../ace-devices/index');
+const { isSimulator, getIosMajorVersion } = require('../ace-devices/index');
 const [iosDeployTool, xcrunDevicectlTool] = [1, 2];
 let bundleName;
 let packageName;
@@ -67,14 +67,14 @@ function getNameStageHaps(projectDir, moduleName) {
       bundleName = JSON5.parse(fs.readFileSync(appJsonPath)).app.bundleName;
       packageName = moduleName;
       if (!bundleName || !packageName || !ohosclassName) {
-        console.error(`Please check bundleName, packageName and className in ${ohosJsonPath}.`);
+        console.error('\x1B[31m%s\x1B[0m', `Please check bundleName, packageName and className in ${ohosJsonPath}.`);
         return false;
       }
       cmdOption = ``;
       className = ohosclassName;
       return true;
     }
-    console.error(`Please check ${ohosJsonPath} or ${appJsonPath}.`);
+    console.error('\x1B[31m%s\x1B[0m', `Please check ${ohosJsonPath} or ${appJsonPath}.`);
     return false;
   } catch (err) {
     console.error('Read config.json failed.\n' + err);
@@ -107,14 +107,14 @@ function getNamesApk(projectDir, moduleName) {
       bundleName = JSON5.parse(fs.readFileSync(manifestPath)).app.bundleName;
       packageName = packageName || bundleName;
       if (!bundleName || !packageName || !androidclassName) {
-        console.error(`Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
+        console.error('\x1B[31m%s\x1B[0m', `Please check packageName and className in ${androidXmlPath}, appID in ${manifestPath}.`);
         return false;
       }
       cmdOption = ' -a android.intent.action.MAIN -c android.intent.category.LAUNCHER';
       className = androidclassName;
       return true;
     }
-    console.error(`Please check ${androidXmlPath}.`);
+    console.error('\x1B[31m%s\x1B[0m', `Please check ${androidXmlPath}.`);
     return false;
   } catch (err) {
     console.error('Read androidManifest.xml failed.\n' + err);
@@ -133,7 +133,7 @@ function parseAndroidManifest(xmlContent) {
       ignoreDeclaration: true
     });
   if (!parsed) {
-    console.error('Parsing the AndroidManifest.xml file failed!');
+    console.error('\x1B[31m%s\x1B[0m', 'Parsing the AndroidManifest.xml file failed!');
     return result;
   }
   if (parsed?.manifest?._attributes?.package) {
@@ -161,7 +161,7 @@ function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
   try {
     const aapt = getAapt();
     if (aapt === '') {
-      console.error('Can not get aapt from anfroid build tools. ');
+      console.error('\x1B[31m%s\x1B[0m', 'Can not get aapt from android build tools. ');
       return false;
     }
     const getPackageNameCmd = `${aapt} dump badging ${installFilePath}`;
@@ -176,7 +176,7 @@ function getNamesApkByInstallFile(moduleName, installFilePath, apkBundleName) {
       return l.toUpperCase();
     }) + 'EntryAbilityActivity';
     if (!bundleName || !packageName || !androidclassName) {
-      console.error(`Please check packageName , className or bundleName.`);
+      console.error('\x1B[31m%s\x1B[0m', `Please check packageName , className or bundleName.`);
       return false;
     }
     cmdOption = ' -a android.intent.action.MAIN -c android.intent.category.LAUNCHER';
@@ -201,7 +201,7 @@ function getPathIosSignName(projectDir) {
     const bundleId = match[0].replace(/^[^a-zA-Z0-9.]+/, '');
     return bundleId.trim();
   } else {
-    console.error('No bundle ID found.');
+    console.error('\x1B[31m%s\x1B[0m', 'No bundle ID found.');
     return '';
   }
 }
@@ -213,7 +213,7 @@ function isPackageInAndroid(toolObj, device) {
     const deviceOption = device ? `-s ${device}` : '';
     comd = `${cmdPath} ${deviceOption} shell pm list packages`;
   } else {
-    console.error('Internal error with adb checking.');
+    console.error('\x1B[31m%s\x1B[0m', 'Internal error with adb checking.');
     return false;
   }
   try {
@@ -249,17 +249,17 @@ function launch(fileType, device, options) {
   }
   const currentSystem = options.path ? ' ' : getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
-    console.error('current system is unknown.');
+    console.error('\x1B[31m%s\x1B[0m', 'current system is unknown.');
     return false;
   }
   const toolObj = getToolByType(fileType, currentSystem);
   if (toolObj === null || toolObj === undefined) {
-    console.error('There are not install tool, please check');
+    console.error('\x1B[31m%s\x1B[0m', 'There are not install tool, please check');
     return false;
   }
   if (getNames(projectDir, fileType, moduleName, options.path, options.b) && toolObj) {
     if (fileType === 'apk' && !isPackageInAndroid(toolObj, device)) {
-      console.error(`Launch ${fileType.toUpperCase()} failed.`);
+      console.error('\x1B[31m%s\x1B[0m', `Launch ${fileType.toUpperCase()} failed.`);
       return false;
     }
     const cmdLaunch = getCmdLaunch(toolObj, device, options);
@@ -278,12 +278,12 @@ function launch(fileType, device, options) {
       console.log(`${fileTypeDict[fileType]} launched.`);
       return true;
     } catch (error) {
-      console.log(`${fileTypeDict[fileType]} launched failed.`);
+      console.error('\x1B[31m%s\x1B[0m', `${fileTypeDict[fileType]} launched failed.`);
       console.log('you need to install the app first');
       return false;
     }
   } else {
-    console.log(`${fileTypeDict[fileType]} launched failed.`);
+    console.error('\x1B[31m%s\x1B[0m', `${fileTypeDict[fileType]} launched failed.`);
     return false;
   }
 }
@@ -308,7 +308,7 @@ function getCmdLaunch(toolObj, device, options) {
     }
     cmdLaunch =
       `${cmdPath} ${deviceOption} shell am start -n "${bundleName}/${packageName}${className}" ${cmdOption} ${testOption}`;
-  } else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
+  } else if ('xcrun devicectl' in toolObj && getIosMajorVersion(device) >= 17) {
     const cmdPath = `${toolObj['xcrun devicectl']} device process launch`;
     const deviceOption = device ? `-d ${device}` : '';
     let testOption = '';
@@ -320,7 +320,7 @@ function getCmdLaunch(toolObj, device, options) {
     } else {
       cmdLaunch = `${cmdPath} ${deviceOption} ${getIosSignName(process.cwd())} --terminate-existing ${testOption}`;
     }
-  } else if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
+  } else if ('ios-deploy' in toolObj && getIosMajorVersion(device) < 17) {
     const cmdPath = `${toolObj['ios-deploy']}`;
     const deviceOption = device ? `--id ${device}` : '';
     let testOption = '';

@@ -19,7 +19,7 @@ const exec = require('child_process').execSync;
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getModulePathList,
   getHspModuleList, validInputModule, getEntryModule } = require('../util');
-const { isSimulator, getIosVersion } = require('../ace-devices/index');
+const { isSimulator, getIosMajorVersion } = require('../ace-devices/index');
 const installHapPackage = [];
 let packageType = '';
 const ohFileType = [];
@@ -245,13 +245,13 @@ function installCmdConstruct(fileType, toolObj, device) {
         deviceOption = 'booted';
       }
     } else {
-      if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
+      if ('ios-deploy' in toolObj && getIosMajorVersion(device) < 17) {
         cmdPath = toolObj['ios-deploy'];
         cmdInstallOption = '--no-wifi --bundle';
         if (device) {
           deviceOption = `--id ${device}`;
         }
-      } else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
+      } else if ('xcrun devicectl' in toolObj && getIosMajorVersion(device) >= 17) {
         cmdPath = toolObj['xcrun devicectl'] + ' device install app';
         if (device) {
           deviceOption = `--device ${device}`;

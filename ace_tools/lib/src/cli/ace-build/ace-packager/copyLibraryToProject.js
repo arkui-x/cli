@@ -515,7 +515,7 @@ function updatePodfile(arkuiXSdkPath, projectDir) {
       createFileWithContent(podfilePath, updatedContent);
     }
   } catch (error) {
-    console.error(`Error updating Podfile: ${error.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Error updating Podfile: ${error.message}`);
     throw error;
   }
 }
@@ -534,7 +534,7 @@ function findXCFrameworkRelativePath(frameworkName, searchDir) {
     }
     return null;
   } catch (error) {
-    console.error(`find xcframework error: ${error.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `find xcframework error: ${error.message}`);
     return null;
   }
 }
@@ -550,7 +550,7 @@ function processDirectory(currentDir, targetName, baseDir, queue) {
     }
     return null;
   } catch (err) {
-    console.error(`Skipping ${currentDir}: ${err.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Skipping ${currentDir}: ${err.message}`);
     return null;
   }
 }
@@ -565,7 +565,7 @@ function checkAndQueue(fileName, filePath, targetName, baseDir, queue) {
     }
     return null;
   } catch (err) {
-    console.error(`Skipping ${filePath}: ${err.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Skipping ${filePath}: ${err.message}`);
     return null;
   }
 }
@@ -579,7 +579,7 @@ function createFileWithContent(filePath, content) {
       });
       return true;
   } catch (error) {
-      console.error(`write podspec file fail: ${error.message}`);
+      console.error('\x1B[31m%s\x1B[0m', `write podspec file fail: ${error.message}`);
       return false;
   }
 }

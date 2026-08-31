@@ -137,7 +137,7 @@ function buildPluginHAR(cmd) {
         frameworks: [],
       };
     }
-    console.log(`crossplatform-config.json5 not found, auto-generated for '${moduleName}'`);
+    console.error('\x1B[31m%s\x1B[0m', `crossplatform-config.json5 not found, auto-generated for '${moduleName}'`);
   }
 
   if (config.type && config.type !== type) {
@@ -314,7 +314,7 @@ function buildAndroidAAR(moduleName, stagingDir, config, projectDir) {
       stdio: 'inherit',
     });
   } catch (e) {
-    console.error(`Android AAR build failed for ${moduleName}`);
+    console.error('\x1B[31m%s\x1B[0m', `Android AAR build failed for ${moduleName}`);
     return false;
   }
 
@@ -450,7 +450,7 @@ function buildIOSXcFramework(moduleName, stagingDir, config, projectDir) {
         console.log(`Fixed framework case: ${frameworkName}.framework -> ${fwNameLower}.framework`);
       }
     } catch (e) {
-      console.error('iOS xcodebuild failed');
+      console.error('\x1B[31m%s\x1B[0m', 'iOS xcodebuild failed');
       return false;
     }
   } else if (fs.existsSync(buildScript)) {
@@ -462,7 +462,7 @@ function buildIOSXcFramework(moduleName, stagingDir, config, projectDir) {
         stdio: 'inherit',
       });
     } catch (e) {
-      console.error('iOS build script failed');
+      console.error('\x1B[31m%s\x1B[0m', 'iOS build script failed');
       return false;
     }
   } else {

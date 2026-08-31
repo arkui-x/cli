@@ -96,7 +96,7 @@ function showDeviceInfo(device, icon) {
   }
   console.log('\x1B[32m%s\x1B[0m', `${icon}`, `${title} (${id}) [${type}]`);
   if (title === undefined) {
-    console.log('\x1B[31m%s\x1B[0m', `The current ios device ${id} is not trusted, please re-plug and trust it.`);
+    console.error('\x1B[31m%s\x1B[0m', `The current ios device ${id} is not trusted, please re-plug and trust it.`);
   }
 }
 
@@ -246,6 +246,15 @@ function getIosVersion(device) {
   return undefined;
 }
 
+function getIosMajorVersion(device) {
+  const version = getIosVersion(device);
+  if (!version) {
+    console.error('\x1B[31m%s\x1B[0m', '无法获取IOS版本');
+    return NaN;
+  }
+  return Number(version.split('.')[0]);
+}
+
 module.exports = {
   devices,
   getDeviceID,
@@ -253,5 +262,5 @@ module.exports = {
   getDeviceType,
   devicesList,
   isSimulator,
-  getIosVersion,
+  getIosMajorVersion,
 };

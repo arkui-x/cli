@@ -15,10 +15,10 @@
 
 const fs = require('fs');
 const JSON5 = require('json5');
-const { replaceInfo } = require('../util/index');
+const { replaceInfoByLine } = require('../util/index');
 
 function logError(message) {
-  console.log('\x1B[31m%s\x1B[0m', message);
+  console.error('\x1B[31m%s\x1B[0m', message);
 }
 
 function logWarn(message) {
@@ -85,7 +85,7 @@ function executeReplaceTasks(tasks) {
     replacements.push(task.replacement);
   }
   if (files.length > 0) {
-    replaceInfo(files, searches, replacements);
+    replaceInfoByLine(files, searches, replacements);
   }
 }
 

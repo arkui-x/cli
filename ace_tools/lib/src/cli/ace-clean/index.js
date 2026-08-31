@@ -18,7 +18,7 @@ const { Platform, platform } = require('../ace-check/platform');
 const { devEcoStudioDir } = require('../ace-check/configs');
 const exec = require('child_process').execSync;
 const { getConfig } = require('../ace-config');
-const { getOhpmTools, getIntergrateHvigorw } = require('../ace-check/getTool');
+const { getOhpmTools, getIntegrateHvigorw } = require('../ace-check/getTool');
 const { changeVersion, getDevEcoNodePath } = require('../util');
 const config = getConfig();
 const fs = require('fs');
@@ -64,7 +64,7 @@ function clean() {
   if (successFlag) {
     console.log('Project cleaned up.');
   } else {
-    console.log('Clean project failed');
+    console.error('\x1B[31m%s\x1B[0m', 'Clean project failed');
     console.log(failedMsg);
   }
 }
@@ -133,7 +133,7 @@ function cleanOHOS() {
   let cmds = [`cd ${ohosDir}`];
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
-    console.log('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
+    console.error('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
     return false;
   }
   cmds.push(`"${ohpmPath}" install`);
@@ -145,8 +145,8 @@ function cleanOHOS() {
   let buildCmd = `./hvigorw`;
   setDevEcoSdkInEnv(devEcoStudioDir);
   if (sdkVersionResult >= 12) {
-    if (`"${getIntergrateHvigorw()}"`) {
-      buildCmd = `"${getIntergrateHvigorw()}"`;
+    if (`"${getIntegrateHvigorw()}"`) {
+      buildCmd = `"${getIntegrateHvigorw()}"`;
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
       'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');

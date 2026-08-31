@@ -56,11 +56,11 @@ function run(fileType, device, cmd) {
         log(fileType, device, cmd.test);
       }
     } else {
-      console.error('Run failed.');
+      console.error('\x1B[31m%s\x1B[0m', 'Run failed.');
     }
     return;
   }
-  console.error('Run failed.');
+  console.error('\x1B[31m%s\x1B[0m', 'Run failed.');
 }
 
 module.exports = run;
