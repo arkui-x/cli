@@ -312,9 +312,9 @@ function parseCreate() {
               }
               sdkChooseStr = sdkChooseStr + key + ': ' + value;
             });
-            let messageStr = 'Please select the Complie SDk (' + sdkChooseStr + '):';
+            let messageStr = 'Please select the Compile SDK (' + sdkChooseStr + '):';
             inquirer.prompt([{
-              name: 'Complie SDk',
+              name: 'Compile SDK',
               type: 'input',
               message: messageStr,
               validate(val) {
@@ -325,7 +325,7 @@ function parseCreate() {
                 }
               },
             }]).then(answers => {
-              initInfo.sdkVersion = sdkVersionShowMap.get(answers['Complie SDk']);
+              initInfo.sdkVersion = sdkVersionShowMap.get(answers['Compile SDK']);
 
               promptTargetPlatforms().then(targetPlatforms => {
                 initInfo.platform = targetPlatforms;
@@ -741,7 +741,7 @@ Available subcommands:
 function parseModify() {
   const ModifyCmd = program.command('modify', { hidden: true })
     .usage('[arguments]')
-    .description(`Modify HarmonyOS project to ArkUI-X project structre.`)
+    .description(`Modify HarmonyOS project to ArkUI-X project structure.`)
     .option('--project', 'modify current project all modules.')
     .option('--modules', 'modify specified modules')
     .action((modifyType) => {
