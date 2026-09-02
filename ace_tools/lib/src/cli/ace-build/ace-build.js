@@ -32,7 +32,7 @@ function createLocalProperties(filePath, content) {
   try {
     fs.writeFileSync(filePath, content, 'utf8');
   } catch (err) {
-    console.error('Write local.properties failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'Write local.properties failed.');
     return false;
   }
   return true;

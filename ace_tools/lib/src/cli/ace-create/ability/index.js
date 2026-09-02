@@ -25,13 +25,13 @@ let currentDir;
 
 function checkAbilityName(abilityName, abilityList, moduleName) {
   if (!abilityName) {
-    console.error('\n abilityName is required!');
+    console.error('\x1B[31m%s\x1B[0m', '\n abilityName is required!');
     return false;
   }
 
   for (let index = 0; index < abilityList.length; index++) {
     if (abilityList[index].toLowerCase() === (moduleName + '_' + abilityName + 'Ability').toLowerCase()) {
-      console.error('\n The ability name already exists.');
+      console.error('\x1B[31m%s\x1B[0m', '\n The ability name already exists.');
       return false;
     }
   }

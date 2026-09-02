@@ -17,7 +17,7 @@ const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
 const { commandLineToolsDir, devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
-const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfo, getIsArkuixProject } = require('../util/index');
+const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfoByLine, getIsArkuixProject } = require('../util/index');
 const { Platform, platform } = require('../ace-check/platform');
 const inquirer = require('inquirer');
 const fs = require('fs');
@@ -50,7 +50,7 @@ function checkVersion(target, cmd) {
     return true;
   }
   if (apiVersion > devVersion) {
-    console.log(`error: current devEco is not support apiVersion:${apiVersion},please upgrade devEco`);
+    console.error('\x1B[31m%s\x1B[0m', `error: current devEco is not support apiVersion:${apiVersion},please upgrade devEco`);
     return false;
   } else if (apiVersion < devVersion) {
     inquirer.prompt([{
@@ -78,7 +78,7 @@ function checkVersion(target, cmd) {
 
 function checkDevEcoVersion() {
   let nowDevEcoVersion = devEcoStudioVersion;
-  if (nowDevEcoVersion === 'unknown' && nowDevEcoVersion === '') {
+  if (nowDevEcoVersion === 'unknown' || nowDevEcoVersion === '') {
     return false;
   }
   let versionArray = nowDevEcoVersion.split('.');
@@ -116,7 +116,7 @@ function upgradProjectConfig(apiVersion, devVersion) {
     }
   }
 
-  replaceInfo(files, replaceInfos, strs);
+  replaceInfoByLine(files, replaceInfos, strs);
 }
 
 function getRuntimeOS() {

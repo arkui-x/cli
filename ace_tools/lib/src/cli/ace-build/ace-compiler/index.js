@@ -29,7 +29,7 @@ const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, isAppProject, getCrossPlatformModules,
   modifyAndroidAbi, getModulePathList, getHspModuleList, validInputModule, getSdkVersion, setDevEcoSdkInEnv } = require('../../util');
-const { getOhpmTools, getOhpmToolsVersion, getIntergrateHvigorw } = require('../../ace-check/getTool');
+const { getOhpmTools, getOhpmToolsVersion, getIntegrateHvigorw } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco,
   devEcoStudioDir } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
@@ -93,7 +93,7 @@ function resolveArkuiXSdk() {
     let arkuiXMessagePath = path.join(arkuiXSdkPath, 'arkui-x.json');
     if (!fs.existsSync(arkuiXSdkPath) || !fs.existsSync(arkuiXMessagePath)) {
       if (!version) {
-        console.log('\x1B[31m%s\x1B[0m',
+        console.error('\x1B[31m%s\x1B[0m',
           `Error: Failed to resolve the ArkUI-X SDK API version from the project configuration.\n` +
           `\x1B[0m\x1B[33m` +
           `  Cause: The installed ace tools version does not support the API version declared in the project configuration.\n` +
@@ -102,7 +102,7 @@ function resolveArkuiXSdk() {
           `    2. Update the PATH environment variable for ace tools to point to the ace tools directory included in the latest ArkUI-X SDK (e.g., .../Sdk/<version>/arkui-x/toolchains/bin).\n` +
           `    3. Reopen the DevEco Studio / terminal and verify with: where ace (Windows) / which ace (Linux/macOS).`);
       } else {
-        console.log('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
+        console.error('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
       }
       return false;
     }
@@ -424,8 +424,8 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let projectSdkVersion = getSdkVersion(projectDir);
   let sdkVersionResult = changeVersion(projectSdkVersion);
   if (sdkVersionResult >= 12) {
-    if (getIntergrateHvigorw()) {
-      buildCmd = `"${getIntergrateHvigorw()}"`;
+    if (getIntegrateHvigorw()) {
+      buildCmd = `"${getIntegrateHvigorw()}"`;
     } else {
       console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
         'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
@@ -434,7 +434,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   }
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
-    console.log('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
+    console.error('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
     return false;
   }
   const ohpmVersion = getOhpmToolsVersion();
@@ -659,7 +659,7 @@ function syncHvigor(projectDir) {
       return true;
     }
   }
-  console.error('Error: Template is not exist!');
+  console.error('\x1B[31m%s\x1B[0m', 'Error: Template is not exist!');
   return false;
 }
 
@@ -728,7 +728,7 @@ function compiler(fileType, cmd) {
     }
     if (!fs.existsSync(path.join(projectDir, '.hvigor/cache/meta.json'))) {
       let cmds = [`cd ${projectDir}`];
-      cmds.push(`"${getIntergrateHvigorw()}" --sync`);
+      cmds.push(`"${getIntegrateHvigorw()}" --sync`);
       cmds = cmds.join(' && ');
       if (platform === Platform.Windows) {
         cmds = cmds.replace(/\//g, '\\');

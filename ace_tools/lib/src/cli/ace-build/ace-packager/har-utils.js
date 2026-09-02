@@ -29,7 +29,7 @@ function readCrossPlatformConfig(configPath) {
     const content = fs.readFileSync(configPath, 'utf-8');
     return JSON5.parse(content);
   } catch (e) {
-    console.error(`Failed to parse crossplatform-config.json5: ${e.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Failed to parse crossplatform-config.json5: ${e.message}`);
     return null;
   }
 }
@@ -50,7 +50,7 @@ function writeCrossPlatformConfig(configPath, config) {
  */
 function extractHAR(harPath, destDir) {
   if (!fs.existsSync(harPath)) {
-    console.error(`HAR file not found: ${harPath}`);
+    console.error('\x1B[31m%s\x1B[0m', `HAR file not found: ${harPath}`);
     return false;
   }
   try {
@@ -74,7 +74,7 @@ function extractHAR(harPath, destDir) {
     }
     return true;
   } catch (e) {
-    console.error(`Failed to extract HAR: ${e.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Failed to extract HAR: ${e.message}`);
     return false;
   }
 }
@@ -86,13 +86,13 @@ function createHAR(sourceDir, outputPath) {
   try {
     const entries = fs.readdirSync(sourceDir);
     if (entries.length === 0) {
-      console.error(`No entries found in ${sourceDir} to archive`);
+      console.error('\x1B[31m%s\x1B[0m', `No entries found in ${sourceDir} to archive`);
       return false;
     }
     tar.c({ file: outputPath, cwd: sourceDir, gzip: true, sync: true }, entries);
     return true;
   } catch (e) {
-    console.error(`Failed to create HAR: ${e.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Failed to create HAR: ${e.message}`);
     return false;
   }
 }
