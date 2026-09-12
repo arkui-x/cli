@@ -29,6 +29,7 @@ const {
   LOG_MARKER_NOT_SUPPORT,
   LOG_MARKER_ETS_ERROR,
   LOG_MARKER_ETS_WARN,
+  LOG_MARKER_ETS_NOT_SUPPORT,
   LOG_MARKER_SDK_NOT_FOUND,
   LOG_MARKER_UPGRADE_PROMPT,
   SEARCH_RESULT_NOT_FOUND,
@@ -174,7 +175,9 @@ function analysisBuildLog(sdkPath, buildLogPath, shouldDeleteLog) {
     const lines = readFileLines(buildLogPath);
     for (let i = 0; i < lines.length; i++) {
       const nextIndex = i + 1;
-      if (lines[i].includes(LOG_MARKER_ETS_ERROR) || lines[i].includes(LOG_MARKER_ETS_WARN)) {
+      if (lines[i].includes(LOG_MARKER_ETS_ERROR) || 
+          lines[i].includes(LOG_MARKER_ETS_WARN) || 
+          lines[i].includes(LOG_MARKER_ETS_NOT_SUPPORT)) {
         analysisBuildLogLine(lines[i], lines[nextIndex], allDtsList, moduleApiList, sdkPath);
       }
     }
