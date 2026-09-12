@@ -30,6 +30,7 @@ const FROM_SUFFIX_LENGTH = 2;
 
 const LOG_MARKER_ETS_ERROR = 'ArkTS:ERROR File';
 const LOG_MARKER_ETS_WARN = 'ArkTS:WARN File';
+const LOG_MARKER_ETS_NOT_SUPPORT = "can't support crossplatform application. At File";
 const LOG_MARKER_BUILD_SUCCESS = 'BUILD SUCCESSFUL';
 const LOG_MARKER_APK_BUILT = 'APK file built successfully';
 const LOG_MARKER_NOT_SUPPORT = "can't support crossplatform application.";
@@ -105,6 +106,7 @@ module.exports = {
   FROM_SUFFIX_LENGTH,
   LOG_MARKER_ETS_ERROR,
   LOG_MARKER_ETS_WARN,
+  LOG_MARKER_ETS_NOT_SUPPORT,
   LOG_MARKER_BUILD_SUCCESS,
   LOG_MARKER_APK_BUILT,
   LOG_MARKER_NOT_SUPPORT,
