@@ -105,7 +105,9 @@ function analysisBuildLog(buildLogPath, isDelLogFile) {
         const lines = data.split('\n');
         for (let i = 0; i < lines.length; i++) {
             const lineNextIndex = i + 1;
-            if ((lines[i].includes('ArkTS:ERROR File')) || (lines[i].includes('ArkTS:WARN File'))) {
+            if ((lines[i].includes('ArkTS:ERROR File')) || 
+                (lines[i].includes('ArkTS:WARN File')) ||
+                (lines[i].includes("can't support crossplatform application. At File"))) {
                 analysisBuildLogLine(lines[i], lines[lineNextIndex], alldtsList, moduleApiList);
             }
         }
@@ -157,8 +159,11 @@ function preAnalysisBuildLog(buildLogPath) {
 }
 
 function analysisBuildLogLine(line, nextLine, alldtsList, moduleApiList) {
-    if (!line || line.length === 0 || !nextLine || nextLine.length === 0) {
+    if (!line || line.length === 0) {
         return;
+    }
+    if (!nextLine || nextLine.length === 0) {
+        nextLine = line;
     }
     const moduleName = getModuleNameFromBuildLog(line);
     const fileData = getFileDataFromBuildLog(line);
@@ -685,8 +690,8 @@ function getNotSupportApi(nextLine) {
         return notSupportApi;
     }
     const index = nextLine.indexOf(notSupportLog);
-    notSupportApi = nextLine.slice(0, index).trim().replace(/'/g, '');
-    return notSupportApi;
+    const getApiDataArray = nextLine.slice(0, index).split(':');
+    return getApiDataArray[getApiDataArray.length - 1].trim().replace(/'/g, '');
 }
 
 function getModuleNameFromBuildLog(line) {
