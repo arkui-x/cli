@@ -391,13 +391,15 @@ function resolveDtsFileName(fileData, notSupportApi, sdkPath) {
 }
 
 function analysisBuildLogLine(line, nextLine, allDtsList, moduleApiList, sdkPath) {
-  if (!line || line.length === 0 || !nextLine || nextLine.length === 0) {
+  if (!line || line.length === 0) {
     return;
   }
   if (!sdkPath) {
     return;
   }
-
+    if (!nextLine || nextLine.length === 0) {
+    nextLine = line;
+  }
   const moduleName = getModuleNameFromBuildLog(line);
   const fileData = getFileDataFromBuildLog(line);
   const notSupportApi = getNotSupportApi(nextLine);

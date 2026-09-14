@@ -72,7 +72,8 @@ function getNotSupportApi(nextLine) {
     return '';
   }
   const index = nextLine.indexOf(LOG_MARKER_NOT_SUPPORT);
-  return nextLine.slice(0, index).trim().replace(/'/g, '');
+  const getApiDataArray = nextLine.slice(0, index).split(':');
+  return getApiDataArray[getApiDataArray.length - 1].trim().replace(/'/g, '');
 }
 
 module.exports = {
