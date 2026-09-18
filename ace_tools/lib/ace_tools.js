@@ -508,6 +508,7 @@ function parseConfig() {
 }
 
 function parseBuild() {
+  const PLUGIN_BUILD_DESC = 'Build a cross-platform plugin/package/ffi HAR.';
   const buildCmd = program.command('build', { hidden: true })
     .addHelpCommand(false)
     .usage('<subCommand> [arguments]')
@@ -525,20 +526,20 @@ Available subcommands:
   ios                    Build an iOS APP file from your app.
   ios-framework          Build an iOS framework.
   ios-xcframework        Build an iOS XCFramework.
-  plugin                  Build a cross-platform plugin/package/ffi HAR.`);
+  plugin                 ${PLUGIN_BUILD_DESC}`);
       }
     });
   const buildArgs = ['aab', 'aar', 'apk', 'bundle', 'hap', 'hsp', 'ios', 'ios-framework', 'ios-xcframework',
     'plugin'];
   buildArgs.forEach(subcommand => {
     const buildSubcommand = buildCmd.command(subcommand, { hidden: true }).usage('[arguments]');
-    if (subcommand !== 'hsp') {
+    if (subcommand === 'hsp') {
+      buildSubcommand.option('--target [moduleName]', 'name of module to be built');
+    } else if (subcommand !== 'plugin') {
       buildSubcommand
         .option('-r, --release', 'Build a release version of your app.')
         .option('--debug', 'Build a debug version of your app.')
         .option('--profile', 'Build a version of your app specialized for performance profiling.');
-    } else {
-      buildSubcommand.option('--target [moduleName]', 'name of module to be built');
     }
     if (subcommand === 'ios') {
       buildSubcommand
@@ -568,6 +569,11 @@ Available subcommands:
       buildSubcommand
         .option('--analyze', 'analyze/diff package size')
         .option('--target [moduleName]', 'name of module to be built');
+    }
+    if (subcommand === 'plugin') {
+      buildSubcommand
+        .description(PLUGIN_BUILD_DESC + ' Run in a project created by ' +
+          'ace create -t ffi|plugin|package. The module name is auto-discovered; --target is not supported.');
     }
     if (process.argv[2] === 'help' && process.argv[3] === 'build') {
       subcommandHelp(buildCmd, buildArgs, subcommand, buildSubcommand);

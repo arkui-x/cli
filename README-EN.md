@@ -209,8 +209,28 @@ When creating a project, you need to specify the project name and package name i
 Syntax:
 
 ```shell
-ace create project
+ace create project [options]
 ```
+
+- options
+
+| Option               | Description                                      |
+| --------------------- | ------------------------------------------ |
+| -t  --template \<type\>  | Specifies the template type of the project to create.                  |
+| -h --help             | Displays the help information.                            |
+
+- type
+
+| type        | Description                      |
+| ----------- | ------------------------- |
+| app         | Creates a standard ArkUI-X application project. |
+| library     | Creates an aar/framework project.   |
+| plugin_napi | Creates a native project.          |
+| ffi         | Creates a cross-platform plugin project (FFI form, precompiled C++, suitable for C libraries such as encryption and image processing). |
+| plugin      | Creates a cross-platform plugin project (Plugin form, precompiled C++ + Java/Kotlin, suitable for platform APIs such as Bluetooth, camera, and sensors). |
+| package     | Creates a cross-platform plugin project (Package form, pure ArkTS, no native code, suitable for UI component libraries and utility libraries). |
+
+> The `ffi`, `plugin`, and `package` forms correspond to cross-platform plugin development projects. After creation, you can use `ace build plugin` to build them into a cross-platform HAR package and distribute it via `ohpm publish`. For details, see [ace build plugin](#ace-build-plugin-cross-platform-plugin-build) and [ace install \<name\>.har](#ace-install-har-plugin-installation).
 
 Prompt asking whether to delete the existing project:
 
@@ -297,6 +317,7 @@ You can build HAP and APK packages on Windows and Linux, and build HAP, APK, and
 | hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
 | apk  | APK package of the Android application.                                 |
 | app  | App package of the iOS application.                                  |
+| plugin | Cross-platform plugin HAR package (unified output of the FFI/Plugin/Package forms). |
 
 Reference command output:
 
@@ -304,6 +325,36 @@ Reference command output:
 HAP file built successfully..
 File path: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
 ```
+
+#### ace build plugin Cross-Platform Plugin Build
+
+`ace build plugin` builds a cross-platform plugin project created via `ace create -t <ffi|plugin|package>` and produces a unified HAR package containing HarmonyOS, Android (AAR), and iOS (xcframework) artifacts.
+
+Syntax:
+
+```shell
+ace build plugin
+```
+
+> This command must be run in the root directory of the cross-platform plugin project (the project that contains `.arkui-x/crossplatform-config.json5`). The `--target` parameter is not supported. The module name is auto-discovered by `discoverHarModule()` (which reads the `name` field of `crossplatform-config.json5`, then the `file:` dependency name in the root `oh-package.json5`, and finally the non-entry module in `build-profile.json5`).
+
+Build pipeline:
+
+| Phase | Platform | Artifact | Description |
+| ---- | ---- | ---- | ---- |
+| Phase 1 | HarmonyOS | `<module>.har` | Hvigor assembleHar produces the standard HAR. |
+| Phase 2 | Android (FFI/Plugin) | `<module>-release.aar` | Reuses the `ace build aar` capability; Gradle assembleRelease compiles the AAR and strips the engine library `libarkui_android.so`. |
+| Phase 3 | iOS (FFI/Plugin, macOS only) | `<Module>.xcframework` | Skipped automatically on non-macOS with a warning; the `ios/` directory is not embedded into the HAR. |
+| Phase 4 | Package | Final `<module>.har` | Packs `package/`, `crossplatform-config.json5`, `android/`, and `ios/` into a HAR (gzip tar) with a peer-level directory structure. |
+
+After the build is complete, the final cross-platform HAR artifact is generated at `build/outputs/<moduleName>.har` in the project root directory:
+
+```shell
+Cross-platform plugin HAR built: /Users/ohos/WorkSpace/my-plugin/build/outputs/avsession.har
+  Type: plugin  Module: avsession
+```
+
+> A single platform failure still generates the HAR (the corresponding platform field in the config is left empty). The HAR generation is aborted only when both Android and iOS fail.
 
 ### ace install
 
@@ -332,6 +383,7 @@ You can install HAP and APK packages on Windows and Linux, and install HAP, APK,
 | hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
 | apk  | APK package of the Android application.                                 |
 | app  | App package of the iOS application.                                  |
+| \<name\>.har | Installs a cross-platform plugin HAR package into the current project (must be run in the ArkUI-X project root directory). Optional. |
 
 Command output:
 
@@ -339,6 +391,53 @@ Command output:
 ohos@user % ace install app
 Install APP successfully.
 ```
+
+#### ace install HAR Plugin Installation
+
+When the argument (or the path specified by `--path`) of `ace install` ends with `.har`, the command enters the cross-platform plugin installation flow, which installs the HAR package into the current ArkUI-X project instead of installing it onto a device.
+
+Syntax:
+
+```shell
+ace install <name>.har
+# Equivalent form
+ace install --path <name>.har
+```
+
+**HAR Package Path Format**:
+
+- The argument `<name>.har` is the file path of the HAR package. **Using an absolute path is recommended** to avoid file-not-found errors caused by a different working directory. The tool resolves the path internally via `path.resolve()`. A relative path is resolved against the current working directory, while an absolute path is independent of the working directory and therefore the most reliable.
+- If the path contains spaces, enclose it in double quotation marks, for example: `ace install "/Users/ohos/Downloads/my plugin.har"`.
+- On Windows, both backslash (`\`) and forward slash (`/`) are accepted as path separators; the tool normalizes them. The `file:` dependency path written into `oh-package.json5` is automatically converted to forward slashes for cross-platform consistency.
+- This command must be run in the **root directory of the target ArkUI-X application project** (the project must contain a `.arkui-x/` directory); otherwise, the message `Not an ArkUI-X project. .arkui-x/ not found.` is displayed.
+
+macOS absolute path example:
+
+```shell
+ohos@user ~/my-app % ace install /Users/ohos/WorkSpace/my-plugin/build/outputs/avsession.har
+Extracting HAR: avsession.har
+  Flattened package/ to root level
+Installing: avsession@1.0.0 (type: plugin)
+Android integration: copied avsession-release.aar to .arkui-x/android/app/libs/
+iOS integration: copied AVSession.xcframework to .arkui-x/ios/frameworks/
+ohpm install completed.
+Plugin installed. Remember to register the plugin class in your entry code.
+```
+
+Windows absolute path example:
+
+```shell
+C:\Users\ohos\my-app> ace install "D:\WorkSpace\my-plugin\build\outputs\avsession.har"
+Extracting HAR: avsession.har
+  Flattened package/ to root level
+Installing: avsession@1.0.0 (type: plugin)
+Android integration: copied avsession-release.aar to .arkui-x/android/app/libs/
+iOS integration skipped (requires macOS)
+ohpm install completed.
+Plugin installed. Remember to register the plugin class in your entry code.
+```
+
+> Note: This coexists with device installation — `ace install hap`/`apk`/`app` still install application packages onto a device. The plugin installation flow is triggered only when the argument ends with `.har`. The installation is idempotent: reinstalling a HAR with the same name updates rather than duplicates the registration. The Package form (pure ArkTS) only registers the ohpm dependency without Android/iOS platform integration. iOS integration is performed on macOS only and is skipped automatically on other platforms.
 
 ### ace uninstall
 
@@ -495,9 +594,9 @@ ace help <subcommand>
 | devices   | Lists all connected devices.                                        |
 | check     | Checks the ArkUI-X application development environment.                                    |
 | config    | Adds ACE Tools-specific configuration, including the OpenHarmony SDK directory, Android SDK directory, Node.js directory, and build output directory.|
-| create    | Creates an ArkUI-X application or module.                    |
-| build     | Builds an ArkUI-X application installation package.                                      |
-| install   | Installs an ArkUI-X application on a connected device.                            |
+| create    | Creates an ArkUI-X application, module, or cross-platform plugin project (`-t ffi\|plugin\|package`).                    |
+| build     | Builds an ArkUI-X application installation package; supports `ace build plugin` to build a cross-platform plugin HAR.                                      |
+| install   | Installs an ArkUI-X application on a connected device, or installs a cross-platform plugin via `ace install <name>.har`.                            |
 | uninstall | Uninstalls an ArkUI-X application on a connected device.                                  |
 | modify    | Modify HarmonyOS project to ArkUI-X project structure.                                 |
 | analysis  | Analyze the interface that does not support cross-platform in the ArkUI-X project and output statistics                                 |
@@ -544,6 +643,81 @@ Commands:
         --unittest            [TestRunner]
         --timeout             [Test timeout]
   help [command]                  display help for command
+```
+
+View the detailed help for the cross-platform plugin related commands:
+
+```shell
+ohos@user % ace help create
+Usage: ace create [options] <output directory>
+
+Create a new ArkUI cross-platform project.
+
+Options:
+  -t, --template [type]  [app (default), library, plugin_napi, ffi, plugin, package]
+  -h, --help             display help for command
+
+Run "ace help" to see global options.
+```
+
+```shell
+ohos@user % ace help build
+Usage: ace build <subCommand> [arguments]
+
+Build an executable app or install a bundle.
+
+Available subcommands:
+  aab                    Build an Android App Bundle file from your app.
+  aar                    Build a repository containing an AAR and a POM file.
+  apk                    Build an Android APK file from your app.
+  bundle                 Build an ArkUI cross-platform assets directory from your app.
+  hap                    Build a HarmonyOS/Openharmony HAP file from your app.
+  hsp                    Build a HarmonyOS/Openharmony HSP file from your app.
+  ios                    Build an iOS APP file from your app.
+  ios-framework          Build an iOS framework.
+  ios-xcframework        Build an iOS XCFramework.
+  plugin                 Build a cross-platform plugin/package/ffi HAR.
+
+Run "ace help" to see global options.
+```
+
+View the detailed help for the `plugin` subcommand (auto-discovered module name, --target not supported):
+
+```shell
+ohos@user % ace help build plugin
+Usage: ace build plugin [arguments]
+
+Build a cross-platform plugin/package/ffi HAR. Run in a project created by
+ace create -t ffi|plugin|package. The module name is auto-discovered; --target is not supported.
+
+Options:
+  -h, --help             display help for command
+
+Run "ace help" to see global options.
+```
+
+```shell
+ohos@user % ace help install
+Usage: ace install [arguments]
+
+Install an ArkUI cross-platform app on an attached device.
+
+Options:
+  --target [moduleName]  Specifies the name of the module to install.
+  --path <path>          Specifies the path of the package to install.
+  -d, --device <device>  Input device id to specify the device to do something.
+  -h, --help             display help for command
+
+Available subcommands:
+  apk                    Install an Android APK on an attached device.
+  hap                    Install a HarmonyOS/OpenHarmony HAP on an attached device.
+  hsp                    Install a HarmonyOS/OpenHarmony HSP on an attached device.
+  ios                    Install an iOS APP on an attached device.
+
+Install cross-platform plugin:
+  ace install <name>.har    Install a cross-platform plugin HAR into the current project.
+
+Run "ace help" to see global options.
 ```
 
 ### ace modify<a id="sectionModify"></a>

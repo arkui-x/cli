@@ -17,15 +17,43 @@ const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
 const { commandLineToolsDir, devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
-const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfoByLine, getIsArkuixProject } = require('../util/index');
+const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfoByLine, getIsArkuixProject, checkProjectType } = require('../util/index');
 const { Platform, platform } = require('../ace-check/platform');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const JSON5 = require('json5');
 
+function checkIsPluginProject() {
+  const projectDir = process.cwd();
+  let projectType = false;
+  try {
+    projectType = checkProjectType(projectDir);
+  } catch (e) {
+    console.error('\x1B[31m%s\x1B[0m',
+      'Failed to read project type: ' + e.message);
+  }
+  const pluginProjectTypes = ['ffi', 'plugin', 'package'];
+  if (pluginProjectTypes.includes(projectType)) {
+    return true;
+  }
+  const crossConfigPath = path.join(projectDir, '.arkui-x', 'crossplatform-config.json5');
+  if (fs.existsSync(crossConfigPath)) {
+    return true;
+  }
+  console.error('\x1B[31m%s\x1B[0m',
+    'ace build plugin can only be used in a cross-platform plugin project created with ' +
+    'ace create -t plugin, ace create -t ffi, or ace create -t package. ' +
+    'The current project is not a cross-platform plugin project. ' +
+    'Please navigate to the plugin project directory and try again.');
+  return false;
+}
+
 function build(target, cmd) {
   if (target === 'plugin') {
+    if (!checkIsPluginProject()) {
+      return;
+    }
     if (checkVersion(target, cmd) && compiler(target, cmd)) {
       packager(target, cmd);
     }
