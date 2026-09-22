@@ -296,7 +296,7 @@ You can build HAP and APK packages on Windows and Linux, and build HAP, APK, and
 | ---- | ------------------------------------------------------ |
 | hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
 | apk  | APK package of the Android application.                                 |
-| app  | App package of the iOS application.                                  |
+| ios  | App package of the iOS application.                                  |
 
 Reference command output:
 
@@ -331,13 +331,13 @@ You can install HAP and APK packages on Windows and Linux, and install HAP, APK,
 | ---- | ------------------------------------------------------ |
 | hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
 | apk  | APK package of the Android application.                                 |
-| app  | App package of the iOS application.                                  |
+| ios  | App package of the iOS application.                                  |
 
 Command output:
 
 ```shell
-ohos@user % ace install app
-Install APP successfully.
+ohos@user % ace install ios
+Install iOS successfully.
 ```
 
 ### ace uninstall
@@ -364,13 +364,13 @@ ace uninstall [options] [fileType]
 | ---- | ------------------------------------------------------ |
 | hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
 | apk  | APK package of the Android application.                                 |
-| app  | App package of the iOS application.                                  |
+| ios  | App package of the iOS application.                                  |
 
 Command output:
 
 ```shell
-ohos@user % ace uninstall --bundle com.example.${projectName} app
-Uninstall APP successfully.
+ohos@user % ace uninstall --bundle com.example.${projectName} ios
+Uninstall iOS successfully.
 ```
 
 ### ace log
@@ -398,7 +398,7 @@ ace log [options] [fileType]
 | ---- | --------------------------------------------------- |
 | hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
 | apk  | APK package of the Android application.                                 |
-| app  | App package of the iOS application.                                  |
+| ios  | App package of the iOS application.                                  |
 
 ### ace run
 
@@ -427,7 +427,7 @@ ace run [options] [fileType]
 | ---- | ------------------------------------------------------------ |
 | hap  | HAP package of the OpenHarmony application. If **fileType** is not specified, the value is defaulted to **hap**.|
 | apk  | APK package of the Android application.                                 |
-| app  | App package of the iOS application.                                  |
+| ios  | App package of the iOS application.                                  |
 
 
 ### ace test
@@ -462,7 +462,7 @@ ace run [options] [fileType]
 | Parameter| Description                                                        |
 | ---- | ------------------------------------------------------------ |
 | apk  | APK package of the Android application.                                 |
-| app  | App package of the iOS application.    
+| ios  | App package of the iOS application.    
 
 ### ace clean
 
@@ -530,15 +530,15 @@ Commands:
           --build-dir     [Build Dir]
           --nodejs-dir    [Nodejs Dir]
           --java-sdk      [Java SDK]
-  build [options] [fileType]      build hap/apk/app of moduleName
-  install [options] [fileType]    install hap/apk/app on device
-  uninstall [options] [fileType]  uninstall hap/apk/app on device
+  build [options] [fileType]      build hap/apk/ios of moduleName
+  install [options] [fileType]    install hap/apk/ios on device
+  uninstall [options] [fileType]  uninstall hap/apk/ios on device
   modify [options]  		          modify HarmonyOS project to ArkUI-X project structure
   run [options] [fileType]        run hap/apk on device
   launch [options] [fileType]     launch hap/apk on device
   log [fileType]                  show debug log
   clean                           clean project
-    test [options] [fileType]       test apk/app on device
+    test [options] [fileType]       test apk/ios on device
         --b                   [Test BundleName]
         --m                   [Test ModuleName]
         --unittest            [TestRunner]
