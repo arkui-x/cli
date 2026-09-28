@@ -19,7 +19,7 @@ const inquirer = require('inquirer');
 const JSON5 = require('json5');
 const { getIsArkuixProject } = require('../../util/index');
 const { copy, modifyHarmonyOSConfig, addCrossPlatform, modifyOpenHarmonyOSConfig, modifyNativeCppConfig } = require('../util');
-const { getSdkVersion } = require('../../util');
+const { getSdkVersion, printRuntimeOSError, printError } = require('../../util');
 const { createStageAbilityInAndroid, createStageAbilityInIOS } = require('../ability');
 const { getModuleList, getCurrentProjectSystem, getModuleType, addFileToPbxproj,
   isAppProject, getIosProjectName, getCreatedPlatforms } = require('../../util');
@@ -281,7 +281,7 @@ function replaceStageProjectInfo(moduleName, moduleType) {
         fs.readFileSync(filePath).toString().replace(new RegExp(replaceInfos[index], 'g'), strs[index]));
     });
     if (!modifyStageProfile(moduleName, moduleName, moduleType)) {
-      console.error('\x1B[31m%s\x1B[0m', 'Please check stage project.');
+      printError('Please check stage project.', 'The project is not a valid stage project.', ["Ensure the project was created with 'ace create' (stage model)"]);
       return false;
     }
     const sdkVersion = getSdkVersion(projectDir);
@@ -647,7 +647,7 @@ function createModule() {
 
   currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
-    console.error('\x1B[31m%s\x1B[0m', 'current system is unknown.');
+    printRuntimeOSError();
     return false;
   }
   const moduleList = getModuleList(projectDir);

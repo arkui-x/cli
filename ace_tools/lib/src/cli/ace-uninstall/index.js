@@ -16,7 +16,7 @@
 const exec = require('child_process').execSync;
 
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice } = require('../util');
+const { validInputDevice, printToolCheckError, printError } = require('../util');
 const { openHarmonySdkDir, harmonyOsSdkDir } = require('../ace-check/configs');
 const { isSimulator, getIosVersion } = require('../ace-devices/index');
 function uninstall(fileType, device, bundle) {
@@ -75,7 +75,7 @@ function uninstallApp(toolObj, device, bundle) {
     cmdUninstallOption = '--uninstall_only --bundle_id';
     deviceOption = device ? `--id ${device}` : '';
   } else {
-    console.error('\x1B[31m%s\x1B[0m', `ios-deploy is not installed or Xcode's version is below 15.0`);
+    printError("ios-deploy is not installed or Xcode's version is below 15.0.", 'ios-deploy missing OR Xcode < 15.0.', ['Verify Xcode version: xcodebuild -version', 'Install ios-deploy: npm install -g ios-deploy', "Run 'ace check -v' to verify"]);
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
@@ -99,7 +99,7 @@ function uninstallApk(toolObj, device, bundle) {
     cmdUninstallOption = 'uninstall';
     deviceOption = device ? `-s ${device}` : '';
   } else {
-    console.error('\x1B[31m%s\x1B[0m', 'Internal error with adb checking');
+    printToolCheckError('adb');
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;
@@ -125,7 +125,7 @@ function uninstallHap(toolObj, device, bundle) {
     cmdUninstallOption = 'app uninstall';
     deviceOption = device ? `-t ${device}` : '';
   } else {
-    console.error('\x1B[31m%s\x1B[0m', 'Internal error with hdc checking');
+    printToolCheckError('hdc');
     return false;
   }
   const cmdUninstall = `${cmdPath} ${deviceOption} ${cmdUninstallOption} ${bundle}`;

@@ -18,7 +18,7 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 const JSON5 = require('json5');
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice, isProjectRootDir, getCurrentProjectSystem, getIosProjectName } = require('../util');
+const { validInputDevice, isProjectRootDir, getCurrentProjectSystem, getIosProjectName, printRuntimeOSError, printError } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 const { exit } = require('process');
 
@@ -36,7 +36,7 @@ function log(fileType, device, cmdTest, installFilePath) {
   }
   const currentSystem = installFilePath ? ' ' : getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
-    console.error('current system is unknown.');
+    printRuntimeOSError();
     return false;
   }
   toolObj = getToolByType(fileType, currentSystem, true);
@@ -126,10 +126,12 @@ function handleHilog(hilog) {
     }
   });
   hilog.stderr.on('error', error => {
-    console.error(error);
+    printError('Log operation failed.', null, [], error);
   });
-  hilog.on('exit code', code => {
-    console.log('exit code: ', code.toString());
+  hilog.on('exit', code => {
+    if (code !== null) {
+      console.log('exit code: ', code.toString());
+    }
   });
 }
 
@@ -170,7 +172,7 @@ function testReport(data) {
 
 function validTool(toolObj) {
   if (!toolObj) {
-    console.error('No such debug tools (hdc/adb/ios-deploy/idevicesyslog).');
+    printError('No such debug tools (hdc/adb/ios-deploy/idevicesyslog).', 'No debug tool matched for the file type and system (getToolByType returned empty).', ['Check ace config SDK paths (--harmonyos-sdk/--openharmony-sdk/--android-sdk)', "Run 'ace check -v' to verify"]);
     return false;
   }
   return true;
@@ -178,7 +180,7 @@ function validTool(toolObj) {
 
 function validManifestPath() {
   if (!fs.existsSync(path.join(projectDir, 'AppScope/app.json5'))) {
-    console.error(`Error: run 'ace log' in the project root directory.`);
+    console.error('\x1B[31m%s\x1B[0m', `Error: run 'ace log' in the project root directory.`);
     return false;
   }
   return true;
@@ -186,7 +188,7 @@ function validManifestPath() {
 
 function validPid(pid) {
   if (!pid) {
-    console.error(`Error: no such application bundle (${getBundleName()}) in the device.`);
+    console.error('\x1B[31m%s\x1B[0m', `Error: no such application bundle (${getBundleName()}) in the device.`);
     return false;
   }
   return true;
@@ -243,7 +245,7 @@ function getBundleName() {
   try {
     return JSON5.parse(fs.readFileSync(path.join(projectDir, 'AppScope/app.json5'))).app.bundleName;
   } catch (err) {
-    console.log('Get bundle name failed');
+    console.error('\x1B[31m%s\x1B[0m', 'Get bundle name failed');
   }
 }
 

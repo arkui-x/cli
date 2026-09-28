@@ -18,8 +18,8 @@ const path = require('path');
 const exec = require('child_process').execSync;
 const { getToolByType } = require('../ace-check/getTool');
 const { isProjectRootDir, validInputDevice, getCurrentProjectSystem, getModulePathList,
-  getHspModuleList, validInputModule, getEntryModule } = require('../util');
-const { isSimulator, getIosVersion } = require('../ace-devices/index');
+  getHspModuleList, validInputModule, getEntryModule, printRuntimeOSError, printToolCheckError, printError } = require('../util');
+const { isSimulator, getIosMajorVersion } = require('../ace-devices/index');
 const installHapPackage = [];
 let packageType = '';
 const ohFileType = [];
@@ -144,7 +144,7 @@ function checkInstallFile(projectDir, fileType, moduleList, installFilePath, cmd
     }
     return filePathList;
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', `Please check install file, path: ${buildDir}`);
+    printError(`Please check install file, path: ${buildDir}.`, 'Install file not found at the specified path.', ['Ensure the build output exists', "Run 'ace build' first", 'Check the --path option']);
     return [];
   }
 }
@@ -180,7 +180,7 @@ function install(fileType, device, cmd, installFilePath) {
     if (fileType === 'hsp') {
       const hspModuleList = getHspModuleList(projectDir);
       if (hspModuleList.length === 0) {
-        console.error('\x1B[31m%s\x1B[0m', `Install falied, no hsp module.`);
+        console.error('\x1B[31m%s\x1B[0m', `Install failed, no hsp module.`);
         return false;
       }
       moduleListInput = hspModuleList;
@@ -201,7 +201,7 @@ function install(fileType, device, cmd, installFilePath) {
   }
   const currentSystem = installFilePath ? ' ' : getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
-    console.error('\x1B[31m%s\x1B[0m', 'current system is unknown.');
+    printRuntimeOSError();
     return false;
   }
   const toolObj = getToolByType(fileType, currentSystem);
@@ -218,7 +218,7 @@ function installCmdConstruct(fileType, toolObj, device) {
   let deviceOption = '';
   if (fileType === 'hap' || fileType === 'hsp' || fileType === 'haphsp') {
     if (!('hdc' in toolObj)) {
-      console.error('\x1B[31m%s\x1B[0m', 'Internal error with hdc checking');
+      printToolCheckError('hdc');
       return undefined;
     }
     cmdPath = toolObj['hdc'];
@@ -228,7 +228,7 @@ function installCmdConstruct(fileType, toolObj, device) {
     }
   } else if (fileType === 'apk') {
     if (!('adb' in toolObj)) {
-      console.error('\x1B[31m%s\x1B[0m', 'Internal error with adb checking');
+      printToolCheckError('adb');
       return undefined;
     }
     cmdPath = toolObj['adb'];
@@ -245,19 +245,19 @@ function installCmdConstruct(fileType, toolObj, device) {
         deviceOption = 'booted';
       }
     } else {
-      if ('ios-deploy' in toolObj && Number(getIosVersion(device).split('.')[0]) < 17) {
+      if ('ios-deploy' in toolObj && getIosMajorVersion(device) < 17) {
         cmdPath = toolObj['ios-deploy'];
         cmdInstallOption = '--no-wifi --bundle';
         if (device) {
           deviceOption = `--id ${device}`;
         }
-      } else if ('xcrun devicectl' in toolObj && Number(getIosVersion(device).split('.')[0]) >= 17) {
+      } else if ('xcrun devicectl' in toolObj && getIosMajorVersion(device) >= 17) {
         cmdPath = toolObj['xcrun devicectl'] + ' device install app';
         if (device) {
           deviceOption = `--device ${device}`;
         }
       } else {
-        console.error('\x1B[31m%s\x1B[0m', `ios-deploy is not installed or Xcode's version is below 15.0`);
+        printError("ios-deploy is not installed or Xcode's version is below 15.0.", 'ios-deploy missing OR Xcode < 15.0.', ['Verify Xcode version: xcodebuild -version', 'Install ios-deploy: npm install -g ios-deploy', "Run 'ace check -v' to verify"]);
       }
     }
   }
@@ -277,7 +277,7 @@ function isInstallFileExist(fileType, installFilePath) {
     }
     return true;
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', `Please check install file.\n`, error);
+    printError('Please check install file.', 'Install file error (see details below).', ['Ensure the install file is valid', "Run 'ace build' first", 'Check the --path option'], error);
     return false;
   }
 }
@@ -353,7 +353,7 @@ function execInstallCmd(fileType, toolObj, device, filePathList) {
         }
       }
     } catch (error) {
-      console.error('\x1B[31m%s\x1B[0m', `Internal error with installing ${fileType}`);
+      printError(`Internal error with installing ${fileType}`, 'Internal error during install (see details).', ['Check device connection', "Run 'ace check -v' to verify environment (includes device info)"]);
       isInstalled = false;
     }
   } else {
