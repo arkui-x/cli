@@ -18,7 +18,7 @@ const path = require('path');
 const { spawn, execSync } = require('child_process');
 const JSON5 = require('json5');
 const { getToolByType } = require('../ace-check/getTool');
-const { validInputDevice, isProjectRootDir, getCurrentProjectSystem, getIosProjectName } = require('../util');
+const { validInputDevice, isProjectRootDir, getCurrentProjectSystem, getIosProjectName, printRuntimeOSError, printError } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 const { exit } = require('process');
 
@@ -36,7 +36,7 @@ function log(fileType, device, cmdTest, installFilePath) {
   }
   const currentSystem = installFilePath ? ' ' : getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
-    console.error('\x1B[31m%s\x1B[0m', 'current system is unknown.');
+    printRuntimeOSError();
     return false;
   }
   toolObj = getToolByType(fileType, currentSystem, true);
@@ -126,7 +126,7 @@ function handleHilog(hilog) {
     }
   });
   hilog.stderr.on('error', error => {
-    console.error(error);
+    printError('Log operation failed.', null, [], error);
   });
   hilog.on('exit', code => {
     if (code !== null) {
@@ -172,7 +172,7 @@ function testReport(data) {
 
 function validTool(toolObj) {
   if (!toolObj) {
-    console.error('\x1B[31m%s\x1B[0m', 'No such debug tools (hdc/adb/ios-deploy/idevicesyslog).');
+    printError('No such debug tools (hdc/adb/ios-deploy/idevicesyslog).', 'No debug tool matched for the file type and system (getToolByType returned empty).', ['Check ace config SDK paths (--harmonyos-sdk/--openharmony-sdk/--android-sdk)', "Run 'ace check -v' to verify"]);
     return false;
   }
   return true;

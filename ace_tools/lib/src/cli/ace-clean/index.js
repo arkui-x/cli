@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-const { isProjectRootDir, getAarName, getSdkVersion, setDevEcoSdkInEnv, getCreatedPlatforms } = require('../util');
+const { isProjectRootDir, getAarName, getSdkVersion, setDevEcoSdkInEnv, getCreatedPlatforms, printError } = require('../util');
 const { Platform, platform } = require('../ace-check/platform');
 const { devEcoStudioDir } = require('../ace-check/configs');
 const exec = require('child_process').execSync;
@@ -64,8 +64,7 @@ function clean() {
   if (successFlag) {
     console.log('Project cleaned up.');
   } else {
-    console.error('\x1B[31m%s\x1B[0m', 'Clean project failed');
-    console.log(failedMsg);
+    printError('Clean project failed', `The following steps failed:${failedMsg}`, ['Check the listed steps', 'Rerun \'ace clean\'']);
   }
 }
 
@@ -94,7 +93,7 @@ function cleanAndroid() {
       stdio: 'inherit',
     });
   } catch (error) {
-    console.error(error);
+    printError('Clean operation failed.', null, [], error);
     message = 'Clean android project failed.';
     isBuildSuccess = false;
   }
@@ -120,7 +119,7 @@ function cleanIOS() {
       stdio: 'inherit',
     });
   } catch (error) {
-    console.error(error);
+    printError('Clean operation failed.', null, [], error);
     message = 'Clean ios project failed.';
     isBuildSuccess = false;
   }
@@ -133,7 +132,7 @@ function cleanOHOS() {
   let cmds = [`cd ${ohosDir}`];
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
-    console.error('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
+    printError('Ohpm tool is not available.', 'ohpm directory is not configured (ohpmDir not set via ace config --ohpm-dir).', ["Run 'ace config --ohpm-dir <path>' to set the ohpm directory", 'The ohpm directory is typically at <DevEcoStudio>/tools/ohpm', "Run 'ace check -v' to verify"]);
     return false;
   }
   cmds.push(`"${ohpmPath}" install`);
@@ -148,8 +147,7 @@ function cleanOHOS() {
     if (`"${getIntegrateHvigorw()}"`) {
       buildCmd = `"${getIntegrateHvigorw()}"`;
     } else {
-      console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
-      'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
+      printError('Run tasks failed', 'DevEco Studio (Integration IDE) is not installed or its path is not configured (devEcoStudioDir not set, or tools/hvigor/bin/hvigorw missing).', ['Install DevEco Studio (Integration IDE)', "Run 'ace config --deveco-studio-path [Integration IDE Path]' to set", "Run 'ace check -v' to verify"]);
       return false;
     }
   }
@@ -188,7 +186,7 @@ function cleanOutputPath() {
     }
     removeDir(path.join(projectDir, '.arkui-x/build'));
   } catch (error) {
-    console.error(error);
+    printError('Clean operation failed.', null, [], error);
     return false;
   }
   return true;
@@ -251,7 +249,7 @@ function cleanAAR() {
       stdio: 'inherit',
     });
   } catch (error) {
-    console.error(error);
+    printError('Clean operation failed.', null, [], error);
     message = 'Clean aar project failed.';
     isBuildSuccess = false;
   }
