@@ -29,7 +29,7 @@ const { copy } = require('../../ace-create/util');
 const { updateCrossPlatformModules } = require('../../ace-create/module');
 const { isProjectRootDir, getModuleList, getCurrentProjectSystem, isAppProject, getCrossPlatformModules,
   modifyAndroidAbi, getModulePathList, getHspModuleList, validInputModule, getSdkVersion, setDevEcoSdkInEnv } = require('../../util');
-const { getOhpmTools, getOhpmToolsVersion, getIntergrateHvigorw } = require('../../ace-check/getTool');
+const { getOhpmTools, getOhpmToolsVersion, getIntegrateHvigorw } = require('../../ace-check/getTool');
 const { openHarmonySdkDir, harmonyOsSdkDir, arkuiXSdkDir, ohpmDir, nodejsDir, javaSdkDirDevEco,
   devEcoStudioDir } = require('../../ace-check/configs');
 const { setJavaSdkDirInEnv } = require('../../ace-check/checkJavaSdk');
@@ -38,7 +38,7 @@ const { loadCollectionJson } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
-const { getCreatedPlatforms, changeVersion, getDevEcoNodePath } = require('../../util');
+const { getCreatedPlatforms, changeVersion, getDevEcoNodePath, printRuntimeOSError, printError, printTemplateNotExistError } = require('../../util');
 const { runFontSubsetForTarget } = require('../ace-packager/pkgHwSymbol');
 const VALIDATION_MODULES = new Set(['TimePickerDialog', 'DatePickerDialog', 'UIPickerComponent', 'TextPickerDialog', 'DatePicker', 'TextPicker', 'TimePicker']);
 
@@ -93,7 +93,7 @@ function resolveArkuiXSdk() {
     let arkuiXMessagePath = path.join(arkuiXSdkPath, 'arkui-x.json');
     if (!fs.existsSync(arkuiXSdkPath) || !fs.existsSync(arkuiXMessagePath)) {
       if (!version) {
-        console.log('\x1B[31m%s\x1B[0m',
+        console.error('\x1B[31m%s\x1B[0m',
           `Error: Failed to resolve the ArkUI-X SDK API version from the project configuration.\n` +
           `\x1B[0m\x1B[33m` +
           `  Cause: The installed ace tools version does not support the API version declared in the project configuration.\n` +
@@ -102,7 +102,7 @@ function resolveArkuiXSdk() {
           `    2. Update the PATH environment variable for ace tools to point to the ace tools directory included in the latest ArkUI-X SDK (e.g., .../Sdk/<version>/arkui-x/toolchains/bin).\n` +
           `    3. Reopen the DevEco Studio / terminal and verify with: where ace (Windows) / which ace (Linux/macOS).`);
       } else {
-        console.log('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
+        printError(`The arkui-x sdk version "${version}" used by the current project does not exist.`, 'The SDK for this version may not be downloaded, or ace tools is pointing to an outdated SDK directory.', [`Verify the SDK directory: check if "${path.join(arkuiXSdkDir, version, 'arkui-x')}" exists.`, 'If missing, download via DevEco Studio -> Settings -> ArkUI-X', "If ace tools version is old, update PATH to the latest SDK's toolchains/bin", "Run 'ace check -v' to verify"]);
       }
       return false;
     }
@@ -147,6 +147,51 @@ function copyStageBundleToAndroidAndIOS(moduleList) {
     deleteOldFile(path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x`));
   }
   isContinue = copyStageBundleToAndroidAndIOSByTarget(moduleList, 'default', '', createdPlatforms);
+  // Copy installed plugin modules' module.json to assets for NAPI module discovery
+  const pluginDir = path.join(projectDir, '.arkui-x', 'plugins');
+  if (fs.existsSync(pluginDir)) {
+    fs.readdirSync(pluginDir).forEach(function(pluginName) {
+      const pluginPath = path.join(pluginDir, pluginName);
+      if (!fs.statSync(pluginPath).isDirectory()) return;
+      const pluginModuleJson = path.join(pluginPath, 'module.json');
+      if (!fs.existsSync(pluginModuleJson)) return;
+      if (createdPlatforms.includes('android')) {
+        const androidDest = path.join(projectDir, `.arkui-x/android/${androidDir}/src/main/assets/arkui-x/`, pluginName);
+        fs.mkdirSync(androidDest, { recursive: true });
+        fs.writeFileSync(path.join(androidDest, 'module.json'), fs.readFileSync(pluginModuleJson));
+        // Copy ets and resources if available
+        const etsSrc = path.join(pluginPath, 'ets');
+        if (fs.existsSync(etsSrc)) {
+          copy(etsSrc, path.join(androidDest, 'ets'));
+        }
+        const resSrc = path.join(pluginPath, 'resources');
+        if (fs.existsSync(resSrc)) {
+          copy(resSrc, path.join(androidDest, 'resources'));
+        }
+        const resIndexSrc = path.join(pluginPath, 'resources.index');
+        if (fs.existsSync(resIndexSrc)) {
+          fs.copyFileSync(resIndexSrc, path.join(androidDest, 'resources.index'));
+        }
+      }
+      if (createdPlatforms.includes('ios')) {
+        const iosDest = path.join(projectDir, '.arkui-x/ios/arkui-x/', pluginName);
+        fs.mkdirSync(iosDest, { recursive: true });
+        fs.writeFileSync(path.join(iosDest, 'module.json'), fs.readFileSync(pluginModuleJson));
+        const etsSrc = path.join(pluginPath, 'ets');
+        if (fs.existsSync(etsSrc)) {
+          copy(etsSrc, path.join(iosDest, 'ets'));
+        }
+        const resSrc = path.join(pluginPath, 'resources');
+        if (fs.existsSync(resSrc)) {
+          copy(resSrc, path.join(iosDest, 'resources'));
+        }
+        const resIndexSrc = path.join(pluginPath, 'resources.index');
+        if (fs.existsSync(resIndexSrc)) {
+          fs.copyFileSync(resIndexSrc, path.join(iosDest, 'resources.index'));
+        }
+      }
+    });
+  }
   const systemResPath = path.join(arkuiXSdkPath, 'engine/systemres');
   if (createdPlatforms.includes('ios')) {
     const iosSystemResPath = path.join(projectDir, '.arkui-x/ios/arkui-x/systemres');
@@ -218,13 +263,19 @@ function copyStageBundleToAndroidAndIOSByTarget(moduleList, fileName, moduleOpti
     const moduleJsonPathIOS = path.join(projectDir, '.arkui-x/ios/arkui-x/', destClassName + '/module.json');
     if (createdPlatforms && createdPlatforms.includes('android')) {
       fs.mkdirSync(distAndroid, { recursive: true });
-      isContinue = isContinue && copy(src, distAndroid) && copy(resPath, resPathAndroid);
+      isContinue = isContinue && copy(src, distAndroid);
+      if (fs.existsSync(resPath)) {
+        isContinue = isContinue && copy(resPath, resPathAndroid);
+      }
       fs.writeFileSync(resindexAndroid, fs.readFileSync(resindex));
       fs.writeFileSync(moduleJsonPathAndroid, fs.readFileSync(moduleJsonPath));
     }
     if (createdPlatforms && createdPlatforms.includes('ios')) {
       fs.mkdirSync(distIOS, { recursive: true });
-      isContinue = isContinue && copy(src, distIOS) && copy(resPath, resPathIOS);
+      isContinue = isContinue && copy(src, distIOS);
+      if (fs.existsSync(resPath)) {
+        isContinue = isContinue && copy(resPath, resPathIOS);
+      }
       fs.writeFileSync(resindexIOS, fs.readFileSync(resindex));
       fs.writeFileSync(moduleJsonPathIOS, fs.readFileSync(moduleJsonPath));
     }
@@ -373,17 +424,16 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
   let projectSdkVersion = getSdkVersion(projectDir);
   let sdkVersionResult = changeVersion(projectSdkVersion);
   if (sdkVersionResult >= 12) {
-    if (getIntergrateHvigorw()) {
-      buildCmd = `"${getIntergrateHvigorw()}"`;
+    if (getIntegrateHvigorw()) {
+      buildCmd = `"${getIntegrateHvigorw()}"`;
     } else {
-      console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
-        'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
+      printError('Run tasks failed', 'DevEco Studio (Integration IDE) is not installed or its path is not configured (devEcoStudioDir not set, or tools/hvigor/bin/hvigorw missing).', ['Install DevEco Studio (Integration IDE)', "Run 'ace config --deveco-studio-path [Integration IDE Path]' to set", "Run 'ace check -v' to verify"]);
       return false;
     }
   }
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
-    console.log('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
+    printError('Ohpm tool is not available.', 'ohpm directory is not configured (ohpmDir not set via ace config --ohpm-dir).', ["Run 'ace config --ohpm-dir <path>' to set the ohpm directory", 'The ohpm directory is typically at <DevEcoStudio>/tools/ohpm', "Run 'ace check -v' to verify"]);
     return false;
   }
   const ohpmVersion = getOhpmToolsVersion();
@@ -391,6 +441,30 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     console.log('\x1b[33m%s\x1b[0m', 'WARN: The ohpm version is too low, which may cause the download failure of the ohos third-party library. Please set the ohpm version to a value greater than or equal to 6.0.1');
   } 
   cmds.push(`"${ohpmPath}" install`);
+  const fixSymlinksScript = path.join(projectDir, 'build', '_fix_symlinks.js');
+  const scriptDir = path.dirname(fixSymlinksScript);
+  if (!fs.existsSync(scriptDir)) {
+    fs.mkdirSync(scriptDir, { recursive: true });
+  }
+  fs.writeFileSync(fixSymlinksScript, [
+    'const fs = require("fs"), path = require("path");',
+    'const d = path.join("' + projectDir.replace(/\\/g, '\\\\') + '", "entry", "oh_modules");',
+    'if (!fs.existsSync(d)) process.exit(0);',
+    'fs.readdirSync(d).forEach(function(e) {',
+    '  const m = path.join(d, e);',
+    '  try { if (!fs.lstatSync(m).isSymbolicLink()) return; } catch(ex) { return; }',
+    '  const t = fs.readlinkSync(m);',
+    '  const s = t.startsWith(".") ? path.resolve(path.dirname(m), t) : t;',
+    '  fs.rmSync(m, { recursive: true, force: true });',
+    '  fs.mkdirSync(m, { recursive: true });',
+    '  fs.readdirSync(s).forEach(function(f) {',
+    '    if (f === "crossplatform") return;',
+    '    const sp = path.join(s, f), dp = path.join(m, f);',
+    '    fs.statSync(sp).isDirectory() ? fs.cpSync(sp, dp, { recursive: true }) : fs.copyFileSync(sp, dp);',
+    '  });',
+    '});',
+  ].join('\n'));
+  cmds.push(`node "${fixSymlinksScript}"`);
   if (platform !== Platform.Windows && sdkVersionResult < 12) {
     cmds.push(`chmod 755 hvigorw`);
   }
@@ -433,6 +507,13 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     }
     cmds.push(`${buildCmd} -p product=default --mode module ${moduleStr} assembleHsp --no-daemon --no-parallel`);
     gradleMessage = 'Building a HSP file...';
+  } else if (fileType === 'plugin') {
+    let moduleStr = '';
+    if (commonModule) {
+      moduleStr = '-p module=' + commonModule.join(',');
+    }
+    cmds.push(`${buildCmd} --mode module ${moduleStr} -p product=default assembleHar --no-daemon --no-parallel`);
+    gradleMessage = 'Building a HAR file...';
   } else if (fileType === 'apk' || fileType === 'ios' || fileType === 'aar' || fileType === 'ios-framework' ||
     fileType === 'ios-xcframework' || fileType === 'bundle' || fileType === 'aab') {
     let moduleStr = '';
@@ -473,12 +554,51 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     });
     return true;
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed.\n', error);
+    printError('Run tasks failed.', 'hvigorw task execution failed (see details below).', ['Check the build output for the failing task', 'Run \'ace check -v\' to verify SDK/ohpm/hvigor environment'], error);
     return false;
   }
 }
 
+function fixPluginSymlinks() {
+  const ohModulesDir = path.join(projectDir, 'entry', 'oh_modules');
+  if (!fs.existsSync(ohModulesDir)) {
+    return;
+  }
+  fs.readdirSync(ohModulesDir).forEach(function(entry) {
+    const modulePath = path.join(ohModulesDir, entry);
+    if (!fs.lstatSync(modulePath).isSymbolicLink()) {
+      return;
+    }
+    const linkTarget = fs.readlinkSync(modulePath);
+    const resolvedTarget = linkTarget.startsWith('.')
+      ? path.resolve(path.dirname(modulePath), linkTarget)
+      : linkTarget;
+    fs.rmSync(modulePath, { recursive: true, force: true });
+    fs.mkdirSync(modulePath, { recursive: true });
+    fs.readdirSync(resolvedTarget).forEach(function(file) {
+      if (file === 'crossplatform') {
+        return;
+      }
+      const srcPath = path.join(resolvedTarget, file);
+      const dstPath = path.join(modulePath, file);
+      if (fs.statSync(srcPath).isDirectory()) {
+        fs.cpSync(srcPath, dstPath, { recursive: true });
+      } else {
+        fs.copyFileSync(srcPath, dstPath);
+      }
+    });
+  });
+}
+
 function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testModule) {
+  if (fileType === 'plugin') {
+    if (readConfig() && writeLocalProperties() && runGradle(fileType, cmd, moduleListSpecified, commonModule, testModule)) {
+      console.log('HAR file built successfully.');
+      return true;
+    }
+    printError('Compile failed.', 'Build/compilation failed. See the output for details.', ["Run 'ace check -v' to verify environment", 'Check the build output for details']);
+    return false;
+  }
   if (readConfig() &&
     writeLocalProperties() &&
     runGradle(fileType, cmd, moduleListSpecified, commonModule, testModule) &&
@@ -503,11 +623,11 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
       const createdPlatforms = getCreatedPlatforms(projectDir);
       createAndroidAndIosBuildArkTSShell(projectDir, getOhpmTools(), arkuiXSdkPath, createdPlatforms);
       return true;
-    } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aar') {
+    } else if (fileType === 'ios-framework' || fileType === 'ios-xcframework' || fileType === 'aar' || fileType === 'plugin') {
       return true;
     }
   }
-  console.error('\x1B[31m%s\x1B[0m', `Compile failed.`);
+  printError('Compile failed.', 'Build/compilation failed. See the output for details.', ["Run 'ace check -v' to verify environment", 'Check the build output for details']);
   return false;
 }
 
@@ -538,7 +658,7 @@ function syncHvigor(projectDir) {
       return true;
     }
   }
-  console.error('Error: Template is not exist!');
+  printTemplateNotExistError(pathTemplate);
   return false;
 }
 
@@ -580,6 +700,7 @@ function compiler(fileType, cmd) {
     'apk': 'Android APK file',
     'bundle': 'bundle file',
     'ios': 'iOS APP file',
+    'plugin': 'HAR file',
   };
   if (isAppProject(projectDir)) {
     if (fileType === 'aar' || fileType === 'ios-framework' || fileType === 'ios-xcframework') {
@@ -595,7 +716,7 @@ function compiler(fileType, cmd) {
   }
   const hspModuleList = getHspModuleList(projectDir);
   if (fileType === 'hsp' && hspModuleList.length === 0) {
-    console.error('\x1B[31m%s\x1B[0m', `Build falied, no hsp module.`);
+    console.error('\x1B[31m%s\x1B[0m', `Build failed, no hsp module.`);
     return false;
   }
   const hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
@@ -606,7 +727,7 @@ function compiler(fileType, cmd) {
     }
     if (!fs.existsSync(path.join(projectDir, '.hvigor/cache/meta.json'))) {
       let cmds = [`cd ${projectDir}`];
-      cmds.push(`"${getIntergrateHvigorw()}" --sync`);
+      cmds.push(`"${getIntegrateHvigorw()}" --sync`);
       cmds = cmds.join(' && ');
       if (platform === Platform.Windows) {
         cmds = cmds.replace(/\//g, '\\');
@@ -622,7 +743,7 @@ function compiler(fileType, cmd) {
           }
         });
       } catch (error) {
-        console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);
+        printError('hvigorw sync failed.', 'hvigor project sync failed (see details below).', ['Common causes: hvigor version mismatch, network/proxy issues', 'Check oh-package.json5/hvigor-config.json5', 'Run \'ace check -v\''], error);
       }
     }
   } else {
@@ -632,7 +753,7 @@ function compiler(fileType, cmd) {
   }
   currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
-    console.error('\x1B[31m%s\x1B[0m', 'current system is unknown.');
+    printRuntimeOSError();
     return false;
   }
   updateCrossPlatformModules(currentSystem);
@@ -659,6 +780,8 @@ function compiler(fileType, cmd) {
       moduleListSpecified = moduleListAll;
     } else if (fileType === 'hsp') {
       moduleListSpecified = hspModuleList;
+    } else if (fileType === 'plugin') {
+      moduleListSpecified = moduleListAll.filter(element => element !== 'entry');
     } else {
       moduleListSpecified = crossPlatformModules;
     }
@@ -668,7 +791,9 @@ function compiler(fileType, cmd) {
     return false;
   }
 
-  const commonModule = moduleListSpecified.filter(element => crossPlatformModules.includes(element));
+  const commonModule = fileType === 'plugin'
+    ? moduleListSpecified
+    : moduleListSpecified.filter(element => crossPlatformModules.includes(element));
   const testModule = commonModule.filter(element => !hspModuleList.includes(element));
   return compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testModule);
 }

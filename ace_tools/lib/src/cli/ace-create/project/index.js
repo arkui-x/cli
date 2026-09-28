@@ -17,16 +17,22 @@ const fs = require('fs');
 const path = require('path');
 const createAar = require('../aar');
 const createFramework = require('../framework');
-const { getSdkVersion } = require('../../util/index');
+const { getSdkVersion, getCompileSdkVersionWithSdkVersion, printTemplateNotExistError } = require('../../util/index');
 const { getConfig } = require('../../ace-config');
 const { copy, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
   modifyOpenHarmonyOSConfig, modifyNativeCppConfig, signIOS, copyTemp,
   getFileList, getTempPath, createAndroidAndIosBuildArkTSShell,
   createAndroidTaskInBuildGradle, createIosScriptInPbxproj,
   updateCrossPlatformConfig } = require('../util');
+const { addFileToPbxproj, getUUID } = require('../../util');
+const JSON5 = require('json5');
 const aceHarmonyOS = '2';
 const acePluginNapiProType = 'plugin_napi';
 const aceLibraryProType = 'library';
+const aceFfiProType = 'ffi';
+const acePluginProType = 'plugin';
+const acePackageProType = 'package';
+const crossplatformTypes = [aceFfiProType, acePluginProType, acePackageProType];
 const exec = require('child_process').execSync;
 let useCocoapods = false;
 
@@ -38,13 +44,13 @@ function create(args) {
   const projectTempPath = getTempPath(outputDir);
   if (useCocoapods && (platforms === 'ios' || platforms === 'both')) {
     if (!checkCocoaPodsInstalled()) {
-      console.info('\x1B[31m%s\x1B[0m', 'Project created failed!');
+      console.error('\x1B[31m%s\x1B[0m', 'Project created failed!');
       console.info('\x1B[33m%s\x1B[0m', 'CocoaPods is not installed. Please install CocoaPods(brew install cocoapods) and try again.');
       return;
     }
     createProject(projectAbsolutePath, projectTempPath, bundleName, project, runtimeOS, template, currentProjectPath, sdkVersion, platforms);
     if (!createPodfile(projectTempPath)) {
-      console.info('\x1B[31m%s\x1B[0m', 'create Podfile failed.');
+      console.error('\x1B[31m%s\x1B[0m', 'create Podfile failed.');
       return;
     }
   } else {
@@ -178,7 +184,7 @@ function findStageTemplate(projectTempPath, bundleName, project, runtimeOS, temp
       copyStageTemplate(pathTemplate, projectTempPath, template, sdkVersion, targetPlatforms);
       replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms);
     } else {
-      console.error('\x1B[31m%s\x1B[0m', 'Template is not exist!');
+      printTemplateNotExistError(pathTemplate);
     }
   }
 }
@@ -257,6 +263,17 @@ function replaceiOSProjectInfo(projectTempPath, bundleName) {
   signIOS(configFile);
 }
 
+ function findTemplatePath() {
+  const localPath = path.join(__dirname, 'template');
+  if (fs.existsSync(localPath)) {
+    return localPath;
+  }
+  if (globalThis.templatePath && fs.existsSync(globalThis.templatePath)) {
+    return globalThis.templatePath;
+  }
+  return null;
+}
+
 function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms) {
   if (!bundleName) {
     bundleName = 'com.example.arkuicross';
@@ -316,6 +333,12 @@ function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS
     }
     if (platforms === 'both' || platforms === 'ios') {
       replaceiOSProjectInfo(projectTempPath, bundleName);
+    }
+  }
+  if (crossplatformTypes.includes(template)) {
+    const templatePath = findTemplatePath();
+    if (templatePath) {
+      setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVersion);
     }
   }
   if (runtimeOS !== aceHarmonyOS && sdkVersion !== '10') {
@@ -381,6 +404,13 @@ function copyStageTemplate(templatePath, projectTempPath, template, sdkVersion, 
     if (!copy(path.join(templatePath, '/cpp/cpp_ohos'), path.join(projectTempPath, 'entry/src/main/cpp'))) {
       return false;
     }
+  } else if (crossplatformTypes.includes(template)) {
+    // FFI/Plugin/Package: copy entry module from ets_stage
+    if (!copy(path.join(templatePath, '/ets_stage/source'), projectTempPath)) {
+      return false;
+    }
+    // The HAR lib module and platform-specific templates will be copied later
+    // in setupCrossplatformModule() called from replaceStageProjectInfo()
   } else {
     if (!copy(path.join(templatePath, '/ets_stage/source'), projectTempPath)) {
       return false;
@@ -394,6 +424,255 @@ function copyStageTemplate(templatePath, projectTempPath, template, sdkVersion, 
     }
   }
   return true;
+}
+
+/**
+ * Replace placeholder tokens in file contents and directory/file names.
+ * Handles three patterns: module_name_lower → lower, module_name → mixed, Module_name → Pascal
+ */
+function replacePlaceholdersInDir(dir, moduleName) {
+  if (!fs.existsSync(dir)) return;
+  const lowerModuleName = moduleName.toLowerCase();
+  const PascalModuleName = moduleName.charAt(0).toUpperCase() + moduleName.slice(1);
+
+  fs.readdirSync(dir).forEach(item => {
+    const fullPath = path.join(dir, item);
+    if (fs.statSync(fullPath).isDirectory()) {
+      replacePlaceholdersInDir(fullPath, moduleName);
+      if (item.includes('module_name_lower') || item.includes('module_name') || item.includes('Module_name')) {
+        const newName = item
+          .replace(/module_name_lower/g, lowerModuleName)
+          .replace(/module_name/g, moduleName)
+          .replace(/Module_name/g, PascalModuleName);
+        fs.renameSync(fullPath, path.join(dir, newName));
+      }
+    } else {
+      let content = fs.readFileSync(fullPath).toString();
+      let modified = false;
+      if (content.includes('module_name_lower')) {
+        content = content.replace(/module_name_lower/g, lowerModuleName);
+        modified = true;
+      }
+      if (content.includes('module_name')) {
+        content = content.replace(/module_name/g, moduleName);
+        modified = true;
+      }
+      if (content.includes('Module_name')) {
+        content = content.replace(/Module_name/g, PascalModuleName);
+        modified = true;
+      }
+      if (item.includes('module_name_lower') || item.includes('module_name') || item.includes('Module_name')) {
+        const newName = item
+          .replace(/module_name_lower/g, lowerModuleName)
+          .replace(/module_name/g, moduleName)
+          .replace(/Module_name/g, PascalModuleName);
+        fs.writeFileSync(path.join(dir, newName), content);
+        fs.unlinkSync(fullPath);
+        modified = false;
+      }
+      if (modified) {
+        fs.writeFileSync(fullPath, content);
+      }
+    }
+  });
+}
+
+/**
+ * Add module entry to build-profile.json5 using regex to preserve comments.
+ */
+function addModuleToBuildProfile(buildProfilePath, moduleName) {
+  if (!fs.existsSync(buildProfilePath)) return;
+  let content = fs.readFileSync(buildProfilePath).toString();
+  const moduleEntry = `{"name": "${moduleName}", "srcPath": "./${moduleName}", "targets": [{"name": "default", "applyToProducts": ["default"]}]}`;
+  content = content.replace(
+    /"modules"\s*:\s*\[/,
+    `"modules": [\n    ${moduleEntry},`
+  );
+  fs.writeFileSync(buildProfilePath, content);
+}
+
+/**
+ * Copy platform templates (android/ios) for FFI/Plugin types.
+ */
+function copyPlatformTemplates(crossplatformTemplateDir, projectTempPath, moduleName) {
+  const platforms = ['android', 'ios'];
+  platforms.forEach(plat => {
+    const platSrc = path.join(crossplatformTemplateDir, plat);
+    if (!fs.existsSync(platSrc)) return;
+    if (plat === 'android') {
+      const librarySrc = path.join(platSrc, 'library');
+      const platDst = path.join(projectTempPath, '.arkui-x', 'android', moduleName);
+      fs.existsSync(librarySrc) ? copy(librarySrc, platDst) : copy(platSrc, platDst);
+    } else if (plat === 'ios') {
+      copy(platSrc, path.join(projectTempPath, '.arkui-x', 'ios'));
+    }
+  });
+}
+
+/**
+ * Register native source files in app.xcodeproj for iOS builds.
+ */
+function registerNativeFilesInPbxproj(projectTempPath, moduleName, template) {
+  const pbxprojPath = path.join(projectTempPath, '.arkui-x', 'ios', 'app.xcodeproj', 'project.pbxproj');
+  if (!fs.existsSync(pbxprojPath)) return;
+
+  const lowerModuleName = moduleName.toLowerCase();
+  const cppDir = path.join(projectTempPath, moduleName, 'src', 'main', 'cpp');
+  if (fs.existsSync(cppDir)) {
+    fs.readdirSync(cppDir).forEach(file => {
+      if (file.endsWith('.cpp')) {
+        addFileToPbxproj(pbxprojPath, file, 'cfile', moduleName);
+      }
+    });
+  }
+
+  if (template === acePluginProType) {
+    const bridgeDir = path.join(projectTempPath, '.arkui-x', 'ios', lowerModuleName);
+    if (fs.existsSync(bridgeDir)) {
+      fs.readdirSync(bridgeDir).filter(f => f.endsWith('.mm') || f.endsWith('.m')).forEach(file => {
+        const ext = path.extname(file);
+        const fileType = ext === '.mm' ? 'sourcecode.cpp.objcpp' : 'sourcecode.c.objc';
+        const buildUUID = getUUID(pbxprojPath);
+        const refUUID = getUUID(pbxprojPath);
+        if (!buildUUID || !refUUID) return;
+        const filePath = lowerModuleName + '/' + file;
+        const pbxprojContent = fs.readFileSync(pbxprojPath).toString();
+        if (pbxprojContent.includes('/* ' + file + ' in Sources */,')) return;
+        const addBuildFile = '\n\t\t' + buildUUID + ' /* ' + file +
+          ' in Sources */ = {isa = PBXBuildFile; fileRef = ' + refUUID + ' /* ' + file + ' */; };';
+        const addFileRef = '\n\t\t' + refUUID + ' /* ' + file +
+          ' */ = {isa = PBXFileReference; lastKnownFileType = ' + fileType +
+          '; name = ' + file + '; path = ' + filePath + '; sourceTree = "<group>"; };';
+        const addGroupChild = '\n\t\t\t\t' + refUUID + ' /* ' + file + ' */,';
+        const addSourceBuild = '\n\t\t\t\t' + buildUUID + ' /* ' + file + ' in Sources */,';
+        const searchBuildFile = '/* arkui-x */; };';
+        const searchFileRef = 'arkui-x; sourceTree = "<group>"; };';
+        const searchGroupChild = '/* arkui-x */,';
+        const searchSourceBuild = 'AppDelegate.m in Sources */,';
+        const idxBuild = pbxprojContent.lastIndexOf(searchBuildFile);
+        const idxFileRef = pbxprojContent.lastIndexOf(searchFileRef);
+        const idxGroupChild = pbxprojContent.lastIndexOf(searchGroupChild);
+        const idxSourceBuild = pbxprojContent.lastIndexOf(searchSourceBuild);
+        let updated = pbxprojContent.slice(0, idxBuild + searchBuildFile.length) +
+          addBuildFile + pbxprojContent.slice(idxBuild + searchBuildFile.length, idxFileRef + searchFileRef.length) +
+          addFileRef + pbxprojContent.slice(idxFileRef + searchFileRef.length, idxGroupChild + searchGroupChild.length) +
+          addGroupChild + pbxprojContent.slice(idxGroupChild + searchGroupChild.length, idxSourceBuild + searchSourceBuild.length) +
+          addSourceBuild + pbxprojContent.slice(idxSourceBuild + searchSourceBuild.length);
+        fs.writeFileSync(pbxprojPath, updated);
+      });
+    }
+  }
+
+  let pbxprojContent = fs.readFileSync(pbxprojPath).toString();
+  if (!pbxprojContent.includes('USER_HEADER_SEARCH_PATHS')) {
+    pbxprojContent = pbxprojContent.replace(
+      /INFOPLIST_FILE = app\/Info\.plist;/g,
+      'USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/frameworks/libarkui_ios.xcframework/ios-arm64/libarkui_ios.framework/Headers/include";\n\t\t\t\tINFOPLIST_FILE = app/Info.plist;'
+    );
+    fs.writeFileSync(pbxprojPath, pbxprojContent);
+  }
+
+  if (template === acePluginProType) {
+    let pbxprojContent2 = fs.readFileSync(pbxprojPath).toString();
+    if (!pbxprojContent2.includes('IOS_PLATFORM')) {
+      pbxprojContent2 = pbxprojContent2.replace(
+        /GCC_PREPROCESSOR_DEFINITIONS = \(/g,
+        'GCC_PREPROCESSOR_DEFINITIONS = (\n\t\t\t\t\tIOS_PLATFORM,'
+      );
+      fs.writeFileSync(pbxprojPath, pbxprojContent2);
+    }
+  }
+}
+
+/**
+ * Set up the cross-platform HAR module for ffi/plugin/package templates.
+ */
+function setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVersion) {
+  const crossplatformTemplateDir = path.join(templatePath, 'crossplatform', template);
+  const moduleName = project + 'lib';
+
+  // 1. Copy HAR lib module template
+  const libSrc = path.join(crossplatformTemplateDir, 'lib');
+  const libDst = path.join(projectTempPath, moduleName);
+  if (fs.existsSync(libSrc)) {
+    copy(libSrc, libDst);
+  }
+
+  // 2. Copy platform-specific templates (android/ios for ffi/plugin)
+  copyPlatformTemplates(crossplatformTemplateDir, projectTempPath, moduleName);
+
+  // 3. Replace entry Index.ets with template verification UI
+  const entryIndexSrc = path.join(crossplatformTemplateDir, 'entry', 'src', 'main', 'ets', 'pages', 'Index.ets');
+  const entryIndexDst = path.join(projectTempPath, 'entry', 'src', 'main', 'ets', 'pages', 'Index.ets');
+  if (fs.existsSync(entryIndexSrc)) {
+    fs.writeFileSync(entryIndexDst, fs.readFileSync(entryIndexSrc));
+  }
+
+  // 4. Add HAR module to build-profile.json5 (regex to preserve comments)
+  addModuleToBuildProfile(path.join(projectTempPath, 'build-profile.json5'), moduleName);
+
+  // 5. Update root oh-package.json5 to add dependency (regex to preserve comments)
+  const ohPackagePath = path.join(projectTempPath, 'oh-package.json5');
+  if (fs.existsSync(ohPackagePath)) {
+    let ohPackage = fs.readFileSync(ohPackagePath).toString();
+    ohPackage = ohPackage.replace(
+      /"dependencies":\s*\{/,
+      `"dependencies": {\n    "${moduleName}": "file:./${moduleName}"`
+    );
+    fs.writeFileSync(ohPackagePath, ohPackage);
+  }
+
+  // 6. Create settings-plugin.gradle for ace build plugin AAR builds
+  const settingsPluginPath = path.join(projectTempPath, '.arkui-x', 'android', 'settings-plugin.gradle');
+  fs.writeFileSync(settingsPluginPath,
+    `include ':app'\nrootProject.name = "${project}"\ninclude ':${moduleName}'\n`);
+
+  // 7. Replace placeholders in lib module, platform dirs, and entry Index.ets
+  replacePlaceholdersInDir(libDst, moduleName);
+
+  if (fs.existsSync(entryIndexDst)) {
+    let content = fs.readFileSync(entryIndexDst).toString();
+    content = content.replace(/module_name/g, moduleName);
+    fs.writeFileSync(entryIndexDst, content);
+  }
+
+  replacePlaceholdersInDir(path.join(projectTempPath, '.arkui-x', 'android', moduleName), moduleName);
+  replacePlaceholdersInDir(path.join(projectTempPath, '.arkui-x', 'ios'), moduleName);
+
+  // 8. Register native source files in app.xcodeproj for iOS
+  if (template === aceFfiProType || template === acePluginProType) {
+    registerNativeFilesInPbxproj(projectTempPath, moduleName, template);
+  }
+
+  // 9. Create crossplatform-config.json5
+  const crossConfigDir = path.join(projectTempPath, '.arkui-x');
+  let crossConfig = {
+    name: moduleName,
+    version: '1.0.0',
+    type: template,
+    platform: ['android', 'iOS'],
+  };
+  const compileSdkVersion = getCompileSdkVersionWithSdkVersion(sdkVersion);
+  if (compileSdkVersion) {
+    crossConfig.compatibleSdkVersion = compileSdkVersion;
+  }
+  if (template !== acePackageProType) {
+    crossConfig.android = {
+      path: 'android',
+      module: moduleName,
+      artifact: `${moduleName}-release.aar`,
+    };
+    crossConfig.ios = {
+      path: 'ios',
+      module: moduleName,
+      frameworks: [],
+    };
+  }
+  fs.writeFileSync(
+    path.join(crossConfigDir, 'crossplatform-config.json5'),
+    JSON5.stringify(crossConfig, null, 2) + '\n',
+    'utf8'
+  );
 }
 
 module.exports = {

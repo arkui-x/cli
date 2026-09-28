@@ -96,7 +96,7 @@ function showDeviceInfo(device, icon) {
   }
   console.log('\x1B[32m%s\x1B[0m', `${icon}`, `${title} (${id}) [${type}]`);
   if (title === undefined) {
-    console.log('\x1B[31m%s\x1B[0m', `The current ios device ${id} is not trusted, please re-plug and trust it.`);
+    console.error('\x1B[31m%s\x1B[0m', `The current ios device ${id} is not trusted, please re-plug and trust it.`);
   }
 }
 
@@ -246,6 +246,16 @@ function getIosVersion(device) {
   return undefined;
 }
 
+function getIosMajorVersion(device) {
+  const version = getIosVersion(device);
+  if (!version) {
+    const { printError } = require('../util'); // Lazy require to avoid circular dependency (util <-> ace-devices)
+    printError('Failed to get iOS version.', 'getIosVersion returned empty - ideviceinfo not installed, device not trusted, or connection issue.', ['Install ideviceinfo (libimobiledevice)', 'Trust the device', 'Check USB connection', "Run 'ace devices' to retry"]);
+    return NaN;
+  }
+  return Number(version.split('.')[0]);
+}
+
 module.exports = {
   devices,
   getDeviceID,
@@ -253,5 +263,5 @@ module.exports = {
   getDeviceType,
   devicesList,
   isSimulator,
-  getIosVersion,
+  getIosMajorVersion,
 };

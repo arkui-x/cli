@@ -18,7 +18,7 @@ const { build } = require('../ace-build');
 const {install} = require('../ace-install');
 const launch = require('../ace-launch');
 const { log } = require('../ace-log');
-const { isProjectRootDir, validInputDevice, getLaunchModule, validInputModule, getEntryModule } = require('../util');
+const { isProjectRootDir, validInputDevice, getLaunchModule, validInputModule, getEntryModule, printError } = require('../util');
 const { isSimulator } = require('../ace-devices');
 
 function run(fileType, device, cmd) {
@@ -56,11 +56,11 @@ function run(fileType, device, cmd) {
         log(fileType, device, cmd.test);
       }
     } else {
-      console.error('Run failed.');
+      printError('Run failed.', 'Launch failed (build and install completed).', ['Check the output for the launch failure', "Run 'ace check -v' to verify environment (includes device info)"]);
     }
     return;
   }
-  console.error('Run failed.');
+  printError('Run failed.', 'Install failed, or no launch module found (getLaunchModule returned empty).', ['Check the output for install or launch module issues', "Run 'ace check -v' to verify environment (includes device info)"]);
 }
 
 module.exports = run;
