@@ -17,7 +17,7 @@ const compiler = require('../ace-build/ace-compiler');
 const { build } = require('../ace-build');
 const {install, isInstallFileExist} = require('../ace-install');
 const launch = require('../ace-launch');
-const { isProjectRootDir, validInputDevice, getEntryModule } = require('../util');
+const { isProjectRootDir, validInputDevice, getEntryModule, printError } = require('../util');
 const { isSimulator } = require('../ace-devices/index');
 
 function test(fileType, device, cmd) {
@@ -50,7 +50,7 @@ function test(fileType, device, cmd) {
     if (installFlag && launch(fileType, device, cmd)) {
       return true;
     }
-    console.error('\x1B[31m%s\x1B[0m', 'Test failed.');
+    printError('Test failed.', 'Install or launch failed (cmd.path mode, no build stage).', ['Check the output', "Run 'ace check -v' to verify environment (includes device info)"]);
     return false;
   }
   if (fileType === 'hap') {
@@ -66,7 +66,7 @@ function test(fileType, device, cmd) {
   if (installFlag && launch(fileType, device, cmd)) {
     return true;
   }
-  console.error('\x1B[31m%s\x1B[0m', 'Test failed.');
+  printError('Test failed.', 'One of the test stages (build/install/launch) failed.', ['Check the output', "Run 'ace check -v' to verify environment (includes device info)"]);
   return false;
 }
 

@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { copy, replaceInfo } = require('../util');
-const { isNativeCppTemplate } = require('../../util');
+const { isNativeCppTemplate, printTemplateNotExistError } = require('../../util');
 let projectDir;
 
 function createFramework(projectPath, frameworkName) {
@@ -43,7 +43,7 @@ function findFrameworkTemplate(libraryPath, frameworkName) {
       copyTemplate(templatePath, libraryPath);
       replaceFrameworkInfo(libraryPath, frameworkName);
     } else {
-      console.error('\x1B[31m%s\x1B[0m', 'Error: Template is not exist!');
+      printTemplateNotExistError(templatePath);
     }
   }
 }

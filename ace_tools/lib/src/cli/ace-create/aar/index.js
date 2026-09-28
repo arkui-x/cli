@@ -16,7 +16,7 @@
 const fs = require('fs');
 const path = require('path');
 const { copy, createPackageFile, replaceInfo } = require('../util');
-const { isNativeCppTemplate } = require('../../util');
+const { isNativeCppTemplate, printTemplateNotExistError } = require('../../util');
 let projectDir;
 
 function createAar(projectPath, aarName) {
@@ -46,7 +46,7 @@ function findAarTemplate(libraryPath, aarName) {
       modifyAarConfig(libraryPath);
       replaceAarInfo(libraryPath, aarName);
     } else {
-      console.error('\x1B[31m%s\x1B[0m', 'Error: Template is not exist!');
+      printTemplateNotExistError(templatePath);
     }
   }
 }

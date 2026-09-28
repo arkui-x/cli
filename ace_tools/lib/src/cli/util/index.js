@@ -113,11 +113,11 @@ function getModuleList(projectDir) {
       }
       return moduleList;
     } else {
-      console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
+      printBuildProfileNotFound(settingPath);
       return null;
     }
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
+      printBuildProfileParseError(settingPath, error);
     return null;
   }
 }
@@ -133,11 +133,11 @@ function getModulePathList(projDir) {
       }
       return modulePathList;
     } else {
-      console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
+      printBuildProfileNotFound(settingPath);
       return null;
     }
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', `Please check ${settingPath}.`);
+      printBuildProfileParseError(settingPath, error);
     return null;
   }
 }
@@ -154,7 +154,7 @@ function getModuleAbilityList(projDir, moduleName) {
     });
     return moduleAbilityList;
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', `Please check ${projDir}.`);
+    printError(`Please check ${projDir}.`, 'Failed to read/parse module.json5, or module not found in build-profile.json5.', ['Check module.json5 exists and is valid JSON5', 'Ensure the module is registered in build-profile.json5'], error);
     return null;
   }
 }
@@ -186,7 +186,6 @@ function getCurrentProjectSystem(projDir) {
   let currentSystem = '';
   const configFile = path.join(projDir, 'build-profile.json5');
   if (!fs.existsSync(configFile)) {
-    console.error('\x1B[31m%s\x1B[0m', `Please check build-profile.json5 existing.`);
     return null;
   }
   const buildProfileInfo = JSON5.parse(fs.readFileSync(configFile).toString()).app.products;
@@ -711,7 +710,7 @@ function validInputModule(projectDir, inputModules, fileType) {
   }
   for (let i = 0; i < inputModules.length; i++) {
     if (!moduleListAll.includes(inputModules[i])) {
-      console.error('\x1B[31m%s\x1B[0m', `Module "${inputModules[i]}" is not exist, please input correct module.`);
+      printError(`Module "${inputModules[i]}" does not exist, please input correct module.`, 'The specified module is not found in build-profile.json5.', ['Check available modules in build-profile.json5']);
       return false;
     }
 
@@ -884,7 +883,51 @@ function getDevEcoNodePath() {
   return '';
 }
 
+function printError(error, cause, solutions = [], rawError = null) {
+  let msg = `\x1B[31mError: ${error}\x1B[0m`;
+  if (cause) {
+    msg += `\n\x1B[33m Cause: ${cause}\x1B[0m`;
+  }
+  if (solutions && solutions.length > 0) {
+    msg += `\n\x1B[33m Solution:`;
+    solutions.forEach((s, i) => { msg += `\n  ${i + 1}. ${s}`; });
+    msg += `\x1B[0m`;
+  }
+  if (rawError) {
+    console.error(msg + '\n', rawError);
+  } else {
+    console.error(msg);
+  }
+}
+
+function printRuntimeOSError() {
+  printError('current system is unknown.', 'build-profile.json5 not found, or has no product named "default".', ['Ensure build-profile.json5 exists in the project root', 'Ensure a product named "default" exists with runtimeOS set to "HarmonyOS" or "OpenHarmony"']);
+}
+
+function printToolCheckError(tool, rawError = null) {
+  const isHdc = tool === 'hdc';
+  const sdkDesc = isHdc ? 'HarmonyOS/OpenHarmony' : 'Android';
+  const option = isHdc ? '--harmonyos-sdk/--openharmony-sdk' : '--android-sdk';
+  printError(`Internal error with ${tool} checking`, `${tool} was not found in the configured ${sdkDesc} SDK (SDK dir not set, or ${tool} missing).`, [`Run 'ace config ${option} <path>' to set the SDK`, `Ensure SDK ${tool} exists`, "Run 'ace check -v' to verify"], rawError);
+}
+
+function printBuildProfileNotFound(settingPath) {
+  printError(`Please check ${settingPath}.`, 'build-profile.json5 not found.', ['Ensure build-profile.json5 exists in the project root']);
+}
+
+function printBuildProfileParseError(settingPath, rawError = null) {
+  printError(`Please check ${settingPath}.`, 'build-profile.json5 parse failed (invalid JSON5 or missing modules field).', ['Fix JSON5 syntax in build-profile.json5'], rawError);
+}
+
+function printTemplateNotExistError(templatePath) {
+  printError('Template does not exist!', `Template path not found: ${templatePath}`, ['Reinstall ace tools', "Run 'ace check -v' to verify SDK/toolchain integrity"]);
+}
+
 module.exports = {
+  printError,
+  printRuntimeOSError,
+  printToolCheckError,
+  printTemplateNotExistError,
   isProjectRootDir,
   getModuleList,
   validInputDevice,

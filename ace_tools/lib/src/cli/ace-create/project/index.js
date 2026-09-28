@@ -17,7 +17,7 @@ const fs = require('fs');
 const path = require('path');
 const createAar = require('../aar');
 const createFramework = require('../framework');
-const { getSdkVersion, getCompileSdkVersionWithSdkVersion } = require('../../util/index');
+const { getSdkVersion, getCompileSdkVersionWithSdkVersion, printTemplateNotExistError } = require('../../util/index');
 const { getConfig } = require('../../ace-config');
 const { copy, createPackageFile, replaceInfo, modifyHarmonyOSConfig,
   modifyOpenHarmonyOSConfig, modifyNativeCppConfig, signIOS, copyTemp,
@@ -184,7 +184,7 @@ function findStageTemplate(projectTempPath, bundleName, project, runtimeOS, temp
       copyStageTemplate(pathTemplate, projectTempPath, template, sdkVersion, targetPlatforms);
       replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS, template, sdkVersion, targetPlatforms);
     } else {
-      console.error('\x1B[31m%s\x1B[0m', 'Template is not exist!');
+      printTemplateNotExistError(pathTemplate);
     }
   }
 }

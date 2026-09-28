@@ -38,7 +38,7 @@ const { loadCollectionJson } = require('../ace-packager/copyLibraryToProject');
 const analyze = require('../ace-analyze/index');
 const { createAndroidAndIosBuildArkTSShell } = require('../../ace-create/util');
 const { getSourceArkuixPath } = require('../../ace-check/checkSource');
-const { getCreatedPlatforms, changeVersion, getDevEcoNodePath } = require('../../util');
+const { getCreatedPlatforms, changeVersion, getDevEcoNodePath, printRuntimeOSError, printError, printTemplateNotExistError } = require('../../util');
 const { runFontSubsetForTarget } = require('../ace-packager/pkgHwSymbol');
 const VALIDATION_MODULES = new Set(['TimePickerDialog', 'DatePickerDialog', 'UIPickerComponent', 'TextPickerDialog', 'DatePicker', 'TextPicker', 'TimePicker']);
 
@@ -102,7 +102,7 @@ function resolveArkuiXSdk() {
           `    2. Update the PATH environment variable for ace tools to point to the ace tools directory included in the latest ArkUI-X SDK (e.g., .../Sdk/<version>/arkui-x/toolchains/bin).\n` +
           `    3. Reopen the DevEco Studio / terminal and verify with: where ace (Windows) / which ace (Linux/macOS).`);
       } else {
-        console.error('\x1B[31m%s\x1B[0m', `Error: The arkui-x sdk version "${version}" used by the current project does not exist. Please download it from DevEco->Settings->ArkUI-X!`);
+        printError(`The arkui-x sdk version "${version}" used by the current project does not exist.`, 'The SDK for this version may not be downloaded, or ace tools is pointing to an outdated SDK directory.', [`Verify the SDK directory: check if "${path.join(arkuiXSdkDir, version, 'arkui-x')}" exists.`, 'If missing, download via DevEco Studio -> Settings -> ArkUI-X', "If ace tools version is old, update PATH to the latest SDK's toolchains/bin", "Run 'ace check -v' to verify"]);
       }
       return false;
     }
@@ -427,14 +427,13 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     if (getIntegrateHvigorw()) {
       buildCmd = `"${getIntegrateHvigorw()}"`;
     } else {
-      console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed, please donwload Intergration IDE to support compile api12 project.\n' +
-        'if Intergration IDE has downloaded, please use ace config --deveco-studio-path [Intergration IDE Path] to set.\n');
+      printError('Run tasks failed', 'DevEco Studio (Integration IDE) is not installed or its path is not configured (devEcoStudioDir not set, or tools/hvigor/bin/hvigorw missing).', ['Install DevEco Studio (Integration IDE)', "Run 'ace config --deveco-studio-path [Integration IDE Path]' to set", "Run 'ace check -v' to verify"]);
       return false;
     }
   }
   const ohpmPath = getOhpmTools();
   if (!ohpmPath) {
-    console.error('\x1B[31m%s\x1B[0m', 'Error: Ohpm tool is not available.');
+    printError('Ohpm tool is not available.', 'ohpm directory is not configured (ohpmDir not set via ace config --ohpm-dir).', ["Run 'ace config --ohpm-dir <path>' to set the ohpm directory", 'The ohpm directory is typically at <DevEcoStudio>/tools/ohpm', "Run 'ace check -v' to verify"]);
     return false;
   }
   const ohpmVersion = getOhpmToolsVersion();
@@ -555,7 +554,7 @@ function runGradle(fileType, cmd, moduleList, commonModule, testModule) {
     });
     return true;
   } catch (error) {
-    console.error('\x1B[31m%s\x1B[0m', 'Run tasks failed.\n', error);
+    printError('Run tasks failed.', 'hvigorw task execution failed (see details below).', ['Check the build output for the failing task', 'Run \'ace check -v\' to verify SDK/ohpm/hvigor environment'], error);
     return false;
   }
 }
@@ -597,7 +596,7 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
       console.log('HAR file built successfully.');
       return true;
     }
-    console.error('\x1B[31m%s\x1B[0m', `Compile failed.`);
+    printError('Compile failed.', 'Build/compilation failed. See the output for details.', ["Run 'ace check -v' to verify environment", 'Check the build output for details']);
     return false;
   }
   if (readConfig() &&
@@ -628,7 +627,7 @@ function compilerPackage(commonModule, fileType, cmd, moduleListSpecified, testM
       return true;
     }
   }
-  console.error('\x1B[31m%s\x1B[0m', `Compile failed.`);
+  printError('Compile failed.', 'Build/compilation failed. See the output for details.', ["Run 'ace check -v' to verify environment", 'Check the build output for details']);
   return false;
 }
 
@@ -659,7 +658,7 @@ function syncHvigor(projectDir) {
       return true;
     }
   }
-  console.error('\x1B[31m%s\x1B[0m', 'Error: Template is not exist!');
+  printTemplateNotExistError(pathTemplate);
   return false;
 }
 
@@ -717,7 +716,7 @@ function compiler(fileType, cmd) {
   }
   const hspModuleList = getHspModuleList(projectDir);
   if (fileType === 'hsp' && hspModuleList.length === 0) {
-    console.error('\x1B[31m%s\x1B[0m', `Build falied, no hsp module.`);
+    console.error('\x1B[31m%s\x1B[0m', `Build failed, no hsp module.`);
     return false;
   }
   const hvigorJsonInfo = JSON5.parse(fs.readFileSync(path.join(projectDir, 'hvigor/hvigor-config.json5')));
@@ -744,7 +743,7 @@ function compiler(fileType, cmd) {
           }
         });
       } catch (error) {
-        console.error('\x1B[31m%s\x1B[0m', 'hvigorw sync failed.\n', error);
+        printError('hvigorw sync failed.', 'hvigor project sync failed (see details below).', ['Common causes: hvigor version mismatch, network/proxy issues', 'Check oh-package.json5/hvigor-config.json5', 'Run \'ace check -v\''], error);
       }
     }
   } else {
@@ -754,7 +753,7 @@ function compiler(fileType, cmd) {
   }
   currentSystem = getCurrentProjectSystem(projectDir);
   if (!currentSystem) {
-    console.error('\x1B[31m%s\x1B[0m', 'current system is unknown.');
+    printRuntimeOSError();
     return false;
   }
   updateCrossPlatformModules(currentSystem);
