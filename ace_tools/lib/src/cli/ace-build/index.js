@@ -17,7 +17,7 @@ const compiler = require('./ace-compiler');
 const packager = require('./ace-packager');
 const { getConfig } = require('../ace-config');
 const { commandLineToolsDir, devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
-const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfoByLine, getIsArkuixProject, checkProjectType } = require('../util/index');
+const { getSdkVersionWithModelVersion, getModelVersionWithSdkVersion, replaceInfoByLine, getIsArkuixProject, checkProjectType, printError } = require('../util/index');
 const { Platform, platform } = require('../ace-check/platform');
 const inquirer = require('inquirer');
 const fs = require('fs');
@@ -78,7 +78,7 @@ function checkVersion(target, cmd) {
     return true;
   }
   if (apiVersion > devVersion) {
-    console.error('\x1B[31m%s\x1B[0m', `error: current devEco is not support apiVersion:${apiVersion},please upgrade devEco`);
+    printError(`current devEco does not support apiVersion:${apiVersion}`, `The current DevEco Studio version (${devVersion}) is lower than required.`, ['Update DevEco Studio to the latest version', 'Run \'ace check -v\' to verify the DevEco Studio version', 'Reopen the terminal and try again']);
     return false;
   } else if (apiVersion < devVersion) {
     inquirer.prompt([{
