@@ -152,14 +152,14 @@ function appendTargetSymbol(targetSymbols, symbolDict, symbolName) {
  */
 function readJson5File(filePath) {
   if (!fs.pathExistsSync(filePath)) {
-    console.log(`Config file does not exist: ${filePath}`);
+    console.error('\x1B[31m%s\x1B[0m', `Config file does not exist: ${filePath}`);
     return null;
   }
   const content = fs.readFileSync(filePath, 'utf8');
   try {
     return JSON5.parse(content);
   } catch (error) {
-    console.log(`Failed to parse config file: ${filePath}, ${error.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Failed to parse config file: ${filePath}, ${error.message}`);
     return null;
   }
 }
@@ -194,7 +194,7 @@ function createMergedTempConfig(projectDir, resourcesConfigPath, apiSymbolConfig
       usedModuleSet = getUsedModuleSet(projectDir, system);
       hasUsedModuleSet = true;
     } catch (error) {
-      console.log(`Failed to resolve dependency modules. Fallback to all SDK symbol modules: ${error.message}`);
+      console.error('\x1B[31m%s\x1B[0m', `Failed to resolve dependency modules. Fallback to all SDK symbol modules: ${error.message}`);
     }
     apiConfig.forEach((item) => {
       if (!item || typeof item !== 'object') {
@@ -273,7 +273,7 @@ function findGlyphIdsByUnicode(fontBuffer, targetSymbols) {
     const unicodeVal = symbol.unicode;
 
     if (!font.hasGlyphForCodePoint(unicodeVal)) {
-      console.log(`Warning: symbol '${symbol.name}' (${symbol.hex}) was not found in the font`);
+      console.error('\x1B[31m%s\x1B[0m', `Warning: symbol '${symbol.name}' (${symbol.hex}) was not found in the font`);
       continue;
     }
 
@@ -281,7 +281,7 @@ function findGlyphIdsByUnicode(fontBuffer, targetSymbols) {
     if (glyph && Number.isInteger(glyph.id) && glyph.id >= 0 && glyph.id < font.numGlyphs) {
       unicodeToGlyphId[unicodeVal] = glyph.id;
     } else {
-      console.log(`Warning: symbol '${symbol.name}' (${symbol.hex}) resolved to an invalid glyph`);
+      console.error('\x1B[31m%s\x1B[0m', `Warning: symbol '${symbol.name}' (${symbol.hex}) resolved to an invalid glyph`);
     }
   }
 
@@ -489,7 +489,7 @@ function rebuildSubsetCmap(cmap, oldToNewIdMap, fallbackGlyphId) {
  */
 function parseSfntTables(fontBuffer) {
   if (!Buffer.isBuffer(fontBuffer) || fontBuffer.length < 12) {
-    console.log('Invalid SFNT font buffer');
+    console.error('\x1B[31m%s\x1B[0m', 'Invalid SFNT font buffer');
     return null;
   }
 
@@ -756,7 +756,7 @@ function mergeSubsetTables(originalFontBuffer, rewrittenFontBuffer, keepGlyphIds
     const rewrittenTables = parseSfntTables(rewrittenFontBuffer);
 
     if (!originalTables || !rewrittenTables) {
-      console.log('Variable font table merge skipped due to invalid SFNT table data.');
+      console.error('\x1B[31m%s\x1B[0m', 'Variable font table merge skipped due to invalid SFNT table data.');
       return rewrittenFontBuffer;
     }
 
@@ -782,7 +782,7 @@ function mergeSubsetTables(originalFontBuffer, rewrittenFontBuffer, keepGlyphIds
 
     return finalizeSfntFont(mergedTables);
   } catch (error) {
-    console.log(`Variable font table merge failed, falling back to rewritten core font only: ${error.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Variable font table merge failed, falling back to rewritten core font only: ${error.message}`);
     return rewrittenFontBuffer;
   }
 }
@@ -793,7 +793,7 @@ function mergeSubsetTables(originalFontBuffer, rewrittenFontBuffer, keepGlyphIds
 function hasVariableFontTables(fontBuffer) {
   const tables = parseSfntTables(fontBuffer);
   if (!tables) {
-    console.log('Failed to inspect SFNT tables, treat font as non-variable.');
+    console.error('\x1B[31m%s\x1B[0m', 'Failed to inspect SFNT tables, treat font as non-variable.');
     return false;
   }
   return VARIABLE_FONT_TABLE_TAGS.some((tag) => !!tables[tag]);
@@ -963,7 +963,7 @@ function cropFont(fontBuffer, fontkitFont, keepGlyphIds, outputDir) {
       oldToNewIdMap: subsetData.oldToNewIdMap
     };
   } catch (error) {
-    console.log(`Font subsetting failed: ${error.message}`);
+    console.error('\x1B[31m%s\x1B[0m', `Font subsetting failed: ${error.message}`);
     return null;
   }
 }
@@ -1108,7 +1108,7 @@ function normalizeFontSubsetOutput(result) {
 function fontSubset(projectDir, system) {
   const sdkArkUIXPath = resolveSdkArkUIXPath(projectDir);
   if (!sdkArkUIXPath) {
-    console.log('ArkUI-X SDK path is invalid. Please check arkuiXSdkDir configuration.');
+    console.error('\x1B[31m%s\x1B[0m', 'ArkUI-X SDK path is invalid. Please check arkuiXSdkDir configuration.');
     return { success: false, error: 'invalid ArkUI-X SDK path' };
   }
   const resourcesConfigPath = resolveResourcesConfigPath(projectDir);
@@ -1117,7 +1117,7 @@ function fontSubset(projectDir, system) {
   let mergedTempConfigPath = '';
 
   if (!resourcesConfigPath) {
-    console.log('resources-config.json was not found. Skip font subsetting.');
+    console.error('\x1B[31m%s\x1B[0m', 'resources-config.json was not found. Skip font subsetting.');
     return { success: true, skipped: true, reason: 'resources-config.json was not found' };
   }
 
@@ -1138,7 +1138,7 @@ function fontSubset(projectDir, system) {
   };
 
   if (!defaultOptions.symbolFile || !defaultOptions.fontFile || !defaultOptions.fontConfig) {
-    console.log('Invalid font or symbol resource path.');
+    console.error('\x1B[31m%s\x1B[0m', 'Invalid font or symbol resource path.');
     cleanupTempConfig(mergedTempConfigPath);
     return { success: false, error: 'invalid font or symbol resource path' };
   }
@@ -1165,12 +1165,12 @@ function runFontSubsetForTarget(projectDir, system, targetName, options = {}) {
   const subsetResult = fontSubset(projectDir, system);
 
   if (!subsetResult || subsetResult.success === false) {
-    console.error(`Build failed: hwSymbol subset failed for ${targetName}.`);
+    console.error('\x1B[31m%s\x1B[0m', `Build failed: hwSymbol subset failed for ${targetName}.`);
     return false;
   }
 
   if (failOnSkip && subsetResult.skipped) {
-    console.error(`Build failed: hwSymbol subset was skipped for ${targetName} (${subsetResult.reason || 'unknown reason'}).`);
+    console.error('\x1B[31m%s\x1B[0m', `Build failed: hwSymbol subset was skipped for ${targetName} (${subsetResult.reason || 'unknown reason'}).`);
     return false;
   }
 

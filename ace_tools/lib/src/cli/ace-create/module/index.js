@@ -49,29 +49,29 @@ function isModuleNameQualified(name) {
 
 function checkModuleName(moduleList, moduleName) {
   if (!moduleName) {
-    console.error('Module name must be required!');
+    console.error('\x1B[31m%s\x1B[0m', 'Module name must be required!');
     return false;
   }
   const sensitiveWords = ['ohos', 'android', 'ios'];
   if (sensitiveWords.includes(moduleName)) {
-    console.error('Module name is invalid');
+    console.error('\x1B[31m%s\x1B[0m', 'Module name is invalid');
     return false;
   }
   if (!moduleName.match(/^\w+$/)) {
-    console.error('The Module name can contain only letters, digits, and underscores(_).');
+    console.error('\x1B[31m%s\x1B[0m', 'The Module name can contain only letters, digits, and underscores(_).');
     return false;
   }
   if (/^\d/.test(moduleName)) {
-    console.error('The Module name can contain only letters, digits, and underscores(_).');
+    console.error('\x1B[31m%s\x1B[0m', 'The Module name can contain only letters, digits, and underscores(_).');
     return false;
   }
   if (fs.existsSync(path.join(projectDir, moduleName))) {
-    console.error(`\n${moduleName} already exists.`);
+    console.error('\x1B[31m%s\x1B[0m', `\n${moduleName} already exists.`);
     return false;
   }
   for (let index = 0; index < moduleList.length; index++) {
     if (moduleList[index].toLowerCase() === moduleName.toLowerCase()) {
-      console.error(`\n${moduleName} already exists.`);
+      console.error('\x1B[31m%s\x1B[0m', `\n${moduleName} already exists.`);
       return false;
     }
   }
@@ -135,7 +135,7 @@ function getPackageName() {
     const manifestJsonObj = JSON5.parse(fs.readFileSync(manifestPath));
     return manifestJsonObj.app.bundleName;
   } catch (error) {
-    console.error('Get package name error.');
+    console.error('\x1B[31m%s\x1B[0m', 'Get package name error.');
     return '';
   }
 }
@@ -222,7 +222,7 @@ function modifyBuildProfile(moduleName, modulePath) {
     fs.writeFileSync(srcBuildPath, JSON5.stringify(buildPathJson, '', '  '));
     return true;
   } catch (error) {
-    console.error('Replace stage project info error.');
+    console.error('\x1B[31m%s\x1B[0m', 'Replace stage project info error.');
     return false;
   }
 }
@@ -361,7 +361,7 @@ function createStageModule(moduleList, templateDir, absolutePath) {
     message: 'Enter the module name:',
     validate(val) {
       if (!isModuleNameQualified(val)) {
-        console.log('\x1B[31m%s\x1B[0m', 'Module name must contain 2 to 31 characters, start with a letter, ' +
+        console.error('\x1B[31m%s\x1B[0m', 'Module name must contain 2 to 31 characters, start with a letter, ' +
           'and include only letters, digits and underscores (_).');
         return false;
       }
@@ -706,7 +706,7 @@ function updateCrossPlatformModules(currentSystem) {
       }
     });
   } catch (err) {
-    console.error('update cross platform modules failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'update cross platform modules failed.');
   }
 }
 

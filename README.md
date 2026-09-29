@@ -344,7 +344,7 @@ ohos@user:~/cli-project$ ace create test
 ? Enter the project name(test):  # 输入工程名称，不输入默认为文件夹名称
 ? Enter the bundleName (com.example.test):  # 输入包名，不输入默认为com.example.工程名
 ? Enter the runtimeOS (1: OpenHarmony, 2: HarmonyOS): 1 # 输入RuntimeOS系统
-? Please select the Complie SDk (1: 10, 2: 11, 3: 12): 2 # 输入编译SDK版本
+? Please select the Compile SDK (1: 10, 2: 11, 3: 12): 2 # 输入编译SDK版本
 ? Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS): 1 # 输入需要创建的平台
 ? Please select the Framework integration approach (1: Native Manual, 2: CocoaPods): 2 # 输入Framework集成方式
 
@@ -772,7 +772,7 @@ Project:
   clean                  Delete the build/ directories.
   create                 Create a new ArkUI cross-platform project.
   new                    Create a new ability or module for your project.
-  modify   		         Modify project to ArkUI-X project structre.
+  modify   		         Modify project to ArkUI-X project structure.
   analysis               Analysis the interfaces that do not support cross-platform.
 
 Run "ace help <command>" for more information about a command.
@@ -824,7 +824,7 @@ modify HarmonyOS modules {entry,libraryHar,libraryHsp} to ArkUI-X modules succes
 
 分析跨平台应用工程中不支持跨平台的API并统计输出
 
-ace anlysis 命令需要在跨平台应用工程根目录下执行（开发者可以先执行[ace modify](#sectionModify)，将鸿蒙工程改造为可编译的跨平台工程），开发者需要基于--sdk参数输入当前应用编译使用的HarmonyOS SDK路径，即当前DevEco Studio内置SDK的路径，Windows和MacOS平台的内置SDK路径参考下方示例代码。
+ace analysis 命令需要在跨平台应用工程根目录下执行（开发者可以先执行[ace modify](#sectionModify)，将鸿蒙工程改造为可编译的跨平台工程），开发者需要基于--sdk参数输入当前应用编译使用的HarmonyOS SDK路径，即当前DevEco Studio内置SDK的路径，Windows和MacOS平台的内置SDK路径参考下方示例代码。
 
 该命令执行后最终会输出chart.html文件，可视化展示整个工程中不支持跨平台的API分布的应用module、d.ts文件，以及每个module中不支持跨平台API的具体信息，让开发者可以更快地了解项目所有API的跨平台支持情况，进一步评估后期跨平台改造的适配工作量。
 

@@ -60,7 +60,7 @@ function isAndroidSdkValid() {
   if (androidSdkDir) {
     return true;
   } else {
-    console.error(`Cannot find android sdk, please run 'ace check' first.`);
+    console.error('\x1B[31m%s\x1B[0m', `Cannot find android sdk, please run 'ace check' first.`);
     return false;
   }
 }
@@ -109,7 +109,7 @@ function buildAPK(target, cmd) {
     cmds.push(`cd ${androidDir} && chmod 755 gradlew`);
   }
   if (cmd.debug && !createTestTem('apk')) {
-    console.error('createTestTem apk failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'createTestTem apk failed.');
     return false;
   }
 
@@ -143,7 +143,7 @@ function buildAPK(target, cmd) {
     }
   });
   if (cmd.debug && !recoverTestTem('apk')) {
-    console.error('recoverTestTem apk failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'recoverTestTem apk failed.');
     return false;
   }
   if (cmd.debug && cmd.analyze) {
@@ -397,7 +397,7 @@ function buildiOS(target, cmd) {
         stdio: 'inherit',
       });
     } catch (error) {
-      console.error('install Podfiles ios failed.');
+      console.error('\x1B[31m%s\x1B[0m', 'install Podfiles ios failed.');
       return false;
     }
   } else {
@@ -408,7 +408,7 @@ function buildiOS(target, cmd) {
     mode = 'Debug';
   }
   if (cmd.debug && !createTestTem('ios')) {
-    console.error('createTestTem ios failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'createTestTem ios failed.');
     return false;
   }
   const iosProjectName = getIosProjectName(projectDir);
@@ -431,7 +431,7 @@ function buildiOS(target, cmd) {
       if (error.stdout !== null) {
         console.log(error.stdout);
         if (error.stdout.toString().includes('Automatic signing is disabled and unable to generate a profile')) {
-          console.log('\x1B[31m%s\x1B[0m', `
+          console.error('\x1B[31m%s\x1B[0m', `
 It appears that there was a problem signing your application prior to installation on the device.
 
 Verify that the Bundle Identifier in your project is your signing id in Xcode
@@ -444,11 +444,11 @@ Verify that the Bundle Identifier in your project is your signing id in Xcode
     }
   });
   if (cmd.debug && !recoverTestTem('ios')) {
-    console.error('recoverTestTem ios failed.');
+    console.error('\x1B[31m%s\x1B[0m', 'recoverTestTem ios failed.');
     return false;
   }
   console.log(message);
-  if (isBuildSuccess && message == 'Build ios successful.') {
+  if (isBuildSuccess && message == 'iOS APP file built successfully.') {
     if (cmd.analyze) {
       analyze(target);
     }

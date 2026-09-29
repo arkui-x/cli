@@ -29,7 +29,7 @@ const {
 } = require('./constants');
 
 function logError(message) {
-  console.log('\x1B[31m%s\x1B[0m', message);
+  console.error('\x1B[31m%s\x1B[0m', message);
 }
 
 function logInfo(message) {
