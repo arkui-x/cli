@@ -211,7 +211,12 @@ function copyDat(projectDir, system, fileType, depMap) {
     cmds += ` --module ${type}`;
   }
   const srcPath = path.join(buildOutDir, path.basename(datFilePath));
-  execCopyDatCmd(cmds, srcPath, destPath);
+  try {
+    execCopyDatCmd(cmds, srcPath, destPath);
+  } catch (err) {
+    console.error('\x1B[31m%s\x1B[0m', 'ICU data processing failed: ' + err.message);
+    return false;
+  }
   return true;
 }
 
