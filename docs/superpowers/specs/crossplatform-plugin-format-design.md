@@ -14,7 +14,7 @@
 |---|---|---|---|---|
 | **Package** | `"package"` | 无，纯ArkTS | UI组件库、工具函数库 | Dart Package |
 | **FFI** | `"ffi"` | 预编译C++（AAR + xcframework） | MQTT、加密、图像处理等C库 | Package FFI |
-| **Plugin** | `"plugin"` | 预编译C++ + Java/Kotlin（AAR + xcframework） | 蓝牙、相机、传感器等平台API | Plugin |
+| **Plugin** | `"plugin"` | 预编译C++ & Java/Kotlin（AAR + xcframework） | 蓝牙、相机、传感器等平台API | Plugin |
 
 ### 1.2 设计原则
 
@@ -280,8 +280,14 @@ mymodule/
 │   │       ├── build.gradle         # CMake配置
 │   │       └── src/main/cpp/        # C++源码（复用OHOS侧）
 │   └── ios/
-│       ├── app/
-│       └── app.xcodeproj/
+│       ├── app/                           # iOS App target
+│       ├── app.xcodeproj/                 # App 工程文件
+│       ├── {moduleName}lib/              # FFI 框架 target（静态库）
+│       │   └── {moduleName}lib.h         # 框架头文件
+│       ├── {moduleName}lib.xcodeproj/    # 框架工程文件
+│       ├── frameworks/                   # 引擎框架目录（buildPluginHAR 时复制 libarkui_ios.xcframework）
+│       ├── arkui-x/                      # ArkTS 产物目录
+│       └── buildArkTS.sh                 # ArkTS 编译脚本
 ├── build-profile.json5
 └── oh-package.json5
 ```
@@ -311,9 +317,16 @@ avsession/
 │   │           ├── java/            # Java平台实现
 │   │           └── cpp/             # Android C++实现
 │   └── ios/
-│       ├── app/
-│       ├── app.xcodeproj/
-│       └── scripts/build.sh         # iOS xcframework构建脚本
+│       ├── app/                           # iOS App target
+│       ├── app.xcodeproj/                 # App 工程文件
+│       ├── {moduleName}lib/              # Plugin 框架 target（静态库）
+│       │   ├── {moduleName}lib.h         # 框架头文件
+│       │   ├── {ModuleName}Plugin.h/.m   # iOS 插件入口类
+│       │   └── plugin_impl.mm            # 插件实现（ObjC++，含 C++ 桥接）
+│       ├── {moduleName}lib.xcodeproj/    # 框架工程文件
+│       ├── frameworks/                   # 引擎框架目录（buildPluginHAR 时复制 libarkui_ios.xcframework）
+│       ├── arkui-x/                      # ArkTS 产物目录
+│       └── buildArkTS.sh                 # ArkTS 编译脚本
 ├── build-profile.json5
 └── oh-package.json5
 ```
@@ -330,7 +343,10 @@ setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVe
 ├─ 1. 复制HAR lib模块模板
 │   templates/crossplatform/{template}/lib/ → {projectDir}/{moduleName}/
 │
-├─ 2. 复制平台模板
+├─ 2. 复制平台模板（按 platforms 过滤）
+│   platforms='android'           → 仅复制 android/ 模板
+│   platforms='ios'               → 仅复制 ios/ 模板
+│   platforms='both' (Default)    → 复制 android/ + ios/ 模板
 │   templates/crossplatform/{template}/android/ → .arkui-x/android/{moduleName}/
 │   templates/crossplatform/{template}/ios/     → .arkui-x/ios/
 │
@@ -351,19 +367,20 @@ setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVe
 │   replacePlaceholdersInDir(): module_name → {moduleName}, Module_name → {PascalName}
 │   覆盖lib模块、Android平台目录、iOS平台目录
 │
-├─ 8. 注册Native源文件到app.xcodeproj（FFI/Plugin）
+├─ 8. 注册Native源文件到app.xcodeproj（FFI/Plugin，platforms !== 'android'时执行）
 │   registerNativeFilesInPbxproj(): 添加.cpp/.mm/.m文件到Compile Sources
+│   android单平台时跳过（无iOS工程，无需注册）
 │
-└─ 9. 生成crossplatform-config.json5
+└─ 9. 生成crossplatform-config.json5（按 platforms 过滤）
     .arkui-x/crossplatform-config.json5:
     {
       name: moduleName,
       version: '1.0.0',
       type: template,
-      platform: ['android', 'iOS'],
+      platform: platList,           // android → ['android'], ios → ['iOS'], both (Default) → ['android','iOS']
       compatibleSdkVersion: getCompileSdkVersionWithSdkVersion(sdkVersion),
-      android: { path, module, artifact },
-      ios: { path, module, frameworks: [] }
+      android: { path, module, artifact },  // 仅 platforms含android 时写入
+      ios: { path, module, frameworks: [] }  // 仅 platforms含ios 时写入
     }
 ```
 
@@ -442,17 +459,25 @@ ace build plugin
 │  Hvigor assembleHar → <module>.har
 │  产出: <module>/build/default/outputs/default/<module>.har
 │
-├─ Phase 2: Android（FFI/Plugin，统一AAR产物）
-│  复用现有 ace build aar 能力:
-│  gradlew :<module>:assembleRelease → <module>-release.aar
-│  AAR内容: classes.jar + jni/{abi}/lib<module>.so + AndroidManifest.xml
-│  AAR strip: 使用adm-zip移除libarkui_android.so(引擎库,~89MB→~0.2MB)
-│  产出: android/<module>-release.aar
+├─ Phase 2: Android（FFI/Plugin，需 createdPlatforms 含 android）
+│  if ((type === 'ffi' || type === 'plugin') && createdPlatforms.includes('android')):
+│    复用现有 ace build aar 能力:
+│    gradlew :<module>:assembleRelease → <module>-release.aar
+│    AAR内容: classes.jar + jni/{abi}/lib<module>.so + AndroidManifest.xml
+│    AAR strip: 使用adm-zip移除libarkui_android.so(引擎库,~89MB→~0.2MB)
+│    产出: android/<module>-release.aar
+│  else: 跳过 Android 构建
 │
-├─ Phase 3: iOS（FFI/Plugin，仅macOS）
+├─ Phase 2.5: iOS 引擎框架复制（FFI/Plugin，需 createdPlatforms 含 ios，仅 macOS）
+│  if ((type === 'ffi' || type === 'plugin') && createdPlatforms.includes('ios') && platform === MacOS):
+│    copyLibraryToProject('ios', cmd, projectDir, 'ios', skipAppOnly=true)
+│    → 从 SDK 复制 libarkui_ios.xcframework 到 .arkui-x/ios/frameworks/
+│    → skipAppOnly=true: 跳过 updateIosProjectPbxproj 和 copyDat（HAR 工程不适用 app 专属逻辑）
+│
+├─ Phase 3: iOS xcframework（FFI/Plugin，需 createdPlatforms 含 ios，仅 macOS）
 │  方案A: xcodebuild -create-xcframework
 │  方案B: bash scripts/build.sh
-│  非macOS跳过并警告
+│  非macOS或createdPlatforms不含ios → 跳过并警告
 │  产出: ios/<Module>.xcframework/
 │
 └─ Phase 4: 嵌入HAR
