@@ -31,7 +31,8 @@ const {
   Platform,
   platform,
 } = require('../../ace-check/platform');
-const { getSdkVersion } = require('../../util');
+const { getSdkVersion, getCreatedPlatforms } = require('../../util');
+const { copyLibraryToProject } = require('./copyLibraryToProject');
 
 /**
  * Auto-discover the HAR module name.
@@ -191,15 +192,18 @@ function buildPluginHAR(cmd) {
     'Manifest-Version: 1.0\n'
   );
 
+  const createdPlatforms = getCreatedPlatforms(projectDir);
+
   let androidOk = true;
-  if (type === 'ffi' || type === 'plugin') {
+  if ((type === 'ffi' || type === 'plugin') && createdPlatforms.includes('android')) {
     androidOk = buildAndroidAAR(moduleName, stagingDir, config, projectDir);
   }
 
   // Phase 3: iOS xcframework (FFI/Plugin, macOS only) → stagingDir/ios/
   let iosOk = true;
-  if (type === 'ffi' || type === 'plugin') {
+  if ((type === 'ffi' || type === 'plugin') && createdPlatforms.includes('ios')) {
     if (platform === Platform.MacOS) {
+      copyLibraryToProject('ios', cmd, projectDir, 'ios', true);
       iosOk = buildIOSXcFramework(moduleName, stagingDir, config, projectDir);
       if (iosOk) {
         // Re-write crossplatform-config.json5 after iOS build, since
