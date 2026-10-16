@@ -256,18 +256,24 @@ function addCrossPlatform(projectPath, module) {
 
 function updateCrossPlatformConfig(projectPath, platforms) {
   try {
-    // const configFile = path.join(projectPath, '.arkui-x/arkui-x-config.json5');
+    const platList = platforms === 'both' ? ['android', 'ios'] : [platforms];
+    const arkuiXConfigFile = path.join(projectPath, '.arkui-x', 'arkui-x-config.json5');
+    if (fs.existsSync(arkuiXConfigFile)) {
+      let arkuiXConfigInfo = JSON5.parse(fs.readFileSync(arkuiXConfigFile, 'utf8'));
+      arkuiXConfigInfo.platforms = platList;
+      fs.writeFileSync(arkuiXConfigFile, JSON5.stringify(arkuiXConfigInfo, null, 2) + '\n', 'utf8');
+    }
     const configFile = path.join(projectPath, '.projectInfo');
     let arkuiXConfig = {};
     if (fs.existsSync(configFile)) {
       arkuiXConfig = JSON5.parse(fs.readFileSync(configFile));
-      arkuiXConfig = { ...arkuiXConfig, 'platforms': platforms === 'both' ? ['android', 'ios'] : [platforms] };
+      arkuiXConfig = { ...arkuiXConfig, 'platforms': platList };
     } else {
       arkuiXConfig = {
         'projectTemplate': 'app',
         'moduleInfo': [],
         'abilityInfo': [],
-        'platforms': platforms === 'both' ? ['android', 'ios'] : [platforms],
+        'platforms': platList,
       };
     }
     fs.writeFileSync(configFile, JSON.stringify(arkuiXConfig, '', '  '), 'utf8');

@@ -128,10 +128,11 @@ function validateConfig(config) {
     }
   }
   if (config.type === 'ffi' || config.type === 'plugin') {
-    if (!config.android || !config.android.module) {
+    const platList = Array.isArray(config.platform) ? config.platform.map(p => p.toLowerCase()) : ['android', 'ios'];
+    if (platList.includes('android') && (!config.android || !config.android.module)) {
       errors.push('FFI/Plugin requires android.module');
     }
-    if (!config.ios || !config.ios.module) {
+    if (platList.includes('ios') && (!config.ios || !config.ios.module)) {
       errors.push('FFI/Plugin requires ios.module');
     }
   }

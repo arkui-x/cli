@@ -389,7 +389,7 @@ function processLib(libpath, depLibSet, allLibSet, removeUnused) {
 /**
  * main function to copy library files into project lib directory
  **/
-function copyLibraryToProject(fileType, cmd, projectDir, system) {
+function copyLibraryToProject(fileType, cmd, projectDir, system, skipAppOnly) {
   const version = getSdkVersion(projectDir);
   arkuiXSdkPath = getSourceArkuixPath() || (arkuiXSdkDir + `/${version}/arkui-x`);
   const apiConfigMap = loadApiConfigJson(arkuiXSdkPath);
@@ -422,13 +422,15 @@ function copyLibraryToProject(fileType, cmd, projectDir, system) {
     }
     processLib(libpath, depCheckSet, allLibSet, clearLibBeforeCopy);
   });
-  if (system === 'ios') {
+  if (system === 'ios' && !skipAppOnly) {
     checkMap.allCheckMap.forEach(function(allLibSet, libpath) {
       updateIosProjectPbxproj(fileType, projectDir, depMap, system,
         true, function(libname) { }, allLibSet);
     });
   }
-  copyDat(projectDir, system, fileType, depMap);
+  if (!skipAppOnly) {
+    copyDat(projectDir, system, fileType, depMap);
+  }
 }
 
 function installPodfiles(fileType, cmd, projectDir, system) {
