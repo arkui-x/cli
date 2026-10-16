@@ -336,10 +336,10 @@ ace create <project directory>
 | library     | 创建aar/framework工程。   |
 | plugin_napi | 创建native工程。          |
 | ffi         | 创建跨平台三方件工程（FFI形态，预编译C++，适用于加密、图像处理等C库）。 |
-| plugin      | 创建跨平台三方件工程（Plugin形态，预编译C++ + Java/Kotlin，适用于蓝牙、相机、传感器等平台API）。 |
+| plugin      | 创建跨平台三方件工程（Plugin形态，预编译C++ & Java/Kotlin，适用于蓝牙、相机、传感器等平台API）。 |
 | package     | 创建跨平台三方件工程（Package形态，纯ArkTS，无原生代码，适用于UI组件库、工具函数库）。 |
 
-> `ffi`、`plugin`、`package` 三种形态对应跨平台三方件开发工程（需 ArkUI-X SDK 26.1.0.17 及以上版本），创建后可通过 `ace build plugin` 编译为跨平台 HAR 包并经 `ace install` 安装使用，详见 [ace build plugin](#ace-build-plugin-跨平台三方件编译) 与 [ace install \<name\>.har](#ace-install-三方件har安装)。
+> `ffi`、`plugin`、`package` 三种形态对应跨平台三方件开发工程（需 ArkUI-X SDK 26.0.1 及以上版本），创建后可通过 `ace build plugin` 编译为跨平台 HAR 包并经 `ace install` 安装使用，详见 [ace build plugin](#ace-build-plugin-跨平台三方件编译) 与 [ace install \<name\>.har](#ace-install-三方件har安装)。
 
 在当前目录创建test工程：
 > 当前`Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS)`选项2、3构建出的项目只能使用本工具链环境编译，暂不支持在DevEco Studio环境编译，会报`no such file or directory`的错误。
@@ -472,7 +472,7 @@ File path: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
 
 #### ace build plugin 跨平台三方件编译
 
-`ace build plugin` 用于编译通过 `ace create -t <ffi|plugin|package>` 创建的跨平台三方件工程，根据创建时选择的平台产出对应的跨平台 HAR 包。ffi/plugin 形态选择 Default(Android, iOS) 时产出 HarmonyOS、Android（AAR）、iOS（xcframework）三端产物，选择 Android 时产出 HarmonyOS、Android（AAR）产物，选择 iOS 时产出 HarmonyOS、iOS（xcframework）产物；package 形态仅产出 HarmonyOS 产物。
+`ace build plugin` 用于编译通过 `ace create -t <ffi|plugin|package>` 创建的跨平台三方件工程，根据创建时选择的平台产出对应的跨平台 HAR 包。ffi/plugin 形态选择 Default(Android, iOS) 时产出 HarmonyOS（HAR）、Android（AAR）、iOS（xcframework）三端产物，选择 Android 时产出 HarmonyOS（HAR）、Android（AAR）产物，选择 iOS 时产出 HarmonyOS（HAR）、iOS（xcframework）产物；package 形态仅产出 HarmonyOS（HAR）产物。各平台产物最终集合打包为跨平台 HAR 包，生成于 `build/outputs/<moduleName>.har`。
 
 语法：
 
