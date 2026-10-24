@@ -335,6 +335,11 @@ ace create <project directory>
 | app         | 创建普通arkui-x应用工程。 |
 | library     | 创建aar/framework工程。   |
 | plugin_napi | 创建native工程。          |
+| ffi         | 创建跨平台三方件工程（FFI形态，预编译C++，适用于加密、图像处理等C库）。 |
+| plugin      | 创建跨平台三方件工程（Plugin形态，预编译C++ & Java/Kotlin，适用于蓝牙、相机、传感器等平台API）。 |
+| package     | 创建跨平台三方件工程（Package形态，纯ArkTS，无原生代码，适用于UI组件库、工具函数库）。 |
+
+> `ffi`、`plugin`、`package` 三种形态对应跨平台三方件开发工程（需 ArkUI-X SDK 26.0.1 及以上版本），创建后可通过 `ace build plugin` 编译为跨平台 HAR 包并经 `ace install` 安装使用，详见 [ace build plugin](#ace-build-plugin-跨平台三方件编译) 与 [ace install \<name\>.har](#ace-install-三方件har安装)。
 
 在当前目录创建test工程：
 > 当前`Please select the project platform (1: Default(Android, iOS); 2: Android; 3: iOS)`选项2、3构建出的项目只能使用本工具链环境编译，暂不支持在DevEco Studio环境编译，会报`no such file or directory`的错误。
@@ -439,6 +444,7 @@ ace build <subCommand> [arguments]
 | ios  | 构建iOS应用 app 包。                                 |
 | ios-framework  | 构建iOS应用 framework 包。                                 |
 | ios-xcframework  | 构建iOS应用 xcframework 包。                                 |
+| plugin | 构建跨平台三方件 HAR 包（FFI/Plugin/Package 三种形态统一产物）。 |
 
 - arguments
 
@@ -464,6 +470,36 @@ HAP file built successfully..
 File path: /Users/ohos/WorkSpace/demo/ohos/entry/build/default/outputs/default
 ```
 
+#### ace build plugin 跨平台三方件编译
+
+`ace build plugin` 用于编译通过 `ace create -t <ffi|plugin|package>` 创建的跨平台三方件工程，根据创建时选择的平台产出对应的跨平台 HAR 包。ffi/plugin 形态选择 Default(Android, iOS) 时产出 HarmonyOS（HAR）、Android（AAR）、iOS（xcframework）三端产物，选择 Android 时产出 HarmonyOS（HAR）、Android（AAR）产物，选择 iOS 时产出 HarmonyOS（HAR）、iOS（xcframework）产物；package 形态仅产出 HarmonyOS（HAR）产物。各平台产物最终集合打包为跨平台 HAR 包，生成于 `build/outputs/<moduleName>.har`。
+
+语法：
+
+```shell
+ace build plugin
+```
+
+> 该命令需在跨平台三方件工程根目录下执行（即 `.arkui-x/crossplatform-config.json5` 所在工程），不支持 `--target` 参数，模块名通过 `discoverHarModule()` 自动发现（依次读取 `crossplatform-config.json5` 的 `name` 字段、根 `oh-package.json5` 中 `file:` 依赖名、`build-profile.json5` 中非 entry 模块）。
+
+编译流水线：
+
+| 阶段 | 平台 | 产物 | 说明 |
+| ---- | ---- | ---- | ---- |
+| Phase 1 | HarmonyOS | `<module>.har` | Hvigor assembleHar，产出标准 HAR。 |
+| Phase 2 | Android（FFI/Plugin） | `<module>-release.aar` | 复用 `ace build aar` 能力，Gradle assembleRelease 编译 AAR 并剔除引擎库 `libarkui_android.so`。 |
+| Phase 3 | iOS（FFI/Plugin，仅 macOS） | `<Module>.xcframework` | 非 macOS 自动跳过并警告，嵌入 HAR 时不包含 `ios/` 目录。 |
+| Phase 4 | 嵌入打包 | 最终 `<module>.har` | 将 `package/`、`crossplatform-config.json5`、`android/`、`ios/` 按同级目录结构打包为 HAR（gzip tar）。 |
+
+构建完成后，最终跨平台 HAR 产物生成在工程根目录的 `build/outputs/<moduleName>.har`：
+
+```shell
+Cross-platform plugin HAR built: /Users/ohos/WorkSpace/my-plugin/build/outputs/avsession.har
+  Type: plugin  Module: avsession
+```
+
+> 单平台失败仍会生成 HAR（config 中该平台字段为空），仅当 Android 与 iOS 全部失败时中止 HAR 生成。
+
 ### ace install
 
 将跨平台应用安装到连接的设备上。
@@ -487,6 +523,7 @@ ace install [arguments]
 | hap  | 安装OpenHarmony/HarmonyOS应用 hap 包，可选。 |
 | hsp  | 安装OpenHarmony/HarmonyOS应用 hsp 包，可选。 |
 | ios  | 安装iOS应用 app 包，可选。                   |
+| \<name\>.har | 安装跨平台三方件 HAR 包到当前工程（需在ArkUI-X工程根目录执行），可选。 |
 
 | 参数           | 说明                     |
 | --------------------- | ------------------------ |
@@ -505,6 +542,53 @@ ohos@user % ace install
 ? Please choose one (or "q" to quit): 2
 iOS APP installed.
 ```
+
+#### ace install 三方件HAR安装
+
+当 `ace install` 的参数（或 `--path` 指定的路径）以 `.har` 结尾时，命令走跨平台三方件安装流程，将 HAR 包安装到当前 ArkUI-X 工程，而非安装到设备。
+
+语法：
+
+```shell
+ace install <name>.har
+# 等价写法
+ace install --path <name>.har
+```
+
+**HAR 包路径格式说明**：
+
+- 参数 `<name>.har` 为 HAR 包文件路径，**建议使用绝对路径**，避免因当前工作目录不同导致找不到文件。工具内部通过 `path.resolve()` 解析路径，相对路径会以命令执行时的工作目录为基准，绝对路径则不受工作目录影响，最为可靠。
+- 路径中若包含空格，需用双引号包裹，例如：`ace install "/Users/ohos/Downloads/my plugin.har"`。
+- Windows 平台路径分隔符可使用反斜杠（`\`）或正斜杠（`/`），工具会统一处理；写入 `oh-package.json5` 的 `file:` 依赖路径会自动转换为正斜杠以保证三平台一致。
+- 该命令必须在**目标 ArkUI-X 应用工程根目录**下执行（工程需含 `.arkui-x/` 目录），否则会提示 `Not an ArkUI-X project. .arkui-x/ not found.`。
+
+macOS 平台使用绝对路径安装示例：
+
+```shell
+ohos@user ~/my-app % ace install /Users/ohos/WorkSpace/my-plugin/build/outputs/avsession.har
+Extracting HAR: avsession.har
+  Flattened package/ to root level
+Installing: avsession@1.0.0 (type: plugin)
+Android integration: copied avsession-release.aar to .arkui-x/android/app/libs/
+iOS integration: copied AVSession.xcframework to .arkui-x/ios/frameworks/
+ohpm install completed.
+Plugin installed. Remember to register the plugin class in your entry code.
+```
+
+Windows 平台使用绝对路径安装示例：
+
+```shell
+C:\Users\ohos\my-app> ace install "D:\WorkSpace\my-plugin\build\outputs\avsession.har"
+Extracting HAR: avsession.har
+  Flattened package/ to root level
+Installing: avsession@1.0.0 (type: plugin)
+Android integration: copied avsession-release.aar to .arkui-x/android/app/libs/
+iOS integration skipped (requires macOS)
+ohpm install completed.
+Plugin installed. Remember to register the plugin class in your entry code.
+```
+
+> 说明：与设备安装共存——`ace install hap`/`apk`/`ios` 仍用于安装应用包到设备，仅当参数以 `.har` 结尾时才触发三方件安装流程。安装为幂等设计，重复安装同名 HAR 会更新而非重复注册。Package 形态（纯 ArkTS）只注册 ohpm 依赖，不做 Android/iOS 平台集成；iOS 集成仅在 macOS 平台执行，非 macOS 自动跳过。
 
 ### ace uninstall
 
@@ -713,13 +797,13 @@ ace help <command>
 
 | 命令     | 说明                   |
 | ------------------- | ---------------------- |
-| build | 构建跨平台应用安装包。 |
+| build | 构建跨平台应用安装包，支持 `ace build plugin` 编译跨平台三方件 HAR 包。 |
 | check | 查验跨平台应用开发环境。 |
 | clean | 清理跨平台应用编译结果。 |
 | config | 设置ACE工具链相关配置，包括OpenHarmony SDK路径、HarmonyOS SDK路径、Android SDK路径、Node.js路径、编译输出路径等。 |
-| create    | 创建一个新的跨平台应用或者模块(Module)。                     |
+| create    | 创建一个新的跨平台应用、模块(Module)或跨平台三方件工程（`-t ffi\|plugin\|package`）。                     |
 | devices | 列出所有连接的设备。                                         |
-| install | 将跨平台应用安装到连接的设备上。 |
+| install | 将跨平台应用安装到连接的设备上，或通过 `ace install <name>.har` 安装跨平台三方件到当前工程。 |
 | launch | 在设备上运行跨平台应用。 |
 | log | 滚动展示正在运行的跨平台应用的日志。 |
 | run | 运行跨平台应用包。 |
@@ -776,6 +860,81 @@ Project:
   analysis               Analysis the interfaces that do not support cross-platform.
 
 Run "ace help <command>" for more information about a command.
+```
+
+查看跨平台三方件相关命令的详细帮助：
+
+```shell
+ohos@user % ace help create
+Usage: ace create [options] <output directory>
+
+Create a new ArkUI cross-platform project.
+
+Options:
+  -t, --template [type]  [app (default), library, plugin_napi, ffi, plugin, package]
+  -h, --help             display help for command
+
+Run "ace help" to see global options.
+```
+
+```shell
+ohos@user % ace help build
+Usage: ace build <subCommand> [arguments]
+
+Build an executable app or install a bundle.
+
+Available subcommands:
+  aab                    Build an Android App Bundle file from your app.
+  aar                    Build a repository containing an AAR and a POM file.
+  apk                    Build an Android APK file from your app.
+  bundle                 Build an ArkUI cross-platform assets directory from your app.
+  hap                    Build a HarmonyOS/Openharmony HAP file from your app.
+  hsp                    Build a HarmonyOS/Openharmony HSP file from your app.
+  ios                    Build an iOS APP file from your app.
+  ios-framework          Build an iOS framework.
+  ios-xcframework        Build an iOS XCFramework.
+  plugin                 Build a cross-platform plugin/package/ffi HAR.
+
+Run "ace help" to see global options.
+```
+
+查看 `plugin` 子命令的详细帮助（含自动发现模块名、不支持 `--target` 等说明）：
+
+```shell
+ohos@user % ace help build plugin
+Usage: ace build plugin [arguments]
+
+Build a cross-platform plugin/package/ffi HAR. Run in a project created by
+ace create -t ffi|plugin|package. The module name is auto-discovered; --target is not supported.
+
+Options:
+  -h, --help             display help for command
+
+Run "ace help" to see global options.
+```
+
+```shell
+ohos@user % ace help install
+Usage: ace install [arguments]
+
+Install an ArkUI cross-platform app on an attached device.
+
+Options:
+  --target [moduleName]  Specifies the name of the module to install.
+  --path <path>          Specifies the path of the package to install.
+  -d, --device <device>  Input device id to specify the device to do something.
+  -h, --help             display help for command
+
+Available subcommands:
+  apk                    Install an Android APK on an attached device.
+  hap                    Install a HarmonyOS/OpenHarmony HAP on an attached device.
+  hsp                    Install a HarmonyOS/OpenHarmony HSP on an attached device.
+  ios                    Install an iOS APP on an attached device.
+
+Install cross-platform plugin:
+  ace install <name>.har    Install a cross-platform plugin HAR into the current project.
+
+Run "ace help" to see global options.
 ```
 
 ### ace modify<a id="sectionModify"></a>

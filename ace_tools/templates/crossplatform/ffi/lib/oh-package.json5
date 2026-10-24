@@ -1,0 +1,9 @@
+{
+  "name": "module_name",
+  "version": "1.0.0",
+  "description": "FFI cross-platform module",
+  "main": "Index.ets",
+  "author": "",
+  "license": "",
+  "dependencies": {}
+}

@@ -338,7 +338,7 @@ function replaceStageProjectInfo(projectTempPath, bundleName, project, runtimeOS
   if (crossplatformTypes.includes(template)) {
     const templatePath = findTemplatePath();
     if (templatePath) {
-      setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVersion);
+      setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVersion, platforms);
     }
   }
   if (runtimeOS !== aceHarmonyOS && sdkVersion !== '10') {
@@ -494,9 +494,9 @@ function addModuleToBuildProfile(buildProfilePath, moduleName) {
 /**
  * Copy platform templates (android/ios) for FFI/Plugin types.
  */
-function copyPlatformTemplates(crossplatformTemplateDir, projectTempPath, moduleName) {
-  const platforms = ['android', 'ios'];
-  platforms.forEach(plat => {
+function copyPlatformTemplates(crossplatformTemplateDir, projectTempPath, moduleName, platforms) {
+  const platList = platforms === 'android' ? ['android'] : platforms === 'ios' ? ['ios'] : ['android', 'ios'];
+  platList.forEach(plat => {
     const platSrc = path.join(crossplatformTemplateDir, plat);
     if (!fs.existsSync(platSrc)) return;
     if (plat === 'android') {
@@ -585,9 +585,50 @@ function registerNativeFilesInPbxproj(projectTempPath, moduleName, template) {
 }
 
 /**
+ * Create crossplatform-config.json5 for the HAR module.
+ */
+function createCrossplatformConfig(projectTempPath, moduleName, template, sdkVersion, platforms) {
+  const crossConfigDir = path.join(projectTempPath, '.arkui-x');
+  const platList = platforms === 'android' ? ['android']
+    : platforms === 'ios' ? ['iOS']
+      : ['android', 'iOS'];
+  let crossConfig = {
+    name: moduleName,
+    version: '1.0.0',
+    type: template,
+    platform: platList,
+  };
+  const compileSdkVersion = getCompileSdkVersionWithSdkVersion(sdkVersion);
+  if (compileSdkVersion) {
+    crossConfig.compatibleSdkVersion = compileSdkVersion;
+  }
+  if (template !== acePackageProType) {
+    if (platforms === 'android' || platforms === 'both') {
+      crossConfig.android = {
+        path: 'android',
+        module: moduleName,
+        artifact: `${moduleName}-release.aar`,
+      };
+    }
+    if (platforms === 'ios' || platforms === 'both') {
+      crossConfig.ios = {
+        path: 'ios',
+        module: moduleName,
+        frameworks: [],
+      };
+    }
+  }
+  fs.writeFileSync(
+    path.join(crossConfigDir, 'crossplatform-config.json5'),
+    JSON5.stringify(crossConfig, null, 2) + '\n',
+    'utf8'
+  );
+}
+
+/**
  * Set up the cross-platform HAR module for ffi/plugin/package templates.
  */
-function setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVersion) {
+function setupCrossplatformModule(templatePath, projectTempPath, project, template, sdkVersion, platforms) {
   const crossplatformTemplateDir = path.join(templatePath, 'crossplatform', template);
   const moduleName = project + 'lib';
 
@@ -599,7 +640,7 @@ function setupCrossplatformModule(templatePath, projectTempPath, project, templa
   }
 
   // 2. Copy platform-specific templates (android/ios for ffi/plugin)
-  copyPlatformTemplates(crossplatformTemplateDir, projectTempPath, moduleName);
+  copyPlatformTemplates(crossplatformTemplateDir, projectTempPath, moduleName, platforms);
 
   // 3. Replace entry Index.ets with template verification UI
   const entryIndexSrc = path.join(crossplatformTemplateDir, 'entry', 'src', 'main', 'ets', 'pages', 'Index.ets');
@@ -623,9 +664,11 @@ function setupCrossplatformModule(templatePath, projectTempPath, project, templa
   }
 
   // 6. Create settings-plugin.gradle for ace build plugin AAR builds
-  const settingsPluginPath = path.join(projectTempPath, '.arkui-x', 'android', 'settings-plugin.gradle');
-  fs.writeFileSync(settingsPluginPath,
-    `include ':app'\nrootProject.name = "${project}"\ninclude ':${moduleName}'\n`);
+  if (platforms !== 'ios') {
+    const settingsPluginPath = path.join(projectTempPath, '.arkui-x', 'android', 'settings-plugin.gradle');
+    fs.writeFileSync(settingsPluginPath,
+      `include ':app'\nrootProject.name = "${project}"\ninclude ':${moduleName}'\n`);
+  }
 
   // 7. Replace placeholders in lib module, platform dirs, and entry Index.ets
   replacePlaceholdersInDir(libDst, moduleName);
@@ -636,43 +679,20 @@ function setupCrossplatformModule(templatePath, projectTempPath, project, templa
     fs.writeFileSync(entryIndexDst, content);
   }
 
-  replacePlaceholdersInDir(path.join(projectTempPath, '.arkui-x', 'android', moduleName), moduleName);
-  replacePlaceholdersInDir(path.join(projectTempPath, '.arkui-x', 'ios'), moduleName);
+  if (platforms === 'both' || platforms === 'android') {
+    replacePlaceholdersInDir(path.join(projectTempPath, '.arkui-x', 'android', moduleName), moduleName);
+  }
+  if (platforms === 'both' || platforms === 'ios') {
+    replacePlaceholdersInDir(path.join(projectTempPath, '.arkui-x', 'ios'), moduleName);
+  }
 
   // 8. Register native source files in app.xcodeproj for iOS
-  if (template === aceFfiProType || template === acePluginProType) {
+  if ((template === aceFfiProType || template === acePluginProType) && platforms !== 'android') {
     registerNativeFilesInPbxproj(projectTempPath, moduleName, template);
   }
 
   // 9. Create crossplatform-config.json5
-  const crossConfigDir = path.join(projectTempPath, '.arkui-x');
-  let crossConfig = {
-    name: moduleName,
-    version: '1.0.0',
-    type: template,
-    platform: ['android', 'iOS'],
-  };
-  const compileSdkVersion = getCompileSdkVersionWithSdkVersion(sdkVersion);
-  if (compileSdkVersion) {
-    crossConfig.compatibleSdkVersion = compileSdkVersion;
-  }
-  if (template !== acePackageProType) {
-    crossConfig.android = {
-      path: 'android',
-      module: moduleName,
-      artifact: `${moduleName}-release.aar`,
-    };
-    crossConfig.ios = {
-      path: 'ios',
-      module: moduleName,
-      frameworks: [],
-    };
-  }
-  fs.writeFileSync(
-    path.join(crossConfigDir, 'crossplatform-config.json5'),
-    JSON5.stringify(crossConfig, null, 2) + '\n',
-    'utf8'
-  );
+  createCrossplatformConfig(projectTempPath, moduleName, template, sdkVersion, platforms);
 }
 
 module.exports = {
