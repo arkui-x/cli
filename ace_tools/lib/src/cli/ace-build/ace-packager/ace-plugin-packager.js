@@ -413,9 +413,9 @@ function buildIOSXcFramework(moduleName, stagingDir, config, projectDir) {
     }
 
     const cmds = [
-      `xcodebuild -project ${xcodeproj} -sdk iphoneos -configuration "${mode}" ` +
+      `xcodebuild -project ${xcodeproj} -sdk iphoneos -configuration "${mode}" -quiet ` +
         `generic/platform="iOS" ARCHS=arm64 build`,
-      `xcodebuild -create-xcframework -framework ${builtFramework} -output ${xcFrameworkPath}`,
+      `xcodebuild -quiet -create-xcframework -framework ${builtFramework} -output ${xcFrameworkPath}`,
     ];
 
     try {
