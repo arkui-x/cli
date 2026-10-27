@@ -1117,7 +1117,7 @@ function fontSubset(projectDir, system) {
   let mergedTempConfigPath = '';
 
   if (!resourcesConfigPath) {
-    console.error('\x1B[31m%s\x1B[0m', 'resources-config.json was not found. Skip font subsetting.');
+    console.log('resources-config.json was not found. Skip font subsetting.');
     return { success: true, skipped: true, reason: 'resources-config.json was not found' };
   }
 
