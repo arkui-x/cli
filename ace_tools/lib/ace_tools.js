@@ -37,7 +37,7 @@ const test = require('./src/cli/ace-test');
 const { getAbsolutePath, validOptions, checkProjectType,
   isSupportedOperatorType, getCreatedPlatforms } = require('./src/cli/util');
 const { aceHelp, commandHelp, subcommandHelp, unknownOptions, unknownCommands } = require('./src/cli/ace-help');
-const { getProjectInfo, getTempPath } = require('./src/cli/ace-create/util');
+const { getProjectInfo, getTempPath, isProjectPathValid } = require('./src/cli/ace-create/util');
 const { getShowSdkVersion } = require('./src/cli/util/index');
 const { modifyModules, modifyProject } = require('./src/cli/ace-modify');
 const { analysisProject } = require('./src/cli/ace-analysis/index');
@@ -250,6 +250,12 @@ function parseCreate() {
           });
           return true;
         }
+      }
+      if (!isProjectPathValid(absolutePath)) {
+        console.error('\x1B[31m%s\x1B[0m',
+          'Invalid path. Select a path that contains only letters, digits, periods (.), ' +
+          'underscores (_), and hyphens (-), and does not end with a period.');
+        return false;
       }
       if (!isProjectNameValid(projectName)) {
         console.log('The project dir must contain 1 to 200 characters, start with a ' +
