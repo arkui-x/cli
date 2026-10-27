@@ -374,7 +374,7 @@ function copyBundletoBuild(moduleListSpecified, cmd) {
 function copyLibsToBuildByAndroid(cmd, moduleListSpecified, androidLib, buildPath, isContinue) {
   copyLibraryToProject('apk', cmd, projectDir, 'android');
   moduleListSpecified.forEach(module => {
-    newContinue = isContinue && copy(androidLib,
+    isContinue = isContinue && copy(androidLib,
       path.join(buildPath, `android/${module}/libs`), 'libarkui_android.so');
   });
   ['arm64-v8a', 'armeabi-v7a', 'x86_64'].forEach(item => {
@@ -384,7 +384,7 @@ function copyLibsToBuildByAndroid(cmd, moduleListSpecified, androidLib, buildPat
         path.join(buildPath, 'android/library', item, 'libarkui_android.so'));
     }
   });
-  return newContinue;
+  return isContinue;
 }
 
 function copyLibsToBuild(moduleListSpecified, buildPath, cmd) {
