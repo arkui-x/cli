@@ -152,7 +152,7 @@ function printICUDataError(error) {
   console.error('\x1B[31m%s\x1B[0m', 'Error: ICU data processing failed: ' + error.message);
   console.error('\x1B[33m%s\x1B[0m', 'Cause: The ICU data file could not be generated or copied to the destination directory.');
   console.error('\x1B[33m%s\x1B[0m', [
-    'Solution :',
+    'Solution:',
     '    Follow the steps for your platform, in order. Stop once the issue is resolved.',
     '    macOS — choose either approach:',
     '        1. Allow the blocked icupkg binary:',
