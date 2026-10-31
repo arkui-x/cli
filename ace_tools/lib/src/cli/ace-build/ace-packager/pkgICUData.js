@@ -144,8 +144,29 @@ function execCopyDatCmd(cmds, srcPath, destPath) {
     });
     fs.writeFileSync(destPath, fs.readFileSync(srcPath));
   } catch (err) {
-    throw new Error('copy icu data file error, please check.');
+    throw new Error('copy icu data file error.');
   }
+}
+
+function printICUDataError(error) {
+  console.error('\x1B[31m%s\x1B[0m', 'Error: ICU data processing failed: ' + error.message);
+  console.error('\x1B[33m%s\x1B[0m', 'Cause: The ICU data file could not be generated or copied to the destination directory.');
+  console.error('\x1B[33m%s\x1B[0m', [
+    'Solution:',
+    '    Follow the steps for your platform, in order. Stop once the issue is resolved.',
+    '    macOS — choose either approach:',
+    '        1. Allow the blocked icupkg binary:',
+    '            Open System Settings → Privacy & Security, find the blocked icupkg entry under Security, click Allow Anyway, then rebuild.',
+    '        2. Remove the quarantine attribute, then rebuild:',
+    '            xattr -dr com.apple.quarantine "<ArkUI-X SDK PATH>/arkui-x/toolchains/bin/icudata_filter/mac/icupkg"',
+    '    Windows / Linux — complete both checks:',
+    '        1. Verify SDK integrity:',
+    '            Confirm the following files exist. If any are missing, re-download the full SDK, extract it, overwriting the existing installation, then rebuild.',
+    '            - <ArkUI-X SDK PATH>/arkui-x/toolchains/bin/icudata_filter/filter_data.js',
+    '            - <ArkUI-X SDK PATH>/arkui-x/toolchains/bin/icudata_filter/<platform>/icupkg (e.g. windows/icupkg, linux/icupkg)',
+    '        2. Grant read/write/execute permissions:',
+    '            Ensure the current user has read, write, and execute permissions on both the project directory and <ArkUI-X SDK PATH>, then rebuild.'
+  ].join('\n'));
 }
 
 function checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath) {
@@ -214,7 +235,7 @@ function copyDat(projectDir, system, fileType, depMap) {
   try {
     execCopyDatCmd(cmds, srcPath, destPath);
   } catch (err) {
-    console.error('\x1B[31m%s\x1B[0m', 'ICU data processing failed: ' + err.message);
+    printICUDataError(err);
     return false;
   }
   return true;
