@@ -718,6 +718,28 @@ copy() {
 copyStageBundleToAndroidAndIOS`;
 }
 
+function isProjectPathValid(absPath) {
+  if (!absPath || typeof absPath !== 'string') {
+    return false;
+  }
+  const normalized = path.normalize(absPath).replace(/\\/g, '/');
+  const noDrive = normalized.replace(/^[A-Za-z]:/, '');
+  const segments = noDrive.split('/').filter(seg => seg.length > 0);
+  if (segments.length === 0) {
+    return false;
+  }
+  const validCharRegex = /^[A-Za-z0-9._-]+$/;
+  for (const seg of segments) {
+    if (!validCharRegex.test(seg)) {
+      return false;
+    }
+    if (seg.endsWith('.')) {
+      return false;
+    }
+  }
+  return true;
+}
+
 module.exports = {
   copy,
   rmdir,
@@ -736,4 +758,5 @@ module.exports = {
   createAndroidAndIosBuildArkTSShell,
   createIosScriptInPbxproj,
   updateCrossPlatformConfig,
+  isProjectPathValid,
 };
