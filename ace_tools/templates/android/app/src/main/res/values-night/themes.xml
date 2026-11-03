@@ -14,7 +14,7 @@
   limitations under the License.
 -->
 <resources>
-    <style name="myTheme"
+    <style name="AppTheme"
            parent="@android:style/Theme.Material.NoActionBar">
 
         <item name="android:windowBackground">@android:color/black</item>

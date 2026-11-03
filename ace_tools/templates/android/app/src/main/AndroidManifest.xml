@@ -9,7 +9,7 @@
         android:icon="@drawable/arkuix"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/myTheme">
+        android:theme="@style/AppTheme">
 	<activity android:exported="true" android:name=".MainActivity"
 		android:windowSoftInputMode="adjustNothing |stateHidden"
 		android:configChanges="orientation|keyboard|layoutDirection|screenSize|screenLayout|uiMode|smallestScreenSize|density"
