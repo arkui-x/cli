@@ -3,6 +3,7 @@ plugins {
 }
 
 android {
+    namespace "packageName"
     compileSdkVersion 33
     buildToolsVersion "30.0.3"
 
