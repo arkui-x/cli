@@ -15,7 +15,7 @@
 -->
 <resources>
     <style name="myTheme"
-           parent="@android:style/Theme.Material.Light.NoActionBar">
+           parent="@android:style/Theme.Material.NoActionBar">
 
         <item name="android:windowBackground">@android:color/black</item>
 
@@ -23,6 +23,5 @@
         <item name="android:windowLightStatusBar">false</item>
 
         <item name="android:navigationBarColor">@android:color/black</item>
-        <item name="android:windowLightNavigationBar">false</item>
     </style>
 </resources>
