@@ -394,6 +394,10 @@ function copyStageTemplate(templatePath, projectTempPath, template, sdkVersion, 
   if (!copy(path.join(templatePath, '/ohos_stage'), projectTempPath)) {
     return false;
   }
+  const gitignoreSrc = path.join(templatePath, '/ohos_stage/.gitignore');
+  if (fs.existsSync(gitignoreSrc)) {
+    fs.writeFileSync(path.join(projectTempPath, '.gitignore'), fs.readFileSync(gitignoreSrc));
+  }
   if (template === acePluginNapiProType) {
     if (!copy(path.join(templatePath, '/cpp_ets_stage/source'), projectTempPath)) {
       return false;

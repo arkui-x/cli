@@ -172,6 +172,9 @@ function modifyHarmonyOSConfig(projectPath, moduleName, sdkVersion) {
       if (productsInfo[index].name === 'default' && productsInfo[index].runtimeOS !== 'HarmonyOS') {
         productsInfo[index].runtimeOS = 'HarmonyOS';
         productsInfo[index].compatibleSdkVersion = isHaveSdkVersion(sdkVersion) ? getCompatibleSdkVersionWithSdkVersion(sdkVersion) : '4.0.0(10)';
+        if (sdkVersionResult >= 26) {
+          productsInfo[index].targetSdkVersion = productsInfo[index].compatibleSdkVersion;
+        }
         if (sdkVersionResult >= 12) {
           delete productsInfo[index].compileSdkVersion;
         } else {
