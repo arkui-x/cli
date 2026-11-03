@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="myTheme"
+           parent="@android:style/Theme.Material.Light.NoActionBar">
+
+        <!-- Activity/ArkUI Surface 创建前的窗口背景 -->
+        <item name="android:windowBackground">@android:color/white</item>
+
+        <!-- 状态栏：白底、深色图标 -->
+        <item name="android:statusBarColor">@android:color/white</item>
+        <item name="android:windowLightStatusBar">true</item>
+
+        <item name="android:navigationBarColor">@android:color/white</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>
