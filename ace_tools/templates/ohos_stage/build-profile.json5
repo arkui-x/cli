@@ -8,6 +8,12 @@
         "compileSdkVersion": 10,
         "compatibleSdkVersion": 10,
         "runtimeOS": "OpenHarmony",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": false
+          }
+        }
       }
     ],
     "buildModeSet": [
