@@ -144,8 +144,32 @@ function execCopyDatCmd(cmds, srcPath, destPath) {
     });
     fs.writeFileSync(destPath, fs.readFileSync(srcPath));
   } catch (err) {
-    throw new Error('copy icu data file error, please check.');
+    throw new Error('copy icu data file error.');
   }
+}
+
+function printICUDataError(error) {
+  console.error('\x1B[31m%s\x1B[0m', 'Error: ICU data processing failed: ' + error.message);
+  console.error('\x1B[33m%s\x1B[0m', 'Cause: The ICU data file could not be generated or copied to the destination directory.');
+  console.error('\x1B[33m%s\x1B[0m', [
+    'Solution:',
+    '    Try the following options:',
+    '    All platforms (Windows / Linux / macOS):',
+    '        1. Verify SDK integrity:',
+    '            Confirm the following files exist. If any are missing, re-download the full SDK and extract it over the existing installation.',
+    '            - <ArkUI-X SDK PATH>/arkui-x/toolchains/bin/icudata_filter/filter_data.js',
+    '            - The icupkg executable for your platform under <ArkUI-X SDK PATH>/arkui-x/toolchains/bin/icudata_filter/:',
+    '                Windows: windows/icupkg.exe',
+    '                Linux: linux/icupkg',
+    '                macOS: mac/icupkg',
+    '        2. Check directory permissions:',
+    '            Ensure the current user has read, write, and execute permissions on both the project directory and <ArkUI-X SDK PATH>.',
+    '    macOS only - if icupkg is still blocked, try one of the following options, then rebuild:',
+    '        1. Allow the blocked icupkg binary:',
+    '            Open System Settings -> Privacy & Security, find the blocked icupkg entry under Security, and click Allow Anyway.',
+    '        2. Remove the quarantine attribute:',
+    '            xattr -dr com.apple.quarantine "<ArkUI-X SDK PATH>/arkui-x/toolchains/bin/icudata_filter/mac/icupkg"'
+  ].join('\n'));
 }
 
 function checkArkUIXVersion(sdkVersion, isOk, currentArkUIXPath) {
@@ -214,7 +238,7 @@ function copyDat(projectDir, system, fileType, depMap) {
   try {
     execCopyDatCmd(cmds, srcPath, destPath);
   } catch (err) {
-    console.error('\x1B[31m%s\x1B[0m', 'ICU data processing failed: ' + err.message);
+    printICUDataError(err);
     return false;
   }
   return true;
