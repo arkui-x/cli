@@ -30,8 +30,12 @@ function run(fileType, device, cmd) {
     return false;
   }
   const entryModule = getEntryModule(projectDir);
-  cmd.target = cmd.target || entryModule;
-  const moduleListInput = cmd.target.split(',');
+  const inputTarget = cmd.target;
+  const launchTarget = inputTarget || entryModule;
+  if (!launchTarget) {
+    return false;
+  }
+  const moduleListInput = launchTarget.split(',');
   if (!validInputModule(projectDir, moduleListInput, fileType)) {
     return false;
   }
@@ -43,6 +47,9 @@ function run(fileType, device, cmd) {
   } else {
     build(fileType, cmd);
   }
+  // If --target was not specified, build above used the compiler's default
+  // full cross-platform module list; only install/launch fall back to entry.
+  cmd.target = launchTarget;
   let installFlag = true;
   installFlag = install(fileType, device, cmd, undefined);
   cmd.target = getLaunchModule(projectDir, cmd.target);
