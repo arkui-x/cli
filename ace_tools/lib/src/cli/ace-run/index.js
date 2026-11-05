@@ -30,8 +30,11 @@ function run(fileType, device, cmd) {
     return false;
   }
   const entryModule = getEntryModule(projectDir);
-  cmd.target = cmd.target || entryModule;
-  const moduleListInput = cmd.target.split(',');
+  const launchTarget = cmd.target || entryModule;
+  if (!launchTarget) {
+    return false;
+  }
+  const moduleListInput = launchTarget.split(',');
   if (!validInputModule(projectDir, moduleListInput, fileType)) {
     return false;
   }
@@ -43,6 +46,9 @@ function run(fileType, device, cmd) {
   } else {
     build(fileType, cmd);
   }
+  // Without --target, the build above uses the compiler's default module set
+  // for the current fileType; only install/launch fall back to entry.
+  cmd.target = launchTarget;
   let installFlag = true;
   installFlag = install(fileType, device, cmd, undefined);
   cmd.target = getLaunchModule(projectDir, cmd.target);
