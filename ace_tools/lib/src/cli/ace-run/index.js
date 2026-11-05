@@ -30,8 +30,7 @@ function run(fileType, device, cmd) {
     return false;
   }
   const entryModule = getEntryModule(projectDir);
-  const inputTarget = cmd.target;
-  const launchTarget = inputTarget || entryModule;
+  const launchTarget = cmd.target || entryModule;
   if (!launchTarget) {
     return false;
   }
@@ -47,8 +46,8 @@ function run(fileType, device, cmd) {
   } else {
     build(fileType, cmd);
   }
-  // If --target was not specified, build above used the compiler's default
-  // full cross-platform module list; only install/launch fall back to entry.
+  // Without --target, the build above uses the compiler's default module set
+  // for the current fileType; only install/launch fall back to entry.
   cmd.target = launchTarget;
   let installFlag = true;
   installFlag = install(fileType, device, cmd, undefined);
