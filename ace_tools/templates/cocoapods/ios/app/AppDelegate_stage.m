@@ -103,12 +103,4 @@
     self.window.rootViewController = navi;
 }
 
-- (void)setNaviAppearance:(UINavigationController *)navi {
-    UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
-    [appearance configureWithOpaqueBackground];
-    appearance.backgroundColor = UIColor.whiteColor;
-    navi.navigationBar.standardAppearance = appearance;
-    navi.navigationBar.scrollEdgeAppearance = navi.navigationBar.standardAppearance;
-}
-
 @end
