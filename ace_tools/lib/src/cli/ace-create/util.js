@@ -103,16 +103,19 @@ function modifyOhPackageJson(projectPath, sdkVersion) {
 function modifyHvigorJson(projectPath, sdkVersion) {
   const hvigorfile = path.join(projectPath, '/hvigor/hvigor-config.json5');
   if (fs.existsSync(hvigorfile)) {
-    let nowModelVersion = getModelVersionWithSdkVersion(sdkVersion);
-    const hvigorversionInfo = JSON5.parse(fs.readFileSync(hvigorfile));
-    delete hvigorversionInfo.hvigorVersion;
-    delete hvigorversionInfo.dependencies['@ohos/hvigor-ohos-plugin'];
-    hvigorversionInfo.dependencies['@ohos/hvigor-ohos-arkui-x-plugin'] = getArkuixPluginWithModelVersion(nowModelVersion);
-    fs.writeFileSync(hvigorfile, JSON.stringify(hvigorversionInfo, '', '  '));
-    const hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
-    let modelVersionStr = `\n  "modelVersion": "${nowModelVersion}",`;
-    const hvigorInfo = hvigorFileInfo.slice(0, 1) + modelVersionStr + hvigorFileInfo.slice(1);
-    fs.writeFileSync(hvigorfile, hvigorInfo);
+    const nowModelVersion = getModelVersionWithSdkVersion(sdkVersion);
+    const arkuiXPlugin = getArkuixPluginWithModelVersion(nowModelVersion);
+    let hvigorFileInfo = fs.readFileSync(hvigorfile).toString();
+    const obsoleteProperties = ['hvigorVersion', '@ohos/hvigor-ohos-plugin'];
+    hvigorFileInfo = hvigorFileInfo.split('\n')
+      .filter(line => !obsoleteProperties.some(property => line.includes(property)))
+      .join('\n');
+    hvigorFileInfo = hvigorFileInfo.replace(
+      /("@ohos\/hvigor-ohos-arkui-x-plugin"\s*:\s*)"[^"]*"/,
+      `$1"${arkuiXPlugin}"`);
+    const modelVersionStr = `\n  "modelVersion": "${nowModelVersion}",`;
+    hvigorFileInfo = hvigorFileInfo.slice(0, 1) + modelVersionStr + hvigorFileInfo.slice(1);
+    fs.writeFileSync(hvigorfile, hvigorFileInfo);
   }
 }
 
