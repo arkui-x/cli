@@ -99,16 +99,8 @@
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
     UINavigationController *navi = [[UINavigationController alloc]initWithRootViewController:viewController];
-    [self setNaviAppearance:navi];
+    [navi setNavigationBarHidden:YES];
     self.window.rootViewController = navi;
-}
-
-- (void)setNaviAppearance:(UINavigationController *)navi {
-    UINavigationBarAppearance *appearance = [UINavigationBarAppearance new];
-    [appearance configureWithOpaqueBackground];
-    appearance.backgroundColor = UIColor.whiteColor;
-    navi.navigationBar.standardAppearance = appearance;
-    navi.navigationBar.scrollEdgeAppearance = navi.navigationBar.standardAppearance;
 }
 
 @end
