@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+// Install the last-resort CLI error guard before any business module.
+globalThis.__ACE_TOP_LEVEL_IS_CLI__ = require.main === module;
+require('./top-level-fallback');
+
 const fs = require('fs');
 const path = require('path');
 const program = require('commander');
