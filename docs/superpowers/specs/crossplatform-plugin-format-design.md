@@ -239,20 +239,32 @@ ace create <outputDir> -t <ffi|plugin|package>
 
 ### 4.3 工程模板结构
 
+> 创建时的平台选择决定 `.arkui-x/` 下生成哪些平台目录：
+> - `android`：只生成 `.arkui-x/android/`
+> - `ios`：只生成 `.arkui-x/ios/`
+> - `Default(Android, iOS)`：两者都生成
+>
+> 本节以三个示例工程展开说明：
+> - Package：工程 `my-package/`，模块 `my-packagelib/`
+> - FFI：工程 `my-ffi/`，模块 `my-ffilib/`
+> - Plugin：工程 `my-plugin/`，模块 `my-pluginlib/`
+>
+> 注：§4.4 中的 `{moduleName}` 与上述模块目录名等价（如 `my-ffilib`、`my-pluginlib`）。
+
 #### Package开发工程
 
 ```
 my-package/
 ├── AppScope/
 ├── entry/                           # 测试/示例
-├── my-package/                      # ArkTS业务逻辑
+├── my-packagelib/                  # ArkTS业务逻辑
 │   ├── Index.ets
 │   ├── src/main/ets/
 │   └── oh-package.json5
 ├── .arkui-x/
 │   ├── crossplatform-config.json5   # type: "package"
-│   ├── android/
-│   └── ios/
+│   ├── android/                     # 仅 android|Default(Android, iOS)；仅测试 App 壳，无原生产物
+│   └── ios/                         # 仅 ios|Default(Android, iOS)；仅测试 App 壳，无原生产物
 ├── build-profile.json5
 └── oh-package.json5
 ```
@@ -260,31 +272,32 @@ my-package/
 #### FFI开发工程
 
 ```
-mymodule/
+my-ffi/
 ├── AppScope/
 ├── entry/
-├── mymodule/                        # ArkTS接口 + C++源码
+├── my-ffilib/                      # ArkTS接口 + C++源码
 │   ├── Index.ets
 │   ├── src/main/
-│   │   ├── ets/MyModule.ets         # ArkTS接口层
+│   │   ├── ets/Index.ets            # ArkTS接口层
 │   │   └── cpp/                     # C++源码（HarmonyOS侧编译）
 │   │       ├── CMakeLists.txt
-│   │       ├── napi_init.cpp
-│   │       └── mymodule_core.cpp
+│   │       └── hello.cpp
 │   └── oh-package.json5
 ├── .arkui-x/
 │   ├── crossplatform-config.json5   # type: "ffi"
-│   ├── android/
+│   ├── android/                     # 仅 android|Default(Android, iOS)
 │   │   ├── app/
-│   │   └── mymodule/                # Android库模块
-│   │       ├── build.gradle         # CMake配置
-│   │       └── src/main/cpp/        # C++源码（复用OHOS侧）
-│   └── ios/
+│   │   └── my-ffilib/               # Android库模块
+│   │       ├── build.gradle         # Gradle Library配置
+│   │       └── src/main/
+│   │           ├── AndroidManifest.xml
+│   │           └── cpp/CMakeLists.txt  # 引用根模块C++源码
+│   └── ios/                               # 仅 ios|Default(Android, iOS)
 │       ├── app/                           # iOS App target
 │       ├── app.xcodeproj/                 # App 工程文件
-│       ├── {moduleName}lib/              # FFI 框架 target（静态库）
-│       │   └── {moduleName}lib.h         # 框架头文件
-│       ├── {moduleName}lib.xcodeproj/    # 框架工程文件
+│       ├── my-ffilib/                     # FFI 框架 target（静态库）
+│       │   └── my-ffilib.h                # 框架头文件
+│       ├── my-ffilib.xcodeproj/           # 框架工程文件
 │       ├── frameworks/                   # 引擎框架目录（buildPluginHAR 时复制 libarkui_ios.xcframework）
 │       ├── arkui-x/                      # ArkTS 产物目录
 │       └── buildArkTS.sh                 # ArkTS 编译脚本
@@ -295,35 +308,36 @@ mymodule/
 #### Plugin开发工程
 
 ```
-avsession/
+my-plugin/
 ├── AppScope/
 ├── entry/
-├── avsession/                       # ArkTS接口 + C++桥接
+├── my-pluginlib/                   # ArkTS接口 + C++桥接
 │   ├── Index.ets
 │   ├── src/main/
-│   │   ├── ets/AVSession.ets
+│   │   ├── ets/Index.ets
 │   │   └── cpp/                     # C++桥接层（NAPI + 平台抽象）
 │   │       ├── CMakeLists.txt
-│   │       ├── napi_init.cpp
-│   │       └── avsession_interface.h
+│   │       └── plugin.cpp
 │   └── oh-package.json5
 ├── .arkui-x/
 │   ├── crossplatform-config.json5   # type: "plugin"
-│   ├── android/
+│   ├── android/                     # 仅 android|Default(Android, iOS)
 │   │   ├── app/
-│   │   └── avsession/               # Android库模块
+│   │   └── my-pluginlib/            # Android库模块
 │   │       ├── build.gradle         # CMake + Java编译配置
 │   │       └── src/main/
+│   │           ├── AndroidManifest.xml
 │   │           ├── java/            # Java平台实现
-│   │           └── cpp/             # Android C++实现
-│   └── ios/
+│   │           └── cpp/             # Android C++实现（plugin_impl/plugin_jni）
+│   └── ios/                               # 仅 ios|Default(Android, iOS)
 │       ├── app/                           # iOS App target
 │       ├── app.xcodeproj/                 # App 工程文件
-│       ├── {moduleName}lib/              # Plugin 框架 target（静态库）
-│       │   ├── {moduleName}lib.h         # 框架头文件
-│       │   ├── {ModuleName}Plugin.h/.m   # iOS 插件入口类
-│       │   └── plugin_impl.mm            # 插件实现（ObjC++，含 C++ 桥接）
-│       ├── {moduleName}lib.xcodeproj/    # 框架工程文件
+│       ├── my-pluginlib/                  # Plugin 框架 target（静态库）
+│       │   ├── my-pluginlib.h             # 框架头文件
+│       │   ├── My-pluginlibPlugin.h/.m    # iOS 插件入口类
+│       │   ├── plugin_impl.h              # 插件实现头文件
+│       │   └── plugin_impl.mm             # 插件实现（ObjC++，含 C++ 桥接）
+│       ├── my-pluginlib.xcodeproj/        # 框架工程文件
 │       ├── frameworks/                   # 引擎框架目录（buildPluginHAR 时复制 libarkui_ios.xcframework）
 │       ├── arkui-x/                      # ArkTS 产物目录
 │       └── buildArkTS.sh                 # ArkTS 编译脚本
@@ -331,7 +345,7 @@ avsession/
 └── oh-package.json5
 ```
 
-**注意**: 开发工程中`.arkui-x/android/<module>/`仍然是完整的Gradle Library Module（源码），`ace build plugin`时编译为AAR产物嵌入HAR。开发-编译-分发的分离是关键。
+**注意**: 开发工程中 `.arkui-x/android/{projectName}lib/`（示例：`my-ffilib/`、`my-pluginlib/`）仍然是完整的 Gradle Library Module（源码，仅 FFI/Plugin），`ace build plugin`时编译为AAR产物嵌入HAR。开发-编译-分发的分离是关键。
 
 ### 4.4 `setupCrossplatformModule()` 执行步骤
 
