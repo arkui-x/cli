@@ -53,10 +53,19 @@ function copy(src, dst) {
   });
 }
 
+// Reuse the exact source guard as the bundle banner so the entry guard and the
+// bundled startup path cannot drift apart. output.banner runs before the UMD
+// wrapper and bundled modules, covering module-init errors before the entry.
+const topLevelFallbackBanner = fs.readFileSync(
+  path.join(__dirname, 'lib/top-level-fallback.js'),
+  'utf8'
+);
+
 export default {
   input: 'lib/ace_tools.js',
   output: {
     file: path.join(distPath, 'lib', 'ace_tools.js'),
+    banner: topLevelFallbackBanner,
     format: 'umd',
     name: 'ace_tools',
     sourcemap: true,
