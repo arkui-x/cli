@@ -18,6 +18,7 @@ const path = require('path');
 const JSON5 = require('json5');
 const crypto = require('crypto');
 const { getDeviceID, devicesList } = require('../ace-devices');
+const { printError } = require('./print-error');
 const { Platform, platform } = require('../ace-check/platform');
 const { devEcoStudioDir, devEcoStudioVersion } = require('../ace-check/configs');
 global.HarmonyOS = 'HarmonyOS';
@@ -881,23 +882,6 @@ function getDevEcoNodePath() {
     return (platform === Platform.MacOS) ? `${devEcoNodePath}` : `"${devEcoNodePath}"`;
   }
   return '';
-}
-
-function printError(error, cause, solutions = [], rawError = null) {
-  let msg = `\x1B[31mError: ${error}\x1B[0m`;
-  if (cause) {
-    msg += `\n\x1B[33m Cause: ${cause}\x1B[0m`;
-  }
-  if (solutions && solutions.length > 0) {
-    msg += `\n\x1B[33m Solution:`;
-    solutions.forEach((s, i) => { msg += `\n  ${i + 1}. ${s}`; });
-    msg += `\x1B[0m`;
-  }
-  if (rawError) {
-    console.error(msg + '\n', rawError);
-  } else {
-    console.error(msg);
-  }
 }
 
 function printRuntimeOSError() {

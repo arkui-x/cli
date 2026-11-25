@@ -19,6 +19,7 @@ const { checkDevices } = require('../ace-check/checkDevices');
 const { getTools } = require('../ace-check/getTool');
 const { deployVersion } = require('../ace-check/configs');
 const { Platform, platform } = require('../ace-check/platform');
+const { printError } = require('../util/print-error');
 const devicesList = getDevicesList();
 
 function getDevicesList() {
@@ -249,7 +250,6 @@ function getIosVersion(device) {
 function getIosMajorVersion(device) {
   const version = getIosVersion(device);
   if (!version) {
-    const { printError } = require('../util'); // Lazy require to avoid circular dependency (util <-> ace-devices)
     printError('Failed to get iOS version.', 'getIosVersion returned empty - ideviceinfo not installed, device not trusted, or connection issue.', ['Install ideviceinfo (libimobiledevice)', 'Trust the device', 'Check USB connection', "Run 'ace devices' to retry"]);
     return NaN;
   }
