@@ -315,15 +315,8 @@ function parseCreate() {
             },
           }]).then(answers => {
             initInfo.runtimeOS = answers.runtimeOS;
-            let sdkVersionShowMap = getShowSdkVersion();
-            let sdkChooseStr = '';
-            sdkVersionShowMap.forEach((value, key) => {
-              if (sdkChooseStr !== '') {
-                sdkChooseStr = sdkChooseStr + '; ';
-              }
-              sdkChooseStr = sdkChooseStr + key + ': ' + value;
-            });
-            let messageStr = 'Please select the Compile SDK (' + sdkChooseStr + '):';
+            const sdkVersionShowMap = getShowSdkVersion();
+            const messageStr = 'Please select the Compile SDK (' + formatSdkVersionChoices(sdkVersionShowMap) + '):';
             inquirer.prompt([{
               name: 'Compile SDK',
               type: 'input',
@@ -370,6 +363,14 @@ function parseCreate() {
   }
   createCmd.unknownOption = () => unknownOptions();
   commandsSort['Project'].push(program.commands[program.commands.length - 1]);
+}
+
+function formatSdkVersionChoices(sdkVersionShowMap) {
+  const choices = [];
+  sdkVersionShowMap.forEach((value, key) => {
+    choices.push(`${key}: ${value}`);
+  });
+  return choices.join('; ');
 }
 
 function getChooseSdkVersionTip(sdkVersionShowMap) {
