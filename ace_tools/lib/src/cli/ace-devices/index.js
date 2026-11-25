@@ -249,8 +249,10 @@ function getIosVersion(device) {
 function getIosMajorVersion(device) {
   const version = getIosVersion(device);
   if (!version) {
-    const { printError } = require('../util'); // Lazy require to avoid circular dependency (util <-> ace-devices)
-    printError('Failed to get iOS version.', 'getIosVersion returned empty - ideviceinfo not installed, device not trusted, or connection issue.', ['Install ideviceinfo (libimobiledevice)', 'Trust the device', 'Check USB connection', "Run 'ace devices' to retry"]);
+    console.error('\x1B[31m%s\x1B[0m', 'Failed to get iOS version.\n' +
+      'Cause: getIosVersion returned empty - ideviceinfo not installed, device not trusted, or connection issue.\n' +
+      'Solution: 1. Install ideviceinfo (libimobiledevice); 2. Trust the device; 3. Check USB connection; ' +
+      "4. Run 'ace devices' to retry");
     return NaN;
   }
   return Number(version.split('.')[0]);
